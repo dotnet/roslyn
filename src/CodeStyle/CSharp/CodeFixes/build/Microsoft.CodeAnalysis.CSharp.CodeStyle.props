@@ -1,0 +1,13 @@
+﻿<Project>
+  <!-- 
+    PropertyGroup to disable built-in CodeStyle analyzers from .NET SDK that have the identical IDE rules to those implemented in this package.
+    This props file should only be present in the analyzer NuGet package, it should **not** be inserted into the .NET SDK.
+    In future, if we need to insert a CodeStyle props file into the .NET SDK, we should move out the below property group into a separate props file
+    which is not inserted into the .NET SDK.
+
+    NOTE: Keep this file in sync with 'Microsoft.CodeAnalysis.VisualBasic.CodeStyle.props'
+  -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>

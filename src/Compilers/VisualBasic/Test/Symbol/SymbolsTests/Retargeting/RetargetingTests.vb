@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -3146,7 +3148,7 @@ End Namespace
             Dim bAbleToRetargetToV2 As Boolean = False
             For Each r In C.References
                 Dim Item As String = r.Display
-                If r.Display.ToLower.Contains("mscorlib") And r.Display.ToLower.Contains("v4") Then
+                If r.Display.ToLower.Contains("mscorlib") And r.Display.ToLower.Contains("net4") Then
                     bAbleToRetargetToV2 = True
                 End If
             Next
@@ -3156,10 +3158,10 @@ End Namespace
                 Dim AssembliesToRetarget As Integer = 0
                 For Each r In C.References
                     Dim Item As String = r.Display
-                    If r.Display.ToLower.Contains("mscorlib") And r.Display.ToLower.Contains("v4") Then
+                    If r.Display.ToLower.Contains("mscorlib") And r.Display.ToLower.Contains("net4") Then
                         OldReference = r
                         AssembliesToRetarget = AssembliesToRetarget + 1
-                    ElseIf r.Display.ToLower.Contains("microsoft.visualbasic") And r.Display.ToLower.Contains("v4") Then
+                    ElseIf r.Display.ToLower.Contains("microsoft.visualbasic") And r.Display.ToLower.Contains("net4") Then
                         OldVBReference = r
                         AssembliesToRetarget = AssembliesToRetarget + 2
                         'ElseIf r.Display.Contains("System") And r.Display.Contains("v4") Then
@@ -3172,12 +3174,12 @@ End Namespace
                 Else
                     'Retarget to use v2.0 assemblies
                     If AssembliesToRetarget = 1 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestReferences.NetFx.v2_0_50727.mscorlib)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib)
                     ElseIf AssembliesToRetarget = 2 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=TestReferences.NetFx.v2_0_50727.Microsoft_VisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
                     ElseIf AssembliesToRetarget = 3 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestReferences.NetFx.v2_0_50727.mscorlib).
-                            ReplaceReference(oldReference:=OldVBReference, newReference:=TestReferences.NetFx.v2_0_50727.Microsoft_VisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib).
+                            ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
                     End If
                 End If
             Else
@@ -3251,6 +3253,40 @@ End Class
             Dim cs As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("CS").Single
             Assert.IsType(Of RetargetingNamedTypeSymbol)(cs)
             Assert.True(DirectCast(cs, INamedTypeSymbol).IsSerializable)
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitInterfaceImplementationRetargetingGenericType()
+            Dim source1 = "
+Public Class C1(Of T)
+    Public Interface I1
+        Sub M(x As T)
+    End Interface
+End Class
+"
+            Dim ref1 = CreateEmptyCompilation("").ToMetadataReference()
+            Dim compilation1 = CreateCompilation(source1, references:={ref1})
+
+            Dim source2 = "
+Public Class C2(Of U) 
+    Implements C1(Of U).I1
+
+    Sub M(x As U) Implements C1(Of U).I1.M
+    End Sub
+End Class
+"
+            Dim compilation2 = CreateCompilation(source2, references:={compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference()})
+
+            Dim compilation3 = CreateCompilation("", references:={compilation1.ToMetadataReference(), compilation2.ToMetadataReference()})
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"))
+
+            Dim c2 = compilation3.GetTypeByMetadataName("C2`1")
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(c2)
+
+            Dim m = c2.GetMethod("M")
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single())
         End Sub
 
     End Class

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,8 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
+        /// <summary>
+        /// Creates a "late" bound instance with all fields set.
+        /// </summary>
         public TypeParameterBounds(
-            ImmutableArray<TypeSymbol> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
             TypeSymbol deducedBaseType)
@@ -34,13 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterBounds()
         {
+            EffectiveBaseClass = null!;
+            DeducedBaseType = null!;
         }
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
         /// constraint types on the containing type parameter, with cycles removed.
         /// </summary>
-        public readonly ImmutableArray<TypeSymbol> ConstraintTypes;
+        public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// The set of interfaces explicitly declared on the containing type
@@ -71,5 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Deduced base type is used to check that consistency rules are satisfied.
         /// </summary>
         public readonly TypeSymbol DeducedBaseType;
+    }
+
+    internal static class TypeParameterBoundsExtensions
+    {
+        internal static bool IsSet(this TypeParameterBounds boundsOpt)
+        {
+            return boundsOpt != TypeParameterBounds.Unset;
+        }
     }
 }

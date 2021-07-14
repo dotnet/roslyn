@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -81,15 +83,25 @@ class C
 end class")
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
-        Public Async Function TestMissingBeforeFor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestBeforeFor() As Task
+            Await TestInRegularAndScript1Async(
 "imports System
 
 class C
     sub Test(array as string())
        [||] For i = 0 to array.Length - 1
             Console.WriteLine(array(i))
+        next
+    end sub
+end class",
+"imports System
+
+class C
+    sub Test(array as string())
+        For Each {|Rename:v|} In array
+            Console.WriteLine(v)
         next
     end sub
 end class")
@@ -530,6 +542,20 @@ class C
         next ' trivia 3
     end sub
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
+        Public Async Function DoNotCrashOnInvalidCode() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub Test()
+        Dim list = New List(Of Integer)
+        [||]For newIndex = 0 To list.Count - 1 \' type the character '\' at the end of this line to invoke exception
+        Next
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

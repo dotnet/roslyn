@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../CSharpCompilerExtensionsResources.resx">
+    <body>
+      <trans-unit id="Code_block_preferences">
+        <source>Code-block preferences</source>
+        <target state="translated">Préférences de bloc de code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_string_or_char_literal">
+        <source>Expected string or char literal</source>
+        <target state="translated">Littéral char ou string attendu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_bodied_members">
+        <source>Expression-bodied members</source>
+        <target state="translated">Membres expression-bodied</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_checking_preferences">
+        <source>Null-checking preferences</source>
+        <target state="translated">Préférences de vérification de valeur Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences">
+        <source>Pattern matching preferences</source>
+        <target state="translated">Préférences correspondants au modèle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_1_is_not_supported_in_this_version">
+        <source>'{0}.{1}' is not supported in this version</source>
+        <target state="translated">'{0}.{1}' n'est pas pris en charge dans cette version</target>
+        <note>{0}: A type name
+{1}: A member name</note>
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="translated">Préférences pour la directive 'using'</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="var_preferences">
+        <source>var preferences</source>
+        <target state="translated">Préférences de var</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

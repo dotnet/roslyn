@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,86 +17,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class Lexer
     {
-        private void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
+        private void ScanStringLiteral(ref TokenInfo info, bool inDirective)
         {
             var quoteCharacter = TextWindow.PeekChar();
-            if (quoteCharacter == '\'' || quoteCharacter == '"')
+            Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
+
+            TextWindow.AdvanceChar();
+            _builder.Length = 0;
+
+            while (true)
             {
-                TextWindow.AdvanceChar();
-                _builder.Length = 0;
-                while (true)
+                char ch = TextWindow.PeekChar();
+
+                // Normal string & char constants can have escapes. Strings in directives cannot.
+                if (ch == '\\' && !inDirective)
                 {
-                    char ch = TextWindow.PeekChar();
-                    if (ch == '\\' && allowEscapes)
+                    char c2;
+                    ch = this.ScanEscapeSequence(out c2);
+                    _builder.Append(ch);
+                    if (c2 != SlidingTextWindow.InvalidCharacter)
                     {
-                        // normal string & char constants can have escapes
-                        char c2;
-                        ch = this.ScanEscapeSequence(out c2);
-                        _builder.Append(ch);
-                        if (c2 != SlidingTextWindow.InvalidCharacter)
-                        {
-                            _builder.Append(c2);
-                        }
-                    }
-                    else if (ch == quoteCharacter)
-                    {
-                        TextWindow.AdvanceChar();
-                        break;
-                    }
-                    else if (SyntaxFacts.IsNewLine(ch) ||
-                            (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
-                    {
-                        //String and character literals can contain any Unicode character. They are not limited
-                        //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
-                        //double check that it was not real user-code contents. This will be rare.
-                        Debug.Assert(TextWindow.Width > 0);
-                        this.AddError(ErrorCode.ERR_NewlineInConst);
-                        break;
-                    }
-                    else
-                    {
-                        TextWindow.AdvanceChar();
-                        _builder.Append(ch);
+                        _builder.Append(c2);
                     }
                 }
-
-                info.Text = TextWindow.GetText(true);
-                if (quoteCharacter == '\'')
+                else if (ch == quoteCharacter)
                 {
-                    info.Kind = SyntaxKind.CharacterLiteralToken;
-                    if (_builder.Length != 1)
-                    {
-                        this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
-                    }
-
-                    if (_builder.Length > 0)
-                    {
-                        info.StringValue = TextWindow.Intern(_builder);
-                        info.CharValue = info.StringValue[0];
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                        info.CharValue = SlidingTextWindow.InvalidCharacter;
-                    }
+                    TextWindow.AdvanceChar();
+                    break;
+                }
+                else if (SyntaxFacts.IsNewLine(ch) ||
+                        (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
+                {
+                    //String and character literals can contain any Unicode character. They are not limited
+                    //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
+                    //double check that it was not real user-code contents. This will be rare.
+                    Debug.Assert(TextWindow.Width > 0);
+                    this.AddError(ErrorCode.ERR_NewlineInConst);
+                    break;
                 }
                 else
                 {
-                    info.Kind = SyntaxKind.StringLiteralToken;
-                    if (_builder.Length > 0)
-                    {
-                        info.StringValue = TextWindow.Intern(_builder);
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                    }
+                    TextWindow.AdvanceChar();
+                    _builder.Append(ch);
+                }
+            }
+
+            info.Text = TextWindow.GetText(true);
+            if (quoteCharacter == '\'')
+            {
+                info.Kind = SyntaxKind.CharacterLiteralToken;
+                if (_builder.Length != 1)
+                {
+                    this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
+                }
+
+                if (_builder.Length > 0)
+                {
+                    info.StringValue = TextWindow.Intern(_builder);
+                    info.CharValue = info.StringValue[0];
+                }
+                else
+                {
+                    info.StringValue = string.Empty;
+                    info.CharValue = SlidingTextWindow.InvalidCharacter;
                 }
             }
             else
             {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
+                info.Kind = SyntaxKind.StringLiteralToken;
+                if (_builder.Length > 0)
+                {
+                    info.StringValue = TextWindow.Intern(_builder);
+                }
+                else
+                {
+                    info.StringValue = string.Empty;
+                }
             }
         }
 
@@ -223,8 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // We have a string of the form
             //                $" ... "
-            // or, if isVerbatim is true, of the form
+            // or, if isVerbatim is true, of possible forms
             //                $@" ... "
+            //                @$" ... "
             // Where the contents contains zero or more sequences
             //                { STUFF }
             // where these curly braces delimit STUFF in expression "holes".
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Turn a (parsed) interpolated string nonterminal into an interpolated string token.
         /// </summary>
         /// <param name="interpolatedString"></param>
-        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
+        internal static SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
             var kind = SyntaxKind.InterpolatedStringToken;
@@ -289,52 +290,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private class InterpolatedStringScanner
         {
-            public readonly Lexer lexer;
-            public bool isVerbatim;
-            public bool allowNewlines;
+            private readonly Lexer _lexer;
+            private bool _isVerbatim;
+            private bool _allowNewlines;
             public SyntaxDiagnosticInfo error;
+
             public InterpolatedStringScanner(
                 Lexer lexer,
                 bool isVerbatim)
             {
-                this.lexer = lexer;
-                this.isVerbatim = isVerbatim;
-                this.allowNewlines = isVerbatim;
+                this._lexer = lexer;
+                this._isVerbatim = isVerbatim;
+                this._allowNewlines = isVerbatim;
             }
 
             private bool IsAtEnd()
             {
-                return IsAtEnd(isVerbatim && allowNewlines);
+                return IsAtEnd(_isVerbatim && _allowNewlines);
             }
 
             private bool IsAtEnd(bool allowNewline)
             {
-                char ch = lexer.TextWindow.PeekChar();
+                char ch = _lexer.TextWindow.PeekChar();
                 return
                     !allowNewline && SyntaxFacts.IsNewLine(ch) ||
-                    (ch == SlidingTextWindow.InvalidCharacter && lexer.TextWindow.IsReallyAtEnd());
+                    (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
             }
 
             internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info, out bool closeQuoteMissing)
             {
-                Debug.Assert(lexer.TextWindow.PeekChar() == '$');
-                lexer.TextWindow.AdvanceChar(); // $
-                if (isVerbatim)
+                if (_isVerbatim)
                 {
-                    Debug.Assert(lexer.TextWindow.PeekChar() == '@');
-                    lexer.TextWindow.AdvanceChar(); // @
+                    Debug.Assert(
+                        (_lexer.TextWindow.PeekChar() == '@' && _lexer.TextWindow.PeekChar(1) == '$') ||
+                        (_lexer.TextWindow.PeekChar() == '$' && _lexer.TextWindow.PeekChar(1) == '@'));
+
+                    // @$ or $@
+                    _lexer.TextWindow.AdvanceChar();
+                    _lexer.TextWindow.AdvanceChar();
+                }
+                else
+                {
+                    Debug.Assert(_lexer.TextWindow.PeekChar() == '$');
+                    _lexer.TextWindow.AdvanceChar(); // $
                 }
 
-                Debug.Assert(lexer.TextWindow.PeekChar() == '"');
-                lexer.TextWindow.AdvanceChar(); // "
+                Debug.Assert(_lexer.TextWindow.PeekChar() == '"');
+                _lexer.TextWindow.AdvanceChar(); // "
                 ScanInterpolatedStringLiteralContents(interpolations);
-                if (lexer.TextWindow.PeekChar() != '"')
+                if (_lexer.TextWindow.PeekChar() != '"')
                 {
                     Debug.Assert(IsAtEnd());
                     if (error == null)
                     {
-                        int position = IsAtEnd(true) ? lexer.TextWindow.Position - 1 : lexer.TextWindow.Position;
-                        error = lexer.MakeError(position, 1, isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
+                        int position = IsAtEnd(true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
+                        error = _lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
                     }
 
                     closeQuoteMissing = true;
@@ -342,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     // found the closing quote
-                    lexer.TextWindow.AdvanceChar(); // "
+                    _lexer.TextWindow.AdvanceChar(); // "
                     closeQuoteMissing = false;
                 }
 
@@ -359,54 +369,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return;
                     }
 
-                    switch (lexer.TextWindow.PeekChar())
+                    switch (_lexer.TextWindow.PeekChar())
                     {
+                        case '"' when RecoveringFromRunawayLexing():
+                            // When recovering from mismatched delimiters, we consume the next
+                            // quote character as the close quote for the interpolated string. In
+                            // practice this gets us out of trouble in scenarios we've encountered.
+                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                            return;
                         case '"':
-                            if (isVerbatim && lexer.TextWindow.PeekChar(1) == '"')
+                            if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
                             {
-                                lexer.TextWindow.AdvanceChar(); // "
-                                lexer.TextWindow.AdvanceChar(); // "
+                                _lexer.TextWindow.AdvanceChar(); // "
+                                _lexer.TextWindow.AdvanceChar(); // "
                                 continue;
                             }
                             // found the end of the string
                             return;
                         case '}':
-                            var pos = lexer.TextWindow.Position;
-                            lexer.TextWindow.AdvanceChar(); // }
+                            var pos = _lexer.TextWindow.Position;
+                            _lexer.TextWindow.AdvanceChar(); // }
                             // ensure any } characters are doubled up
-                            if (lexer.TextWindow.PeekChar() == '}')
+                            if (_lexer.TextWindow.PeekChar() == '}')
                             {
-                                lexer.TextWindow.AdvanceChar(); // }
+                                _lexer.TextWindow.AdvanceChar(); // }
                             }
                             else if (error == null)
                             {
-                                error = lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
+                                error = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
                             }
                             continue;
                         case '{':
-                            if (lexer.TextWindow.PeekChar(1) == '{')
+                            if (_lexer.TextWindow.PeekChar(1) == '{')
                             {
-                                lexer.TextWindow.AdvanceChar();
-                                lexer.TextWindow.AdvanceChar();
+                                _lexer.TextWindow.AdvanceChar();
+                                _lexer.TextWindow.AdvanceChar();
                             }
                             else
                             {
-                                int openBracePosition = lexer.TextWindow.Position;
-                                lexer.TextWindow.AdvanceChar();
+                                int openBracePosition = _lexer.TextWindow.Position;
+                                _lexer.TextWindow.AdvanceChar();
                                 int colonPosition = 0;
                                 ScanInterpolatedStringLiteralHoleBalancedText('}', true, ref colonPosition);
-                                int closeBracePosition = lexer.TextWindow.Position;
+                                int closeBracePosition = _lexer.TextWindow.Position;
                                 bool closeBraceMissing = false;
-                                if (lexer.TextWindow.PeekChar() == '}')
+                                if (_lexer.TextWindow.PeekChar() == '}')
                                 {
-                                    lexer.TextWindow.AdvanceChar();
+                                    _lexer.TextWindow.AdvanceChar();
                                 }
                                 else
                                 {
                                     closeBraceMissing = true;
                                     if (error == null)
                                     {
-                                        error = lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
+                                        error = _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
                                     }
                                 }
 
@@ -414,23 +430,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             continue;
                         case '\\':
-                            if (isVerbatim)
+                            if (_isVerbatim)
                             {
                                 goto default;
                             }
 
-                            var escapeStart = lexer.TextWindow.Position;
+                            var escapeStart = _lexer.TextWindow.Position;
                             char c2;
-                            char ch = lexer.ScanEscapeSequence(out c2);
+                            char ch = _lexer.ScanEscapeSequence(out c2);
                             if ((ch == '{' || ch == '}') && error == null)
                             {
-                                error = lexer.MakeError(escapeStart, lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                                error = _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
                             }
 
                             continue;
                         default:
                             // found some other character in the string portion
-                            lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                             continue;
                     }
                 }
@@ -438,28 +454,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanFormatSpecifier()
             {
-                Debug.Assert(lexer.TextWindow.PeekChar() == ':');
-                lexer.TextWindow.AdvanceChar();
+                Debug.Assert(_lexer.TextWindow.PeekChar() == ':');
+                _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
-                    char ch = lexer.TextWindow.PeekChar();
-                    if (ch == '\\' && !isVerbatim)
+                    char ch = _lexer.TextWindow.PeekChar();
+                    if (ch == '\\' && !_isVerbatim)
                     {
                         // normal string & char constants can have escapes
-                        var pos = lexer.TextWindow.Position;
+                        var pos = _lexer.TextWindow.Position;
                         char c2;
-                        ch = lexer.ScanEscapeSequence(out c2);
+                        ch = _lexer.ScanEscapeSequence(out c2);
                         if ((ch == '{' || ch == '}') && error == null)
                         {
-                            error = lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                            error = _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
                         }
                     }
                     else if (ch == '"')
                     {
-                        if (isVerbatim && lexer.TextWindow.PeekChar(1) == '"')
+                        if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
                         {
-                            lexer.TextWindow.AdvanceChar();
-                            lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                         }
                         else
                         {
@@ -468,24 +484,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (ch == '{')
                     {
-                        var pos = lexer.TextWindow.Position;
-                        lexer.TextWindow.AdvanceChar();
+                        var pos = _lexer.TextWindow.Position;
+                        _lexer.TextWindow.AdvanceChar();
                         // ensure any { characters are doubled up
-                        if (lexer.TextWindow.PeekChar() == '{')
+                        if (_lexer.TextWindow.PeekChar() == '{')
                         {
-                            lexer.TextWindow.AdvanceChar(); // {
+                            _lexer.TextWindow.AdvanceChar(); // {
                         }
                         else if (error == null)
                         {
-                            error = lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
+                            error = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
                         }
                     }
                     else if (ch == '}')
                     {
-                        if (lexer.TextWindow.PeekChar(1) == '}')
+                        if (_lexer.TextWindow.PeekChar(1) == '}')
                         {
-                            lexer.TextWindow.AdvanceChar();
-                            lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                         }
                         else
                         {
@@ -498,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        lexer.TextWindow.AdvanceChar();
+                        _lexer.TextWindow.AdvanceChar();
                     }
                 }
             }
@@ -516,37 +532,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return;
                     }
 
-                    char ch = lexer.TextWindow.PeekChar();
+                    char ch = _lexer.TextWindow.PeekChar();
                     switch (ch)
                     {
                         case '#':
                             // preprocessor directives not allowed.
                             if (error == null)
                             {
-                                error = lexer.MakeError(lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
+                                error = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
                             }
 
-                            lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
-                            if (lexer.TextWindow.PeekChar(1) == '"' || lexer.TextWindow.PeekChar(1) == '@' && lexer.TextWindow.PeekChar(2) == '"')
+                            if (_lexer.TextWindow.PeekChar(1) == '"' || _lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
-                                bool isVerbatimSubstring = lexer.TextWindow.PeekChar(1) == '@';
-                                var interpolations = default(ArrayBuilder<Interpolation>);
+                                bool isVerbatimSubstring = _lexer.TextWindow.PeekChar(1) == '@';
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
                                 var info = default(TokenInfo);
-                                bool wasVerbatim = this.isVerbatim;
-                                bool wasAllowNewlines = this.allowNewlines;
+                                bool wasVerbatim = this._isVerbatim;
+                                bool wasAllowNewlines = this._allowNewlines;
                                 try
                                 {
-                                    this.isVerbatim = isVerbatimSubstring;
-                                    this.allowNewlines &= isVerbatim;
+                                    this._isVerbatim = isVerbatimSubstring;
+                                    this._allowNewlines &= _isVerbatim;
                                     bool closeQuoteMissing;
                                     ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
                                 }
                                 finally
                                 {
-                                    this.isVerbatim = wasVerbatim;
-                                    this.allowNewlines = wasAllowNewlines;
+                                    this._isVerbatim = wasVerbatim;
+                                    this._allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -557,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (isHole)
                             {
                                 Debug.Assert(colonPosition == 0);
-                                colonPosition = lexer.TextWindow.Position;
+                                colonPosition = _lexer.TextWindow.Position;
                                 ScanFormatSpecifier();
                                 return;
                             }
@@ -573,35 +589,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             if (error == null)
                             {
-                                error = lexer.MakeError(lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
+                                error = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
                             }
 
                             goto default;
+                        case '"' when RecoveringFromRunawayLexing():
+                            // When recovering from mismatched delimiters, we consume the next
+                            // quote character as the close quote for the interpolated string. In
+                            // practice this gets us out of trouble in scenarios we've encountered.
+                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                            return;
                         case '"':
                         case '\'':
                             // handle string or character literal inside an expression hole.
                             ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
-                            if (lexer.TextWindow.PeekChar(1) == '"')
+                            if (_lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
                             {
                                 // check for verbatim string inside an expression hole.
                                 ScanInterpolatedStringLiteralNestedVerbatimString();
                                 continue;
                             }
+                            else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
+                            {
+                                _lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var info = default(TokenInfo);
+                                bool wasVerbatim = this._isVerbatim;
+                                bool wasAllowNewlines = this._allowNewlines;
+                                try
+                                {
+                                    this._isVerbatim = true;
+                                    this._allowNewlines = true;
+                                    bool closeQuoteMissing;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                }
+                                finally
+                                {
+                                    this._isVerbatim = wasVerbatim;
+                                    this._allowNewlines = wasAllowNewlines;
+                                }
+                                continue;
+                            }
 
                             goto default;
                         case '/':
-                            switch (lexer.TextWindow.PeekChar(1))
+                            switch (_lexer.TextWindow.PeekChar(1))
                             {
                                 case '/':
-                                    if (isVerbatim && allowNewlines)
+                                    if (_isVerbatim && _allowNewlines)
                                     {
-                                        lexer.TextWindow.AdvanceChar(); // skip /
-                                        lexer.TextWindow.AdvanceChar(); // skip /
+                                        _lexer.TextWindow.AdvanceChar(); // skip /
+                                        _lexer.TextWindow.AdvanceChar(); // skip /
                                         while (!IsAtEnd(false))
                                         {
-                                            lexer.TextWindow.AdvanceChar(); // skip // comment character
+                                            _lexer.TextWindow.AdvanceChar(); // skip // comment character
                                         }
                                     }
                                     else
@@ -609,11 +652,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                         // error: single-line comment not allowed in an interpolated string
                                         if (error == null)
                                         {
-                                            error = lexer.MakeError(lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole);
+                                            error = _lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole);
                                         }
 
-                                        lexer.TextWindow.AdvanceChar();
-                                        lexer.TextWindow.AdvanceChar();
+                                        _lexer.TextWindow.AdvanceChar();
+                                        _lexer.TextWindow.AdvanceChar();
                                     }
                                     continue;
                                 case '*':
@@ -621,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     ScanInterpolatedStringLiteralNestedComment();
                                     continue;
                                 default:
-                                    lexer.TextWindow.AdvanceChar();
+                                    _lexer.TextWindow.AdvanceChar();
                                     continue;
                             }
                         case '{':
@@ -638,18 +681,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             continue;
                         default:
                             // part of code in the expression hole
-                            lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                             continue;
                     }
                 }
             }
 
+            /// <summary>
+            /// The lexer can run away consuming the rest of the input when delimiters are mismatched.
+            /// This is a test for when we are attempting to recover from that situation.
+            /// </summary>
+            private bool RecoveringFromRunawayLexing() => this.error != null;
+
             private void ScanInterpolatedStringLiteralNestedComment()
             {
-                Debug.Assert(lexer.TextWindow.PeekChar() == '/');
-                lexer.TextWindow.AdvanceChar();
-                Debug.Assert(lexer.TextWindow.PeekChar() == '*');
-                lexer.TextWindow.AdvanceChar();
+                Debug.Assert(_lexer.TextWindow.PeekChar() == '/');
+                _lexer.TextWindow.AdvanceChar();
+                Debug.Assert(_lexer.TextWindow.PeekChar() == '*');
+                _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
                     if (IsAtEnd())
@@ -657,11 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return; // let the caller complain about the unterminated quote
                     }
 
-                    var ch = lexer.TextWindow.PeekChar();
-                    lexer.TextWindow.AdvanceChar();
-                    if (ch == '*' && lexer.TextWindow.PeekChar() == '/')
+                    var ch = _lexer.TextWindow.PeekChar();
+                    _lexer.TextWindow.AdvanceChar();
+                    if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
                     {
-                        lexer.TextWindow.AdvanceChar(); // skip */
+                        _lexer.TextWindow.AdvanceChar(); // skip */
                         return;
                     }
                 }
@@ -670,24 +719,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private void ScanInterpolatedStringLiteralNestedString()
             {
                 var discarded = default(TokenInfo);
-                lexer.ScanStringLiteral(ref discarded, true);
+                _lexer.ScanStringLiteral(ref discarded, inDirective: false);
             }
 
             private void ScanInterpolatedStringLiteralNestedVerbatimString()
             {
                 var discarded = default(TokenInfo);
-                lexer.ScanVerbatimStringLiteral(ref discarded, allowNewlines: allowNewlines);
+                _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
             }
 
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)
             {
-                Debug.Assert(start == lexer.TextWindow.PeekChar());
-                lexer.TextWindow.AdvanceChar();
+                Debug.Assert(start == _lexer.TextWindow.PeekChar());
+                _lexer.TextWindow.AdvanceChar();
                 int colon = 0;
                 ScanInterpolatedStringLiteralHoleBalancedText(end, false, ref colon);
-                if (lexer.TextWindow.PeekChar() == end)
+                if (_lexer.TextWindow.PeekChar() == end)
                 {
-                    lexer.TextWindow.AdvanceChar();
+                    _lexer.TextWindow.AdvanceChar();
                 }
                 else
                 {

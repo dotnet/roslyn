@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -223,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundArrayTemp As BoundLocal = Nothing
             Dim storeArray = CaptureInATemp(containingMember, node.Expression, arg, boundArrayTemp)
 
-            Dim n = node.Indices.Count
+            Dim n = node.Indices.Length
             Dim indicesFirst(n - 1) As BoundExpression
             Dim indicesSecond(n - 1) As BoundExpression
 
@@ -266,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If fieldSymbol.IsShared AndAlso node.ReceiverOpt IsNot Nothing Then
                 ' Get rid of the receiver on second use of the shared field.
                 ' It could be an expression that we don't want to visit twice.
-                Dim second = node.Update(Nothing, fieldSymbol, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+                Dim second = node.Update(Nothing, fieldSymbol, node.IsLValue, node.SuppressVirtualCalls, constantsInProgressOpt:=Nothing, node.Type)
 
                 Debug.Assert(second.IsLValue)
                 Return New Result(node, second)

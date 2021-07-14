@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -42,35 +46,33 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
-                using (var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name))
+                using var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
+                var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
+
+                if (Exact)
                 {
-                    var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
-
-                    if (Exact)
-                    {
-                        // We did an exact, case insensitive, search.  Case sensitive matches should
-                        // be preferred though over insensitive ones.
-                        return symbols.SelectAsArray(s =>
-                            SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
-                    }
-
-                    // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
-                    // great way to store the original value we compute because it happens deep in the 
-                    // compiler bowels when we call FindDeclarations.
-                    var similarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
-
-                    var result = symbols.SelectAsArray(s =>
-                    {
-                        var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
-
-                        Debug.Assert(areSimilar);
-                        return SymbolResult.Create(s.Name, nameNode, s, matchCost);
-                    });
-
-                    similarityChecker.Free();
-
-                    return result;
+                    // We did an exact, case insensitive, search.  Case sensitive matches should
+                    // be preferred though over insensitive ones.
+                    return symbols.SelectAsArray(s =>
+                        SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
+
+                // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
+                // great way to store the original value we compute because it happens deep in the 
+                // compiler bowels when we call FindDeclarations.
+                var similarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
+
+                var result = symbols.SelectAsArray(s =>
+                {
+                    var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
+
+                    Debug.Assert(areSimilar);
+                    return SymbolResult.Create(s.Name, nameNode, s, matchCost);
+                });
+
+                similarityChecker.Free();
+
+                return result;
             }
         }
     }

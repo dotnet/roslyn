@@ -1,11 +1,77 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Get(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { {|Definition:$$get|}; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { [|CProperty|].IntProperty: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Set(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { get; {|Definition:$$set|}; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { CProperty.IntProperty: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_SecondPart_Get(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { get; set; }
+    int IntProperty { {|Definition:$$get|}; set; }
+    void M()
+    {
+        _ = this is { CProperty.[|IntProperty|]: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -51,11 +117,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Feature2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -101,11 +167,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Feature3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -151,11 +217,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -201,11 +267,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Feature2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -251,11 +317,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Feature3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -301,11 +367,48 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromProp_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Init_Feature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    int Prop { get; {|Definition:$$init|}; }
+}
+
+class C : IC
+{
+    public virtual int Prop { get; {|Definition:init|}; }
+}
+
+class D : C
+{
+    public override int Prop { get => base.Prop; {|Definition:init|} => base.[|Prop|] = value; }
+
+    D()
+    {
+        this.[|Prop|] = 1;
+        this.[|Prop|]++;
+    }
+
+    void M()
+    {
+        _ = new D() { [|Prop|] = 1 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Init_FromProp_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -351,11 +454,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromProp_Feature2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_FromProp_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -401,11 +504,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromProp_Feature3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_FromProp_Feature3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -451,11 +554,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromNameOf_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_FromNameOf1_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -501,11 +604,61 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestAPI(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_FromNameOf1_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    int {|Definition:Prop|} { get; set; }
+}
+
+class C : IC
+{
+    public virtual int {|Definition:Prop|} { get; set; }
+}
+
+class D : C
+{
+    public override int {|Definition:Prop|} { get => base.[|Prop|]; set => base.[|Prop|] = value; }
+}
+
+class Usages
+{
+    void M()
+    {
+        IC ic;
+        var n1 = nameof(ic.[|$$Prop|]);
+        var v1 = ic.[|Prop|];
+        ic.[|Prop|] = 1;
+        ic.[|Prop|]++;
+
+        C c;
+        var n2 = nameof(c.[|Prop|]);
+        var v2 = c.[|Prop|];
+        c.[|Prop|] = 1;
+        c.[|Prop|]++;
+
+        D d;
+        var n3 = nameof(d.[|Prop|]);
+        var v3 = d.[|Prop|];
+        d.[|Prop|] = 1;
+        d.[|Prop|]++;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -528,11 +681,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -555,11 +708,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Prop_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Prop_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -582,11 +735,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -626,11 +779,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Indexer2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -670,11 +823,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Indexer3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Indexer3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -714,11 +867,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -758,11 +911,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Indexer2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -802,11 +955,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Indexer3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Indexer3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -846,11 +999,11 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Attribute1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -869,11 +1022,11 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Attribute1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -892,11 +1045,11 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_Cref() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_Cref(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -909,11 +1062,11 @@ interface IC
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_Cref() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_Cref(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -926,11 +1079,11 @@ interface IC
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Get_ExpressionTree1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Get_ExpressionTree1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -954,11 +1107,11 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_Set_ExpressionTree1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Set_ExpressionTree1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -982,11 +1135,11 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1043,11 +1196,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_Feature2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1104,11 +1257,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_Feature1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1165,11 +1318,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_Feature2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Feature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1226,11 +1379,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_FromProp_1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1287,11 +1440,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_FromProp_2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1348,11 +1501,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_FromProp_3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_FromProp_3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1409,11 +1562,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1437,11 +1590,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1465,11 +1618,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Property_ObjectInitializer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Property_ObjectInitializer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1493,11 +1646,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1548,11 +1701,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_Indexer2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1603,11 +1756,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Indexer1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1658,11 +1811,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_Indexer2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Indexer2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1713,11 +1866,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Get_Attribute1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Get_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1741,11 +1894,11 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVBAccessor_Set_Attribute1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBAccessor_Set_Attribute1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1769,7 +1922,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input)
+            Await TestStreamingFeature(input, host)
         End Function
     End Class
 End Namespace

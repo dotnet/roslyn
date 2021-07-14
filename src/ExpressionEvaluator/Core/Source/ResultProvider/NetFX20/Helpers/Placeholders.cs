@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.Versioning;
+
+[assembly: TargetFramework(".NETFramework,Version=v2.0")]
 
 namespace Microsoft.CodeAnalysis
 {
@@ -79,5 +85,29 @@ namespace System.Text
         {
             builder.Length = 0; // Matches the real definition.
         }
+    }
+}
+
+namespace System.Runtime.Versioning
+{
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
+    internal sealed class TargetFrameworkAttribute : Attribute
+    {
+        public string FrameworkName { get; }
+        public string FrameworkDisplayName { get; set; }
+
+        public TargetFrameworkAttribute(string frameworkName)
+            => FrameworkName = frameworkName;
+    }
+}
+
+namespace System.Threading
+{
+    public readonly struct CancellationToken
+    {
+        /// <summary>
+        /// .NET Framework 2.0 does not support cancellation via <see cref="CancellationToken"/>.
+        /// </summary>
+        public bool IsCancellationRequested => false;
     }
 }

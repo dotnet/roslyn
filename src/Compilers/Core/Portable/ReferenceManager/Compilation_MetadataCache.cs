@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -26,13 +29,13 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </summary>
-        private readonly WeakList<IAssemblySymbol> _retargetingAssemblySymbols = new WeakList<IAssemblySymbol>();
+        private readonly WeakList<IAssemblySymbolInternal> _retargetingAssemblySymbols = new WeakList<IAssemblySymbolInternal>();
 
         /// <summary>
         /// Adds given retargeting assembly for this compilation into the cache.
         /// <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
         /// </summary>
-        internal void CacheRetargetingAssemblySymbolNoLock(IAssemblySymbol assembly)
+        internal void CacheRetargetingAssemblySymbolNoLock(IAssemblySymbolInternal assembly)
         {
             _retargetingAssemblySymbols.Add(assembly);
         }
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// Adds cached retargeting symbols into the given list.
         /// <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
         /// </summary>
-        internal void AddRetargetingAssemblySymbolsNoLock<T>(List<T> result) where T : IAssemblySymbol
+        internal void AddRetargetingAssemblySymbolsNoLock<T>(List<T> result) where T : IAssemblySymbolInternal
         {
             foreach (var symbol in _retargetingAssemblySymbols)
             {
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for testing only
-        internal WeakList<IAssemblySymbol> RetargetingAssemblySymbols
+        internal WeakList<IAssemblySymbolInternal> RetargetingAssemblySymbols
         {
             get { return _retargetingAssemblySymbols; }
         }

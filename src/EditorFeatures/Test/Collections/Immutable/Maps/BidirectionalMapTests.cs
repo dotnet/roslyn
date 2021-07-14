@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -15,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
         {
             var map = BidirectionalMap<string, int>.Empty;
 
-            Assert.Equal(map.Keys.Count(), 0);
-            Assert.Equal(map.Values.Count(), 0);
-            Assert.False(map.TryGetKey(0, out var key));
-            Assert.False(map.TryGetValue("0", out var value));
+            Assert.Equal(0, map.Keys.Count());
+            Assert.Equal(0, map.Values.Count());
+            Assert.False(map.TryGetKey(0, out _));
+            Assert.False(map.TryGetValue("0", out _));
 
             Assert.False(map.ContainsKey("0"));
             Assert.False(map.ContainsValue(0));
@@ -32,20 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
                 .Add("1", 1)
                 .Add("2", 2);
 
-            Assert.Equal(map.Keys.Count(), 3);
-            Assert.Equal(map.Values.Count(), 3);
+            Assert.Equal(3, map.Keys.Count());
+            Assert.Equal(3, map.Values.Count());
             Assert.True(map.TryGetKey(0, out var key));
-            Assert.Equal(key, "0");
+            Assert.Equal("0", key);
             Assert.True(map.TryGetKey(1, out key));
-            Assert.Equal(key, "1");
+            Assert.Equal("1", key);
             Assert.True(map.TryGetKey(2, out key));
-            Assert.Equal(key, "2");
+            Assert.Equal("2", key);
             Assert.True(map.TryGetValue("0", out var value));
-            Assert.Equal(value, 0);
+            Assert.Equal(0, value);
             Assert.True(map.TryGetValue("1", out value));
-            Assert.Equal(value, 1);
+            Assert.Equal(1, value);
             Assert.True(map.TryGetValue("2", out value));
-            Assert.Equal(value, 2);
+            Assert.Equal(2, value);
 
             Assert.True(map.ContainsKey("0"));
             Assert.True(map.ContainsKey("1"));

@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
     internal class SyntaxTokenListBuilder
     {
-        private GreenNode[] _nodes;
+        private GreenNode?[] _nodes;
         private int _count;
 
         public SyntaxTokenListBuilder(int size)
         {
-            _nodes = new GreenNode[size];
+            _nodes = new GreenNode?[size];
             _count = 0;
         }
 
@@ -30,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void Add(SyntaxToken item)
         {
+            Debug.Assert(item.Node is object);
             this.Add(item.Node);
         }
 
@@ -91,9 +95,14 @@ namespace Microsoft.CodeAnalysis.Syntax
                     case 1:
                         return new SyntaxTokenList(null, _nodes[0], 0, 0);
                     case 2:
-                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
+                        Debug.Assert(_nodes[0] is object);
+                        Debug.Assert(_nodes[1] is object);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!), 0, 0);
                     case 3:
-                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
+                        Debug.Assert(_nodes[0] is object);
+                        Debug.Assert(_nodes[1] is object);
+                        Debug.Assert(_nodes[2] is object);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!), 0, 0);
                     default:
                         return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes, _count), 0, 0);
                 }

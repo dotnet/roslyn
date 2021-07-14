@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -113,7 +118,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
-                bool Cci.IMethodBody.LocalsAreZeroed => false;
+                bool Cci.IMethodBody.HasStackalloc => false;
+
+                bool Cci.IMethodBody.AreLocalsZeroed => false;
 
                 ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables =>
                     ImmutableArray<Cci.ILocalDefinition>.Empty;
@@ -158,8 +165,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;
-
-            bool Cci.IMethodDefinition.IsImplicitlyDeclared => true;
 
             bool Cci.IMethodDefinition.HasDeclarativeSecurity => false;
 
@@ -293,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingMethod).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingMethod.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

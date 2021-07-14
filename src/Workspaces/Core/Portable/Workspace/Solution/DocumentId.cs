@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,9 +20,9 @@ namespace Microsoft.CodeAnalysis
         public ProjectId ProjectId { get; }
         public Guid Id { get; }
 
-        private readonly string _debugName;
+        private readonly string? _debugName;
 
-        private DocumentId(ProjectId projectId, Guid guid, string debugName)
+        private DocumentId(ProjectId projectId, Guid guid, string? debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="projectId">The project id this document id is relative to.</param>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
-        public static DocumentId CreateNewId(ProjectId projectId, string debugName = null)
+        public static DocumentId CreateNewId(ProjectId projectId, string? debugName = null)
         {
             if (projectId == null)
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, Guid.NewGuid(), debugName);
         }
 
-        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
+        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
         {
             if (projectId == null)
             {
@@ -57,46 +59,34 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, id, debugName);
         }
 
-        internal string DebugName => _debugName;
+        internal string? DebugName => _debugName;
 
         internal string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
-        }
+            => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
 
         public override string ToString()
-        {
-            return GetDebuggerDisplay();
-        }
+            => GetDebuggerDisplay();
 
-        public override bool Equals(object obj)
-        {
-            return this.Equals(obj as DocumentId);
-        }
+        public override bool Equals(object? obj)
+            => this.Equals(obj as DocumentId);
 
-        public bool Equals(DocumentId other)
+        public bool Equals(DocumentId? other)
         {
             // Technically, we don't need to check project id.
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id &&
                 this.ProjectId == other.ProjectId;
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.ProjectId, this.Id.GetHashCode());
-        }
+            => Hash.Combine(this.ProjectId, this.Id.GetHashCode());
 
-        public static bool operator ==(DocumentId left, DocumentId right)
-        {
-            return EqualityComparer<DocumentId>.Default.Equals(left, right);
-        }
+        public static bool operator ==(DocumentId? left, DocumentId? right)
+            => EqualityComparer<DocumentId?>.Default.Equals(left, right);
 
-        public static bool operator !=(DocumentId left, DocumentId right)
-        {
-            return !(left == right);
-        }
+        public static bool operator !=(DocumentId? left, DocumentId? right)
+            => !(left == right);
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 

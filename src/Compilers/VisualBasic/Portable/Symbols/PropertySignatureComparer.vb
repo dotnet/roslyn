@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Diagnostics
@@ -160,6 +162,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If ((prop1.IsReadOnly <> prop2.IsReadOnly) OrElse (prop1.IsWriteOnly <> prop2.IsWriteOnly)) Then
                     results = results Or SymbolComparisonResults.PropertyAccessorMismatch
                     If (stopIfAny And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
+                        GoTo Done
+                    End If
+                End If
+
+                If (comparisons And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 AndAlso
+                   prop1.SetMethod?.IsInitOnly <> prop2.SetMethod?.IsInitOnly Then
+
+                    results = results Or SymbolComparisonResults.PropertyInitOnlyMismatch
+                    If (stopIfAny And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
                         GoTo Done
                     End If
                 End If

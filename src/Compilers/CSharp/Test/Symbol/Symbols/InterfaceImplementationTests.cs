@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -825,22 +828,22 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             var interfaceMethod = @interface.GetMembers("Method").Single();
 
             var nonDeclaring1 = (NamedTypeSymbol)global.GetMembers("NonDeclaringClass1").Single();
-            Assert.False(nonDeclaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(nonDeclaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
 
             var nonDeclaring1Method = nonDeclaring1.GetMembers("Method").Single();
 
             var declaring1 = (NamedTypeSymbol)global.GetMembers("DeclaringClass1").Single();
-            Assert.True(declaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.True(declaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(nonDeclaring1, declaring1.BaseType());
 
             var nonDeclaring2 = (NamedTypeSymbol)global.GetMembers("NonDeclaringClass2").Single();
-            Assert.False(nonDeclaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(nonDeclaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(declaring1, nonDeclaring2.BaseType());
 
             var nonDeclaring2Method = nonDeclaring2.GetMembers("Method").Single();
 
             var declaring2 = (NamedTypeSymbol)global.GetMembers("DeclaringClass2").Single();
-            Assert.True(declaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.True(declaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(nonDeclaring2, declaring2.BaseType());
 
             Assert.Null(nonDeclaring1.FindImplementationForInterfaceMember(interfaceMethod));
@@ -859,7 +862,7 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    TestMetadata.Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 
@@ -873,7 +876,7 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             Assert.Null(baseClass.FindImplementationForInterfaceMember(interfaceMethod));
 
             var derivedClass = (NamedTypeSymbol)global.GetMembers("DerivedExplicitlyImplementsInterface").Single();
-            Assert.False(derivedClass.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(derivedClass.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.True(derivedClass.AllInterfaces().Contains(@interface));
 
             var derivedClassMethod = derivedClass.GetMembers("I1.Method1").Single();
@@ -932,11 +935,11 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.True(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
-            Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Any());
+            Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Any());
         }
 
         [Fact]
@@ -1001,13 +1004,13 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.False(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
-            var synthesizedExplicitImpls = (from m in derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None) orderby m.MethodKind select m).ToArray();
+            var synthesizedExplicitImpls = (from m in derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods orderby m.MethodKind select m).ToArray();
             Assert.Equal(3, synthesizedExplicitImpls.Length);
             Assert.True(synthesizedExplicitImpls.All(s => ReferenceEquals(derivedClass, s.ContainingType)));
 
@@ -1076,7 +1079,7 @@ class Class : CustomModifierOverridingD, Interface
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
-            var synthesizedExplicitImpls = (from m in @class.GetSynthesizedExplicitImplementations(CancellationToken.None) orderby m.Name select m).ToArray();
+            var synthesizedExplicitImpls = (from m in @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods orderby m.Name select m).ToArray();
             Assert.Equal(2, synthesizedExplicitImpls.Length);
 
             var synthesizedExplicitMethod1Impl = synthesizedExplicitImpls[0];
@@ -1649,7 +1652,7 @@ class C : B, I { }
 
             Assert.Equal(classBMethod, classC.FindImplementationForInterfaceMember(interfaceMethod));
 
-            var synthesizedExplicitImpl = classC.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var synthesizedExplicitImpl = classC.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal(classC, synthesizedExplicitImpl.ContainingType);
             Assert.Equal(interfaceMethod, synthesizedExplicitImpl.ExplicitInterfaceImplementations.Single());
             Assert.Equal(classBMethod, synthesizedExplicitImpl.ImplementingMethod);
@@ -1709,7 +1712,7 @@ class C : B, I { }
 
             Assert.Equal(classBMethod, classC.FindImplementationForInterfaceMember(interfaceMethod));
 
-            Assert.Equal(0, classC.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, classC.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         [Fact]
@@ -1857,7 +1860,7 @@ class Base
             var derived = global.GetMember<NamedTypeSymbol>("Derived");
 
             // Force completion of destructor symbol.  Calls IsMetadataVirtual on Base.Finalize.
-            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnType;
+            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnTypeWithAnnotations;
             Assert.Equal(SpecialType.System_Void, returnType.SpecialType);
 
             // Force completion of entire symbol.  Calls EnsureMetadataVirtual on Base.Finalize.
@@ -1894,7 +1897,7 @@ class D : B, I
             comp2.VerifyDiagnostics();
 
             var derivedType = comp2.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("D");
-            var bridgeMethod = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var bridgeMethod = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal("NonVirtual", bridgeMethod.ImplementingMethod.Name);
         }
 
@@ -2030,7 +2033,7 @@ public class D : B, I
             Assert.Equal(RefKind.Ref, baseMethod.RefKind);
             Assert.Equal(baseMethod, derivedType.FindImplementationForInterfaceMember(interfaceMethod));
 
-            var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal(baseMethod, synthesized.ImplementingMethod);
             Assert.Equal(interfaceMethod, synthesized.ExplicitInterfaceImplementations.Single());
 
@@ -2094,14 +2097,11 @@ class Derived2 : Base2, Interface
 ";
 
             // Base1 is in metadata, so we just trust it when it claims to implement Interface.
-            // Base2 is identical, but in source.  We produce errors for both Base2 and Derived2.
+            // Base2 is identical, but in source.  We produce error for Base2.
             CreateCompilation(source, new[] { ilRef }).VerifyDiagnostics(
                 // (6,7): error CS0535: 'Base2' does not implement interface member 'Interface.M()'
                 // class Base2 : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"),
-                // (10,7): error CS0535: 'Derived2' does not implement interface member 'Interface.M()'
-                // class Derived2 : Base2, Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived2", "Interface.M()"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"));
         }
 
         [WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]
@@ -2452,6 +2452,312 @@ class Derived : Base, IDerived
 g_P1
 s_P2
 get_P2");
+        }
+
+        [Fact]
+        [WorkItem(42340, "https://github.com/dotnet/roslyn/issues/42340")]
+        public void Issue42340()
+        {
+            var text = @"
+#nullable enable
+class StringComparer : System.Collections.Generic.IEqualityComparer<string?>
+{
+    public bool Equals(string? x, string? y)
+    {
+        throw null;
+    }
+
+    public int GetHashCode(string obj)
+    {
+        throw null;
+    }
+}
+
+class OneToOneUnicodeComparer : StringComparer
+{
+
+}
+";
+            var comp = CreateCompilation(text);
+
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8597: Thrown value may be null.
+                //         throw null;
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(7, 15),
+                // (10,16): warning CS8767: Nullability of reference types in type of parameter 'obj' of 'int StringComparer.GetHashCode(string obj)' doesn't match implicitly implemented member 'int IEqualityComparer<string?>.GetHashCode(string? obj)' (possibly because of nullability attributes).
+                //     public int GetHashCode(string obj)
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation, "GetHashCode").WithArguments("obj", "int StringComparer.GetHashCode(string obj)", "int IEqualityComparer<string?>.GetHashCode(string? obj)").WithLocation(10, 16),
+                // (12,15): warning CS8597: Thrown value may be null.
+                //         throw null;
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(12, 15)
+                );
+
+            var baseType = comp.GetTypeByMetadataName("StringComparer");
+            var derivedType = comp.GetTypeByMetadataName("OneToOneUnicodeComparer");
+
+            var implementation = derivedType.FindImplementationForInterfaceMember(baseType.Interfaces().Single().GetMember("GetHashCode"));
+
+            Assert.Equal("System.Int32 StringComparer.GetHashCode(System.String obj)", implementation.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_01(bool useCompilationReference)
+        {
+            var source0 =
+@"#nullable enable
+public struct S<T>
+{
+}
+public interface I
+{
+    S<object?> F();
+}";
+            var source1 =
+@"#nullable enable
+public class A<T> : I where T : class
+{
+    public S<T?> F() => throw null;
+    S<object?> I.F() => default;
+}";
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
+        }
+
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", false)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
+        public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, string expectedOutput, bool useCompilationReference)
+        {
+            var source0 =
+$@"public struct S<T>
+{{
+}}
+public interface I
+{{
+    S<{interfaceTypeArg}> F();
+}}";
+            var source1 =
+$@"public class A<T> : I
+{{
+    public S<T> F() => throw null;
+    S<{baseTypeArg}> I.F() => default;
+}}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"S`1[{expectedOutput}]", $"S<{expectedTypeArg}> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_03(bool useCompilationReference)
+        {
+            var source0 =
+@"#nullable enable
+public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<object?> s);
+}";
+            var source1 =
+@"#nullable enable
+public class A<T> : I
+{
+    public void F(S<T> s) => throw null;
+    void I.F(S<object?> s) { }
+}";
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
+        }
+
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", false)]
+        [InlineData("dynamic", "object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", true)]
+        [InlineData("object", "dynamic", "dynamic", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
+        [InlineData("nint", "nint", "nint", true)]
+        [InlineData("nint", "nint", "nint", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "nint", true)]
+        [InlineData("System.IntPtr", "nint", "nint", false)]
+        public void ExplicitImplementationInBaseType_04(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
+        {
+            var source0 =
+$@"public struct S<T>
+{{
+}}
+public interface I
+{{
+    void F(S<{interfaceTypeArg}> s);
+}}";
+            var source1 =
+$@"public class A<T> : I
+{{
+    public void F(S<T> s) => throw null;
+    void I.F(S<{baseTypeArg}> s) {{ }}
+}}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "1", $"void A<T>.I.F(S<{expectedTypeArg}> s)");
+        }
+
+        private void ExplicitImplementationInBaseType(
+            bool useCompilationReference,
+            string source0,
+            string source1,
+            string source2,
+            string source3,
+            string derivedTypeName,
+            string interfaceMemberName,
+            string expectedOutput,
+            string expectedImplementingMember)
+        {
+            var comp = CreateCompilation(source0);
+            var ref0 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(source1, references: new[] { ref0 });
+            var ref1 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(new[] { source2, source3 }, references: new[] { ref0, ref1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var derivedType = comp.GetMember<SourceNamedTypeSymbol>(derivedTypeName);
+            Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).ForwardingMethods.IsEmpty);
+
+            var interfaceMember = comp.GetMember<MethodSymbol>(interfaceMemberName);
+            var implementingMember = derivedType.FindImplementationForInterfaceMember(interfaceMember);
+            Assert.Equal(expectedImplementingMember, implementingMember.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
+        public void Issue50713_1()
+        {
+            var text1 = @"
+public interface I1
+{
+    void M();
+}
+
+public interface I2 : I1
+{
+    new void M();
+}
+";
+
+            var comp1 = CreateCompilation(text1);
+            comp1.VerifyDiagnostics();
+
+            var i1M = comp1.GetMember("I1.M");
+            var i2 = comp1.GetMember<NamedTypeSymbol>("I2");
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M));
+        }
+
+        [Fact]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
+        public void Issue50713_2()
+        {
+            var text0 = @"
+public interface I1
+{
+    void M();
+}
+
+public interface I2 : I1
+{
+    new void M();
+}
+";
+            var comp0 = CreateCompilation(text0);
+
+            var comp1 = CreateCompilation("", references: new[] { comp0.EmitToImageReference() });
+
+            var i1M = comp1.GetMember("I1.M");
+            var i2 = comp1.GetMember<NamedTypeSymbol>("I2");
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M));
         }
     }
 }

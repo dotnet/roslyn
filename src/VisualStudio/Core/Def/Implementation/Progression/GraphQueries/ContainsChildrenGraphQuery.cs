@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -21,21 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
-
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol != null)
                     {
-                        bool containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
-                        graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);
+                        var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
+                        graphBuilder.AddDeferredPropertySet(
+                            node, DgmlNodeProperties.ContainsChildren, containsChildren, cancellationToken);
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))
                     {
-                        var document = graphBuilder.GetContextDocument(node);
-
+                        var document = graphBuilder.GetContextDocument(node, cancellationToken);
                         if (document != null)
                         {
                             var childNodes = await SymbolContainment.GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
-                            graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, childNodes.Any());
+                            graphBuilder.AddDeferredPropertySet(
+                                node, DgmlNodeProperties.ContainsChildren, childNodes.Any(), cancellationToken);
                         }
                         else
                         {
@@ -68,7 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                                 // also perform the check.
                                 if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, false);
+                                    graphBuilder.AddDeferredPropertySet(
+                                        node, DgmlNodeProperties.ContainsChildren, value: false, cancellationToken);
                                 }
                             }
                         }

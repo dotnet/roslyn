@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1069,7 +1071,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '(i) = j')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
                   Left: 
                     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, IsInvalid) (Syntax: '(i)')
                       Operand: 
@@ -1147,7 +1149,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '(i) = j')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
                   Left: 
                     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, IsInvalid) (Syntax: '(i)')
                       Operand: 

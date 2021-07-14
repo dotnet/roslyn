@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -37,28 +39,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AttributeUsageInfo.Null
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Me.GetDeclaredBase(Nothing)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim baseType = DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
 
             ' check that System.Object is available. 
             ' Although submission semantically doesn't have a base class we need to emit one.
-            Dim info = baseType.GetUseSiteErrorInfo()
-            If info IsNot Nothing Then
-                diagnostics.Add(info, Locations(0))
-            End If
+            Dim info = baseType.GetUseSiteInfo()
+            diagnostics.Add(info, Locations(0))
 
             Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return NoLocation.Singleton
         End Function
 
-        Protected Overrides Sub AddDeclaredNonTypeMembers(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
+        Protected Overrides Sub AddDeclaredNonTypeMembers(membersBuilder As MembersAndInitializersBuilder, diagnostics As BindingDiagnosticBag)
             For Each syntaxRef In SyntaxReferences
                 Dim node = syntaxRef.GetVisualBasicSyntax()
 

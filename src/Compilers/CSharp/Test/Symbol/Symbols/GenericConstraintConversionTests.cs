@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1047,13 +1051,13 @@ class C4<T> where T : C4<T>
     public static explicit operator T(C4<T> c) { return null; }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,37): error CS0553: 'B1.implicit operator A(B1)': user-defined conversions to or from a base class are not allowed
+                // (4,37): error CS0553: 'B1.implicit operator A(B1)': user-defined conversions to or from a base type are not allowed
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B1.implicit operator A(B1)").WithLocation(4, 37),
-                // (8,37): error CS0553: 'B2.explicit operator A(B2)': user-defined conversions to or from a base class are not allowed
+                // (8,37): error CS0553: 'B2.explicit operator A(B2)': user-defined conversions to or from a base type are not allowed
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B2.explicit operator A(B2)").WithLocation(8, 37),
-                // (12,37): error CS0553: 'B3.implicit operator B3(A)': user-defined conversions to or from a base class are not allowed
+                // (12,37): error CS0553: 'B3.implicit operator B3(A)': user-defined conversions to or from a base type are not allowed
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "B3").WithArguments("B3.implicit operator B3(A)").WithLocation(12, 37),
-                // (16,37): error CS0553: 'B4.explicit operator B4(A)': user-defined conversions to or from a base class are not allowed
+                // (16,37): error CS0553: 'B4.explicit operator B4(A)': user-defined conversions to or from a base type are not allowed
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "B4").WithArguments("B4.explicit operator B4(A)").WithLocation(16, 37));
         }
     }

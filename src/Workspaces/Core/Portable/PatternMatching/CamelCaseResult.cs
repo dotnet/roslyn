@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -27,12 +31,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             public void Free()
-            {
-                MatchedSpansInReverse?.Free();
-            }
+                => MatchedSpansInReverse?.Free();
 
             public CamelCaseResult WithFromStart(bool fromStart)
-                => new CamelCaseResult(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
+                => new(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
 
             public CamelCaseResult WithAddedMatchedSpan(TextSpan value)
             {
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ArrayBuilder<TextSpan> candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, in TemporaryArray<TextSpan> candidateHumps)
         {
             var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)

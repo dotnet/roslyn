@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _valueMap = new Dictionary<TKey, TValue>(analysisValueProvider.KeyComparer);
         }
 
-        internal bool TryGetValue(TKey key, out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             // First try to get the cached value for this compilation.
             lock (_valueMap)

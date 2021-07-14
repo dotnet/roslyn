@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -20,20 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ExportWorkspaceService(typeof(IFixMultipleOccurrencesService), ServiceLayer.Host), Shared]
     internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService
     {
-        private readonly ICodeActionEditHandlerService _editHandler;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IWaitIndicator _waitIndicator;
-
         [ImportingConstructor]
-        public FixMultipleOccurrencesService(
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _editHandler = editHandler;
-            _waitIndicator = waitIndicator;
-            _listener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
-        }
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
+            => listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
         public Solution GetFix(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
@@ -71,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 waitDialogMessage, cancellationToken);
         }
 
-        private Solution GetFixedSolution(
+        private static Solution GetFixedSolution(
             FixAllState fixAllState,
             Workspace workspace,
             string title,

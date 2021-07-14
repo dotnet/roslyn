@@ -1,15 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -18,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private ReadOnly _original As ComplexTrivia
 
-            Public Sub New(optionSet As OptionSet, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
-                MyBase.New(optionSet, LanguageNames.VisualBasic)
+            Public Sub New(options As AnalyzerConfigOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
+                MyBase.New(options, LanguageNames.VisualBasic)
                 Contract.ThrowIfNull(original)
 
                 Me._original = original
@@ -69,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Public Overrides Sub Format(context As FormattingContext,
                                         formattingRules As ChainedFormattingRules,
-                                        formattingResultApplier As Action(Of Integer, TriviaData),
+                                        formattingResultApplier As Action(Of Integer, TokenStream, TriviaData),
                                         cancellationToken As CancellationToken,
                                         Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 Contract.ThrowIfFalse(Me.SecondTokenIsFirstTokenOnLine)
@@ -87,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 formattingResultApplier(
                     tokenPairIndex,
+                    context.TokenStream,
                     New FormattedComplexTrivia(context, formattingRules, Me._original.Token1, Me._original.Token2, Me.LineBreaks, Me.Spaces, Me._original.OriginalString, cancellationToken))
             End Sub
 
@@ -94,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Throw New NotImplementedException()
             End Function
         End Class

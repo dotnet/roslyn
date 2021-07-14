@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.CompilerServices;
 
@@ -7,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationPropertyInfo
     {
         private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> s_propertyToInfoMap =
-            new ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo>();
+            new();
 
         private readonly bool _isNew;
         private readonly bool _isUnsafe;
@@ -40,33 +44,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static SyntaxNode GetInitializer(CodeGenerationPropertyInfo info)
-        {
-            return info == null ? null : info._initializer;
-        }
+            => info?._initializer;
 
         public static SyntaxNode GetInitializer(IPropertySymbol property)
-        {
-            return GetInitializer(GetInfo(property));
-        }
+            => GetInitializer(GetInfo(property));
 
         public static bool GetIsNew(IPropertySymbol property)
-        {
-            return GetIsNew(GetInfo(property));
-        }
+            => GetIsNew(GetInfo(property));
 
         public static bool GetIsUnsafe(IPropertySymbol property)
-        {
-            return GetIsUnsafe(GetInfo(property));
-        }
+            => GetIsUnsafe(GetInfo(property));
 
         private static bool GetIsNew(CodeGenerationPropertyInfo info)
-        {
-            return info != null && info._isNew;
-        }
+            => info != null && info._isNew;
 
         private static bool GetIsUnsafe(CodeGenerationPropertyInfo info)
-        {
-            return info != null && info._isUnsafe;
-        }
+            => info != null && info._isUnsafe;
     }
 }

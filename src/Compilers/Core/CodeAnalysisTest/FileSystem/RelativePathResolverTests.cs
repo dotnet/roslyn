@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -43,13 +47,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".\" + fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(dotted, path);
 
             path = resolver.ResolvePath(@"..", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"..\" + fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
@@ -70,17 +74,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"C:\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"C:/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // drive-relative paths not supported:
             path = resolver.ResolvePath(drive + ":" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             // \abc\def
             string rooted = filePath.Substring(2);

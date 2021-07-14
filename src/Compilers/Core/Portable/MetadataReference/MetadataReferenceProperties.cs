@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="kind">The image kind - assembly or module.</param>
         /// <param name="aliases">Assembly aliases. Can't be set for a module.</param>
         /// <param name="embedInteropTypes">True to embed interop types from the referenced assembly to the referencing compilation. Must be false for a module.</param>
-        public MetadataReferenceProperties(MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
+        public MetadataReferenceProperties(MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
         {
             if (!kind.IsValid())
             {
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool HasRecursiveAliases { get; private set; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MetadataReferenceProperties && Equals((MetadataReferenceProperties)obj);
         }

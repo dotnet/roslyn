@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +29,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             TypeKind.Interface
         };
 
-        protected bool ValidateTypeToGenerateIn(
-            Solution solution,
+        protected static bool ValidateTypeToGenerateIn(
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
-            ISet<TypeKind> typeKinds,
-            CancellationToken cancellationToken)
+            ISet<TypeKind> typeKinds)
         {
             if (typeToGenerateIn == null)
             {
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             return locations.Any(loc => loc.IsInSource);
         }
 
-        protected bool TryDetermineTypeToGenerateIn(
+        protected static bool TryDetermineTypeToGenerateIn(
             SemanticDocument document,
             INamedTypeSymbol containingType,
             TExpressionSyntax simpleNameOrMemberAccessExpression,
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsConditionalMemberAccessExpression(expression))
+            if (syntaxFacts.IsConditionalAccessExpression(expression))
             {
                 var beforeDotExpression = syntaxFacts.GetExpressionOfConditionalAccessExpression(expression);
 
@@ -114,6 +116,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     DetermineTypeToGenerateInWorker(
                         semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                    if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+                        underlyingType is INamedTypeSymbol underlyingNamedType)
+                    {
+                        typeToGenerateIn = underlyingNamedType;
+                    }
                 }
 
                 return;
@@ -147,12 +154,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(
+            if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(
                     expression, out var initializedObject))
             {
                 typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;
                 isStatic = false;
                 return;
+            }
+            else if (syntaxFacts.IsNameOfSubpattern(expression))
+            {
+                var propertyPatternClause = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertyPatternClause);
+
+                if (propertyPatternClause != null)
+                {
+                    // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
+                    var inferenceService = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
+                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPatternClause, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
+
+                    isStatic = false;
+                    return;
+                }
             }
 
             // Generating into the containing type.
@@ -163,15 +184,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         private static void DetermineTypeToGenerateInWorker(
             SemanticModel semanticModel,
             SyntaxNode expression,
-            out INamedTypeSymbol typeToGenerateIn, 
-            out bool isStatic, 
+            out INamedTypeSymbol typeToGenerateIn,
+            out bool isStatic,
             CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
             var semanticInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
-            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol
-                ? ((ITypeParameterSymbol)typeInfo.Type).GetNamedTypeSymbolConstraint()
+            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol typeParameter
+                ? typeParameter.GetNamedTypeSymbolConstraint()
                 : typeInfo.Type as INamedTypeSymbol;
 
             isStatic = semanticInfo.Symbol is INamedTypeSymbol;

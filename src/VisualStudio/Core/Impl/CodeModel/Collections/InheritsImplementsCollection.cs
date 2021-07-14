@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -26,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
-        private ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
-        private SyntaxNodeKey _nodeKey;
+        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
+        private readonly SyntaxNodeKey _nodeKey;
 
         private InheritsImplementsCollection(
             CodeModelState state,
@@ -48,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private SyntaxNode LookupNode()
-        {
-            return FileCodeModel.LookupNode(_nodeKey);
-        }
+            => FileCodeModel.LookupNode(_nodeKey);
 
         internal override Snapshot CreateSnapshot()
         {
@@ -69,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         {
             var node = LookupNode();
 
-            int currentIndex = 0;
+            var currentIndex = 0;
 
             // Inherits statements
             var inheritsNodes = CodeModelService.GetInheritsNodes(node);

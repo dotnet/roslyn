@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         internal partial class ImplementInterfaceCodeAction
         {
-            private bool HasConflictingMember(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private bool HasConflictingMember(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 // Checks if this member conflicts with an existing member in classOrStructType or with
                 // a method we've already implemented.  If so, we'll need to implement this one
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // At this point, we have two members of the same type with the same name.  If they
                 // have a different signature (for example, methods, or parameterized properties),
                 // then they do not conflict.
-                if (!SignatureComparer.Instance.HaveSameSignature(member1, member2, this.IsCaseSensitive))
+                if (!SignatureComparer.Instance.HaveSameSignature(member1, member2, IsCaseSensitive))
                 {
                     return false;
                 }
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // b) different accessibility
                 // c) different constraints
                 if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
-                    !SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member1, member2, this.IsCaseSensitive))
+                    !SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member1, member2, IsCaseSensitive))
                 {
                     return true;
                 }

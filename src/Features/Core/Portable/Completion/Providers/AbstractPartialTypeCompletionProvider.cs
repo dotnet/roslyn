@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -14,13 +18,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : CommonCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxContext> : LSPCompletionProvider
+        where TSyntaxContext : SyntaxContext
     {
         protected AbstractPartialTypeCompletionProvider()
         {
         }
 
-        public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
+        public sealed override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
             {
@@ -33,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (node != null)
                 {
-                    var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
-                    var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
-
+                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
+                        var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
+                        var syntaxContext = (TSyntaxContext)syntaxContextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
                         var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                         var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
@@ -48,51 +53,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
         }
 
-        private CompletionItem CreateCompletionItem(
-            INamedTypeSymbol symbol, SyntaxContext context)
+        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TSyntaxContext context)
         {
-            var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
+            var (displayText, suffix, insertionText) = GetDisplayAndSuffixAndInsertionText(symbol, context);
 
             return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayAndInsertionText.displayText,
-                insertionText: displayAndInsertionText.insertionText,
+                displayText: displayText,
+                displayTextSuffix: suffix,
+                insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 properties: GetProperties(symbol, context),
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context);
-
-        protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
-            Document document,
-            SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken);
+        protected abstract ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, TSyntaxContext context);
 
-        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(TSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             if (declaredSymbol == null)
             {
                 throw new ArgumentNullException(nameof(declaredSymbol));
             }
 
-            SemanticModel semanticModel = context.SemanticModel;
+            var semanticModel = context.SemanticModel;
 
-            INamespaceOrTypeSymbol containingSymbol = declaredSymbol.ContainingSymbol as INamespaceOrTypeSymbol;
-
-            if (containingSymbol == null)
+            if (declaredSymbol.ContainingSymbol is not INamespaceOrTypeSymbol containingSymbol)
             {
                 return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
             }
@@ -105,11 +101,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
-        {
-            return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
-        }
+            => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
-        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
+        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, TSyntaxContext context)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(reference => reference.GetSyntax())

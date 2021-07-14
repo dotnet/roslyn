@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -11,15 +15,21 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyTypeNamesTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -178,7 +188,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -205,7 +215,7 @@ namespace Root
             [|System.Exception|] c;
         }
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -250,7 +260,7 @@ class A
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"namespace Root
 {
     using MyType = System.Exception;
@@ -274,7 +284,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -301,7 +311,7 @@ namespace Root
             [|System.Exception|] c;
         }
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -331,7 +341,7 @@ namespace Root
             var c = [|System.Int32|].MaxValue;
         }
     }
-}", 
+}",
 @"using Goo = System.Int32;
 
 namespace Root
@@ -468,7 +478,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -496,7 +506,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", 
+}",
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -528,6 +538,66 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example|].ToString""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example.ToString|]""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingInNameofMemberGroup()
+        {
+            // Note: this is something we could potentially support as removing the
+            // qualification here preserves semantics.
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        void Method()
+        {
+            _ = nameof([|Example|].Goo);
+        }
+
+        public static void Goo() { }
+        public static void Goo(int i) { }
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -541,7 +611,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", 
+}",
 @"using MyType = System.Exception;
 
 namespace Root
@@ -627,7 +697,6 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
@@ -662,7 +731,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using System;
 
 namespace Root
@@ -695,7 +764,7 @@ namespace Root
     {
         [|System.Exception|] c;
     }
-}", 
+}",
 @"namespace System
 {
     class A
@@ -722,7 +791,7 @@ namespace Root
             [|N1.A1|] a;
         }
     }
-}", 
+}",
 @"namespace N1
 {
     public class A1
@@ -757,7 +826,7 @@ namespace Root
     {
         [|N1.N2.A1|] a;
     }
-}", 
+}",
 @"namespace N1
 {
     namespace N2
@@ -791,7 +860,7 @@ namespace Root
     {
         [|N1.NC1.A1|] a;
     }
-}", 
+}",
 @"namespace N1
 {
     class NC1
@@ -847,7 +916,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"namespace N1
 {
     namespace N2
@@ -893,7 +962,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using System;
 
 namespace N1
@@ -920,7 +989,7 @@ namespace N1
     {
         {|FixAllInDocument:System.Action|}<System.Action<System.Action<System.EventArgs>, System.Action<System.Action<System.EventArgs, System.Action<System.EventArgs>, System.Action<System.Action<System.Action<System.Action<System.EventArgs>, System.Action<System.EventArgs>>>>>>>> a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -963,7 +1032,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, 
+            await TestInRegularAndScriptAsync(source,
 @"using MyHandler = System.EventHandler<System.EventArgs>;
 
 namespace N1
@@ -1007,7 +1076,7 @@ namespace N1
     {
         [|N1.N2.A1<System.Exception>|] a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -1050,7 +1119,7 @@ namespace N1
     {
         N1.N2.A1<[|System.Exception|]> a;
     }
-}", 
+}",
 @"using System;
 
 namespace N1
@@ -1083,7 +1152,7 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[]>|] a;
     }
-}", 
+}",
 @"using System.Collections.Generic;
 
 namespace N1
@@ -1129,7 +1198,7 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[][,][,,,]>|] a;
     }
-}", 
+}",
 @"using System.Collections.Generic;
 
 namespace N1
@@ -1260,7 +1329,7 @@ class Program
         {
         }
     }
-}", 
+}",
 @"namespace N1
 {
     public class C1
@@ -1303,7 +1372,7 @@ namespace N1
     class Test
     {
     }
-}", 
+}",
 @"using I64 = System.Int64;
 using Goo = System.Collections.Generic.IList<long>;
 
@@ -1331,7 +1400,7 @@ namespace N1
         {
         }
     }
-}", 
+}",
 @"namespace Outer
 {
     using I64 = System.Int64;
@@ -1363,7 +1432,7 @@ namespace Outer
         {
         }
     }
-}", 
+}",
 @"using I64 = System.Int64;
 
 namespace Outer
@@ -1414,7 +1483,7 @@ class A
     {
         return null;
     }
-}", 
+}",
 @"using alias1 = A;
 
 class A
@@ -1752,9 +1821,98 @@ new TestParameters(Options.Script));
 index: 1);
         }
 
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestPreventSimplificationThatWouldCauseConflict()
+        public async Task TestPreventSimplificationToNameInCurrentScope()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N.Program.Goo.Bar|]();
+            int Goo;
+        }
+    }
+}",
+
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Program.Goo.Bar();
+            int Goo;
+        }
+    }
+}");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestPreventSimplificationToNameInCurrentScope2()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int Goo)
+        {
+            [|N.Program.Goo.Bar|]();
+        }
+    }
+}",
+
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int Goo)
+        {
+            Program.Goo.Bar();
+        }
+    }
+}");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationToNameInNestedScope()
         {
             await TestInRegularAndScriptAsync(
 @"namespace N
@@ -1790,16 +1948,24 @@ index: 1);
 
         static void Main()
         {
-            Program.Goo.Bar();
+            Goo.Bar();
             {
                 int Goo;
             }
         }
     }
 }");
+        }
 
-            await TestMissingInRegularAndScriptAsync(
-@"namespace N
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationToNameInNestedScope1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+
+namespace N
 {
     class Program
     {
@@ -1810,12 +1976,30 @@ index: 1);
             }
         }
 
-        static void Main()
+        static void Main(int[] args)
         {
-            [|Program.Goo.Bar|]();
+            [|N.Program.Goo.Bar|]();
+            var q = from Goo in args select Goo;
+        }
+    }
+}",
+@"using System.Linq;
+
+namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
             {
-                int Goo;
             }
+        }
+
+        static void Main(int[] args)
+        {
+            Goo.Bar();
+            var q = from Goo in args select Goo;
         }
     }
 }");
@@ -2338,20 +2522,36 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestNullableInsideCref_AllowedIfReferencingActualType()
+        public async Task TestNullableInsideCref_NotAllowedAtTopLevel()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
 /// </summary>
 class A
 {
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableInsideCref_TopLevel2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+/// <summary>
+/// <see cref=""[|System.Nullable{int}|]""/>
+/// </summary>
+class A
+{
 }",
 @"using System;
 /// <summary>
-/// <see cref=""int?""/>
+/// <see cref=""Nullable{int}""/>
 /// </summary>
 class A
 {
@@ -2362,6 +2562,8 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
+            // Both the 'original' and 'fixed' code here are incorrect as doc comments do not allow
+            // actual type-references in a type-arg list.
             await TestInRegularAndScriptAsync(
 @"using System;
 /// <summary>
@@ -2376,6 +2578,29 @@ class C<T>
 /// </summary>
 class C<T>
 {
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+/// <summary>
+/// <see cref=""Goo([|Nullable{int}|])""/>
+/// </summary>
+class C
+{
+    void Goo(int? i) { }
+}",
+@"using System;
+/// <summary>
+/// <see cref=""Goo(int?)""/>
+/// </summary>
+class C
+{
+    void Goo(int? i) { }
 }");
         }
 
@@ -2397,7 +2622,7 @@ class A
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestNullableSimplificationInsideCref()
+        public async Task TestNullableSimplificationInsideCref_Indirect()
         {
             await TestInRegularAndScriptAsync(
 @"/// <summary>
@@ -2411,6 +2636,31 @@ struct A
 }",
 @"/// <summary>
 /// <see cref=""A.M(A?)""/>
+/// </summary>
+struct A
+{
+    public void M(A? x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableSimplificationInsideCref_Direct()
+        {
+            await TestInRegularAndScriptAsync(
+@"/// <summary>
+/// <see cref=""M([|System.Nullable{A}|])""/>
+/// </summary>
+struct A
+{
+    public void M(A? x)
+    {
+    }
+}",
+@"/// <summary>
+/// <see cref=""M(A?)""/>
 /// </summary>
 struct A
 {
@@ -2590,6 +2840,152 @@ class Program
     void Main()
     {
         [|Color.Goo|]();
+    }
+}");
+        }
+
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase3()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""[|N|].Goo.Bar""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}",
+@"namespace N
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""Goo.Bar""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}");
+        }
+
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase4()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Goo
+    {
+        public class Bar
+        {
+            public class Baz { }
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""[|N|].Goo.Bar.Baz""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}",
+@"namespace N
+{
+    class Goo
+    {
+        public class Bar
+        {
+            public class Baz { }
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""Goo.Bar.Baz""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}");
+        }
+
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase5()
+        {
+            await TestMissingAsync(
+@"using A;
+
+namespace A
+{
+    public struct Goo { }
+}
+
+namespace N
+{
+    /// <summary><see cref=""[|A|].Goo""/></summary
+    class Color
+    {
+        public Goo Goo;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase6()
+        {
+            await TestMissingAsync(
+@"using System.Reflection.Metadata;
+using Microsoft.Cci;
+
+namespace System.Reflection.Metadata
+{
+    public enum PrimitiveTypeCode
+    {
+        Void = 1,
+    }
+}
+
+namespace Microsoft.Cci
+{
+    internal enum PrimitiveTypeCode
+    {
+        NotPrimitive,
+        Pointer,
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    internal class TypeSymbol
+    {
+        internal Cci.PrimitiveTypeCode PrimitiveTypeCode => Cci.PrimitiveTypeCode.Pointer;
+    }
+
+    internal partial class NamedTypeSymbol : TypeSymbol
+    {
+        Cci.PrimitiveTypeCode TypeCode
+            => [|Cci|].PrimitiveTypeCode.NotPrimitive;
     }
 }");
         }
@@ -2794,7 +3190,7 @@ class Program
     {
         Action a = [|System.Console.WriteLine|];
     }
-}", 
+}",
 @"using System;
 
 class Program
@@ -3293,7 +3689,7 @@ class Attribute : System.Attribute
     {
         [|this|].x = 4;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3308,7 +3704,7 @@ class Attribute : System.Attribute
     public void z()
     {
     }
-}", 
+}",
 @"class C
 {
     int x;
@@ -3425,7 +3821,7 @@ class C
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3468,7 +3864,7 @@ class C
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3508,12 +3904,12 @@ options: PreferIntrinsicTypeInMemberAccess);
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestIntrinsicTypesInsideCref_NonDefault_6()
+        public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -3533,6 +3929,20 @@ options: PreferIntrinsicTypeInMemberAccess);
 options: PreferIntrinsicTypeInMemberAccess);
         }
 
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
+    public void z()
+    {
+    }
+}", new TestParameters(options: PreferIntrinsicTypeInDeclaration));
+        }
+
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
@@ -3546,7 +3956,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3562,7 +3972,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3578,7 +3988,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         [|System.Int32|] z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3592,7 +4002,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", 
+}",
 @"class C
 {
     public void z()
@@ -3615,7 +4025,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", 
+}",
 @"using System;
 
 class C
@@ -3661,7 +4071,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3675,7 +4085,7 @@ class C
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
@@ -3743,7 +4153,7 @@ class Program
         {
         }
     }
-}", 
+}",
 @"using System;
 
 class Program
@@ -3769,7 +4179,7 @@ class Program
     {
         public object X => ([|System.Int32|])0;
     }
-}", 
+}",
 @"namespace ClassLibrary2
 {
     public class Class1
@@ -3787,7 +4197,7 @@ class Program
 @"class C
 {
     public string Goo() => ([|System.String|])"";
-}", 
+}",
 @"class C
 {
     public string Goo() => (string)"";
@@ -3802,7 +4212,7 @@ class Program
 @"class C
 {
     public int this[int index] => ([|System.Int32|])0;
-}", 
+}",
 @"class C
 {
     public int this[int index] => (int)0;
@@ -3960,7 +4370,42 @@ class C
 
         }
     }
-}", new TestParameters(options: PreferImplicitTypeWithSilent));
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
+        }
+
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach ([|string|] arg in args)
+        {
+
+        }
+    }
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
+        }
+
+        [Fact, WorkItem(31849, "https://github.com/dotnet/roslyn/issues/31849")]
+        public async Task NoSuggestionOnNestedNullabilityRequired()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+using System.Threading.Tasks;
+
+class C
+{
+    Task<string?> FooAsync()
+    {
+        return Task.FromResult<[|string?|]>(""something"");
+    }
+}");
         }
 
         [Theory]
@@ -3994,39 +4439,1474 @@ namespace Root
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
 
-        private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirective()
         {
-            await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegularAndScriptAsync(
+                "using [|global::System.IO|];",
+                "using System.IO;");
         }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+                $"using My{typeName} = [|global::System.{typeName}|];",
+                $"using My{typeName} = System.{typeName};");
+        }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Warning),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
+        {
+            await TestInRegularAndScriptAsync(
+                "using static [|global::System.Math|];",
+                "using static System.Math;");
+        }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent, GetLanguage()));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using [|global::System.IO|];
+}",
+@"using System;
+namespace N
+{
+    using System.IO;
+}");
+        }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
+        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestCrefIdAtTopLevel()
+        {
+            await TestDiagnosticInfoAsync(
+@"/// <summary>
+/// <see cref=""[|System.String|]""/>
+/// </summary>
+class Base
+{
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+        }
 
-        private IDictionary<OptionKey, object> PreferImplicitTypeWithSilent => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestCrefIdAtNestedLevel()
+        {
+            await TestDiagnosticInfoAsync(
+@"/// <summary>
+/// <see cref=""Foo([|System.String|])""/>
+/// </summary>
+class Base
+{
+    public void Foo(string s) { }
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+        }
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = System.{typeName};
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using static [|global::System.Math|];
+}",
+@"using System;
+namespace N
+{
+    using static System.Math;
+}");
+        }
+
+        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo()
+    {
+        [|System.Int32|] i = 0;
+    }
+}",
+@"
+class C
+{
+    void Goo()
+    {
+        int i = 0;
+    }
+}", options: PreferImplicitTypeEverywhere);
+        }
+
+        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo()
+    {
+        [|int|] i = 0;
+    }
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
+        }
+
+        [WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyMemberAccessOverPredefinedType()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public void Goo(object o1, object o2) => [|Object|].ReferenceEquals(o1, o2);
+}
+",
+@"using System;
+
+class Base
+{
+    public void Goo(object o1, object o2) => ReferenceEquals(o1, o2);
+}
+");
+        }
+
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAliasToGeneric1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|System.Collections.Generic.List<int>|] Goo;
+}
+",
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public MyList Goo;
+}
+");
+        }
+
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAliasToGeneric2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<int>|] Goo;
+}
+",
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public MyList Goo;
+}
+");
+        }
+
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAliasToGeneric3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<System.Int32>|] Goo;
+}
+",
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public MyList Goo;
+}
+");
+        }
+
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyIncorrectInstantiation()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<string>|] Goo;
+}
+");
+        }
+
+        [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyInTypeOf()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof([|Object|]);
+    }
+}
+",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof(object);
+    }
+}
+");
+        }
+
+        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyPredefinedTypeInUsingDirective1()
+        {
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+
+namespace N
+{
+    using Alias1 = [|System|].Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}",
+
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly2()
+        {
+            await TestSpansAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C.X|].Y(A.B.C.X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y([|A.B.C|].X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|{typeName}|];
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyMemberAccessOffOfObjectKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    bool Goo()
+    {
+        return [|object|].Equals(null, null);
+    }
+}",
+@"using System;
+
+class C
+{
+    bool Goo()
+    {
+        return Equals(null, null);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallToVirtualInNonSealedClass()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToVirtualInSealedClass()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+sealed class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}",
+@"using System;
+
+sealed class C
+{
+    void Goo()
+    {
+        var v = GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToVirtualInStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+struct C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}",
+@"using System;
+
+struct C
+{
+    void Goo()
+    {
+        var v = GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallToVirtualWithOverride()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+
+    public override int GetHashCode() => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToNonVirtual()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public int Baz() => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = [|base|].Baz();
+    }
+}",
+@"using System;
+
+class Base
+{
+    public int Baz() => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = Baz();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallIfOverloadChanges()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public int Baz(object o) => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = [|base|].Baz(0);
+    }
+
+    public int Baz(int o) => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyInsideNameof()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public int Baz(string type)
+        => type switch
+        {
+            nameof([|Int32|]) => 0,
+        };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyInferrableTypeArgumentList()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar[|<int>|](0);
+    public void Bar<T>(T t) => default;
+}
+",
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar(0);
+    public void Bar<T>(T t) => default;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyNonInferrableTypeArgumentList()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar[|<int>|](0);
+    public void Bar<T>() => default;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyEnumMemberReferenceInsideEnum()
+        {
+            await TestInRegularAndScript1Async(
+@"
+enum E
+{
+    Goo = 1,
+    Bar = [|E|].Goo,
+}",
+@"
+enum E
+{
+    Goo = 1,
+    Bar = Goo,
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyEnumMemberReferenceInsideEnumDocComment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+/// <summary>
+/// <see cref=""[|E|].Goo""/>
+/// </summary>
+enum E
+{
+    Goo = 1,
+}",
+@"
+/// <summary>
+/// <see cref=""Goo""/>
+/// </summary>
+enum E
+{
+    Goo = 1,
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInstanceMemberReferenceInCref1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    /// <see cref=""[|C.z|]""/>
+    public void z()
+    {
+    }
+}", @"
+class C
+{
+    /// <see cref=""z""/>
+    public void z()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo[|Attribute|]]
+class Bar
+{
+}
+",
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo[|Attribute|]()]
+class Bar
+{
+}
+",
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo()]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.Goo[|Attribute|]()]
+class Bar
+{
+}
+",
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.Goo()]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference4()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.GooAttribute([|typeof(System.Int32)|])]
+class Bar
+{
+}
+",
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.GooAttribute(typeof(int))]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifySystemAttribute()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Runtime.Serialization;
+
+namespace Microsoft
+{
+    [[|System|].Serializable]
+    public struct ClassifiedToken
+    {
+    }
+}",
+@"using System;
+using System.Runtime.Serialization;
+
+namespace Microsoft
+{
+    [Serializable]
+    public struct ClassifiedToken
+    {
+    }
+}");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N.Program|].Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|Program|].Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestPreventSimplificationThatWouldCauseConflict1()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N|].Program.Goo.Bar();
+            int Goo;
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Program.Goo.Bar();
+            int Goo;
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestPreventSimplificationThatWouldCauseConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            [|Program|].Goo.Bar();
+            int Goo;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyPredefinedTypeMemberAccessThatIsInScope()
+        {
+            await TestInRegularAndScript1Async(
+@"using static System.Int32;
+
+class Goo
+{
+    public void Bar(string a)
+    {
+        var v = [|int|].Parse(a);
+    }
+}",
+@"using static System.Int32;
+
+class Goo
+{
+    public void Bar(string a)
+    {
+        var v = Parse(a);
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using A;
+using B;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+class C
+{
+    void Bar(object o)
+    {
+        var x = ([|A|].Goo)o;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using B;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = ([|A|].Goo)o;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationWithoutAmbiguity2()
+        {
+            await TestInRegularAndScript1Async(
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using A;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = ([|A|].Goo)o;
+        }
+    }
+}",
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using A;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = (Goo)o;
+        }
+    }
+}");
+        }
+
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyCrefAliasPredefinedType_OnClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N1
+{
+    /// <see cref=""[|System.Int32|]""/>
+    public class C1
+    {
+        public C1()
+        {
+        }
+    }
+}",
+@"namespace N1
+{
+    /// <see cref=""int""/>
+    public class C1
+    {
+        public C1()
+        {
+        }
+    }
+}", options: PreferIntrinsicTypeEverywhere);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
+        {
+            var content =
+@"
+using System;
+
+internal struct BitVector : IEquatable<BitVector>
+{
+    public bool Equals(BitVector other)
+    {
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is BitVector other && Equals(other);
+    }
+
+    public static bool operator ==(BitVector left, BitVector right)
+    {
+        return [|left|].Equals(right);
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(content);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
+        {
+            var source =
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = [|Derived|].Y;
+    }
+}";
+            await TestInRegularAndScriptAsync(source,
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = Base.Y;
+    }
+}");
+        }
+
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyCallWithDynamicArg()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|System|].Console.WriteLine(y);
+    }
+}",
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        Console.WriteLine(y);
+    }
+}");
+        }
+
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Base
+{
+    public static void Goo(int i) { }
+}
+
+class Derived
+{
+}
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|Derived|].Goo(y);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNameofReportsSimplifyMemberAccess()
+        {
+            await TestDiagnosticInfoAsync(
+@"using System;
+
+class Base
+{
+    void Goo()
+    {
+        var v = nameof([|System|].Int32);
+    }
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+        }
+
+        [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNotOnIllegalInstanceCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Console.Equals|]("""");
+    }
+}");
+        }
+
+        private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
+            => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+
+        private OptionsCollection PreferIntrinsicTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError },
+            };
+
+        private OptionsCollection PreferIntrinsicTypeInDeclaration
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent },
+            };
+
+        private OptionsCollection PreferIntrinsicTypeInMemberAccess
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent },
+            };
+
+        private OptionsCollection PreferImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
+        private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
     }
 }

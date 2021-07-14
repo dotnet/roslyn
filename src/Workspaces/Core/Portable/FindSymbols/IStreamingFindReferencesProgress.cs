@@ -1,31 +1,84 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    /// <summary>
+    /// Represents a group of <see cref="ISymbol"/>s that should be treated as a single entity for
+    /// the purposes of presentation in a Find UI.  For example, when a symbol is defined in a file
+    /// that is linked into multiple project contexts, there will be several unique symbols created
+    /// that we search for.  Placing these in a group allows the final consumer to know that these 
+    /// symbols can be merged together.
+    /// </summary>
+    internal class SymbolGroup : IEquatable<SymbolGroup>
+    {
+        /// <summary>
+        /// All the symbols in the group.
+        /// </summary>
+        public ImmutableHashSet<ISymbol> Symbols { get; }
+
+        private int _hashCode;
+
+        public SymbolGroup(ImmutableArray<ISymbol> symbols)
+        {
+            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty, "Symbols should be non empty");
+
+            Symbols = ImmutableHashSet.CreateRange(
+                MetadataUnifyingEquivalenceComparer.Instance, symbols);
+        }
+
+        public override bool Equals(object? obj)
+            => obj is SymbolGroup group && Equals(group);
+
+        public bool Equals(SymbolGroup? group)
+            => this == group || (group != null && Symbols.SetEquals(group.Symbols));
+
+        public override int GetHashCode()
+        {
+            if (_hashCode == 0)
+            {
+                var hashCode = 0;
+                foreach (var symbol in Symbols)
+                    hashCode += MetadataUnifyingEquivalenceComparer.Instance.GetHashCode(symbol);
+                _hashCode = hashCode;
+            }
+
+            return _hashCode;
+        }
+    }
+
     /// <summary>
     /// Reports the progress of the FindReferences operation.  Note: these methods may be called on
     /// any thread.
     /// </summary>
     internal interface IStreamingFindReferencesProgress
     {
-        Task OnStartedAsync();
-        Task OnCompletedAsync();
+        IStreamingProgressTracker ProgressTracker { get; }
 
-        Task OnFindInDocumentStartedAsync(Document document);
-        Task OnFindInDocumentCompletedAsync(Document document);
+        ValueTask OnStartedAsync(CancellationToken cancellationToken);
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
-        Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId);
-        Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location);
+        ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
+        ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);
 
-        Task ReportProgressAsync(int current, int maximum);
+        ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken);
+        ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
-        Task OnReferenceFoundAsync(Document document, TextSpan span);
-        Task ReportProgressAsync(int current, int maximum);
+        IStreamingProgressTracker ProgressTracker { get; }
+
+        ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     }
 }

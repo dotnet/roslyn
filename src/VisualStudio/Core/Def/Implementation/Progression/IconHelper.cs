@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     internal static class IconHelper
     {
         private static string GetIconName(string groupName, string itemName)
-        {
-            return string.Format("Microsoft.VisualStudio.{0}.{1}", groupName, itemName);
-        }
+            => string.Format("Microsoft.VisualStudio.{0}.{1}", groupName, itemName);
 
         public static string GetIconName(string groupName, Accessibility symbolAccessibility)
         {
@@ -77,9 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 foreach (var itemKvp in supportedGlyphItems)
                 {
-                    string iconName = GetIconName(groupKvp.Value, itemKvp.Value);
-                    StandardGlyphGroup localGroup = groupKvp.Key;
-                    StandardGlyphItem localItem = itemKvp.Key;
+                    var iconName = GetIconName(groupKvp.Value, itemKvp.Value);
+                    var localGroup = groupKvp.Key;
+                    var localItem = itemKvp.Key;
                     iconService.AddIcon(iconName, iconName, () => glyphService.GetGlyph(localGroup, localItem));
                 }
             }

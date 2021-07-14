@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 
@@ -30,15 +34,5 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// recompute tags.
         /// </summary>
         event EventHandler<TaggerEventArgs> Changed;
-
-        /// <summary>
-        /// The tagger should stop updating the UI with the tags it's produced.
-        /// </summary>
-        event EventHandler UIUpdatesPaused;
-
-        /// <summary>
-        /// The tagger can start notifying the UI about its tags again.
-        /// </summary>
-        event EventHandler UIUpdatesResumed;
     }
 }

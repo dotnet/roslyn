@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -136,10 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 If(hasInitializer, New SynthesizedStaticLocalBackingField(localSymbol, isValueField:=False, reportErrorForLongNames:=True), Nothing))
 
             If _emitModule IsNot Nothing Then
-                _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Key)
+                _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Key.GetCciAdapter())
 
                 If result.Value IsNot Nothing Then
-                    _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Value)
+                    _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Value.GetCciAdapter())
                 End If
             End If
 
@@ -193,12 +195,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                New BoundMeReference(syntax, _topMethod.ContainingType)),
                                             staticLocalBackingFields.Value, isLValue:=True, type:=staticLocalBackingFields.Value.Type)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
             Dim flagAsObject = New BoundDirectCast(syntax,
                                                    flag.MakeRValue(),
-                                                   Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteDiagnostics),
+                                                   Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteInfo),
                                                    objectType)
-            _diagnostics.Add(syntax, useSiteDiagnostics)
+            _diagnostics.Add(syntax, useSiteInfo)
 
             ' If flag Is Nothing
             '    Interlocked.CompareExchange(flag, New StaticLocalInitFlag, Nothing)  

@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -35,10 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         private int _itemsAddedSinceLastCleanUp;
         private bool _needsCleanUp;
-        private IEnumerator<KeyValuePair<TKey, WeakComHandle<TValue, TValue>>> _cleanUpEnumerator;
-
-        private enum CleanUpState { Initial, CollectingDeadKeys, RemovingDeadKeys }
-        private CleanUpState _cleanUpState;
 
         public bool NeedsCleanUp => _needsCleanUp;
 
@@ -50,120 +52,93 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             CleanUpThreshold = cleanUpThreshold ?? DefaultCleanUpThreshold;
             CleanUpTimeSlice = cleanUpTimeSlice ?? s_defaultCleanUpTimeSlice;
-            _cleanUpState = CleanUpState.Initial;
-        }
-
-        private void InvalidateEnumerator()
-        {
-            if (_cleanUpEnumerator != null)
-            {
-                _cleanUpEnumerator.Dispose();
-                _cleanUpEnumerator = null;
-            }
-        }
-
-        private bool CollectDeadKeys(TimeSlice timeSlice)
-        {
-            Debug.Assert(_cleanUpState == CleanUpState.CollectingDeadKeys);
-            Debug.Assert(_cleanUpEnumerator != null);
-
-            while (_cleanUpEnumerator.MoveNext())
-            {
-                var pair = _cleanUpEnumerator.Current;
-
-                if (!pair.Value.IsAlive())
-                {
-                    _deadKeySet.Add(pair.Key);
-                }
-
-                if (timeSlice.IsOver)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool RemoveDeadKeys(TimeSlice timeSlice)
-        {
-            Debug.Assert(_cleanUpEnumerator == null);
-
-            while (_deadKeySet.Count > 0)
-            {
-                var key = _deadKeySet.First();
-
-                _deadKeySet.Remove(key);
-
-                Debug.Assert(_table.ContainsKey(key), "Key not found in table.");
-                _table.Remove(key);
-
-                if (timeSlice.IsOver)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
-        /// Cleans up references to dead objects in the table. This operation will return if it takes
-        /// longer than <see cref="CleanUpTimeSlice"/>. Calling <see cref="CleanUpDeadObjects"/> further
-        /// times will continue the process.
+        /// Cleans up references to dead objects in the table. This operation will yield to other foreground operations
+        /// any time execution exceeds <see cref="CleanUpTimeSlice"/>.
         /// </summary>
-        public void CleanUpDeadObjects()
+        public async Task CleanUpDeadObjectsAsync(IAsynchronousOperationListener listener)
         {
-            this.AssertIsForeground();
+            using var _ = listener.BeginAsyncOperation(nameof(CleanUpDeadObjectsAsync));
+
+            Debug.Assert(ThreadingContext.JoinableTaskContext.IsOnMainThread, "This method is optimized for cases where calls do not yield before checking _needsCleanUp.");
+
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
 
             if (!_needsCleanUp)
             {
                 return;
             }
 
+            // Immediately mark as not needing cleanup; this operation will clean up the table by the time it returns.
+            _needsCleanUp = false;
+
             var timeSlice = new TimeSlice(CleanUpTimeSlice);
 
-            if (_cleanUpState == CleanUpState.Initial)
-            {
-                _cleanUpEnumerator = _table.GetEnumerator();
-                _cleanUpState = CleanUpState.CollectingDeadKeys;
-            }
+            await CollectDeadKeysAsync().ConfigureAwait(true);
+            await RemoveDeadKeysAsync().ConfigureAwait(true);
+            return;
 
-            if (_cleanUpState == CleanUpState.CollectingDeadKeys)
+            // Local functions
+            async Task CollectDeadKeysAsync()
             {
-                if (_cleanUpEnumerator == null)
+                // This method returns after making a complete pass enumerating the elements of _table without finding
+                // any entries that are not alive. If a pass exceeds the allowed time slice after finding one or more
+                // dead entries, the pass yields before processing the elements found so far and restarting the
+                // enumeration.
+                //
+                // ⚠ This method may interleave with other asynchronous calls to CleanUpDeadObjectsAsync.
+                var cleanUpEnumerator = _table.GetEnumerator();
+                while (cleanUpEnumerator.MoveNext())
                 {
-                    // The enumerator got reset while we were collecting dead keys.
-                    // Go ahead and remove the dead keys that were already collected before
-                    // collecting more.
-                    if (!RemoveDeadKeys(timeSlice))
+                    var pair = cleanUpEnumerator.Current;
+                    if (!pair.Value.IsAlive())
                     {
-                        return;
+                        _deadKeySet.Add(pair.Key);
+
+                        if (timeSlice.IsOver)
+                        {
+                            // Yield before processing items found so far.
+                            await ResetTimeSliceAsync().ConfigureAwait(true);
+
+                            // Process items found prior to exceeding the time slice. Due to interleaving, it is
+                            // possible for this call to process items found by another asynchronous call to
+                            // CollectDeadKeysAsync, or for another asynchronous call to RemoveDeadKeysAsync to process
+                            // all items prior to this call.
+                            await RemoveDeadKeysAsync().ConfigureAwait(true);
+
+                            // Obtain a new enumerator since the previous one may be invalidated.
+                            cleanUpEnumerator = _table.GetEnumerator();
+                        }
                     }
-
-                    _cleanUpEnumerator = _table.GetEnumerator();
                 }
-
-                if (!CollectDeadKeys(timeSlice))
-                {
-                    return;
-                }
-
-                InvalidateEnumerator();
-                _cleanUpState = CleanUpState.RemovingDeadKeys;
             }
 
-            if (_cleanUpState == CleanUpState.RemovingDeadKeys)
+            async Task RemoveDeadKeysAsync()
             {
-                if (!RemoveDeadKeys(timeSlice))
+                while (_deadKeySet.Count > 0)
                 {
-                    return;
-                }
+                    // Fully process one item from _deadKeySet before the possibility of yielding
+                    var key = _deadKeySet.First();
 
-                _cleanUpState = CleanUpState.Initial;
+                    _deadKeySet.Remove(key);
+
+                    Debug.Assert(_table.ContainsKey(key), "Key not found in table.");
+                    _table.Remove(key);
+
+                    if (timeSlice.IsOver)
+                    {
+                        await ResetTimeSliceAsync().ConfigureAwait(true);
+                    }
+                }
             }
 
-            _needsCleanUp = false;
+            async Task ResetTimeSliceAsync()
+            {
+                await listener.Delay(TimeSpan.FromMilliseconds(50), ThreadingContext.DisposalToken).ConfigureAwait(true);
+                timeSlice = new TimeSlice(CleanUpTimeSlice);
+            }
         }
 
         public void Add(TKey key, TValue value)
@@ -187,16 +162,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 _itemsAddedSinceLastCleanUp = 0;
             }
 
-            InvalidateEnumerator();
-
             _table.Add(key, new WeakComHandle<TValue, TValue>(value));
         }
 
         public TValue Remove(TKey key)
         {
             this.AssertIsForeground();
-
-            InvalidateEnumerator();
 
             if (_deadKeySet.Contains(key))
             {

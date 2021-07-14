@@ -1,27 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using DocumentHighlighting = Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -32,51 +34,140 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
-            private readonly DocumentHighlighting.HighlightSpanKind _spanKind;
-            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
+            private readonly HighlightSpanKind _spanKind;
+            private readonly ExcerptResult _excerptResult;
+            private readonly SymbolReferenceKinds _symbolReferenceKinds;
+            private readonly ImmutableDictionary<string, string> _customColumnsData;
 
-            public DocumentSpanEntry(
+            private readonly string _rawProjectName;
+            private readonly List<string> _projectFlavors = new();
+
+            private string? _cachedProjectName;
+
+            private DocumentSpanEntry(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                string rawProjectName,
+                string? projectFlavor,
+                Guid projectGuid,
+                HighlightSpanKind spanKind,
+                MappedSpanResult mappedSpanResult,
+                ExcerptResult excerptResult,
+                SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> customColumnsData)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
+            {
+                _spanKind = spanKind;
+                _excerptResult = excerptResult;
+                _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
+                _customColumnsData = customColumnsData;
+
+                _rawProjectName = rawProjectName;
+                this.AddFlavor(projectFlavor);
+            }
+
+            protected override string GetProjectName()
+            {
+                // Check if we have any flavors.  If we have at least 2, combine with the project name
+                // so the user can know htat in the UI.
+                lock (_projectFlavors)
+                {
+                    if (_cachedProjectName == null)
+                    {
+                        _cachedProjectName = _projectFlavors.Count < 2
+                            ? _rawProjectName
+                            : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
+                    }
+
+                    return _cachedProjectName;
+                }
+            }
+
+            private void AddFlavor(string? projectFlavor)
+            {
+                if (projectFlavor == null)
+                    return;
+
+                lock (_projectFlavors)
+                {
+                    if (_projectFlavors.Contains(projectFlavor))
+                        return;
+
+                    _projectFlavors.Add(projectFlavor);
+                    _projectFlavors.Sort();
+                    _cachedProjectName = null;
+                }
+            }
+
+            public static DocumentSpanEntry? TryCreate(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                DocumentHighlighting.HighlightSpanKind spanKind,
-                string documentName,
-                Guid projectGuid,
-                SourceText sourceText,
-                ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
+                HighlightSpanKind spanKind,
+                MappedSpanResult mappedSpanResult,
+                ExcerptResult excerptResult,
+                SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> customColumnsData)
             {
-                _spanKind = spanKind;
-                _classifiedSpansAndHighlights = classifiedSpans;
+                var document = documentSpan.Document;
+                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+                var entry = new DocumentSpanEntry(
+                    context, definitionBucket,
+                    projectName, projectFlavor, guid,
+                    spanKind, mappedSpanResult, excerptResult,
+                    lineText, symbolUsageInfo, customColumnsData);
+
+                // Because of things like linked files, we may have a reference up in multiple
+                // different locations that are effectively at the exact same navigation location
+                // for the user. i.e. they're the same file/span.  Showing multiple entries for these
+                // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
+                // collapse things down to only show a single entry for each unique file/span pair.
+                var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
+
+                // If we were the one that successfully added this entry to the bucket, then pass us
+                // back out to be put in the ui.
+                if (winningEntry == entry)
+                    return entry;
+
+                // We were not the winner.  Add our flavor to the entry that already exists, but throw
+                // away the item we created as we do not want to add it to the ui.
+                winningEntry.AddFlavor(projectFlavor);
+                return null;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                var propertyId = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
+                var propertyId = _spanKind == HighlightSpanKind.Definition
                     ? DefinitionHighlightTag.TagId
-                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
+                    : _spanKind == HighlightSpanKind.WrittenReference
                         ? WrittenReferenceHighlightTag.TagId
                         : ReferenceHighlightTag.TagId;
 
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
-                var highlightBrush = properties["Background"] as Brush;
 
-                var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
+                // Remove additive classified spans before creating classified text.
+                // Otherwise the text will be repeated since there are two classifications
+                // for the same span. Additive classifications should not change the foreground
+                // color, so the resulting classified text will retain the proper look.
+                var classifiedSpans = _excerptResult.ClassifiedSpans.WhereAsArray(
+                    cs => !ClassificationTypeNames.AdditiveTypeNames.Contains(cs.ClassificationType));
                 var classifiedTexts = classifiedSpans.SelectAsArray(
-                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
+                    cs => new ClassifiedText(cs.ClassificationType, _excerptResult.Content.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
                     Presenter.ClassificationFormatMap,
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
-                        if (highlightBrush != null)
+                        if (properties["Background"] is Brush highlightBrush)
                         {
-                            if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
+                            if (position == _excerptResult.MappedSpan.Start)
                             {
                                 run.SetValue(
                                     System.Windows.Documents.TextElement.BackgroundProperty,
@@ -88,11 +179,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, Presenter.ThreadingContext, CreateDisposableToolTip);
+                    // this lazy tooltip causes whole solution to be kept in memory until find all reference result gets cleared.
+                    // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
+                    // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
+                    // probably we need to dig in to see how expensvie it is to support this
+                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
+                    controlService.AttachToolTipToControl(content, () =>
+                        CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
                     return true;
                 }
@@ -100,91 +197,107 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            private DisposableToolTip CreateDisposableToolTip()
+            protected override object? GetValueWorker(string keyName)
             {
-                Presenter.AssertIsForeground();
-
-                // Create a new buffer that we'll show a preview for.  We can't search for an 
-                // existing buffer because:
-                //   1. the file may not be open.
-                //   2. our results may not be in sync with what's actually in the editor.
-                var textBuffer = CreateNewBuffer();
-
-                // Create the actual tooltip around the region of that text buffer we want to show.
-                var toolTip = new ToolTip
+                if (keyName == StandardTableKeyNames2.SymbolKind)
                 {
-                    Content = CreateToolTipContent(textBuffer),
-                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
-                };
+                    return _symbolReferenceKinds;
+                }
 
-                // Create a preview workspace for this text buffer and open it's corresponding 
-                // document.  That way we'll get nice things like classification as well as the
-                // reference highlight span.
-                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                workspace.OpenDocument(newDocument.Id);
+                if (_customColumnsData.TryGetValue(keyName, out var value))
+                {
+                    return value;
+                }
 
-                return new DisposableToolTip(toolTip, workspace);
+                return base.GetValueWorker(keyName);
             }
 
-            private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
-            {
-                var regionSpan = this.GetRegionSpanForReference();
-                var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
-
-                var contentType = Presenter.ContentTypeRegistryService.GetContentType(
-                    IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
-
-                var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
-                    TextViewRoles.PreviewRole,
-                    PredefinedTextViewRoles.Analyzable,
-                    PredefinedTextViewRoles.Document,
-                    PredefinedTextViewRoles.Editable);
-
-                var content = new ProjectionBufferDeferredContent(
-                    snapshotSpan,
-                    contentType,
-                    roleSet);
-
-                return (ContentControl)Presenter.DeferredContentFrameworkElementFactory.CreateElement(content);
-            }
-
-            private ITextBuffer CreateNewBuffer()
+            private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
             {
                 Presenter.AssertIsForeground();
 
-                // is it okay to create buffer from threads other than UI thread?
-                var contentTypeService = Document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
+                var controlService = document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
+                var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
-                var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
-                    _sourceText.ToString(), contentType);
+                var excerptService = document.Services.GetService<IDocumentExcerptService>();
+                if (excerptService != null)
+                {
+                    var excerpt = Presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, CancellationToken.None));
+                    if (excerpt != null)
+                    {
+                        // get tooltip from excerpt service
+                        var clonedBuffer = excerpt.Value.Content.CreateTextBufferWithRoslynContentType(document.Project.Solution.Workspace);
+                        SetHighlightSpan(_spanKind, clonedBuffer, excerpt.Value.MappedSpan);
+                        SetStaticClassifications(clonedBuffer, excerpt.Value.ClassifiedSpans);
 
+                        return controlService.CreateDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                    }
+                }
+
+                // get default behavior
+                var textBuffer = document.CloneTextBuffer(sourceText);
+                SetHighlightSpan(_spanKind, textBuffer, sourceSpan);
+
+                var contentSpan = GetRegionSpanForReference(sourceText, sourceSpan);
+                return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
+            }
+
+            private void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
+            {
+                var key = PredefinedPreviewTaggerKeys.StaticClassificationSpansKey;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, classifiedSpans);
+            }
+
+            private static void SetHighlightSpan(HighlightSpanKind spanKind, ITextBuffer textBuffer, TextSpan span)
+            {
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
+                var key = spanKind == HighlightSpanKind.Definition
                     ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
+                    : spanKind == HighlightSpanKind.WrittenReference
                         ? PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey
                         : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
-                textBuffer.Properties.RemoveProperty(key);
-                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
-                    SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
 
-                return textBuffer;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(span.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
             }
 
-            private Span GetRegionSpanForReference()
+            private static Span GetRegionSpanForReference(SourceText sourceText, TextSpan sourceSpan)
             {
                 const int AdditionalLineCountPerSide = 3;
 
-                var referenceSpan = this.SourceSpan;
-                var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var referenceSpan = sourceSpan;
+                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
                 var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
 
                 return Span.FromBounds(
-                    _sourceText.Lines[firstLineNumber].Start,
-                    _sourceText.Lines[lastLineNumber].End);
+                    sourceText.Lines[firstLineNumber].Start,
+                    sourceText.Lines[lastLineNumber].End);
+            }
+
+            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
+            {
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+                if (_excerptResult.Document is SourceGeneratedDocument)
+                {
+                    var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                    var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
+
+                    if (documentNavigationService != null)
+                    {
+                        return documentNavigationService.TryNavigateToSpan(
+                            workspace,
+                            _excerptResult.Document.Id,
+                            _excerptResult.Span,
+                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                            cancellationToken);
+                    }
+                }
+
+                return false;
             }
         }
     }

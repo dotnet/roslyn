@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -13,37 +16,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
-            Using workspace = TestWorkspace.Create(definition)
-                Dim hostDocument = workspace.Documents.Single()
-
-                Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
-
-                Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimplifierAnnotation.Contains(kvp))
-                If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
-                    For Each span In explicitSpanToSimplifyAnnotatedSpans
-                        If span.Key <> "SpanToSimplify" Then
-                            Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
-                        End If
-                    Next
-                End If
-
-                Dim explicitSpansToSimplifyWithin = If(explicitSpanToSimplifyAnnotatedSpans.Any(),
-                                                        explicitSpanToSimplifyAnnotatedSpans.Single().Value,
-                                                        Nothing)
-
-                Await TestAsync(
-                    workspace, spansToAddSimplifierAnnotation,
-                    explicitSpansToSimplifyWithin, expected, options)
+        Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
+            Using workspace = CreateTestWorkspace(definition, csharpParseOptions)
+                Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
+                Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
-
         End Function
 
-        Private Async Function TestAsync(workspace As Workspace,
+        Protected Shared Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As TestWorkspace
+            Dim workspace = TestWorkspace.Create(definition)
+
+            If csharpParseOptions IsNot Nothing Then
+                For Each project In workspace.CurrentSolution.Projects
+                    workspace.ChangeSolution(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
+                Next
+            End If
+
+            Return workspace
+        End Function
+
+        Protected Shared Function SimplifyAsync(workspace As TestWorkspace) As System.Threading.Tasks.Task(Of Document)
+            Return SimplifyAsync(workspace, Nothing)
+        End Function
+
+        Private Shared Async Function SimplifyAsync(workspace As TestWorkspace, options As Dictionary(Of OptionKey2, Object)) As System.Threading.Tasks.Task(Of Document)
+            Dim hostDocument = workspace.Documents.Single()
+
+            Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
+
+            Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimplifierAnnotation.Contains(kvp))
+            If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
+                For Each span In explicitSpanToSimplifyAnnotatedSpans
+                    If span.Key <> "SpanToSimplify" Then
+                        Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
+                    End If
+                Next
+            End If
+
+            Dim explicitSpansToSimplifyWithin = If(explicitSpanToSimplifyAnnotatedSpans.Any(),
+                                                    explicitSpanToSimplifyAnnotatedSpans.Single().Value,
+                                                    Nothing)
+
+            Return Await SimplifyAsync(workspace, spansToAddSimplifierAnnotation, explicitSpansToSimplifyWithin, options)
+        End Function
+
+        Private Shared Async Function SimplifyAsync(workspace As Workspace,
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
-                         expected As XElement,
-                         options As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
+                         options As Dictionary(Of OptionKey2, Object)) As Task(Of Document)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()
@@ -101,17 +121,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet)
             End If
 
+            Return simplifiedDocument
+        End Function
+
+        Protected Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
             Dim actualText = (Await simplifiedDocument.GetTextAsync()).ToString()
             Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
         End Function
 
-        Private Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
+        Private Shared Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
             While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
                 node = node.Parent
                 If node.Span.End = spanEnd Then
                     Exit While
                 End If
             End While
+
             Return node
         End Function
 

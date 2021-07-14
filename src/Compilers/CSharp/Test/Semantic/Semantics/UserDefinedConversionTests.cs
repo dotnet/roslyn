@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -774,7 +778,8 @@ class F : E
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39959")]
+        [WorkItem(39959, "https://github.com/dotnet/roslyn/issues/39959")]
         public void TestIntPtrUserDefinedConversions()
         {
             // IntPtr and UIntPtr violate the rules of user-defined conversions for 
@@ -1145,6 +1150,7 @@ unsafe class P
             // All of the cases above should pass semantic analysis:
             var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for
@@ -1596,6 +1602,50 @@ namespace System
 }
 ";
             CreateEmptyCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion()
+        {
+            var source = @"
+class C<T>
+{
+    public static implicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0029: Cannot implicitly convert type 'void' to 'C<object>'
+                //         return M1();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion_Cast()
+        {
+            var source = @"
+class C<T>
+{
+    public static explicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return (C<object>) M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0030: Cannot convert type 'void' to 'C<object>'
+                //         return (C<object>) M1();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>) M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
         }
     }
 }

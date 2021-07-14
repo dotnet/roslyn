@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -250,7 +254,7 @@ Base.Property.set(6)
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType()
         {
             var source = @"
@@ -823,7 +827,7 @@ class C1 : IInterface
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
-        public void InterfaceDiamondInheritenceWithNewMember()
+        public void InterfaceDiamondInheritanceWithNewMember()
         {
             var source = @"
 interface IBase
@@ -1553,7 +1557,7 @@ Base.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType2()
         {
             // Tests:
@@ -1621,7 +1625,7 @@ Derived`2.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType3()
         {
             // Tests:
@@ -1686,7 +1690,7 @@ Derived.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType4()
         {
             // Tests:
@@ -1754,7 +1758,7 @@ Derived.Method()");
                 Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType5()
         {
             // Tests:

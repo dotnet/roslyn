@@ -1,20 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,20 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [UseExportProvider]
     public class MiscTests
     {
-        private static ISyntaxTriviaService GetSyntaxTriviaService()
-        {
-            var languageService = new MockCSharpLanguageServiceProvider();
-            var service = (ISyntaxTriviaService)new CSharpSyntaxTriviaServiceFactory().CreateLanguageService(languageService);
-
-            return service;
-        }
-
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest1()
         {
-            var service = GetSyntaxTriviaService();
-
             var markupCode = @"class A
 {
     /* test */ [|public|] void Test(int i, int b, int c)
@@ -47,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
-            var result = service.SaveTriviaAroundSelection(root, span);
+            var result = CSharpSyntaxTriviaService.Instance.SaveTriviaAroundSelection(root, span);
 
             var rootWithAnnotation = result.Root;
 
@@ -75,8 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest2()
         {
-            var service = GetSyntaxTriviaService();
-
             var markupCode = @"class A
 {
 
@@ -91,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
-            var result = service.SaveTriviaAroundSelection(root, span);
+            var result = CSharpSyntaxTriviaService.Instance.SaveTriviaAroundSelection(root, span);
 
             var rootWithAnnotation = result.Root;
 
@@ -128,54 +117,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [|void Method() {}|]
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(markupCode))
-            {
-                var testDocument = workspace.Documents.Single();
-                var container = testDocument.GetOpenTextContainer();
+            using var workspace = TestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var testDocument = workspace.Documents.Single();
 
-                var view = testDocument.GetTextView();
-                view.Selection.Select(new SnapshotSpan(
-                    view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
+            var view = testDocument.GetTextView();
+            view.Selection.Select(new SnapshotSpan(
+                view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
 
-                var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
-                var called = false;
-                callBackService.NotificationCallback = (t, m, s) => called = true;
+            var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var called = false;
+            callBackService.NotificationCallback = (t, m, s) => called = true;
 
-                var handler = new ExtractMethodCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>(),
-                    workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
+            var handler = workspace.ExportProvider.GetCommandHandler<ExtractMethodCommandHandler>(PredefinedCommandHandlerNames.ExtractMethod, ContentTypeNames.CSharpContentType);
 
-                handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
+            handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 
-                Assert.True(called);
-            }
-        }
-
-        /// <summary>
-        /// mock for the unit test. can't use Mock type since ICSharpLanguageServiceProvider is a internal type.
-        /// </summary>
-        private class MockCSharpLanguageServiceProvider : HostLanguageServices
-        {
-            public override HostWorkspaceServices WorkspaceServices
-            {
-                get
-                {
-                    throw new System.NotImplementedException();
-                }
-            }
-
-            public override string Language
-            {
-                get { return LanguageNames.CSharp; }
-            }
-
-            public override TLanguageService GetService<TLanguageService>()
-            {
-                Assert.Equal(typeof(TLanguageService), typeof(ISyntaxFactsService));
-
-                return (TLanguageService)((object)CSharpSyntaxFactsService.Instance);
-            }
+            Assert.True(called);
         }
     }
 }

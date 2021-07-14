@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -31,6 +33,22 @@ namespace Microsoft.CodeAnalysis
         /// that may be used outside the region.
         /// </summary>
         public abstract ImmutableArray<ISymbol> DataFlowsOut { get; }
+
+        /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// entered.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnEntry { get; }
+
+        /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// exited.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnExit { get; }
 
         /// <summary>
         /// The set of local variables for which a value is always assigned inside
@@ -81,7 +99,12 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> UnsafeAddressTaken { get; }
 
         /// <summary>
-        /// Returns true iff analysis was successful.  Analysis can fail if the region does not
+        /// The set of local functions that are used.
+        /// </summary>
+        public abstract ImmutableArray<IMethodSymbol> UsedLocalFunctions { get; }
+
+        /// <summary>
+        /// Returns true if and only if analysis was successful.  Analysis can fail if the region does not
         /// properly span a single expression, a single statement, or a contiguous series of
         /// statements within the enclosing block.
         /// </summary>

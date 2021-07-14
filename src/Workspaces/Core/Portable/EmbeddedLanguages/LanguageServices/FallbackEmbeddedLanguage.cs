@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -10,34 +14,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal partial class FallbackEmbeddedLanguage : IEmbeddedLanguage
     {
-        private readonly int _stringLiteralTokenKind;
-        private readonly int _interpolatedTextTokenKind;
-        private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly ISemanticFactsService _semanticFacts;
-        private readonly IVirtualCharService _virtualCharService;
+        public ISyntaxClassifier Classifier { get; }
 
-        public FallbackEmbeddedLanguage(
-            int stringLiteralTokenKind,
-            int interpolatedTextTokenKind,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
-        {
-            _stringLiteralTokenKind = stringLiteralTokenKind;
-            _interpolatedTextTokenKind = interpolatedTextTokenKind;
-            _syntaxFacts = syntaxFacts;
-            _semanticFacts = semanticFacts;
-            _virtualCharService = virtualCharService;
-
-            Classifier = new FallbackEmbeddedClassifier(this);
-        }
-
-        public IEmbeddedClassifier Classifier { get; }
-
-        // None of the rest of these services are supported.
-        public IEmbeddedBraceMatcher BraceMatcher => null;
-        public IEmbeddedHighlighter Highlighter => null;
-        public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer => null;
-        public IEmbeddedCodeFixProvider CodeFixProvider => null;
+        public FallbackEmbeddedLanguage(EmbeddedLanguageInfo info)
+            => Classifier = new FallbackSyntaxClassifier(info);
     }
 }

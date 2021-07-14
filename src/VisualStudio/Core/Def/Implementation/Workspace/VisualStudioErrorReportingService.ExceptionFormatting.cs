@@ -1,9 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -16,16 +23,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return GetStackForAggregateException(exception, aggregate);
             }
 
+            if (exception is RemoteInvocationException)
+            {
+                return exception.ToString();
+            }
+
             return GetStackForException(exception, includeMessageOnly: false);
         }
 
         private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
         {
             var text = GetStackForException(exception, includeMessageOnly: true);
-            for (int i = 0; i < aggregate.InnerExceptions.Count; i++)
+            for (var i = 0; i < aggregate.InnerExceptions.Count; i++)
             {
-                text = string.Format("{0}{1}---> (Inner Exception #{2}) {3}{4}{5}", text,
-                    Environment.NewLine, i, GetFormattedExceptionStack(aggregate.InnerExceptions[i]), "<---", Environment.NewLine);
+                text = $"{text}{Environment.NewLine}---> (Inner Exception #{i}) {GetFormattedExceptionStack(aggregate.InnerExceptions[i])} <--- {Environment.NewLine}";
             }
 
             return text;
@@ -74,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                   where ShouldShowFrame(declaringType)
                                   select FormatFrame(method, declaringType);
             var stringBuilder = new StringBuilder();
-            return String.Join(Environment.NewLine, stackFrameLines);
+            return string.Join(Environment.NewLine, stackFrameLines);
         }
 
         private static bool ShouldShowFrame(Type declaringType) =>
@@ -99,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 FormatGenericArguments(stringBuilder, declaringType.GetGenericArguments());
             }
 
-            stringBuilder.Append("(");
+            stringBuilder.Append('(');
             if (isAsync)
             {
                 stringBuilder.Append(ServicesVSResources.Unknown_parameters);
@@ -109,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 FormatParameters(stringBuilder, method);
             }
 
-            stringBuilder.Append(")");
+            stringBuilder.Append(')');
 
             return stringBuilder.ToString();
         }
@@ -153,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return;
             }
 
-            stringBuilder.Append("[" + String.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
+            stringBuilder.Append("[" + string.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
         }
 
         private static void FormatParameters(StringBuilder stringBuilder, MethodBase method) =>

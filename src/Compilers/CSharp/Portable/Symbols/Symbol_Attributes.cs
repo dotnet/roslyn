@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -221,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Diagnostic bag.</param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="decodedData">Decoded well-known attribute data, could be null.</param>
-        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
         }
 
@@ -265,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binderOpt = null,
             Func<AttributeSyntax, bool> attributeMatchesOpt = null)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
@@ -385,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<AttributeSyntax> GetAttributesToBind(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarationSyntaxLists,
             AttributeLocation symbolPart,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
             Func<AttributeSyntax, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
@@ -443,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");
+                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod }, "Possible cycle in attribute binding");
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {
@@ -465,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, DiagnosticBag diagnostics)
+        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
         {
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
@@ -611,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributeSyntaxList,
             ImmutableArray<CSharpAttributeData> boundAttributes,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             AttributeLocation symbolPart)
         {
             Debug.Assert(binders.Any());
@@ -661,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeSyntax node,
             CSharpCompilation compilation,
             AttributeLocation symbolPart,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<NamedTypeSymbol> uniqueAttributeTypes)
         {
             Debug.Assert(!attribute.HasErrors);

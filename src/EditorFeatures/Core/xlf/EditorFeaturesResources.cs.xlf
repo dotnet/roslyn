@@ -1,35 +1,290 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">Všechny metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="translated">Vždy kvůli srozumitelnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">Relace přejmenování na řádku je pro identifikátor {0} aktivní. Pokud chcete získat přístup k dalším možnostem, znovu volejte přejmenování na řádku. Můžete kdykoli pokračovat v úpravách identifikátoru, který se přejmenovává.</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">Aplikují se změny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">Vyhněte se nepoužitým parametrům.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Změnit konfiguraci</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="new">Code cleanup is not configured</target>
+        <target state="translated">Vyčištění kódu není nakonfigurované.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
-        <target state="new">Configure it now</target>
+        <target state="translated">Nakonfigurovat teď</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">Nepreferovat this. ani Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="new">Do not show this message again</target>
+        <target state="translated">Tuto zprávu už příště nezobrazovat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">Chcete přesto pokračovat? Výsledkem může být poškozený kód.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">položky z neimportovaných oborů názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Rozbalování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">Při extrahování metody došlo k následujícím problémům:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Filtr</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="translated">Pro místní proměnné, parametry a členy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="translated">Pro výrazy přístupu členů</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Příkaz Formátovat dokument provedl další čištění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">Získat nápovědu pro: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Získat nápovědu pro: {0} z Bingu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">Shromažďují se návrhy – {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">Shromažďují se návrhy – čeká se na úplné načtení řešení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">Přejít na základní typ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">V aritmetických operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">V jiných binárních operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="translated">V jiných operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">V relačních operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">Velikost odsazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Vložené nápovědy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">Vložit poslední nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">Neplatný název sestavení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Neplatné znaky v názvu sestavení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">Klíčové slovo – Control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">Hledají se báze...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="translated">Nikdy, pokud jsou nadbytečné</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">Nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">Ne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">Neveřejné metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">Operátor – přetížení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">Sledování vkládání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="translated">Upřednostňovat System.HashCode v GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="translated">Upřednostňovat sloučený výraz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="translated">Upřednostňovat inicializátor kolekce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">Preferovat složená přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">Upřednostnit podmíněný výraz před if s přiřazeními</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">Upřednostnit podmíněný výraz před if s vrácenými hodnotami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="translated">Preferovat explicitní název řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="translated">Upřednostňovat typ architektury</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="translated">Preferovat odvozené názvy členů anonymních typů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="translated">Preferovat odvozené názvy elementů řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">U kontrol rovnosti odkazů dávat přednost možnosti is null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="translated">Upřednostňovat šíření hodnoty null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="translated">Upřednostňovat inicializátor objektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="translated">Upřednostňovat předem definovaný typ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">Preferovat pole s modifikátorem readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="translated">Upřednostňovat zjednodušené logické výrazy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">Preferovat this. nebo Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -42,9 +297,149 @@
         <target state="translated">Interpunkce</target>
         <note />
       </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k události pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k poli pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k metodě pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k vlastnosti pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="translated">Přejmenovat _soubor (typ neodpovídá názvu souboru)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="translated">Přejmenovat _soubor (nepovoleno pro dílčí typy)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">Přejmenovat _soubor symbolu</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Dělený komentář</target>
+        <note />
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">Řetězec – řídicí znak</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">Symbol – statický</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">Velikost tabulátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="translated">Tento symbol nemá žádný základ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Přepnout komentář k bloku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Přepnout komentář k řádku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Přepíná se komentář k bloku...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Přepíná se komentář k řádku...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">Používat tabulátory</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">Uživatelské členy – konstanty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">Uživatelské členy – členy výčtu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">Uživatelské členy – události</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">Uživatelské členy – rozšiřující metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">Uživatelské členy – pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">Uživatelské členy – návěstí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">Uživatelské členy – místní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">Uživatelské členy – metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">Uživatelské členy – obory názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">Uživatelské členy – parametry</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">Uživatelské členy – vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -67,6 +462,16 @@
         <target state="translated">Uživatelské typy – rozhraní</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="new">User Types - Record Structs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Typy uživatelů – Záznamy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Structures">
         <source>User Types - Structures</source>
         <target state="translated">Uživatelské typy – struktury</target>
@@ -81,6 +486,16 @@
         <source>String - Verbatim</source>
         <target state="translated">Řetězec – Verbatim</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">Čeká se na dokončení aktivity na pozadí...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Upozornění</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -184,7 +599,7 @@
       </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
-        <target state="translated">Úprava pravidla</target>
+        <target state="translated">Hrubá úprava</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_will_update_1_reference_in_1_file">
@@ -202,9 +617,34 @@
         <target state="translated">Při přejmenování dojde k aktualizaci {0} odkazů v {1} souborech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">Ano</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
+        <source>You cannot rename this element because it is contained in a read-only file.</source>
+        <target state="translated">Tento element nejde přejmenovat, protože je obsažen v souboru jen pro čtení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
+        <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
+        <target state="translated">Tento element nejde přejmenovat, protože se nachází v umístění, na které nejde přejít.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="translated">Základy {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">Vyřeší se tento počet konfliktů: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="translated">Implementované členy {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -285,11 +725,6 @@
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
         <target state="translated">Daný pracovní prostor nepodporuje vrácení akce zpátky.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">Dokument musí být obsažený v pracovním prostoru, který vytvořil tuto datovou službu</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -407,6 +842,11 @@
         <target state="translated">Už se sleduje dokument se shodným klíčem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="translated">Preferovat automatické vlastnosti</target>
+        <note />
+      </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">
         <source>document is not currently being tracked</source>
         <target state="translated">Dokument se aktuálně nesleduje.</target>
@@ -452,9 +892,9 @@
         <target state="translated">Upozornění verze Preview</target>
         <note />
       </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">z metadat</target>
+      <trans-unit id="external">
+        <source>(external)</source>
+        <target state="translated">(externí)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -744,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">Stroj musí být připojený k interaktivnímu oknu.</target>
+        <target state="translated">Stroj musí být připojený k oknu Interactive.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">
@@ -812,11 +1252,6 @@
         <target state="translated">Náhled</target>
         <note />
       </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'Symbol nemůže být obor názvů.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply1">
         <source>_Apply</source>
         <target state="translated">_Aplikovat</target>
@@ -882,20 +1317,10 @@
         <target state="translated">Automatické formátování</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Extrakce metody se nezdařila z následujících důvodů:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Chcete přesto pokračovat? Vygeneruje se poškozený kód.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="needs-review-translation">Chybu můžeme opravit tím, že nevytvoříme parametry out/ref struktury. 
+        <target state="translated">Chybu můžeme opravit tím, že nevytvoříme parametry out/ref struktury. 
 Chcete pokračovat?</target>
         <note />
       </trans-unit>
@@ -971,7 +1396,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Cancel">
         <source>Cancel</source>
-        <target state="translated">Storno</target>
+        <target state="translated">Zrušit</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes">
@@ -1012,11 +1437,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Uzavírání hranatých závorek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Opravit všechny výskyty v</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
@@ -1099,11 +1519,6 @@ Chcete pokračovat?</target>
         <target state="translated">'Deklarace symbolů {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active">
-        <source>An inline rename session is active</source>
-        <target state="translated">Relace přejmenování na řádku je aktivní.</target>
-        <note>For screenreaders</note>
-      </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">
         <source>Inline Rename Conflict</source>
         <target state="translated">Konflikt při přejmenovávání na řádku</target>
@@ -1136,7 +1551,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
         <source>Execute In Interactive</source>
-        <target state="translated">Provést v Interactive</target>
+        <target state="translated">Provést v interaktivní součásti</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Interface">
@@ -1152,6 +1567,11 @@ Chcete pokračovat?</target>
       <trans-unit id="Interactive">
         <source>Interactive</source>
         <target state="translated">Interactive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Vložit do Interactive</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
@@ -1177,11 +1597,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Inteligentní formátování tokenů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Vložit do Interactive</target>
         <note />
       </trans-unit>
     </body>

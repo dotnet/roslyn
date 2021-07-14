@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -11,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function BindTypeParameterConstraintClause(
             containingSymbol As Symbol,
             clause As TypeParameterConstraintClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As ImmutableArray(Of TypeParameterConstraint)
             Debug.Assert((containingSymbol.Kind = SymbolKind.NamedType) OrElse (containingSymbol.Kind = SymbolKind.Method))
 
@@ -41,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntax As ConstraintSyntax,
             ByRef constraints As TypeParameterConstraintKind,
             constraintsBuilder As ArrayBuilder(Of TypeParameterConstraint),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Debug.Assert((containingSymbol.Kind = SymbolKind.NamedType) OrElse (containingSymbol.Kind = SymbolKind.Method))
 

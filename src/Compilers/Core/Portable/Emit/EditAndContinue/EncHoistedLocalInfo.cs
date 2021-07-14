@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -8,12 +10,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Emit
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct EncHoistedLocalInfo : IEquatable<EncHoistedLocalInfo>
+    internal readonly struct EncHoistedLocalInfo : IEquatable<EncHoistedLocalInfo>
     {
         public readonly LocalSlotDebugInfo SlotInfo;
-        public readonly Cci.ITypeReference Type;
+        public readonly Cci.ITypeReference? Type;
 
-        public EncHoistedLocalInfo(bool ignored)
+        public EncHoistedLocalInfo(bool _)
         {
             SlotInfo = new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None);
             Type = null;
@@ -21,46 +23,34 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EncHoistedLocalInfo(LocalSlotDebugInfo slotInfo, Cci.ITypeReference type)
         {
-            Debug.Assert(type != null);
-            this.SlotInfo = slotInfo;
-            this.Type = type;
+            SlotInfo = slotInfo;
+            Type = type;
         }
 
         public bool IsUnused
-        {
-            get { return this.Type == null; }
-        }
+            => Type is null;
 
         public bool Equals(EncHoistedLocalInfo other)
-        {
-            Debug.Assert(this.Type != null);
-            Debug.Assert(other.Type != null);
+            => SlotInfo.Equals(other.SlotInfo) &&
+               Cci.SymbolEquivalentEqualityComparer.Instance.Equals(Type, other.Type);
 
-            return this.SlotInfo.Equals(other.SlotInfo) &&
-                   this.Type.Equals(other.Type);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is EncHoistedLocalInfo && Equals((EncHoistedLocalInfo)obj);
-        }
+        public override bool Equals(object? obj)
+            => obj is EncHoistedLocalInfo info && Equals(info);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.Type, this.SlotInfo.GetHashCode());
-        }
+            => Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(Type), SlotInfo.GetHashCode());
 
         private string GetDebuggerDisplay()
         {
-            if (this.IsUnused)
+            if (IsUnused)
             {
                 return "[invalid]";
             }
 
             return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}]",
-                this.SlotInfo.Id,
-                this.SlotInfo.SynthesizedKind,
-                this.Type);
+                SlotInfo.Id,
+                SlotInfo.SynthesizedKind,
+                Type);
         }
     }
 }

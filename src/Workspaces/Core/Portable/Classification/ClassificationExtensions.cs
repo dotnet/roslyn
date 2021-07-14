@@ -1,32 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassificationExtensions
     {
-        public static string GetClassification(this ITypeSymbol type)
-        {
-            switch (type.TypeKind)
+        public static string? GetClassification(this ITypeSymbol type)
+            => type.TypeKind switch
             {
-                case TypeKind.Class:
-                    return ClassificationTypeNames.ClassName;
-                case TypeKind.Module:
-                    return ClassificationTypeNames.ModuleName;
-                case TypeKind.Struct:
-                    return ClassificationTypeNames.StructName;
-                case TypeKind.Interface:
-                    return ClassificationTypeNames.InterfaceName;
-                case TypeKind.Enum:
-                    return ClassificationTypeNames.EnumName;
-                case TypeKind.Delegate:
-                    return ClassificationTypeNames.DelegateName;
-                case TypeKind.TypeParameter:
-                    return ClassificationTypeNames.TypeParameterName;
-                case TypeKind.Dynamic:
-                    return ClassificationTypeNames.Keyword;
-                default:
-                    return null;
-            }
-        }
+                TypeKind.Class => type.IsRecord ? ClassificationTypeNames.RecordClassName : ClassificationTypeNames.ClassName,
+                TypeKind.Module => ClassificationTypeNames.ModuleName,
+                TypeKind.Struct => type.IsRecord ? ClassificationTypeNames.RecordStructName : ClassificationTypeNames.StructName,
+                TypeKind.Interface => ClassificationTypeNames.InterfaceName,
+                TypeKind.Enum => ClassificationTypeNames.EnumName,
+                TypeKind.Delegate => ClassificationTypeNames.DelegateName,
+                TypeKind.TypeParameter => ClassificationTypeNames.TypeParameterName,
+                TypeKind.Dynamic => ClassificationTypeNames.Keyword,
+                _ => null,
+            };
     }
 }

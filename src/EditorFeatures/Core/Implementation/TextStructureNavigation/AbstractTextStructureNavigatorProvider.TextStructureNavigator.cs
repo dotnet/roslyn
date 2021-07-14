@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -20,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITextStructureNavigator _naturalLanguageNavigator;
             private readonly AbstractTextStructureNavigatorProvider _provider;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             internal TextStructureNavigator(
                 ITextBuffer subjectBuffer,
                 ITextStructureNavigator naturalLanguageNavigator,
                 AbstractTextStructureNavigatorProvider provider,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uIThreadOperationExecutor)
             {
                 Contract.ThrowIfNull(subjectBuffer);
                 Contract.ThrowIfNull(naturalLanguageNavigator);
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 _subjectBuffer = subjectBuffer;
                 _naturalLanguageNavigator = naturalLanguageNavigator;
                 _provider = provider;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uIThreadOperationExecutor;
             }
 
             public IContentType ContentType => _subjectBuffer.ContentType;
@@ -45,13 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetExtentOfWord, CancellationToken.None))
                 {
                     var result = default(TextExtent);
-                    _waitIndicator.Wait(
+                    _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_word_extent,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_word_extent,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        result = GetExtentOfWordWorker(currentPosition, waitContext.CancellationToken);
+                        result = GetExtentOfWordWorker(currentPosition, context.UserCancellationToken);
                     });
 
                     return result;
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 // If at the end of the file, go back one character so stuff works
                 if (position == textLength && position > 0)
                 {
-                    position = position - 1;
+                    position -= 1;
                 }
 
                 // If we're at the EOL position, return the line break's extent
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     return new TextExtent(new SnapshotSpan(line.End, line.EndIncludingLineBreak - line.End), isSignificant: false);
                 }
 
-                var document = GetDocument(position, cancellationToken);
+                var document = GetDocument(position);
                 if (document != null)
                 {
                     var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -118,20 +122,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfEnclosing, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfEnclosingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfEnclosingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
-            private SnapshotSpan GetSpanOfEnclosingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
+            private static SnapshotSpan GetSpanOfEnclosingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
             {
                 // Find node that covers the entire span.
                 var node = FindLeafNode(activeSpan, cancellationToken);
@@ -149,27 +154,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfFirstChild, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfFirstChildWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfFirstChildWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
-            private SnapshotSpan GetSpanOfFirstChildWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
+            private static SnapshotSpan GetSpanOfFirstChildWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
             {
                 // Find node that covers the entire span.
                 var node = FindLeafNode(activeSpan, cancellationToken);
                 if (node != null)
                 {
                     // Take first child if possible, otherwise default to node itself.
-                    var firstChild = node.Value.ChildNodesAndTokens().FirstOrNullable();
+                    var firstChild = node.Value.ChildNodesAndTokens().FirstOrNull();
                     if (firstChild.HasValue)
                     {
                         node = firstChild.Value;
@@ -184,20 +190,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfNextSibling, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_span_of_next_sibling,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_next_sibling,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfNextSiblingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfNextSiblingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
-            private SnapshotSpan GetSpanOfNextSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
+            private static SnapshotSpan GetSpanOfNextSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
             {
                 // Find node that covers the entire span.
                 var node = FindLeafNode(activeSpan, cancellationToken);
@@ -208,11 +215,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     if (parent != null)
                     {
                         // Find node immediately after the current in the children collection.
-                        SyntaxNodeOrToken? nodeOrToken = parent.Value
+                        var nodeOrToken = parent.Value
                             .ChildNodesAndTokens()
                             .SkipWhile(child => child != node)
                             .Skip(1)
-                            .FirstOrNullable();
+                            .FirstOrNull();
 
                         if (nodeOrToken.HasValue)
                         {
@@ -235,20 +242,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfPreviousSibling, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_span_of_previous_sibling,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_previous_sibling,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfPreviousSiblingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfPreviousSiblingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
-            private SnapshotSpan GetSpanOfPreviousSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
+            private static SnapshotSpan GetSpanOfPreviousSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
             {
                 // Find node that covers the entire span.
                 var node = FindLeafNode(activeSpan, cancellationToken);
@@ -259,12 +267,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     if (parent != null)
                     {
                         // Find node immediately before the current in the children collection.
-                        SyntaxNodeOrToken? nodeOrToken = parent.Value
+                        var nodeOrToken = parent.Value
                             .ChildNodesAndTokens()
                             .Reverse()
                             .SkipWhile(child => child != node)
                             .Skip(1)
-                            .FirstOrNullable();
+                            .FirstOrNull();
 
                         if (nodeOrToken.HasValue)
                         {
@@ -282,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 return node == null ? activeSpan : node.Value.Span.ToSnapshotSpan(activeSpan.Snapshot);
             }
 
-            private Document GetDocument(SnapshotPoint point, CancellationToken cancellationToken)
+            private static Document GetDocument(SnapshotPoint point)
             {
                 var textLength = point.Snapshot.Length;
                 if (textLength == 0)
@@ -296,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// <summary>
             /// Finds deepest node that covers given <see cref="SnapshotSpan"/>.
             /// </summary>
-            private SyntaxNodeOrToken? FindLeafNode(SnapshotSpan span, CancellationToken cancellationToken)
+            private static SyntaxNodeOrToken? FindLeafNode(SnapshotSpan span, CancellationToken cancellationToken)
             {
                 if (!TryFindLeafToken(span.Start, out var token, cancellationToken))
                 {
@@ -315,9 +323,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// <summary>
             /// Given position in a text buffer returns the leaf syntax node it belongs to.
             /// </summary>
-            private bool TryFindLeafToken(SnapshotPoint point, out SyntaxToken token, CancellationToken cancellationToken)
+            private static bool TryFindLeafToken(SnapshotPoint point, out SyntaxToken token, CancellationToken cancellationToken)
             {
-                var syntaxTree = GetDocument(point, cancellationToken).GetSyntaxTreeSynchronously(cancellationToken);
+                var syntaxTree = GetDocument(point).GetSyntaxTreeSynchronously(cancellationToken);
                 if (syntaxTree != null)
                 {
                     token = syntaxTree.GetRoot(cancellationToken).FindToken(point, true);
@@ -332,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// Returns first ancestor of the node which has a span wider than node's span.
             /// If none exist, returns the last available ancestor.
             /// </summary>
-            private SyntaxNodeOrToken SkipSameSpanParents(SyntaxNodeOrToken node)
+            private static SyntaxNodeOrToken SkipSameSpanParents(SyntaxNodeOrToken node)
             {
                 while (node.Parent != null && node.Parent.Span == node.Span)
                 {
@@ -346,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// Finds node enclosing current from navigation point of view (that is, some immediate ancestors
             /// may be skipped during this process).
             /// </summary>
-            private SyntaxNodeOrToken? GetEnclosingNode(SyntaxNodeOrToken node)
+            private static SyntaxNodeOrToken? GetEnclosingNode(SyntaxNodeOrToken node)
             {
                 var parent = SkipSameSpanParents(node).Parent;
                 if (parent != null)

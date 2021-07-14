@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -13,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class TestSyntaxNodes
         Inherits BasicTestBase
 
-        Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
+        Private ReadOnly _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private ReadOnly _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
         Private Function CreateIntegerLiteral(value As ULong) As LiteralExpressionSyntax
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(value.ToString(), LiteralBase.Decimal, TypeCharacter.None, value))
@@ -589,7 +591,7 @@ End Class
             Assert.Equal("( ) ", arglist.ToFullString)
         End Sub
 
-        'helper to check an singleton separated list of one type name "goo"
+        'helper to check a singleton separated list of one type name "goo"
         Private Sub CheckSingletonSeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax), start As Integer)
             Assert.NotNull(seplist)
             Assert.Equal(1, seplist.Count)
@@ -1621,6 +1623,52 @@ End Class</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestParseTrailingTrivia_SingleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia(vbCrLf)
+            Assert.True(trivia.Count = 1)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(0).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_MultipleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia(vbCrLf & vbCrLf)
+            Assert.True(trivia.Count = 1)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(0).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf)
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndMultipleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & vbCrLf)
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDocComment()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "''' <summary/>")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDirective()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "#If True Then")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
         Public Sub TestReplaceSingleTriviaInToken()
             Dim id = SyntaxFactory.ParseToken("a ")
             Dim trivia = id.TrailingTrivia(0)
@@ -2081,7 +2129,7 @@ End Class
             Dim node As VisualBasicSyntaxNode = Nothing
             ' This should not throw - it should convert to a 'null' (default) struct 
             Dim sn As SyntaxNodeOrToken = node
-            Assert.True(sn.IsNode)
+            Assert.True(sn.IsToken)
 
         End Sub
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using System.Linq;
@@ -53,6 +57,12 @@ class B
             Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
             Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);
             Assert.NotEmpty(semanticModel.LookupSymbols(position, name: "A"));
+
+            semanticModel = semanticModel.Compilation.GetSemanticModel(semanticModel.SyntaxTree);
+            Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
+            Assert.Null(semanticModel.GetSymbolInfo(invocation).Symbol);
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).CandidateSymbols.Single().Name);
+            Assert.Equal(CandidateReason.Inaccessible, semanticModel.GetSymbolInfo(invocation).CandidateReason);
         }
 
         [Fact]

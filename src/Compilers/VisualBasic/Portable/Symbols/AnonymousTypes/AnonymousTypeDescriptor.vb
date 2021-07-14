@@ -1,11 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -75,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Conditional("DEBUG")>
         Friend Sub AssertGood()
             ' Fields exist
-            Debug.Assert(Not Fields.IsEmpty)
+            Debug.Assert(Not Fields.IsDefault)
 
             ' All fields are good
             For Each field In Fields
@@ -84,6 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Public Overloads Function Equals(other As AnonymousTypeDescriptor) As Boolean Implements IEquatable(Of AnonymousTypeDescriptor).Equals
+            Return Equals(other, TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Public Overloads Function Equals(other As AnonymousTypeDescriptor, compareKind As TypeCompareKind) As Boolean
             ' Comparing keys ensures field count, field names and keyness are equal
             If Not Me.Key.Equals(other.Key) Then
                 Return False
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = myFields.Length
             Dim otherFields As ImmutableArray(Of AnonymousTypeField) = other.Fields
             For i = 0 To count - 1
-                If Not myFields(i).Type.Equals(otherFields(i).Type) Then
+                If Not myFields(i).Type.Equals(otherFields(i).Type, compareKind) Then
                     Return False
                 End If
             Next

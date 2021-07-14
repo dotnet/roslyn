@@ -1,15 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
@@ -31,6 +34,74 @@ class C
 class C
 {
 }";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Record()
+        {
+            var code =
+@"//$$
+record R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStruct()
+        {
+            var code =
+@"//$$
+record struct R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStructWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record struct R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -1101,7 +1172,6 @@ class C
             VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
@@ -1347,24 +1417,24 @@ static void Main(string[] args)
             const string code =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 	///     hello world$$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 	///     hello world
 	///     $$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyPressingEnter(code, expected, useTabs: true);
@@ -1461,6 +1531,66 @@ void M() {}""
 class C
 {
 }";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Record()
+        {
+            var code = "record R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStruct()
+        {
+            var code = "record struct R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordWithPositionalParameters()
+        {
+            var code = "record R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStructWithPositionalParameters()
+        {
+            var code = "record struct R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyInsertCommentCommand(code, expected);
         }
@@ -1820,11 +1950,11 @@ $$
 @"class C
 {
 		  /// <summary>
-    /// $$stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// $$stuff
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
@@ -1832,11 +1962,11 @@ $$
 {
 		  /// <summary>
 		  /// $$
-    /// stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// stuff
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyOpenLineAbove(code, expected, useTabs: true);
@@ -1929,24 +2059,24 @@ $$
             const string code =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 		  /// $$stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 		  /// stuff
 		  /// $$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyOpenLineBelow(code, expected, useTabs: true);
@@ -1983,7 +2113,6 @@ class C { }";
                 TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
             }
-            
         }
 
         protected override char DocumentationCommentCharacter
@@ -1991,12 +2120,9 @@ class C { }";
             get { return '/'; }
         }
 
-        internal override VSCommanding.ICommandHandler CreateCommandHandler(
-            IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+        internal override ICommandHandler CreateCommandHandler(TestWorkspace workspace)
         {
-            return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
+            return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)

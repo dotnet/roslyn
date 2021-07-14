@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -10,27 +12,27 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class LoggingMetadataFileReferenceResolver : MetadataReferenceResolver, IEquatable<LoggingMetadataFileReferenceResolver>
         {
-            private readonly TouchedFileLogger _loggerOpt;
+            private readonly TouchedFileLogger? _logger;
             private readonly RelativePathResolver _pathResolver;
             private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _provider;
 
-            public LoggingMetadataFileReferenceResolver(RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger loggerOpt)
+            public LoggingMetadataFileReferenceResolver(RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger? logger)
             {
                 Debug.Assert(pathResolver != null);
                 Debug.Assert(provider != null);
 
                 _pathResolver = pathResolver;
                 _provider = provider;
-                _loggerOpt = loggerOpt;
+                _logger = logger;
             }
 
-            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             {
                 string fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
 
                 if (fullPath != null)
                 {
-                    _loggerOpt?.AddRead(fullPath);
+                    _logger?.AddRead(fullPath);
                     return ImmutableArray.Create(_provider(fullPath, properties));
                 }
 
@@ -42,12 +44,12 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public bool Equals(LoggingMetadataFileReferenceResolver other)
+            public bool Equals(LoggingMetadataFileReferenceResolver? other)
             {
                 throw new NotImplementedException();
             }
 
-            public override bool Equals(object other) => Equals(other as LoggingMetadataFileReferenceResolver);
+            public override bool Equals(object? obj) => obj is LoggingMetadataFileReferenceResolver other && Equals(other);
         }
     }
 }

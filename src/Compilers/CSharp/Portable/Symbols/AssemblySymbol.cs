@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -78,6 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the identity of this assembly.
         /// </summary>
         public abstract AssemblyIdentity Identity { get; }
+
+        AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
+
+        IAssemblySymbolInternal IAssemblySymbolInternal.CorLibrary => CorLibrary;
 
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
@@ -368,14 +377,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ErrorTypeSymbol CreateCycleInTypeForwarderErrorTypeSymbol(ref MetadataTypeName emittedName)
         {
             DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_CycleInTypeForwarder, emittedName.FullName, this.Name);
-            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Modules[0], ref emittedName, diagnosticInfo);
+            return new MissingMetadataTypeSymbol.TopLevel(this.Modules[0], ref emittedName, diagnosticInfo);
         }
 
         internal ErrorTypeSymbol CreateMultipleForwardingErrorTypeSymbol(ref MetadataTypeName emittedName, ModuleSymbol forwardingModule, AssemblySymbol destination1, AssemblySymbol destination2)
         {
             var diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwardingModule, this, emittedName.FullName, destination1, destination2);
-            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(forwardingModule, ref emittedName, diagnosticInfo);
+            return new MissingMetadataTypeSymbol.TopLevel(forwardingModule, ref emittedName, diagnosticInfo);
         }
+
+        internal abstract IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes();
 
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
@@ -401,6 +412,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Return the native integer type corresponding to the underlying type.
+        /// </summary>
+        internal virtual NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        /// <summary>
+        /// Figure out if the target runtime supports default interface implementation.
+        /// </summary>
+        internal bool RuntimeSupportsDefaultInterfaceImplementation
+        {
+            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
+        }
+
+        /// <summary>
+        /// Figure out if the target runtime supports static abstract members in interfaces.
+        /// </summary>
+        internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
+        {
+            // https://github.com/dotnet/roslyn/issues/53800: Implement the actual check, this is a temporary stub. 
+            get => RuntimeSupportsDefaultInterfaceImplementation;
+        }
+
+        private bool RuntimeSupportsFeature(SpecialMember feature)
+        {
+            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+            return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
+                   GetSpecialTypeMember(feature) is object;
+        }
+
+        internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
+
+        /// <summary>
+        /// True if the target runtime support covariant returns of methods declared in classes.
+        /// </summary>
+        internal bool RuntimeSupportsCovariantReturnsOfClasses
+        {
+            get
+            {
+                // check for the runtime feature indicator and the required attribute.
+                return
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) &&
+                    GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
             }
         }
 
@@ -612,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int rank = typeInfo.GetArrayRank();
 
-                return ArrayTypeSymbol.CreateCSharpArray(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
+                return ArrayTypeSymbol.CreateCSharpArray(this, TypeWithAnnotations.Create(symbol), rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -622,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return new PointerTypeSymbol(symbol);
+                return new PointerTypeSymbol(TypeWithAnnotations.Create(symbol));
             }
             else if (typeInfo.DeclaringType != null)
             {
@@ -712,18 +772,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
-            for (int i = 0; i < typeArgumentSymbols.Length; i++)
+            var length = symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+            var typeArgumentSymbols = ArrayBuilder<TypeWithAnnotations>.GetInstance(length);
+            for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
                 if ((object)argSymbol == null)
                 {
                     return null;
                 }
-                typeArgumentSymbols[i] = new TypeWithModifiers(argSymbol);
+                typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));
             }
 
-            return symbol.ConstructIfGeneric(typeArgumentSymbols.AsImmutableOrNull());
+            return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
         }
 
         internal NamedTypeSymbol GetTopLevelTypeByMetadataName(
@@ -732,9 +793,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeReferences,
             bool isWellKnownType,
             out (AssemblySymbol, AssemblySymbol) conflicts,
-            DiagnosticBag warnings = null,
+            DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
+            // Type from this assembly always wins.
+            // After that we look in references, which may yield ambiguities. If `ignoreCorLibraryDuplicatedTypes` is set,
+            // corlib does not contribute to ambiguities (corlib loses over other references).
+            // For well-known types before C# 7, ambiguities are reported as a warning and the first candidate wins.
+            // For other types, when `ignoreCorLibraryDuplicatedTypes` isn't set, finding a candidate in corlib resolves
+            // ambiguities (corlib wins over other references).
+
+            Debug.Assert(warnings is null || isWellKnownType);
+
             conflicts = default;
             NamedTypeSymbol result;
 
@@ -750,6 +820,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)result != null || !includeReferences)
             {
                 return result;
+            }
+
+            // Then try corlib, when finding a result there means we've found the final result
+            bool isWellKnownTypeBeforeCSharp7 = isWellKnownType && warnings is not null;
+            bool skipCorLibrary = false;
+
+            if (CorLibrary != (object)this &&
+                !CorLibrary.IsMissing &&
+                !isWellKnownTypeBeforeCSharp7 && !ignoreCorLibraryDuplicatedTypes)
+            {
+                NamedTypeSymbol corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
+                skipCorLibrary = true;
+
+                if (isValidCandidate(corLibCandidate, isWellKnownType))
+                {
+                    return corLibCandidate;
+                }
             }
 
             Debug.Assert(this is SourceAssemblySymbol,
@@ -772,24 +859,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(!(this is SourceAssemblySymbol && assembly.IsMissing)); // Non-source assemblies can have missing references
 
+                if (skipCorLibrary && assembly == (object)CorLibrary)
+                {
+                    continue;
+                }
+
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
-                if (isWellKnownType && !IsValidWellKnownType(candidate))
-                {
-                    candidate = null;
-                }
-
-                if ((object)candidate == null)
+                if (!isValidCandidate(candidate, isWellKnownType))
                 {
                     continue;
                 }
 
-                if (candidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
-                {
-                    continue;
-                }
-
-                Debug.Assert(candidate != result);
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything));
 
                 if ((object)result != null)
                 {
@@ -809,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    if (warnings == null)
+                    if (warnings is null)
                     {
                         conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
@@ -828,6 +910,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             assemblies.Free();
             return result;
+
+            bool isValidCandidate(NamedTypeSymbol candidate, bool isWellKnownType)
+            {
+                return candidate is not null
+                    && (!isWellKnownType || IsValidWellKnownType(candidate))
+                    && !candidate.IsHiddenByCodeAnalysisEmbeddedAttribute();
+            }
         }
 
         private bool IsInCorLib(NamedTypeSymbol type)
@@ -888,24 +977,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<byte> PublicKey { get; }
 
-        #region IAssemblySymbol Members
-
-        INamespaceSymbol IAssemblySymbol.GlobalNamespace
-        {
-            get
-            {
-                return this.GlobalNamespace;
-            }
-        }
-
-        IEnumerable<IModuleSymbol> IAssemblySymbol.Modules
-        {
-            get
-            {
-                return this.Modules;
-            }
-        }
-
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
@@ -913,60 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract AssemblyMetadata GetMetadata();
 
-        INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
+        protected override ISymbol CreateISymbol()
         {
-            return ResolveForwardedType(fullyQualifiedMetadataName);
+            return new PublicModel.NonSourceAssemblySymbol(this);
         }
-
-        bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol assemblyWantingAccess)
-        {
-            if (Equals(this, assemblyWantingAccess))
-            {
-                return true;
-            }
-
-            var myKeys = GetInternalsVisibleToPublicKeys(assemblyWantingAccess.Name);
-
-            // We have an easy out here. Suppose the assembly wanting access is 
-            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
-            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
-            if (myKeys.Any() && assemblyWantingAccess.IsNetModule())
-            {
-                return true;
-            }
-
-            foreach (var key in myKeys)
-            {
-                IVTConclusion conclusion = this.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key);
-                Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
-                if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)
-        {
-            return this.GetTypeByMetadataName(metadataName);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitAssembly(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitAssembly(this);
-        }
-
-        #endregion
     }
 }

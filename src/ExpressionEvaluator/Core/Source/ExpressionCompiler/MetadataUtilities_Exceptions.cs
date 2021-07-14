@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -12,13 +15,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool IsBadOrMissingMetadataException(Exception e, string moduleName)
         {
-            Debug.Assert(moduleName != null);
-            if (e is ObjectDisposedException objectDisposed)
+            RoslynDebug.AssertNotNull(moduleName);
+
+            if (e is ObjectDisposedException)
             {
                 Debug.WriteLine($"Module '{moduleName}' has been disposed.");
                 return true;
             }
-            switch (GetHResult(e))
+
+            switch (unchecked((uint)e.HResult))
             {
                 case COR_E_BADIMAGEFORMAT:
                     Debug.WriteLine($"Module '{moduleName}' contains corrupt metadata.");
@@ -29,16 +34,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 default:
                     return false;
             }
-        }
-
-        private static bool IsBadMetadataException(Exception e)
-        {
-            return GetHResult(e) == COR_E_BADIMAGEFORMAT;
-        }
-
-        private static uint GetHResult(Exception e)
-        {
-            return unchecked((uint)e.HResult);
         }
     }
 }

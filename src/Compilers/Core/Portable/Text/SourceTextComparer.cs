@@ -1,15 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal class SourceTextComparer : IEqualityComparer<SourceText>
+    internal class SourceTextComparer : IEqualityComparer<SourceText?>
     {
-        public static SourceTextComparer Instance = new SourceTextComparer();
+        public static readonly SourceTextComparer Instance = new SourceTextComparer();
 
-        public bool Equals(SourceText x, SourceText y)
+        public bool Equals(SourceText? x, SourceText? y)
         {
             if (x == null)
             {
@@ -23,8 +25,13 @@ namespace Microsoft.CodeAnalysis.Text
             return x.ContentEquals(y);
         }
 
-        public int GetHashCode(SourceText obj)
+        public int GetHashCode(SourceText? obj)
         {
+            if (obj is null)
+            {
+                return 0;
+            }
+
             var checksum = obj.GetChecksum();
             var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
             var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;

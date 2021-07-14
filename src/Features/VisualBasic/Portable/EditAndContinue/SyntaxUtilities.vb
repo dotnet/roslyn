@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -67,18 +69,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                           leftPosition As Integer,
                                           rightRoot As SyntaxNode,
                                           <Out> ByRef leftNode As SyntaxNode,
-                                          <Out> ByRef rightNode As SyntaxNode)
+                                          <Out> ByRef rightNodeOpt As SyntaxNode)
             leftNode = leftRoot
-            rightNode = rightRoot
+            rightNodeOpt = rightRoot
             While True
-                Debug.Assert(leftNode.RawKind = rightNode.RawKind)
+                If rightNodeOpt IsNot Nothing AndAlso leftNode.RawKind <> rightNodeOpt.RawKind Then
+                    rightNodeOpt = Nothing
+                End If
+
                 Dim childIndex As Integer = 0
                 Dim leftChild = leftNode.ChildThatContainsPosition(leftPosition, childIndex)
                 If leftChild.IsToken Then
                     Return
                 End If
 
-                rightNode = rightNode.ChildNodesAndTokens()(childIndex).AsNode()
+                If rightNodeOpt IsNot Nothing Then
+                    Dim rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens()
+                    If childIndex >= 0 AndAlso childIndex < rightNodeChildNodesAndTokens.Count Then
+                        rightNodeOpt = rightNodeChildNodesAndTokens(childIndex).AsNode()
+                    Else
+                        rightNodeOpt = Nothing
+                    End If
+                End If
+
                 leftNode = leftChild.AsNode()
             End While
         End Sub
@@ -106,24 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End While
 
             Return rightNode
-        End Function
-
-        Public Shared Function IsMethod(declaration As SyntaxNode) As Boolean
-            Select Case declaration.Kind
-                Case SyntaxKind.SubBlock,
-                     SyntaxKind.FunctionBlock,
-                     SyntaxKind.ConstructorBlock,
-                     SyntaxKind.OperatorBlock,
-                     SyntaxKind.GetAccessorBlock,
-                     SyntaxKind.SetAccessorBlock,
-                     SyntaxKind.AddHandlerAccessorBlock,
-                     SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock
-                    Return True
-
-                Case Else
-                    Return False
-            End Select
         End Function
 
         Public Shared Function IsParameterlessConstructor(declaration As SyntaxNode) As Boolean

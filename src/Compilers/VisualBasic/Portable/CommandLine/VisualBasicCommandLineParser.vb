@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -73,10 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            Debug.Assert(baseDirectory Is Nothing OrElse PathUtilities.IsAbsolute(baseDirectory))
+
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
-            Dim flattenedArgs As List(Of String) = New List(Of String)()
+            Dim flattenedArgs = ArrayBuilder(Of String).GetInstance()
             Dim scriptArgs As List(Of String) = If(IsScriptCommandLineParser, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
@@ -101,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim refOnly As Boolean = False
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
-            Dim errorLogPath As String = Nothing
+            Dim errorLogOptions As ErrorLogOptions = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
@@ -115,10 +119,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
+            Dim analyzerConfigPaths = ArrayBuilder(Of String).GetInstance()
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
-            Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
+            Dim checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
@@ -156,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
+            Dim skipAnalyzers As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
@@ -187,7 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics))
+                    Dim builder = ArrayBuilder(Of String).GetInstance()
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, builder, diagnostics)
+                    For Each path In builder
+                        sourceFiles.Add(ToCommandLineSourceFile(path))
+                    Next
+                    builder.Free()
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -390,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                            If (preferredUILang.CultureTypes And CultureTypes.UserCustomCulture) <> 0 Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
@@ -421,6 +432,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If IsScriptCommandLineParser Then
                     Select Case name
+                        Case "-"
+                            If Console.IsInputRedirected Then
+                                sourceFiles.Add(New CommandLineSourceFile("-", isScript:=True, isInputRedirected:=True))
+                                hasSourceFiles = True
+                            Else
+                                AddDiagnostic(diagnostics, ERRID.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected)
+                            End If
+                            Continue For
+
                         Case "i", "i+"
                             If value IsNot Nothing Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
@@ -553,10 +573,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "errorlog"
                             Dim unquoted = RemoveQuotesAndSlashes(value)
-                            If String.IsNullOrEmpty(unquoted) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
+                            If (String.IsNullOrWhiteSpace(unquoted)) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ErrorLogOptionFormat)
                             Else
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                                Dim diagnosticAlreadyReported As Boolean
+                                errorLogOptions = ParseErrorLogOptions(unquoted.AsMemory(), diagnostics, baseDirectory, diagnosticAlreadyReported)
+                                If errorLogOptions Is Nothing And Not diagnosticAlreadyReported Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
+                                    Continue For
+                                End If
                             End If
 
                             Continue For
@@ -574,6 +599,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sdkPaths.Clear()
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Continue For
+
+                        Case "nosdkpath"
+                            sdkDirectory = Nothing
+                            sdkPaths.Clear()
                             Continue For
 
                         Case "instrument"
@@ -1079,6 +1109,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             reportAnalyzer = True
                             Continue For
 
+                        Case "skipanalyzers", "skipanalyzers+"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = True
+                            Continue For
+
+                        Case "skipanalyzers-"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = False
+                            Continue For
+
                         Case "nostdlib"
                             If value IsNot Nothing Then
                                 Exit Select
@@ -1160,23 +1206,44 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "additionalfile"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                                Continue For
+                            End If
+
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                additionalFiles.Add(ToCommandLineSourceFile(path))
+                            Next
+                            Continue For
+
+                        Case "analyzerconfig"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
 
                         Case "embed"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 embedAllSourceFiles = True
                                 Continue For
                             End If
 
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                embeddedFiles.Add(ToCommandLineSourceFile(path))
+                            Next
+                            Continue For
+
+                        Case "-"
+                            If Console.IsInputRedirected Then
+                                sourceFiles.Add(New CommandLineSourceFile("-", isScript:=False, isInputRedirected:=True))
+                                hasSourceFiles = True
+                            Else
+                                AddDiagnostic(diagnostics, ERRID.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected)
+                            End If
                             Continue For
                     End Select
                 End If
@@ -1252,7 +1319,7 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+            If Not String.IsNullOrEmpty(additionalReferenceDirectories) Then
                 libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
@@ -1260,7 +1327,7 @@ lVbRuntimePlus:
             Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
             ' Public sign doesn't use legacy search path settings
-            If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
+            If publicSign AndAlso Not String.IsNullOrEmpty(keyFileSetting) Then
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
@@ -1291,8 +1358,11 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
+            If Not String.IsNullOrEmpty(baseDirectory) Then
+                keyFileSearchPaths.Add(baseDirectory)
+            End If
+
+            If Not String.IsNullOrEmpty(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
@@ -1310,6 +1380,8 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
+            flattenedArgs.Free()
+
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
@@ -1319,7 +1391,7 @@ lVbRuntimePlus:
 
             ' We want to report diagnostics with source suppression in the error log file.
             ' However, these diagnostics won't be reported on the command line.
-            Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
+            Dim reportSuppressedDiagnostics = errorLogOptions IsNot Nothing
 
             Dim options = New VisualBasicCompilationOptions(
                 outputKind:=outputKind,
@@ -1373,6 +1445,8 @@ lVbRuntimePlus:
             ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
             interactiveMode = interactiveMode Or (IsScriptCommandLineParser AndAlso sourceFiles.Count = 0)
 
+            pathMap = SortPathMap(pathMap)
+
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptCommandLineParser,
@@ -1385,7 +1459,7 @@ lVbRuntimePlus:
                 .OutputRefFilePath = outputRefFileName,
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
-                .ErrorLogPath = errorLogPath,
+                .ErrorLogOptions = errorLogOptions,
                 .SourceFiles = sourceFiles.AsImmutable(),
                 .PathMap = pathMap,
                 .Encoding = codepage,
@@ -1393,6 +1467,7 @@ lVbRuntimePlus:
                 .MetadataReferences = metadataReferences.AsImmutable(),
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
+                .AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 .ReferencePaths = searchPaths,
                 .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
@@ -1417,6 +1492,7 @@ lVbRuntimePlus:
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
+                .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
         End Function
@@ -1611,7 +1687,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDescriptor,
+                resourceDescriptor.AsMemory(),
                 baseDirectory,
                 True,
                 filePath,
@@ -1748,7 +1824,7 @@ lVbRuntimePlus:
             ' unescape quotes \" -> "
             symbolList = symbolList.Replace("\""", """")
 
-            Dim trimmedSymbolList As String = symbolList.TrimEnd(Nothing)
+            Dim trimmedSymbolList As String = symbolList.TrimEnd()
             If trimmedSymbolList.Length > 0 AndAlso IsConnectorPunctuation(trimmedSymbolList(trimmedSymbolList.Length - 1)) Then
                 ' In case the symbol list ends with '_' we add ',' to the end of the list which in some 
                 ' cases will produce an error 30999 to match Dev11 behavior

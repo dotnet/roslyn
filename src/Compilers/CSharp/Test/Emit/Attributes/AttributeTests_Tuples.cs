@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -93,7 +97,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
     }
 }";
 
-        private static MetadataReference[] s_attributeRefs =
+        private static readonly MetadataReference[] s_attributeRefs =
         {
             ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef
         };
@@ -229,7 +233,7 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                references: s_attributeRefs, 
+                references: s_attributeRefs,
                 verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
@@ -269,7 +273,10 @@ class C
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
                     typeSymbols.Add(methodSymbol.ReturnType);
-                    typeSymbols.AddRange(methodSymbol.ParameterTypes);
+                    foreach (var parameterType in methodSymbol.ParameterTypesWithAnnotations)
+                    {
+                        typeSymbols.Add(parameterType.Type);
+                    }
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
@@ -465,7 +472,7 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
@@ -477,16 +484,17 @@ class C
                 var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1];
+                Assert.Equal(2, firstTuple.TupleElementTypesWithAnnotations.Length);
+                var secondTuple = firstTuple.TupleElementTypesWithAnnotations[1].Type;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, secondTuple.TupleElementTypes.Length);
+                Assert.Equal(2, secondTuple.TupleElementTypesWithAnnotations.Length);
 
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.True(field7.Type.IsTupleType);
+                Assert.Empty(field7.Type.TupleElementTypesWithAnnotations);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -614,7 +622,7 @@ class C
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
                     Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
-                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {
@@ -906,7 +914,7 @@ public interface I3<T>
             {
                 foreach (var t in m.GlobalNamespace.GetTypeMembers())
                 {
-                    switch(t.Name)
+                    switch (t.Name)
                     {
                         case "I1":
                         case "<Module>":

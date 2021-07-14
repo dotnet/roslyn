@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct MethodContextReuseConstraints
+    internal readonly struct MethodContextReuseConstraints
     {
         private readonly Guid _moduleVersionId;
         private readonly int _methodToken;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, ILSpan span)
         {
-            Debug.Assert(moduleVersionId != default(Guid));
+            Debug.Assert(moduleVersionId != Guid.Empty);
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
         {
-            Debug.Assert(moduleVersionId != default(Guid));
+            Debug.Assert(moduleVersionId != Guid.Empty);
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
             Debug.Assert(ilOffset >= 0);

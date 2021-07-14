@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
-using System.Diagnostics;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,38 +10,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             this.CompilationUnit = compilationUnit;
         }
-        public CompilationUnitCompletedEvent(CompilationUnitCompletedEvent original, SemanticModel newSemanticModel) : this(original.Compilation, original.CompilationUnit)
-        {
-            SemanticModel = newSemanticModel;
-        }
-        private WeakReference<SemanticModel> _weakModel;
-        public SemanticModel SemanticModel
-        {
-            get
-            {
-                var weakModel = _weakModel;
-                SemanticModel semanticModel;
-                if (weakModel == null || !weakModel.TryGetTarget(out semanticModel))
-                {
-                    semanticModel = Compilation.GetSemanticModel(CompilationUnit);
-                    _weakModel = new WeakReference<SemanticModel>(semanticModel);
-                }
-                return semanticModel;
-            }
-            private set
-            {
-                _weakModel = new WeakReference<SemanticModel>(value);
-            }
-        }
-        override public void FlushCache()
-        {
-        }
 
         public SyntaxTree CompilationUnit { get; }
-        public CompilationUnitCompletedEvent WithSemanticModel(SemanticModel model)
-        {
-            return new CompilationUnitCompletedEvent(this, model);
-        }
+
         public override string ToString()
         {
             return "CompilationUnitCompletedEvent(" + CompilationUnit.FilePath + ")";

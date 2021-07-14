@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +26,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
 
-        void RemoveDocument(DocumentId documentId);
-        void RemoveProject(ProjectId projectId);
+        Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
+        Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
     }

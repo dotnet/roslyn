@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string multiByte = "\ud83c\udfc8"; // unicode surrogates properly paired representing a printable Unicode codepoint
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte));
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte, useHexadecimal: true));
-            Assert.Equal(multiByte, "🏈");
+            Assert.Equal("🏈", multiByte);
 
             multiByte = "\udbff\udfff"; // unicode surrogates representing an unprintable Unicode codepoint
             Assert.Equal(string.Format(format, "\\U0010ffff"), FormatValue(multiByte));
@@ -655,6 +661,61 @@ namespace System.Xml.Linq
 
             Assert.Equal("Test1", GetUnderlyingString(xnType.Instantiate()));
             Assert.Equal("Test2", GetUnderlyingString(xeType.Instantiate()));
+        }
+
+        [Fact]
+        public void HostValueNotFound_int()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(int)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_char()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(char)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_IntPtr()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(IntPtr)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_UIntPtr()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(UIntPtr)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_enum()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(TestEnum)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        private enum TestEnum
+        {
+            One
         }
     }
 }

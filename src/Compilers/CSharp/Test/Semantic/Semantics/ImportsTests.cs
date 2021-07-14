@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -106,24 +110,22 @@ using F = System.IO;
                 });
 
             var tree = comp.SyntaxTrees.Single();
-            var binder = comp.GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot(), inUsing: false);
-            var scratchImports = binder.GetImports(basesBeingResolved: null);
+            var binder = comp.GetBinderFactory(tree).GetInNamespaceBinder((CSharpSyntaxNode)tree.GetRoot());
+            var scratchImports = binder.ImportChain.Imports;
             var scratchExternAliases = scratchImports.ExternAliases;
             Assert.Equal(2, scratchExternAliases.Length);
 
             var externAlias1 = scratchExternAliases[0];
             var externAlias2 = new AliasAndExternAliasDirective(
-                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder),
-                 externAlias1.ExternAliasDirective);
+                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder.ContainingMemberOrLambda, isExtern: true),
+                 externAlias1.ExternAliasDirective, skipInLookup: false);
 
-            var imports1 = Imports.FromCustomDebugInfo(
-                comp,
+            var imports1 = Imports.Create(
                 ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias1));
 
-            var imports2 = Imports.FromCustomDebugInfo(
-                comp,
+            var imports2 = Imports.Create(
                 ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias2));
@@ -145,8 +147,8 @@ using F = System.IO;
             comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var factories = trees.Select(tree => comp.GetBinderFactory(tree));
-            var binders = factories.Select(factory => factory.GetImportsBinder((CSharpSyntaxNode)factory.SyntaxTree.GetRoot(), inUsing: false));
-            var imports = binders.Select(binder => binder.GetImports(basesBeingResolved: null));
+            var binders = factories.Select(factory => factory.GetInNamespaceBinder((CSharpSyntaxNode)factory.SyntaxTree.GetRoot()));
+            var imports = binders.Select(binder => binder.ImportChain.Imports);
             Assert.DoesNotContain(Imports.Empty, imports);
             return imports.ToArray();
         }

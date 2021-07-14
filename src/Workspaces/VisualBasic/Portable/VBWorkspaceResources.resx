@@ -264,4 +264,10 @@
   <data name="result" xml:space="preserve">
     <value>&lt;result&gt;</value>
   </data>
+  <data name="Remove_and_Sort_Imports" xml:space="preserve">
+    <value>R&amp;emove and Sort Imports</value>
+  </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>&amp;Sort Imports</value>
+  </data>
 </root>

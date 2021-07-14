@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -146,6 +148,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim unmappedPos As LinePosition = sourceText.Lines.GetLinePosition(position)
             Dim index As Integer = FindEntryIndex(unmappedPos.Line)
 
+            Return GetLineVisibility(index)
+        End Function
+
+        Protected Overrides Function GetUnknownStateVisibility(index As Integer) As LineVisibility
             Return GetLineVisibility(index)
         End Function
 

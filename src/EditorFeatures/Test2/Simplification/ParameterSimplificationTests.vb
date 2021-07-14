@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -8,14 +10,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "CSharp tests"
-        Private Async Function TestDocumentSimplificationAsync(input As String, expected As String) As System.Threading.Tasks.Task
+        Private Shared Async Function TestDocumentSimplificationAsync(input As String, expected As String) As System.Threading.Tasks.Task
             Using workspace = New AdhocWorkspace()
                 Dim solution = workspace.CurrentSolution
                 Dim projId = ProjectId.CreateNewId()
                 Dim project = solution.AddProject(projId, "Project", "Project.dll", LanguageNames.CSharp) _
                     .GetProject(projId)
 
-                Dim document = project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib) _
+                Dim document = project.AddMetadataReference(TestMetadata.Net451.mscorlib) _
                     .AddDocument("Document", SourceText.From(input))
 
                 Dim annotatedDocument = document.WithSyntaxRoot(

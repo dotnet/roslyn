@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +13,16 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedCode
+    internal partial class ContainedLanguage : IVsContainedCode
     {
         public int HostSpansUpdated()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         /// <summary>
         /// Returns the list of code blocks in the generated .cs file that comes from the ASP.NET
@@ -30,13 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         public int EnumOriginalCodeBlocks(out IVsEnumCodeBlocks ppEnum)
         {
-            var waitIndicator = ComponentModel.GetService<IWaitIndicator>();
-
             IList<TextSpanAndCookie> result = null;
-            waitIndicator.Wait(
+
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => result = EnumOriginalCodeBlocksWorker(c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => result = EnumOriginalCodeBlocksWorker(c.UserCancellationToken));
 
             ppEnum = new CodeBlockEnumerator(result);
             return VSConstants.S_OK;
@@ -45,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private IList<TextSpanAndCookie> EnumOriginalCodeBlocksWorker(CancellationToken cancellationToken)
         {
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return SpecializedCollections.EmptyList<TextSpanAndCookie>();

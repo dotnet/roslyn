@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicCodeStyleOptions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\InvocationExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SingleLineRewriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicDocumentationCommentService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicInferredMemberNameSimplifier.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CastAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveWalker.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKinds.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsClauseComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsOrganizer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsStatementComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpeculationAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeSyntaxComparer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

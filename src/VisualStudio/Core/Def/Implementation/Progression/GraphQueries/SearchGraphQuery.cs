@@ -1,29 +1,72 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
-    internal sealed class SearchGraphQuery : IGraphQuery
+    internal sealed partial class SearchGraphQuery : IGraphQuery
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly string _searchPattern;
 
-        public SearchGraphQuery(string searchPattern)
+        public SearchGraphQuery(
+            string searchPattern,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
+            _threadingContext = threadingContext;
+            _asyncListener = asyncListener;
             _searchPattern = searchPattern;
         }
 
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        public Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var experimentationService = solution.Workspace.Services.GetService<IExperimentationService>();
+            var forceLegacySearch = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ProgressionForceLegacySearch) == true;
+
+            var option = solution.Options.GetOption(ProgressionOptions.SearchUsingNavigateToEngine);
+            return !forceLegacySearch && option
+                ? SearchUsingNavigateToEngineAsync(solution, context, cancellationToken)
+                : SearchUsingSymbolsAsync(solution, context, cancellationToken);
+        }
+
+        private async Task<GraphBuilder> SearchUsingNavigateToEngineAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+            var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
+            var searcher = NavigateToSearcher.Create(
+                solution,
+                _asyncListener,
+                callback,
+                _searchPattern,
+                searchCurrentDocument: false,
+                NavigateToUtilities.GetKindsProvided(solution),
+                _threadingContext.DisposalToken);
+
+            await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
+
+            return graphBuilder;
+        }
+
+        private async Task<GraphBuilder> SearchUsingSymbolsAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
 
@@ -51,55 +94,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         if (symbol is INamedTypeSymbol namedType)
                         {
-                            await AddLinkedNodeForType(project, namedType, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                            await AddLinkedNodeForTypeAsync(
+                                project, namedType, graphBuilder,
+                                symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree),
+                                cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
-                            await AddLinkedNodeForMemberAsync(project, symbol, graphBuilder).ConfigureAwait(false);
+                            await AddLinkedNodeForMemberAsync(
+                                project, symbol, graphBuilder, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
             }
         }
 
-        private async Task<GraphNode> AddLinkedNodeForType(Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
+        private async Task<GraphNode> AddLinkedNodeForTypeAsync(
+            Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder,
+            IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // If this named type is contained in a parent type, then just link farther up
             if (namedType.ContainingType != null)
             {
-                var parentTypeNode = await AddLinkedNodeForType(project, namedType.ContainingType, graphBuilder, syntaxTrees).ConfigureAwait(false);
-                var typeNode = await graphBuilder.AddNodeForSymbolAsync(namedType, relatedNode: parentTypeNode).ConfigureAwait(false);
-                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode);
+                var parentTypeNode = await AddLinkedNodeForTypeAsync(
+                    project, namedType.ContainingType, graphBuilder, syntaxTrees, cancellationToken).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(namedType, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
 
                 return typeNode;
             }
             else
             {
                 // From here, we can link back up to the containing project item
-                var typeNode = await graphBuilder.AddNodeForSymbolAsync(namedType, contextProject: project, contextDocument: null).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(
+                    namedType, contextProject: project, contextDocument: null, cancellationToken).ConfigureAwait(false);
 
                 foreach (var tree in syntaxTrees)
                 {
                     var document = project.Solution.GetDocument(tree);
                     Contract.ThrowIfNull(document);
 
-                    var documentNode = graphBuilder.AddNodeForDocument(document);
-                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode);
+                    var documentNode = graphBuilder.AddNodeForDocument(document, cancellationToken);
+                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
                 }
 
                 return typeNode;
             }
         }
 
-        private async Task<GraphNode> AddLinkedNodeForMemberAsync(Project project, ISymbol member, GraphBuilder graphBuilder)
+        private async Task<GraphNode> AddLinkedNodeForMemberAsync(
+            Project project, ISymbol symbol, GraphBuilder graphBuilder, CancellationToken cancellationToken)
         {
+            var member = symbol;
             Contract.ThrowIfNull(member.ContainingType);
 
             var trees = member.DeclaringSyntaxReferences.Select(d => d.SyntaxTree);
 
-            var parentTypeNode = await AddLinkedNodeForType(project, member.ContainingType, graphBuilder, trees).ConfigureAwait(false);
-            var memberNode = await graphBuilder.AddNodeForSymbolAsync(member, relatedNode: parentTypeNode).ConfigureAwait(false);
-            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode);
+            var parentTypeNode = await AddLinkedNodeForTypeAsync(
+                project, member.ContainingType, graphBuilder, trees, cancellationToken).ConfigureAwait(false);
+            var memberNode = await graphBuilder.AddNodeAsync(
+                symbol, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode, cancellationToken);
 
             return memberNode;
         }
@@ -107,16 +162,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         internal async Task<ImmutableArray<ISymbol>> FindNavigableSourceSymbolsAsync(
             Project project, CancellationToken cancellationToken)
         {
-            var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
-                project, _searchPattern, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+            ImmutableArray<ISymbol> declarations;
 
-            var symbols = declarations.SelectAsArray(d => d.Symbol);
+            // FindSourceDeclarationsWithPatternAsync calls into OOP to do the search; if something goes badly it
+            // throws a SoftCrashException which inherits from OperationCanceledException. This is unfortunate, because
+            // it means that other bits of code see this as a cancellation and then may crash because they expect that if this
+            // method is raising cancellation, it's because cancellationToken requested the cancellation. The intent behind
+            // SoftCrashException was since it inherited from OperationCancelled it would make things safer, but in this case
+            // it's violating other invariants in the process which creates other problems.
+            //
+            // https://github.com/dotnet/roslyn/issues/40476 tracks removing SoftCrashException. When it is removed, the
+            // catch here can be removed and simply let the exception propagate; our Progression code is hardened to
+            // handle exceptions and report them gracefully.
+            try
+            {
+                declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
+                    project, _searchPattern, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+            }
+            catch (SoftCrashException ex) when (ex.InnerException != null)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw ExceptionUtilities.Unreachable;
+            }
 
-            var results = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
-            foreach (var symbol in symbols)
+            foreach (var declaration in declarations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                var symbol = declaration;
 
                 // Ignore constructors and namespaces.  We don't want to expose them through this API.
                 if (symbol.IsConstructor() ||
@@ -132,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     continue;
                 }
 
-                results.Add(symbol);
+                results.Add(declaration);
 
                 // also report matching constructors (using same match result as type)
                 if (symbol is INamedTypeSymbol namedType)
@@ -154,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutable();
         }
     }
 }

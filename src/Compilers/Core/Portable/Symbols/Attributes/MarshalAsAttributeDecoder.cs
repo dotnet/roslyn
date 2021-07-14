@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            ITypeSymbol typeSymbol = null;
+            ITypeSymbolInternal typeSymbol = null;
             string typeName = null;
             string cookie = null;
             bool hasTypeName = false;
@@ -134,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case "MarshalTypeRef":
-                        typeSymbol = namedArg.Value.DecodeValue<ITypeSymbol>(SpecialType.None);
+                        typeSymbol = namedArg.Value.DecodeValue<ITypeSymbolInternal>(SpecialType.None);
                         hasTypeSymbol = true; // even if MarshalTypeRef == null
                         break;
 
@@ -282,7 +287,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             Cci.VarEnum? elementTypeVariant = null;
-            ITypeSymbol elementTypeSymbol = null;
+            ITypeSymbolInternal elementTypeSymbol = null;
             int symbolIndex = -1;
             bool hasErrors = false;
 
@@ -302,7 +307,7 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case "SafeArrayUserDefinedSubType":
-                        elementTypeSymbol = namedArg.Value.DecodeValue<ITypeSymbol>(SpecialType.None);
+                        elementTypeSymbol = namedArg.Value.DecodeValue<ITypeSymbolInternal>(SpecialType.None);
                         symbolIndex = position;
                         break;
 

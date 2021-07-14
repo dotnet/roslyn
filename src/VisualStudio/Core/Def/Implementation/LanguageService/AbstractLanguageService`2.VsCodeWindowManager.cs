@@ -1,11 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -17,65 +29,130 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
             private readonly ComEventSink _sink;
-            private readonly IOptionService _optionService;
+            private readonly IThreadingContext _threadingContext;
+            private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
-            private INavigationBarController _navigationBarController;
-            private IVsDropdownBarClient _dropdownBarClient;
+            private IDisposable? _navigationBarController;
+            private IVsDropdownBarClient? _dropdownBarClient;
+            private IOptionService? _optionService;
+            private WorkspaceRegistration? _workspaceRegistration;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
                 _languageService = languageService;
                 _codeWindow = codeWindow;
 
-                var workspace = languageService.Package.ComponentModel.GetService<VisualStudioWorkspace>();
-                _optionService = workspace.Services.GetService<IOptionService>();
+                _threadingContext = languageService.Package.ComponentModel.GetService<IThreadingContext>();
+
+                var listenerProvider = languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
+                _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-                _optionService.OptionChanged += OnOptionChanged;
+            }
+
+            private void OnWorkspaceRegistrationChanged(object sender, System.EventArgs e)
+            {
+                var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(OnWorkspaceRegistrationChanged));
+
+                // Fire and forget to update the navbar based on the workspace registration
+                // to avoid blocking the caller and possible deadlocks workspace registration changed events under lock.
+                UpdateWorkspaceAsync().CompletesAsyncOperation(token).Forget();
+            }
+
+            private async Task UpdateWorkspaceAsync()
+            {
+                // This event may not be triggered on the main thread, but adding and removing the navbar
+                // must be done from the main thread.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                // If the workspace registration is missing, addornments have been removed.
+                if (_workspaceRegistration == null)
+                {
+                    return;
+                }
+
+                // There's a new workspace, so make sure we unsubscribe from the old workspace option changes and subscribe to new.
+                UpdateOptionChangedSource(_workspaceRegistration.Workspace);
+
+                // Trigger a check to see if the dropdown should be added / removed now that the buffer is in a different workspace.
+                AddOrRemoveDropdown();
+            }
+
+            private void UpdateOptionChangedSource(Workspace? newWorkspace)
+            {
+                if (_optionService != null)
+                {
+                    _optionService.OptionChanged -= OnOptionChanged;
+                    _optionService = null;
+                }
+
+                var optionService = newWorkspace?.Services.GetService<IOptionService>();
+                if (optionService != null)
+                {
+                    _optionService = optionService;
+                    _optionService.OptionChanged += OnOptionChanged;
+                }
             }
 
             private void SetupView(IVsTextView view)
-            {
-                _languageService.SetupNewTextView(view);
-            }
-
-            private void TeardownView(IVsTextView view)
-            {
-            }
+                => _languageService.SetupNewTextView(view);
 
             private void OnOptionChanged(object sender, OptionChangedEventArgs e)
             {
+                // If the workspace registration is missing, addornments have been removed.
+                if (_workspaceRegistration == null)
+                {
+                    return;
+                }
+
                 if (e.Language != _languageService.RoslynLanguageName ||
                     e.Option != NavigationBarOptions.ShowNavigationBar)
                 {
                     return;
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                AddOrRemoveDropdown();
             }
 
-            private void AddOrRemoveDropdown(bool enabled)
+            private void AddOrRemoveDropdown()
             {
-                var dropdownManager = _codeWindow as IVsDropdownBarManager;
-
-                if (dropdownManager == null)
+                if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
                 {
                     return;
                 }
 
-                if (enabled)
+                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
                 {
-                    var existingDropdownBar = GetDropdownBar(dropdownManager);
+                    return;
+                }
+
+                var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+                var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
+                // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
+                // for the local navbar implementation.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
+                if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != "TypeScript")
+                {
+                    // Remove the existing dropdown bar if it is ours.
+                    if (IsOurDropdownBar(dropdownManager, out var _))
+                    {
+                        RemoveDropdownBar(dropdownManager);
+                    }
+
+                    return;
+                }
+
+                var enabled = _optionService?.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
+                if (enabled == true)
+                {
+                    if (IsOurDropdownBar(dropdownManager, out var existingDropdownBar))
+                    {
+                        // The dropdown bar is already one of ours, do nothing.
+                        return;
+                    }
+
                     if (existingDropdownBar != null)
                     {
-                        // Check if the existing dropdown is already one of ours, and do nothing if it is.
-                        if (_dropdownBarClient != null &&
-                            _dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
-                        {
-                            return;
-                        }
-
                         // Not ours, so remove the old one so that we can add ours.
                         RemoveDropdownBar(dropdownManager);
                     }
@@ -90,6 +167,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 else
                 {
                     RemoveDropdownBar(dropdownManager);
+                }
+
+                bool IsOurDropdownBar(IVsDropdownBarManager dropdownBarManager, out IVsDropdownBar? existingDropdownBar)
+                {
+                    existingDropdownBar = GetDropdownBar(dropdownBarManager);
+                    if (existingDropdownBar != null)
+                    {
+                        if (_dropdownBarClient != null &&
+                            _dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 }
             }
 
@@ -120,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    newController.Disconnect();
+                    newController.Dispose();
                     ErrorHandler.ThrowOnFailure(hr);
                 }
 
@@ -135,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (_navigationBarController != null)
                     {
-                        _navigationBarController.Disconnect();
+                        _navigationBarController.Dispose();
                         _navigationBarController = null;
                     }
 
@@ -158,16 +250,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     SetupView(secondaryView);
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
+                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer();
+                _workspaceRegistration = CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
+                _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
+
+                UpdateOptionChangedSource(_workspaceRegistration.Workspace);
+
+                AddOrRemoveDropdown();
 
                 return VSConstants.S_OK;
             }
 
             public int OnCloseView(IVsTextView view)
             {
-                TeardownView(view);
-
                 return VSConstants.S_OK;
             }
 
@@ -181,9 +277,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
-                _optionService.OptionChanged -= OnOptionChanged;
 
-                AddOrRemoveDropdown(enabled: false);
+                if (_optionService != null)
+                {
+                    _optionService.OptionChanged -= OnOptionChanged;
+                    _optionService = null;
+                }
+
+                if (_workspaceRegistration != null)
+                {
+                    _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
+                    _workspaceRegistration = null;
+                }
+
+                if (_codeWindow is IVsDropdownBarManager dropdownManager)
+                {
+                    RemoveDropdownBar(dropdownManager);
+                }
 
                 return VSConstants.S_OK;
             }

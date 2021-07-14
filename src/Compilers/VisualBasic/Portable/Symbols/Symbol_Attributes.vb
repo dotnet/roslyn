@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -11,7 +13,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Symbol
+    Partial Friend Class Symbol
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -191,7 +193,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overridable Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim compilation = Me.DeclaringCompilation
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
-            ReportExtensionAttributeUseSiteError(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, arguments.Diagnostics)
+            ReportExtensionAttributeUseSiteInfo(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+
+            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
+            End If
         End Sub
 
         ''' <summary>
@@ -214,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="decodedData">Decoded well known attribute data.</param>
         Friend Overridable Sub PostDecodeWellKnownAttributes(boundAttributes As ImmutableArray(Of VisualBasicAttributeData),
                                                            allAttributeSyntaxNodes As ImmutableArray(Of AttributeSyntax),
-                                                           diagnostics As DiagnosticBag,
+                                                           diagnostics As BindingDiagnosticBag,
                                                            symbolPart As AttributeLocation,
                                                            decodedData As WellKnownAttributeData)
         End Sub
@@ -233,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              ByRef lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData),
                                              Optional symbolPart As AttributeLocation = 0)
 
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance()
             Dim sourceAssembly = DirectCast(If(Me.Kind = SymbolKind.Assembly, Me, Me.ContainingAssembly), SourceAssemblySymbol)
             Dim sourceModule = sourceAssembly.SourceModule
             Dim compilation = sourceAssembly.DeclaringCompilation
@@ -439,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binders As ImmutableArray(Of Binder),
             attributeSyntaxList As ImmutableArray(Of AttributeSyntax),
             boundAttributes As ImmutableArray(Of VisualBasicAttributeData),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             symbolPart As AttributeLocation) As WellKnownAttributeData
 
             Debug.Assert(binders.Any())
@@ -484,13 +490,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As AttributeSyntax,
             compilation As VisualBasicCompilation,
             symbolPart As AttributeLocation,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             uniqueAttributeTypes As HashSet(Of NamedTypeSymbol)) As Boolean
 
             Dim attributeType As NamedTypeSymbol = attribute.AttributeClass
             Debug.Assert(attributeType IsNot Nothing)
             Debug.Assert(Not attributeType.IsErrorType())
-            Debug.Assert(attributeType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, compilation, Nothing))
+            Debug.Assert(attributeType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, compilation, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
 
             ' Get attribute usage for this attribute
             Dim attributeUsage As AttributeUsageInfo = attributeType.GetAttributeUsageInfo()
@@ -583,15 +589,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Sub ReportExtensionAttributeUseSiteError(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag)
+        Private Sub ReportExtensionAttributeUseSiteInfo(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
             ' report issues with a custom extension attribute everywhere, where the attribute is used in source
             ' (we will not report in location where it's implicitly used (like the containing module or assembly of extension methods)
-            Dim useSiteError As DiagnosticInfo = Nothing
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             If attribute.AttributeConstructor IsNot Nothing AndAlso
-                attribute.AttributeConstructor Is compilation.GetExtensionAttributeConstructor(useSiteError) Then
-                If useSiteError IsNot Nothing Then
-                    diagnostics.Add(useSiteError, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton))
-                End If
+                attribute.AttributeConstructor Is compilation.GetExtensionAttributeConstructor(useSiteInfo) Then
+                diagnostics.Add(useSiteInfo, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton))
             End If
         End Sub
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 {
@@ -17,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         // hierarchy we're getting them for.  To do this, we attach them to the hierarchy with a
         // conditional weak table.
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle =
-            new ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>();
+            new();
 
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>.CreateValueCallback s_createValue =
             _ => new Dictionary<uint, IImageHandle>();
@@ -65,34 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             return false;
         }
 
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out int index)
-        {
-            var result = TryGetImageListAndIndex(workspace, imageService, id, out imageList, out ushort ushortIndex);
-
-            index = ushortIndex;
-            return result;
-        }
-
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out ushort index)
-        {
-            var hierarchy = workspace.GetHostProject(id)?.Hierarchy;
-            if (hierarchy != null)
-            {
-                return TryGetImageListAndIndex(hierarchy, imageService, VSConstants.VSITEMID_ROOT, out imageList, out index);
-            }
-
-            imageList = default;
-            index = 0;
-            return false;
-        }
-
         public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, DocumentId id, out IntPtr imageList, out ushort index)
         {
-            var hostDocument = workspace.GetHostDocument(id);
-            if (hostDocument != null)
+            var hierarchy = workspace.GetHierarchy(id.ProjectId);
+            var document = workspace.CurrentSolution.GetDocument(id);
+            if (hierarchy != null && !RoslynString.IsNullOrEmpty(document?.FilePath))
             {
-                var hierarchy = hostDocument.Project.Hierarchy;
-                var itemId = hostDocument.GetItemId();
+                var itemId = hierarchy.TryGetItemId(document.FilePath);
                 return TryGetImageListAndIndex(hierarchy, imageService, itemId, out imageList, out index);
             }
 
@@ -106,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             private readonly ImageMoniker _imageMoniker;
 
             public VsImageMonikerImageList(ImageMoniker imageMoniker)
-            {
-                _imageMoniker = imageMoniker;
-            }
+                => _imageMoniker = imageMoniker;
 
             public int ImageCount
             {

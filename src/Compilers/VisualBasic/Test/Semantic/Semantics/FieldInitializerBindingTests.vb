@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -1506,11 +1508,11 @@ String
         End Function
 
         Private Shared Function IsBeforeFieldInit(typeSymbol As NamedTypeSymbol) As Boolean
-            Return (DirectCast(typeSymbol, Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
+            Return (DirectCast(typeSymbol.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
         End Function
 
         Private Shared Function IsStatic(symbol As Symbol) As Boolean
-            Return (DirectCast(symbol, Microsoft.Cci.IFieldDefinition)).IsStatic
+            Return (DirectCast(symbol.GetCciAdapter(), Microsoft.Cci.IFieldDefinition)).IsStatic
         End Function
 
         Private Shared Sub CompileAndCheckInitializers(sources As Xml.Linq.XElement, expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer), expectedStaticInitializers As IEnumerable(Of ExpectedInitializer))
@@ -1576,7 +1578,7 @@ String
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
+            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, New BindingDiagnosticBag(diagnostics))
             Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             For Each d In sealedDiagnostics
                 Console.WriteLine(d)

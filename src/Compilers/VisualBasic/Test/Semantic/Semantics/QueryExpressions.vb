@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -176,7 +179,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -191,7 +194,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                           Right: 
@@ -284,7 +287,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -343,7 +346,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -405,7 +408,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -2162,7 +2165,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                                               ReturnedValue: 
-                                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                                                   Left: 
                                                     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                                   Right: 
@@ -2191,11 +2194,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Num1 = -10')
                                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Num1 = -10')
                                       ReturnedValue: 
-                                        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Num1 = -10')
+                                        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Num1 = -10')
                                           Left: 
                                             IParameterReferenceOperation: Num1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Num1')
                                           Right: 
-                                            IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -10) (Syntax: '-10')
+                                            IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -10) (Syntax: '-10')
                                               Operand: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2222,13 +2225,13 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Num2 = -10 + Num1()')
+                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Num2 = -10 + Num1()')
                                   Left: 
                                     IParameterReferenceOperation: Num2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Num2')
                                   Right: 
-                                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '-10 + Num1()')
+                                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '-10 + Num1()')
                                       Left: 
-                                        IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -10) (Syntax: '-10')
+                                        IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -10) (Syntax: '-10')
                                           Operand: 
                                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                       Right: 
@@ -2264,7 +2267,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Two > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Two > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Two > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Two > 0')
                           Left: 
                             IParameterReferenceOperation: Two (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Two')
                           Right: 
@@ -3483,7 +3486,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3664,7 +3667,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 1')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 1')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 1')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -3712,7 +3715,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 1')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 1')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 1')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -3838,7 +3841,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -3903,7 +3906,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -3974,7 +3977,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                                   ReturnedValue: 
-                                    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                                    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                                       Left: 
                                         IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                       Right: 
@@ -3989,7 +3992,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                                   Left: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                   Right: 
@@ -4004,7 +4007,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -4202,7 +4205,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's + 1')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's + 1')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's + 1')
                                   Left: 
                                     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                   Right: 
@@ -5315,7 +5318,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5416,7 +5419,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5641,7 +5644,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                 Right: 
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                     Left: 
                                       IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                     Right: 
@@ -5713,7 +5716,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                         Instance Receiver: 
                                           IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                     Right: 
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                         Left: 
                                           IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                         Right: 
@@ -5754,7 +5757,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                 Right: 
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 + s1')
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 + s1')
                                     Left: 
                                       IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
                                         Instance Receiver: 
@@ -5834,7 +5837,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                 Instance Receiver: 
                                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                             Right: 
-                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                                 Left: 
                                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                                 Right: 
@@ -5864,7 +5867,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                             Instance Receiver: 
                                               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                         Right: 
-                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 + s1')
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 + s1')
                                             Left: 
                                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
                                                 Instance Receiver: 
@@ -5898,9 +5901,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                         Instance Receiver: 
                                           IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
                                     Right: 
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3')
                                         Left: 
-                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2')
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2')
                                             Left: 
                                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
                                                 Instance Receiver: 
@@ -5981,11 +5984,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
                                 Right: 
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
                                     Left: 
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3')
                                         Left: 
-                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2')
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2')
                                             Left: 
                                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
                                                 Instance Receiver: 
@@ -6067,7 +6070,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -6732,7 +6735,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -7617,7 +7620,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                               Left: 
                                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                               Right: 
@@ -7681,7 +7684,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's3')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's3')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 * 2')
+                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 * 2')
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
                               Instance Receiver: 
@@ -7873,7 +7876,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -9167,7 +9170,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Right: 
-                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 Mod 2')
+                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 Mod 2')
                                     Left: 
                                       IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                     Right: 
@@ -9178,7 +9181,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Right: 
-                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 Mod 3')
+                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 Mod 3')
                                     Left: 
                                       IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                     Right: 
@@ -9339,7 +9342,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                   Left: 
                                     IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                   Right: 
@@ -9527,7 +9530,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -10192,7 +10195,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                               Left: 
                                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                               Right: 
@@ -10256,11 +10259,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's3')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's3')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
+                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
                           Left: 
                             IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(s1 + 1)')
                               Operand: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                   Left: 
                                     IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
                                       Instance Receiver: 
@@ -10707,7 +10710,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -11476,9 +11479,9 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
       Children(5):
           IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             Children(1):
@@ -11754,7 +11757,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: <anonymous type:
                                 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y \ 2')
                                   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y \ 2')
                                     ReturnedValue: 
-                                      IBinaryOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y \ 2')
+                                      IBinaryOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'y \ 2')
                                         Left: 
                                           IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
                                         Right: 
@@ -11860,7 +11863,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x > y')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x > y')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x > y')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x > y')
                               Left: 
                                 IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                   Instance Receiver: 
@@ -11879,7 +11882,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + y')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                               Instance Receiver: 
@@ -12108,7 +12111,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                               Left: 
                                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                               Right: 
@@ -12395,9 +12398,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                             Instance Receiver: 
                                                               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
                                                         Right: 
-                                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y + z')
+                                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y + z')
                                                             Left: 
-                                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                                                                 Left: 
                                                                   IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                                                     Instance Receiver: 
@@ -12531,7 +12534,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -12826,7 +12829,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -12871,7 +12874,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -12916,7 +12919,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -12952,7 +12955,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -13957,7 +13960,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14006,7 +14009,7 @@ Imports System.Linq
             End Sub
         End Module
     </file>
-    </compilation>, additionalRefs:={SystemCoreRef})
+    </compilation>, additionalRefs:={Net40.SystemCore})
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>
@@ -14068,7 +14071,7 @@ Class CI003
 End Class
     </file>
     </compilation>,
-            expectedOutput:="CI003.Count", references:={TestReferences.NetFx.v4_0_30319.System_Core})
+            expectedOutput:="CI003.Count", references:={Net451.SystemCore})
 
             verifier.VerifyDiagnostics()
         End Sub
@@ -14122,7 +14125,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef,
+                                                                                         additionalRefs:={Net40.SystemCore,
                                                                                                           SystemXmlRef,
                                                                                                           SystemXmlLinqRef})
 
@@ -14229,7 +14232,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14320,7 +14323,7 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                                                                                         additionalRefs:={SystemCoreRef})
+                                                                                         additionalRefs:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14348,7 +14351,7 @@ Module M
     End Sub
 End Module
     </file>
-    </compilation>, references:={SystemCoreRef}).AssertTheseDiagnostics(
+    </compilation>, references:={Net40.SystemCore}).AssertTheseDiagnostics(
     <expected>
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim c1 As System.ArgIterator()() = Nothing
@@ -14435,7 +14438,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, references:={SystemCoreRef},
+            Dim verifier = CompileAndVerify(compilationDef, references:={Net40.SystemCore},
                              expectedOutput:=
             <![CDATA[
 0
@@ -14502,7 +14505,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14528,7 +14531,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
                                 expectedOutput:=
@@ -14556,7 +14559,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14588,7 +14591,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14892,7 +14895,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14958,7 +14961,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
                              expectedOutput:=
@@ -14995,7 +14998,7 @@ End Module
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseDll).AssertNoDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseDll).AssertNoDiagnostics()
 
         End Sub
 
@@ -15048,7 +15051,7 @@ Class C
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={Net40.SystemCore}, options:=TestOptions.ReleaseDll)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30451: 'Whi' is not declared. It may be inaccessible due to its protection level.
@@ -15101,7 +15104,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -15159,7 +15162,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -15174,7 +15177,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                           Right: 
@@ -15230,7 +15233,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 

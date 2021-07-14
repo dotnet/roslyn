@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -40,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New InitializerSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
             Dim boundInitializer As BoundNode = Nothing
@@ -101,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Private Function BindInitializer(binder As Binder, initializer As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Private Function BindInitializer(binder As Binder, initializer As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
             Select Case Me.MemberSymbol.Kind
@@ -132,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
+                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer, binderOpt:=Nothing)
                     End If
 
                 Case SymbolKind.Property
@@ -145,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer)
+                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer, binderOpt:=Nothing)
                     End If
 
                 Case SymbolKind.Parameter

@@ -1,18 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class EvaluatedConstant
     {
         public readonly ConstantValue Value;
-        public readonly ImmutableArray<Diagnostic> Diagnostics;
+        public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-        public EvaluatedConstant(ConstantValue value, ImmutableArray<Diagnostic> diagnostics)
+        public EvaluatedConstant(ConstantValue value, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
         {
             this.Value = value;
             this.Diagnostics = diagnostics.NullToEmpty();
@@ -26,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EqualsValueClauseSyntax equalsValueNode,
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var compilation = symbol.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             FieldSymbol fieldSymbol,
             EqualsValueClauseSyntax initializer,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var enumConstant = fieldSymbol as SourceEnumConstantSymbol;
             Binder collisionDetector = new LocalScopeBinder(binder);
@@ -68,14 +73,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        internal static string UnescapeInterpolatedStringLiteral(string s)
+        {
+            var builder = PooledStringBuilder.GetInstance();
+            var stringBuilder = builder.Builder;
+            int formatLength = s.Length;
+            for (int i = 0; i < formatLength; i++)
+            {
+                char c = s[i];
+                stringBuilder.Append(c);
+                if ((c == '{' || c == '}') && (i + 1) < formatLength && s[i + 1] == c)
+                {
+                    i++;
+                }
+            }
+            return builder.ToStringAndFree();
+        }
+
         internal static ConstantValue GetAndValidateConstantValue(
             BoundExpression boundValue,
             Symbol thisSymbol,
             TypeSymbol typeSymbol,
             Location initValueNodeLocation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
+            CheckLangVersionForConstantValue(boundValue, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -134,6 +157,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return value;
+        }
+
+        private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            internal readonly BindingDiagnosticBag diagnostics;
+
+            public CheckConstantInterpolatedStringValidity(BindingDiagnosticBag diagnostics)
+            {
+                this.diagnostics = diagnostics;
+            }
+
+            public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+            {
+                Binder.CheckFeatureAvailability(node.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics);
+                return null;
+            }
+        }
+
+        internal static void CheckLangVersionForConstantValue(BoundExpression expression, BindingDiagnosticBag diagnostics)
+        {
+            if (!(expression.Type is null) && expression.Type.IsStringType())
+            {
+                var visitor = new CheckConstantInterpolatedStringValidity(diagnostics);
+                visitor.Visit(expression);
+            }
         }
     }
 }

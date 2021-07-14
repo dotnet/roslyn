@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -7,9 +9,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class ContainsGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TypesContainedInCSharpDocument() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -19,6 +21,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                                 enum E { }
                                 interface I { }
                                 struct S { }
+                                record R1 { }
+                                record R2;
+                                record class R3;
+                                record struct R4 { }
                          </Document>
                         </Project>
                     </Workspace>)
@@ -34,12 +40,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@3 Type=E)" Category="CodeSchema_Enum" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="E" Icon="Microsoft.VisualStudio.Enum.Internal" Label="E"/>
                             <Node Id="(@3 Type=I)" Category="CodeSchema_Interface" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="I" Icon="Microsoft.VisualStudio.Interface.Internal" Label="I"/>
+                            <Node Id="(@3 Type=R1)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="R1" Icon="Microsoft.VisualStudio.Class.Internal" Label="R1"/>
+                            <Node Id="(@3 Type=R2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="R2" Icon="Microsoft.VisualStudio.Class.Internal" Label="R2"/>
+                            <Node Id="(@3 Type=R3)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="R3" Icon="Microsoft.VisualStudio.Class.Internal" Label="R3"/>
+                            <Node Id="(@3 Type=R4)" Category="CodeSchema_Struct" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="R4" Icon="Microsoft.VisualStudio.Struct.Internal" Label="R4"/>
                             <Node Id="(@3 Type=S)" Category="CodeSchema_Struct" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="S" Icon="Microsoft.VisualStudio.Struct.Internal" Label="S"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=E)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=I)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R1)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R2)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R3)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R4)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=S)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
@@ -51,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TypesContainedInCSharpDocumentInsideNamespace() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -96,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TypesContainedInVisualBasicDocument() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -150,7 +164,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function MembersContainedInCSharpScriptDocument() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -192,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function MembersContainedInClass() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -203,7 +217,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
@@ -225,7 +239,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         <WorkItem(543892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
         Public Async Function NestedTypesContainedInClass() As Task
             Using testState = ProgressionTestState.Create(
@@ -257,7 +271,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545018")>
+        <WpfFact, WorkItem(545018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545018")>
         Public Async Function EnumMembersInEnum() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -268,7 +282,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
@@ -288,7 +302,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
+        <WpfFact, WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -317,7 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
+        <WpfFact, WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode2() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -346,7 +360,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608653")>
+        <WpfFact, WorkItem(608653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608653")>
         Public Async Function NothingInBrokenCode3() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -11,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
         Private Sub EmitStatement(statement As BoundStatement)
             Select Case statement.Kind
 
@@ -657,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitCondBranchCore(condition, lazyDest, sense)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
                 Throw New EmitCancelledException()
@@ -800,7 +802,7 @@ OtherExpressions:
                     EmitExpression(condition, True)
 
                     Dim conditionType = condition.Type
-                    If conditionType.IsReferenceType AndAlso Not IsVerifierReference(conditionType) Then
+                    If Not conditionType.IsValueType AndAlso Not IsVerifierReference(conditionType) Then
                         EmitBox(conditionType, condition.Syntax)
                     End If
 
@@ -1103,7 +1105,7 @@ OtherExpressions:
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
                 _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
 
-                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics), TypeSymbol)
+                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
 
                 _builder.EmitLocalStore(keyHash)

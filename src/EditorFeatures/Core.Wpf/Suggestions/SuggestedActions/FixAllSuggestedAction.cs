@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -18,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Suggested action for fix all occurrences code fix.  Note: this is only used
     /// as a 'flavor' inside CodeFixSuggestionAction.
     /// </summary>
-    internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
+    internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>, IFixAllSuggestedAction
     {
-        private readonly Diagnostic _fixedDiagnostic;
+        public Diagnostic Diagnostic { get; }
 
         /// <summary>
         /// The original code-action that we are a fix-all for.  i.e. _originalCodeAction
@@ -28,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
         /// will perform the fix in the appropriate document/project/solution scope.
         /// </summary>
-        private readonly CodeAction _originalCodeAction;
-        private readonly FixAllState _fixAllState;
+        public CodeAction OriginalCodeAction { get; }
+
+        public FixAllState FixAllState { get; }
 
         internal FixAllSuggestedAction(
             IThreadingContext threadingContext,
@@ -42,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    fixAllState.FixAllProvider, new FixAllCodeAction(fixAllState))
         {
-            _fixedDiagnostic = originalFixedDiagnostic;
-            _originalCodeAction = originalCodeAction;
-            _fixAllState = fixAllState;
+            Diagnostic = originalFixedDiagnostic;
+            OriginalCodeAction = originalCodeAction;
+            FixAllState = fixAllState;
         }
 
         public override bool TryGetTelemetryId(out Guid telemetryId)
@@ -52,41 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We get the telemetry id for the original code action we are fixing,
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
-            var prefix = GetTelemetryPrefix(_originalCodeAction);
-            var scope = GetTelemetryScope();
-            telemetryId = new Guid(prefix, scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = OriginalCodeAction.GetType().GetTelemetryId(FixAllState.Scope.GetScopeIdForTelemetry());
             return true;
         }
 
-        private short GetTelemetryScope()
-        {
-            switch (_fixAllState.Scope)
-            {
-                case FixAllScope.Document: return 1;
-                case FixAllScope.Project: return 2;
-                case FixAllScope.Solution: return 3;
-                default: return 4;
-            }
-        }
-
         public string GetDiagnosticID()
-        {
-            // we log diagnostic id as it is if it is from us
-            if (_fixedDiagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
-            {
-                return _fixedDiagnostic.Id;
-            }
-
-            // if it is from third party, we use hashcode
-            return _fixedDiagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
-        }
+            => Diagnostic.GetTelemetryDiagnosticID();
 
         protected override void InnerInvoke(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(_fixAllState.CorrelationId), cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
                 base.InnerInvoke(progressTracker, cancellationToken);
             }

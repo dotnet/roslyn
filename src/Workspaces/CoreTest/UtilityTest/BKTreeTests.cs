@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -31,14 +35,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             TestTreeInvariants(testValues);
         }
 
-        private void TestTreeInvariants(string[] testValues)
+        private static void TestTreeInvariants(string[] testValues)
         {
             var tree = BKTree.Create(testValues);
 
             foreach (var value in testValues)
             {
                 // With a threshold of 0, we should only find exactly the item we're searching for.
-                var items = tree.Find(value, threshold: 0);
                 Assert.Single(tree.Find(value, threshold: 0), value.ToLower());
             }
 
@@ -93,20 +96,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             }
         }
 
-        private string Transpose(string value, int i)
-        {
-            return value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
-        }
+        private static string Transpose(string value, int i)
+            => value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
 
-        private string Insert(string value, int i, char v)
-        {
-            return value.Substring(0, i) + v + value.Substring(i);
-        }
+        private static string Insert(string value, int i, char v)
+            => value.Substring(0, i) + v + value.Substring(i);
 
-        private string Delete(string value, int i)
-        {
-            return value.Substring(0, i) + value.Substring(i + 1);
-        }
+        private static string Delete(string value, int i)
+            => value.Substring(0, i) + value.Substring(i + 1);
 
         [Fact]
         public void Test2()
@@ -141,13 +138,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
         [Fact]
         public void Top1000()
-        {
-            TestTreeInvariants(EditDistanceTests.Top1000);
-        }
+            => TestTreeInvariants(EditDistanceTests.Top1000);
 
-        private IEnumerable<string> Expected(params string[] values)
-        {
-            return values;
-        }
+        private static IEnumerable<string> Expected(params string[] values)
+            => values;
     }
 }

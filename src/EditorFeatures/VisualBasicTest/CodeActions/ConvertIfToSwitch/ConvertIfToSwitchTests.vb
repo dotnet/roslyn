@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -30,6 +32,35 @@ End Class",
     Sub M(i As Integer)
         Select i
             Case 1, 2, 3
+                M(0)
+            Case 4, 5, 6
+                M(1)
+            Case Else
+                M(2)
+        End Select
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestMultipleCaseLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M(i As Integer)
+        [||]If i = 1 OrElse 2 = i OrElse i = 3 _
+           Then
+            M(0)
+        ElseIf i = 4 OrElse 5 = i OrElse i = 6 Then
+            M(1)
+        Else
+            M(2)
+        End If
+    End Sub
+End Class",
+"Class C
+    Sub M(i As Integer)
+        Select i
+            Case 1, 2, 3 _
                 M(0)
             Case 4, 5, 6
                 M(1)
@@ -191,8 +222,9 @@ End Class",
                 Return 5
             Case 20
                 Return 6
+            Case Else
+                Return 7
         End Select
-        Return 7
     End Function
 End Class")
         End Function

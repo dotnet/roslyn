@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public IGlyphService GlyphService { get; }
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyProvider(
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlyphService glyphService)
@@ -34,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             this.GlyphService = glyphService;
         }
 
-        public async Task<ICallHierarchyMemberItem> CreateItem(ISymbol symbol,
+        public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Method ||
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             {
                 symbol = GetTargetSymbol(symbol);
 
-                var finders = await CreateFinders(symbol, project, cancellationToken).ConfigureAwait(false);
+                var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
 
                 ICallHierarchyMemberItem item = new CallHierarchyItem(symbol,
                     project.Id,
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                                             details);
         }
 
-        public async Task<IEnumerable<AbstractCallFinder>> CreateFinders(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Property ||
                     symbol.Kind == SymbolKind.Event ||
@@ -101,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new CallToOverrideFinder(symbol, project.Id, _asyncListener, this));
                 }
 
-                if (symbol.OverriddenMember() != null)
+                if (symbol.GetOverriddenMember() != null)
                 {
-                    finders.Add(new BaseMemberFinder(symbol.OverriddenMember(), project.Id, _asyncListener, this));
+                    finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, _asyncListener, this));
                 }
 
                 var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);

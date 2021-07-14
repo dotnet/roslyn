@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -16,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _emitModule As PEModuleBuilder
         Private ReadOnly _compilationState As TypeCompilationState
         Private ReadOnly _previousSubmissionFields As SynthesizedSubmissionFields
-        Private ReadOnly _diagnostics As DiagnosticBag
+        Private ReadOnly _diagnostics As BindingDiagnosticBag
         Private ReadOnly _instrumenterOpt As Instrumenter
         Private _symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
@@ -117,12 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             currentMethod As MethodSymbol,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             flags As RewritingFlags,
             instrumenterOpt As Instrumenter,
             recursionDepth As Integer
         )
             MyBase.New(recursionDepth)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             Me._topMethod = topMethod
             Me._currentMethodOrLambda = currentMethod
@@ -148,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             currentMethod As MethodSymbol,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
             <Out> ByRef hasLambdas As Boolean,
             <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
@@ -205,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             topMethod As MethodSymbol,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
             <Out> ByRef hasLambdas As Boolean,
             <Out> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
@@ -234,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      method As MethodSymbol,
                                                      compilationState As TypeCompilationState,
                                                      previousSubmissionFields As SynthesizedSubmissionFields,
-                                                     diagnostics As DiagnosticBag,
+                                                     diagnostics As BindingDiagnosticBag,
                                                      rewrittenNodes As HashSet(Of BoundNode),
                                                      recursionDepth As Integer) As BoundExpression
 
@@ -555,17 +558,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="specialType">Special Type to get.</param><returns></returns>
         Private Function GetSpecialType(specialType As SpecialType) As NamedTypeSymbol
             Dim result As NamedTypeSymbol = Me._topMethod.ContainingAssembly.GetSpecialType(specialType)
-            Debug.Assert(Binder.GetUseSiteErrorForSpecialType(result) Is Nothing)
+            Debug.Assert(Binder.GetUseSiteInfoForSpecialType(result).DiagnosticInfo Is Nothing)
             Return result
         End Function
 
         Private Function GetSpecialTypeWithUseSiteDiagnostics(specialType As SpecialType, syntax As SyntaxNode) As NamedTypeSymbol
             Dim result As NamedTypeSymbol = Me._topMethod.ContainingAssembly.GetSpecialType(specialType)
 
-            Dim info = Binder.GetUseSiteErrorForSpecialType(result)
-            If info IsNot Nothing Then
-                Binder.ReportDiagnostic(_diagnostics, syntax, info)
-            End If
+            Dim info = Binder.GetUseSiteInfoForSpecialType(result)
+            Binder.ReportUseSite(_diagnostics, syntax, info)
 
             Return result
         End Function
@@ -590,21 +591,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Checks for special member and reports diagnostics if the member is Nothing or has UseSiteError.
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
-        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol, diagnostics As DiagnosticBag, Optional embedVBCoreRuntime As Boolean = False) As Boolean
+        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol, diagnostics As BindingDiagnosticBag, Optional embedVBCoreRuntime As Boolean = False) As Boolean
             If memberSymbol Is Nothing Then
                 ReportMissingRuntimeHelper(node, specialMember, diagnostics, embedVBCoreRuntime)
                 Return True
             Else
-                Dim useSiteError = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
-                If useSiteError IsNot Nothing Then
-                    ReportDiagnostic(node, useSiteError, diagnostics)
-                    Return True
-                End If
+                Return ReportUseSite(node, Binder.GetUseSiteInfoForMemberAndContainingType(memberSymbol), diagnostics)
             End If
-            Return False
         End Function
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, specialMember As SpecialMember, diagnostics As DiagnosticBag, Optional embedVBCoreRuntime As Boolean = False)
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, specialMember As SpecialMember, diagnostics As BindingDiagnosticBag, Optional embedVBCoreRuntime As Boolean = False)
             Dim descriptor = SpecialMembers.GetDescriptor(specialMember)
 
             ' TODO: If the type is generic, we might want to use VB style name rather than emitted name.
@@ -626,21 +622,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Checks for well known member and reports diagnostics if the member is Nothing or has UseSiteError.
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
-        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean) As Boolean
+        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol, diagnostics As BindingDiagnosticBag, embedVBCoreRuntime As Boolean) As Boolean
             If memberSymbol Is Nothing Then
                 ReportMissingRuntimeHelper(node, wellKnownMember, diagnostics, embedVBCoreRuntime)
                 Return True
             Else
-                Dim useSiteError = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
-                If useSiteError IsNot Nothing Then
-                    ReportDiagnostic(node, useSiteError, diagnostics)
-                    Return True
-                End If
+                Return ReportUseSite(node, Binder.GetUseSiteInfoForMemberAndContainingType(memberSymbol), diagnostics)
             End If
-            Return False
         End Function
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean)
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, diagnostics As BindingDiagnosticBag, embedVBCoreRuntime As Boolean)
             Dim descriptor = WellKnownMembers.GetDescriptor(wellKnownMember)
 
             ' TODO: If the type is generic, we might want to use VB style name rather than emitted name.
@@ -651,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, typeName As String, memberName As String, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean)
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, typeName As String, memberName As String, diagnostics As BindingDiagnosticBag, embedVBCoreRuntime As Boolean)
             If memberName.Equals(WellKnownMemberNames.InstanceConstructorName) OrElse memberName.Equals(WellKnownMemberNames.StaticConstructorName) Then
                 memberName = "New"
             End If
@@ -661,15 +652,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ReportDiagnostic(node, diag, diagnostics)
         End Sub
 
-        Private Shared Sub ReportDiagnostic(node As BoundNode, diagnostic As DiagnosticInfo, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportDiagnostic(node As BoundNode, diagnostic As DiagnosticInfo, diagnostics As BindingDiagnosticBag)
             diagnostics.Add(New VBDiagnostic(diagnostic, node.Syntax.GetLocation()))
         End Sub
 
+        Private Shared Function ReportUseSite(node As BoundNode, useSiteInfo As UseSiteInfo(Of AssemblySymbol), diagnostics As BindingDiagnosticBag) As Boolean
+            Return diagnostics.Add(useSiteInfo, node.Syntax.GetLocation())
+        End Function
+
         Private Sub ReportBadType(node As BoundNode, typeSymbol As TypeSymbol)
-            Dim useSiteError = typeSymbol.GetUseSiteErrorInfo()
-            If useSiteError IsNot Nothing Then
-                ReportDiagnostic(node, useSiteError, Me._diagnostics)
-            End If
+            ReportUseSite(node, typeSymbol.GetUseSiteInfo(), Me._diagnostics)
         End Sub
         ''
         '' The following nodes should be removed from the tree.

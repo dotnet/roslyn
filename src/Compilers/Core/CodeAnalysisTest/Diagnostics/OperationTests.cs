@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -33,15 +37,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             argumentNames = default;
             argumentRefKinds = default;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
-            Assert.Equal(null, dynamicExpression.GetArgumentRefKind(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and empty argument names/refkinds
             arguments = ImmutableArray.Create((IOperation)null);
             argumentNames = ImmutableArray<string>.Empty;
             argumentRefKinds = ImmutableArray<RefKind>.Empty;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
             Assert.Equal(RefKind.None, dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and non-empty argument names/refkinds
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicInvocationExpression(null, arguments, argumentNames, argumentRefKinds, null, null, null, null, false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicInvocationOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
         }
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicIndexerAccessExpression(null, arguments, argumentNames, argumentRefKinds, null, null, null, null, false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicIndexerAccessOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
         }
@@ -103,57 +107,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicObjectCreationExpression(arguments, argumentNames, argumentRefKinds, null, null, null, null, null, false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicObjectCreationOperation(initializer: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void TestFlowAnalysisFeatureFlag()
-        {
-            var source = @"
-class C
-{
-    void M()
-    {
-    }
-}";
-            var tree = CSharpSyntaxTree.ParseText(source);            
-
-            void testFlowAnalysisFeatureFlagCore(bool expectException)
-            {
-                var compilation = CSharpCompilation.Create("c", new[] { tree });
-                var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-                var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
-                var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
-
-                if (expectException)
-                {
-                    Assert.Throws<InvalidOperationException>(() => ControlFlowGraph.Create(operation));
-                }
-                else
-                {
-                    ControlFlowGraph graph = ControlFlowGraph.Create(operation);
-                    Assert.NotNull(graph);
-                    Assert.NotEmpty(graph.Blocks);
-                }
-            }
-
-            // Test without feature flag.
-            testFlowAnalysisFeatureFlagCore(expectException: true);
-
-            // Test with feature flag.
-            tree = CSharpSyntaxTree.ParseText(source);
-            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
-            testFlowAnalysisFeatureFlagCore(expectException: false);
-
-            // Test with feature flag, case-insensitive.
-            tree = CSharpSyntaxTree.ParseText(source);
-            options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("Flow-Analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
-            testFlowAnalysisFeatureFlagCore(expectException: false);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -172,8 +128,8 @@ class C
         [Fact]
         public void TestGetFlowGraphInvalidArgumentWithNonNullParent()
         {
-            IOperation parent = new BlockStatement(ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+            IOperation parent = new BlockOperation(ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    semanticModel: null, syntax: null, isImplicit: false);
 
             TestGetFlowGraphInvalidArgumentCore(argumentExceptionMessage: CodeAnalysisResources.NotARootOperation, parent);
         }
@@ -190,9 +146,9 @@ class C
             bool exceptionThrown = false;
             try
             {
-                IBlockOperation block = new BlockStatement(
+                IBlockOperation block = new BlockOperation(
                     ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                    semanticModel: null, syntax: null, isImplicit: false);
                 block = Operation.SetParentOperation(block, parent);
                 _ = ControlFlowGraph.Create(block);
             }
@@ -207,10 +163,10 @@ class C
 
             try
             {
-                IFieldInitializerOperation initializer = new FieldInitializer(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IFieldSymbol>.Empty,
-                    value: null, kind: OperationKind.FieldInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                IFieldInitializerOperation initializer = new FieldInitializerOperation(
+                    ImmutableArray<IFieldSymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -225,10 +181,10 @@ class C
 
             try
             {
-                IPropertyInitializerOperation initializer = new PropertyInitializer(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IPropertySymbol>.Empty,
-                    value: null, kind: OperationKind.PropertyInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                IPropertyInitializerOperation initializer = new PropertyInitializerOperation(
+                    ImmutableArray<IPropertySymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -243,10 +199,10 @@ class C
 
             try
             {
-                IParameterInitializerOperation initializer = new ParameterInitializer(
-                                    ImmutableArray<ILocalSymbol>.Empty, parameter: null,
-                                    value: null, kind: OperationKind.ParameterInitializer,
-                                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                IParameterInitializerOperation initializer = new ParameterInitializerOperation(
+                                    parameter: null, locals: ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -266,7 +222,9 @@ class C
                                     initializer: null,
                                     blockBody: null,
                                     expressionBody: null,
-                                    semanticModel: null, syntax: null);
+                                    semanticModel: null,
+                                    syntax: null,
+                                    isImplicit: false);
                 constructorBody = Operation.SetParentOperation(constructorBody, parent);
                 _ = ControlFlowGraph.Create(constructorBody);
             }
@@ -284,7 +242,9 @@ class C
                 IMethodBodyOperation methodBody = new MethodBodyOperation(
                                                     blockBody: null,
                                                     expressionBody: null,
-                                                    semanticModel: null, syntax: null);
+                                                    semanticModel: null,
+                                                    syntax: null,
+                                                    isImplicit: false);
                 methodBody = Operation.SetParentOperation(methodBody, parent);
                 _ = ControlFlowGraph.Create(methodBody);
             }
@@ -311,8 +271,6 @@ class C
     }
 }";
             var tree = CSharpSyntaxTree.ParseText(source);
-            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
             var compilation = CSharpCompilation.Create("c", new[] { tree });
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
             var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
@@ -364,9 +322,11 @@ class C
             var classDecl = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
             Assert.Null(ControlFlowGraph.Create(classDecl, model));
 
-            // Verify identical CFG from method body syntax and operation. 
+            // Verify identical CFG from method body syntax and operation.
             var cfgFromSyntax = ControlFlowGraph.Create(methodBodySyntax, model);
+            var cfgSymbol = model.GetDeclaredSymbol(methodBodySyntax);
             Assert.NotNull(cfgFromSyntax);
+            Assert.NotNull(cfgSymbol);
 
             var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
             var cfgFromOperation = ControlFlowGraph.Create(operation);
@@ -392,8 +352,8 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromSyntax);
-            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromOperation);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromSyntax, cfgSymbol);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromOperation, cfgSymbol);
         }
     }
 }

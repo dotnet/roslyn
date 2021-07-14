@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -33,28 +37,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var builder = new List<SymbolDisplayPart>();
             builder.AddLineBreak();
 
-            var projects = this.CandidateProjects.Select(p => this.Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);
+            var projects = CandidateProjects.Select(p => Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);
             foreach (var project in projects)
             {
-                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!this.InvalidProjects.Contains(project.Id)));
+                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
                 builder.AddText(text);
                 builder.AddLineBreak();
             }
 
             builder.AddLineBreak();
-            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_context);
+            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts);
 
             return builder;
         }
 
         private static string Supported(bool supported)
-        {
-            return supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
-        }
+            => supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
 
         public bool HasValidAndInvalidProjects()
-        {
-            return InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
-        }
+            => InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
     }
 }

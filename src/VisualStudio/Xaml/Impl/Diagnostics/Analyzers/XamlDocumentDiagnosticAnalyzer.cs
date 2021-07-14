@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,28 +20,28 @@ namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
         {
             get
             {
-                return XamlTextViewCreationListener.AnalyzerService?.SupportedDiagnostics ?? ImmutableArray<DiagnosticDescriptor>.Empty;
+                return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? ImmutableArray<DiagnosticDescriptor>.Empty;
             }
         }
 
         public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            if (XamlTextViewCreationListener.AnalyzerService == null)
+            if (XamlProjectService.AnalyzerService == null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await XamlTextViewCreationListener.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
+            return await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            if (XamlTextViewCreationListener.AnalyzerService == null)
+            if (XamlProjectService.AnalyzerService == null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await XamlTextViewCreationListener.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            return await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
         }
     }
 }

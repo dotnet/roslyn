@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,20 +15,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class ConstructorInitializerSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Constructor;
-        }
+            => symbol.MethodKind == MethodKind.Constructor;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var index = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
                 if (index.ContainsBaseConstructorInitializer)
                 {
                     return true;
@@ -49,17 +49,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
-            bool tokensMatch(SyntaxToken t)
+            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
+            if (semanticModel.Language == LanguageNames.VisualBasic)
+            {
+                tokens = tokens.Concat(await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+                    document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+            }
+
+            return await FindReferencesInTokensAsync(
+                 methodSymbol,
+                 document,
+                 semanticModel,
+                 tokens,
+                 TokensMatch,
+                 cancellationToken).ConfigureAwait(false);
+
+            // local functions
+            bool TokensMatch(SyntaxToken t)
             {
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
@@ -78,20 +94,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 return false;
             }
-
-            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
-            if (semanticModel.Language == LanguageNames.VisualBasic)
-            {
-                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
-            }
-
-            return await FindReferencesInTokensAsync(
-                 methodSymbol,
-                 document,
-                 semanticModel,
-                 tokens,
-                 tokensMatch,
-                 cancellationToken).ConfigureAwait(false);
         }
     }
 }

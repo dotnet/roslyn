@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct SolutionChanges
+    public readonly struct SolutionChanges
     {
         private readonly Solution _newSolution;
         private readonly Solution _oldSolution;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_oldSolution.ContainsProject(id))
                 {
-                    yield return _newSolution.GetProject(id);
+                    yield return _newSolution.GetRequiredProject(id);
                 }
             }
         }
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 var oldState = old.GetProjectState(id);
                 if (oldState != null && newState != null && newState != oldState)
                 {
-                    yield return _newSolution.GetProject(id).GetChanges(_oldSolution.GetProject(id));
+                    yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
                 }
             }
         }
@@ -48,7 +52,31 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_newSolution.ContainsProject(id))
                 {
-                    yield return _oldSolution.GetProject(id);
+                    yield return _oldSolution.GetRequiredProject(id);
+                }
+            }
+        }
+
+        public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
+        {
+            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
+            foreach (var analyzerReference in _newSolution.AnalyzerReferences)
+            {
+                if (!oldAnalyzerReferences.Contains(analyzerReference))
+                {
+                    yield return analyzerReference;
+                }
+            }
+        }
+
+        public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
+        {
+            var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
+            foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
+            {
+                if (!newAnalyzerReferences.Contains(analyzerReference))
+                {
+                    yield return analyzerReference;
                 }
             }
         }

@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -19,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
     internal class NavigationBarClient :
         IVsDropdownBarClient,
         IVsDropdownBarClient3,
+        IVsDropdownBarClient4,
         IVsDropdownBarClientEx,
         IVsCoTaskMemFreeMyStrings,
         INavigationBarPresenter,
@@ -29,9 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ComEventSink _codeWindowEventsSink;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly IntPtr _imageList;
         private readonly IVsImageService2 _imageService;
-        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new Dictionary<IVsTextView, ITextView>();
+        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private IVsDropdownBar _dropdownBar;
         private IList<NavigationBarProjectItem> _projectItems;
         private IList<NavigationBarItem> _currentTypeItems;
@@ -49,15 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
 
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageList);
-
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             _editorAdaptersFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
             codeWindow.GetPrimaryView(out var pTextView);
             StartTrackingView(pTextView);
 
-            pTextView = null;
             codeWindow.GetSecondaryView(out pTextView);
             StartTrackingView(pTextView);
         }
@@ -107,7 +110,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         int IVsDropdownBarClient.GetComboAttributes(int iCombo, out uint pcEntries, out uint puEntryType, out IntPtr phImageList)
         {
             puEntryType = (uint)(DROPDOWNENTRYTYPE.ENTRY_TEXT | DROPDOWNENTRYTYPE.ENTRY_ATTR | DROPDOWNENTRYTYPE.ENTRY_IMAGE);
-            phImageList = _imageList;
+
+            // We no longer need to return an HIMAGELIST, we now use IVsDropdownBarClient4.GetEntryImage which uses monikers directly.
+            phImageList = IntPtr.Zero;
 
             switch (iCombo)
             {
@@ -123,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
                     var currentTypeItem = GetCurrentTypeItem();
 
                     pcEntries = currentTypeItem != null
-                        ? (uint)currentTypeItem.ChildItems.Count
+                        ? (uint)currentTypeItem.ChildItems.Length
                         : 0;
 
                     break;
@@ -173,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.GetEntryAttributes(int iCombo, int iIndex, out uint pAttr)
         {
-            DROPDOWNFONTATTR attributes = DROPDOWNFONTATTR.FONTATTR_PLAIN;
+            var attributes = DROPDOWNFONTATTR.FONTATTR_PLAIN;
 
             var item = GetItem(iCombo, iIndex);
 
@@ -193,11 +198,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.GetEntryImage(int iCombo, int iIndex, out int piImageIndex)
         {
-            var item = GetItem(iCombo, iIndex);
-
-            piImageIndex = item.Glyph.GetGlyphIndex();
-
-            return VSConstants.S_OK;
+            // This class implements IVsDropdownBarClient4 and expects IVsDropdownBarClient4.GetEntryImage() to be called instead
+            piImageIndex = -1;
+            return VSConstants.E_UNEXPECTED;
         }
 
         int IVsDropdownBarClient.GetEntryText(int iCombo, int iIndex, out string ppszText)
@@ -236,9 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         int IVsDropdownBarClient.OnItemSelected(int iCombo, int iIndex)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsDropdownBarClient.SetDropdownBar(IVsDropdownBar pDropdownBar)
         {
@@ -278,23 +279,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient3.GetEntryImage(int iCombo, int iIndex, out int piImageIndex, out IntPtr phImageList)
         {
+            // This class implements IVsDropdownBarClient4 and expects IVsDropdownBarClient4.GetEntryImage() to be called instead
+            phImageList = IntPtr.Zero;
+            piImageIndex = -1;
+
+            return VSConstants.E_UNEXPECTED;
+        }
+
+        ImageMoniker IVsDropdownBarClient4.GetEntryImage(int iCombo, int iIndex)
+        {
             var item = GetItem(iCombo, iIndex);
 
-            // If this is a project item, try to get the actual proper image from the VSHierarchy it 
-            // represents.  That way the icon will always look right no matter which type of project
-            // it is.  For example, if phone/Windows projects have different icons, then this can 
-            // ensure we get the right icon, and not just a hard-coded C#/VB icon.
             if (item is NavigationBarProjectItem projectItem)
             {
-                if (_workspace.TryGetImageListAndIndex(_imageService, projectItem.DocumentId.ProjectId, out phImageList, out piImageIndex))
+                if (_workspace.TryGetHierarchy(projectItem.DocumentId.ProjectId, out var hierarchy))
                 {
-                    return VSConstants.S_OK;
+                    return _imageService.GetImageMonikerForHierarchyItem(hierarchy, VSConstants.VSITEMID_ROOT, (int)__VSHIERARCHYIMAGEASPECT.HIA_Icon);
                 }
             }
 
-            piImageIndex = GetItem(iCombo, iIndex).Glyph.GetGlyphIndex();
-            phImageList = _imageList;
-            return VSConstants.S_OK;
+            return item.Glyph.GetImageMoniker();
         }
 
         int IVsDropdownBarClientEx.GetEntryIndent(int iCombo, int iIndex, out uint pIndent)
@@ -318,9 +322,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         void INavigationBarPresenter.PresentItems(
-            IList<NavigationBarProjectItem> projects,
+            ImmutableArray<NavigationBarProjectItem> projects,
             NavigationBarProjectItem selectedProject,
-            IList<NavigationBarItem> types,
+            ImmutableArray<NavigationBarItem> types,
             NavigationBarItem selectedType,
             NavigationBarItem selectedMember)
         {
@@ -376,14 +380,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-        {
-            CaretMoved?.Invoke(this, e);
-        }
+            => CaretMoved?.Invoke(this, e);
 
         private void OnViewGotAggregateFocus(object sender, EventArgs e)
-        {
-            ViewFocused?.Invoke(this, e);
-        }
+            => ViewFocused?.Invoke(this, e);
 
         ITextView INavigationBarPresenter.TryGetCurrentView()
         {

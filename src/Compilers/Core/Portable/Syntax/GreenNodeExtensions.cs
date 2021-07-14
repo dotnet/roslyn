@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
+        public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations) where TNode : GreenNode
         {
             var existingAnnotations = node.GetAnnotations();
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
+        public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations) where TNode : GreenNode
         {
             var existingAnnotations = node.GetAnnotations();
 
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithDiagnosticsGreen<TNode>(this TNode node, DiagnosticInfo[] diagnostics) where TNode : GreenNode
+        public static TNode WithDiagnosticsGreen<TNode>(this TNode node, DiagnosticInfo[]? diagnostics) where TNode : GreenNode
         {
             return (TNode)node.SetDiagnostics(diagnostics);
         }

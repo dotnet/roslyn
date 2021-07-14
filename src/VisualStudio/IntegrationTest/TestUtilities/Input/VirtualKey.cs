@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
@@ -79,6 +81,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
         Y = 0x59,
         Z = 0x5A,
 
-        Period = 0xBE
+        Period = 0xBE,
+
+        /// <summary>
+        /// Used for miscellaneous characters; it can vary by keyboard.<br/>
+        /// For the US standard keyboard, the '[{' key.
+        /// </summary>
+        VK_OEM_4 = 0xDB,
+
+        /// <summary>
+        /// Used for miscellaneous characters; it can vary by keyboard.<br/>
+        /// For the US standard keyboard, the ']}' key.
+        /// </summary>
+        VK_OEM_6 = 0xDD,
     }
 }

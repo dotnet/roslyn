@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -142,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         private static AssignmentExpressionSyntax GetGlobalStatementSyntaxChange(SyntaxTree newTree)
         {
             var statementType = newTree.GetCompilationUnitRoot().Members[0] as GlobalStatementSyntax;
+            Assert.True(statementType.AttributeLists.Count == 0);
+            Assert.True(statementType.Modifiers.Count == 0);
             var statement = statementType.Statement as ExpressionStatementSyntax;
             var expression = statement.Expression as AssignmentExpressionSyntax;
             return expression;
