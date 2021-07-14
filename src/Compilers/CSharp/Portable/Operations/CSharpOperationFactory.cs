@@ -2018,12 +2018,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 return builder.ToImmutableAndFree();
             }
 
-            ImmutableArray<IInterpolatedStringContentOperation> createHandlerInterpolatedStringContent(ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo)
+            ImmutableArray<IInterpolatedStringContentOperation> createHandlerInterpolatedStringContent(ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>> positionInfoArray)
             {
                 // For interpolated string handlers, we want to deconstruct the `AppendLiteral`/`AppendFormatted` calls into
                 // their relevant components.
                 // https://github.com/dotnet/roslyn/issues/54505 we need to handle interpolated strings used as handler conversions.
 
+                Debug.Assert(positionInfoArray.Length == 1);
+                ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo = positionInfoArray[0];
                 Debug.Assert(parts.Length == positionInfo.Length);
                 var builder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(parts.Length);
 

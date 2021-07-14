@@ -111,6 +111,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator? applyParentUnaryOperator)
         {
+            if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
+            {
+                Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+                var parts = ArrayBuilder<BoundExpression>.GetInstance();
+                BoundBinaryOperator? current = node;
+                while (true)
+                {
+                    parts.AddRange(((BoundInterpolatedString)current.Right).Parts);
+
+                    if (current.Left is BoundBinaryOperator next)
+                    {
+                        current = next;
+                    }
+                    else
+                    {
+                        parts.AddRange(((BoundInterpolatedString)current.Left).Parts);
+                        break;
+                    }
+                }
+
+                parts.ReverseContents();
+
+                return LowerPartsToString(data, parts.ToImmutableAndFree(), node.Syntax, node.Type);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 

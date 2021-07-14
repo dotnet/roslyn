@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InterpolatedStringHandler:
                     Debug.Assert(node.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
 
-                    (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern((BoundInterpolatedString)node.Operand);
+                    var interpolatedString = (BoundInterpolatedString)node.Operand;
+                    Debug.Assert(interpolatedString.InterpolationData is not null);
+
+                    (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern(interpolatedString.InterpolationData.Value, interpolatedString.Parts, interpolatedString.Syntax);
                     return _factory.Sequence(ImmutableArray.Create(handlerLocal.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), handlerLocal);
                 case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
                     // Skip through target-typed conditionals and switches

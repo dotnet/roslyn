@@ -1273,8 +1273,10 @@ static class C
                 );
         }
 
-        [Fact, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
-        public void InterpolatedStringHandler_ConcatPreferencesForAllStringElements()
+        [Theory, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
+        [InlineData(@"$""{s1}{s2}""", @"$""{s1}{s2}{s3}""", @"$""{s1}{s2}{s3}{s4}""", @"$""{s1}{s2}{s3}{s4}{s5}""")]
+        [InlineData(@"$""{s1}"" + $""{s2}""", @"$""{s1}"" + $""{s2}"" + $""{s3}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}"" + $""{s5}""")]
+        public void InterpolatedStringHandler_ConcatPreferencesForAllStringElements(string twoComponents, string threeComponents, string fourComponents, string fiveComponents)
         {
             var code = @"
 using System;
@@ -1287,7 +1289,7 @@ string TwoComponents()
 {
     string s1 = ""1"";
     string s2 = ""2"";
-    return $""{s1}{s2}"";
+    return " + twoComponents + @";
 }
 
 string ThreeComponents()
@@ -1295,7 +1297,7 @@ string ThreeComponents()
     string s1 = ""1"";
     string s2 = ""2"";
     string s3 = ""3"";
-    return $""{s1}{s2}{s3}"";
+    return " + threeComponents + @";
 }
 
 string FourComponents()
@@ -1304,7 +1306,7 @@ string FourComponents()
     string s2 = ""2"";
     string s3 = ""3"";
     string s4 = ""4"";
-    return $""{s1}{s2}{s3}{s4}"";
+    return " + fourComponents + @";
 }
 
 string FiveComponents()
@@ -1314,7 +1316,7 @@ string FiveComponents()
     string s3 = ""3"";
     string s4 = ""4"";
     string s5 = ""5"";
-    return $""{s1}{s2}{s3}{s4}{s5}"";
+    return " + fiveComponents + @";
 }
 ";
 
@@ -1433,11 +1435,15 @@ value:5
 
         [Theory]
         [CombinatorialData]
-        public void InterpolatedStringHandler_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg)
+        public void InterpolatedStringHandler_OverloadsAndBoolReturns(
+            bool useDefaultParameters,
+            bool useBoolReturns,
+            bool constructorBoolArg,
+            [CombinatorialValues(@"$""base{a}{a,1}{a:X}{a,2:Y}""", @"$""base"" + $""{a}"" + $""{a,1}"" + $""{a:X}"" + $""{a,2:Y}""")] string expression)
         {
             var source =
 @"int a = 1;
-System.Console.WriteLine($""base{a}{a,1}{a:X}{a,2:Y}"");";
+System.Console.WriteLine(" + expression + @");";
 
             string interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters, useBoolReturns, constructorBoolArg: constructorBoolArg);
 
@@ -1854,13 +1860,14 @@ Console.WriteLine($""{span}"");";
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
-        public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg)
+        public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg,
+            [CombinatorialValues(@"$""base{a}{a,1}{a:X}{a,2:Y}""", @"$""base"" + $""{a}"" + $""{a,1}"" + $""{a:X}"" + $""{a,2:Y}""")] string expression)
         {
             var source =
 @"
 using System;
 ReadOnlySpan<char> a = ""1"";
-System.Console.WriteLine($""base{a}{a,1}{a:X}{a,2:Y}"");";
+System.Console.WriteLine(" + expression + ");";
 
             string interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters, useBoolReturns, constructorBoolArg: constructorBoolArg);
 
@@ -2267,13 +2274,15 @@ value:1,alignment:2:format:Y";
             };
         }
 
-        [Fact]
-        public void BoolReturns_ShortCircuit()
+        [Theory]
+        [InlineData(@"$""base{Throw()}{a = 2}""")]
+        [InlineData(@"$""base"" + $""{Throw()}"" + $""{a = 2}""")]
+        public void BoolReturns_ShortCircuit(string expression)
         {
             var source = @"
 using System;
 int a = 1;
-Console.Write($""base{Throw()}{a = 2}"");
+Console.Write(" + expression + @");
 Console.WriteLine(a);
 string Throw() => throw new Exception();";
 
@@ -2286,13 +2295,14 @@ base
 
         [Theory]
         [CombinatorialData]
-        public void BoolOutParameter_ShortCircuits(bool useBoolReturns)
+        public void BoolOutParameter_ShortCircuits(bool useBoolReturns,
+            [CombinatorialValues(@"$""{Throw()}{a = 2}""", @"$""{Throw()}"" + $""{a = 2}""")] string expression)
         {
             var source = @"
 using System;
 int a = 1;
 Console.WriteLine(a);
-Console.WriteLine($""{Throw()}{a = 2}"");
+Console.WriteLine(" + expression + @");
 Console.WriteLine(a);
 string Throw() => throw new Exception();
 ";
@@ -2305,21 +2315,23 @@ string Throw() => throw new Exception();
 1");
         }
 
-        [Fact]
-        public void AwaitInHoles_UsesFormat()
+        [Theory]
+        [InlineData(@"$""base{await Hole()}""")]
+        [InlineData(@"$""base"" + $""{await Hole()}""")]
+        public void AwaitInHoles_UsesFormat(string expression)
         {
             var source = @"
 using System;
 using System.Threading.Tasks;
 
-Console.WriteLine($""base{await Hole()}"");
+Console.WriteLine(" + expression + @");
 Task<int> Hole() => Task.FromResult(1);";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", !expression.Contains("+") ? @"
 {
   // Code size      164 (0xa4)
   .maxstack  3
@@ -2395,18 +2407,98 @@ Task<int> Hole() => Task.FromResult(1);";
   IL_009e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00a3:  ret
 }
-");
+"
+: @"
+{
+  // Code size      174 (0xae)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003e
+    IL_000a:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__Hole|0_0()""
+    IL_000f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0014:  stloc.2
+    IL_0015:  ldloca.s   V_2
+    IL_0017:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_001c:  brtrue.s   IL_005a
+    IL_001e:  ldarg.0
+    IL_001f:  ldc.i4.0
+    IL_0020:  dup
+    IL_0021:  stloc.0
+    IL_0022:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0027:  ldarg.0
+    IL_0028:  ldloc.2
+    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_002e:  ldarg.0
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0034:  ldloca.s   V_2
+    IL_0036:  ldarg.0
+    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_003c:  leave.s    IL_00ad
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0044:  stloc.2
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_004b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.m1
+    IL_0053:  dup
+    IL_0054:  stloc.0
+    IL_0055:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_005a:  ldloca.s   V_2
+    IL_005c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0061:  stloc.1
+    IL_0062:  ldstr      ""base""
+    IL_0067:  ldstr      ""{0}""
+    IL_006c:  ldloc.1
+    IL_006d:  box        ""int""
+    IL_0072:  call       ""string string.Format(string, object)""
+    IL_0077:  call       ""string string.Concat(string, string)""
+    IL_007c:  call       ""void System.Console.WriteLine(string)""
+    IL_0081:  leave.s    IL_009a
+  }
+  catch System.Exception
+  {
+    IL_0083:  stloc.3
+    IL_0084:  ldarg.0
+    IL_0085:  ldc.i4.s   -2
+    IL_0087:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0092:  ldloc.3
+    IL_0093:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0098:  leave.s    IL_00ad
+  }
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.s   -2
+  IL_009d:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00ad:  ret
+}");
         }
 
-        [Fact]
-        public void NoAwaitInHoles_UsesBuilder()
+        [Theory]
+        [InlineData(@"$""base{hole}""")]
+        [InlineData(@"$""base"" + $""{hole}""")]
+        public void NoAwaitInHoles_UsesBuilder(string expression)
         {
             var source = @"
 using System;
 using System.Threading.Tasks;
 
 var hole = await Hole();
-Console.WriteLine($""base{hole}"");
+Console.WriteLine(" + expression + @");
 Task<int> Hole() => Task.FromResult(1);";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
@@ -2503,15 +2595,17 @@ value:1");
 ");
         }
 
-        [Fact]
-        public void NoAwaitInHoles_AwaitInExpression_UsesBuilder()
+        [Theory]
+        [InlineData(@"$""base{hole}""")]
+        [InlineData(@"$""base"" + $""{hole}""")]
+        public void NoAwaitInHoles_AwaitInExpression_UsesBuilder(string expression)
         {
             var source = @"
 using System;
 using System.Threading.Tasks;
 
 var hole = 2;
-Test(await M(1), $""base{hole}"", await M(3));
+Test(await M(1), " + expression + @", await M(3));
 void Test(int i1, string s, int i2) => Console.WriteLine(s);
 Task<int> M(int i) 
 {
@@ -3047,15 +3141,17 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
-        public void UnsupportedArgumentType()
+        [Theory]
+        [InlineData(@"$""{i}{s}""")]
+        [InlineData(@"$""{i}"" + $""{s}""")]
+        public void UnsupportedArgumentType(string expression)
         {
             var source = @"
 unsafe
 {
     int* i = null;
     var s = new S();
-    _ = $""{i}{s}"";
+    _ = " + expression + @";
 }
 ref struct S
 {
@@ -3070,16 +3166,18 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 11),
                 // (6,14): error CS0306: The type 'S' may not be used as a type argument
                 //     _ = $"{i}{s}";
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 14)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 5 + expression.Length)
             );
         }
 
-        [Fact]
-        public void TargetTypedInterpolationHoles()
+        [Theory]
+        [InlineData(@"$""{b switch { true => 1, false => null }}{(!b ? null : 2)}{default}{null}""")]
+        [InlineData(@"$""{b switch { true => 1, false => null }}"" + $""{(!b ? null : 2)}"" + $""{default}"" + $""{null}""")]
+        public void TargetTypedInterpolationHoles(string expression)
         {
             var source = @"
 bool b = true;
-System.Console.WriteLine($""{b switch { true => 1, false => null }}{(!b ? null : 2)}{default}{null}"");";
+System.Console.WriteLine(" + expression + @");";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
@@ -3135,10 +3233,12 @@ value:");
 ");
         }
 
-        [Fact]
-        public void TargetTypedInterpolationHoles_Errors()
+        [Theory]
+        [InlineData(@"$""{(null, default)}{new()}""")]
+        [InlineData(@"$""{(null, default)}"" + $""{new()}""")]
+        public void TargetTypedInterpolationHoles_Errors(string expression)
         {
-            var source = @"System.Console.WriteLine($""{(null, default)}{new()}"");";
+            var source = @"System.Console.WriteLine(" + expression + @");";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.Regular9);
@@ -3151,7 +3251,7 @@ value:");
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(null, default)").WithArguments("interpolated string handlers", "10.0").WithLocation(1, 29),
                 // (1,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // System.Console.WriteLine($"{(null, default)}{new()}");
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 46)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 19 + expression.Length)
             );
         }
 
@@ -3169,7 +3269,7 @@ System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
         }
 
         [Fact]
-        public void NestedInterpolatedStrings()
+        public void NestedInterpolatedStrings_01()
         {
             var source = @"
 int i = 1;
@@ -3198,6 +3298,58 @@ System.Console.WriteLine($""{$""{i}""}"");";
   IL_0015:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_001a:  call       ""void System.Console.WriteLine(string)""
   IL_001f:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(@"$""{$""{i1}""}{$""{i2}""}""")]
+        [InlineData(@"$""{$""{i1}""}"" + $""{$""{i2}""}""")]
+        public void NestedInterpolatedStrings_02(string expression)
+        {
+            var source = @"
+int i1 = 1;
+int i2 = 2;
+System.Console.WriteLine(" + expression + @");";
+
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
+value:1
+value:2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (int V_0, //i1
+                int V_1, //i2
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_2
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_001c:  ldloca.s   V_2
+  IL_001e:  ldc.i4.0
+  IL_001f:  ldc.i4.1
+  IL_0020:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  ldloc.1
+  IL_0028:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0034:  call       ""string string.Concat(string, string)""
+  IL_0039:  call       ""void System.Console.WriteLine(string)""
+  IL_003e:  ret
 }
 ");
         }
@@ -3377,15 +3529,17 @@ Caught");
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
-        public void ImplicitUserDefinedConversionInHole()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+        [InlineData(@"$""{s}{c}""")]
+        [InlineData(@"$""{s}"" + $""{c}""")]
+        public void ImplicitUserDefinedConversionInHole(string expression)
         {
             var source = @"
 using System;
 
 S s = default;
 C c = new C();
-Console.WriteLine($""{s}{c}"");
+Console.WriteLine(" + expression + @");
 
 ref struct S
 {
@@ -3458,13 +3612,15 @@ ref struct S
             );
         }
 
-        [Fact]
-        public void ImplicitUserDefinedConversionInLiteral()
+        [Theory]
+        [InlineData(@"$""Text{1}""")]
+        [InlineData(@"$""Text"" + $""{1}""")]
+        public void ImplicitUserDefinedConversionInLiteral(string expression)
         {
             var source = @"
 using System;
 
-Console.WriteLine($""Text{1}"");
+Console.WriteLine(" + expression + @");
 
 public struct CustomStruct
 {
@@ -3517,13 +3673,15 @@ value:1");
 ");
         }
 
-        [Fact]
-        public void ExplicitUserDefinedConversionInLiteral()
+        [Theory]
+        [InlineData(@"$""Text{1}""")]
+        [InlineData(@"$""Text"" + $""{1}""")]
+        public void ExplicitUserDefinedConversionInLiteral(string expression)
         {
             var source = @"
 using System;
 
-Console.WriteLine($""Text{1}"");
+Console.WriteLine(" + expression + @");
 
 public struct CustomStruct
 {
@@ -3556,13 +3714,15 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
-        public void InvalidBuilderReturnType()
+        [Theory]
+        [InlineData(@"$""Text{1}""")]
+        [InlineData(@"$""Text"" + $""{1}""")]
+        public void InvalidBuilderReturnType(string expression)
         {
             var source = @"
 using System;
 
-Console.WriteLine($""Text{1}"");
+Console.WriteLine(" + expression + @");
 
 namespace System.Runtime.CompilerServices
 {
@@ -3587,18 +3747,20 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)").WithLocation(4, 21),
                 // (4,25): error CS8941: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)").WithLocation(4, 15 + expression.Length)
             );
         }
 
-        [Fact]
-        public void MixedBuilderReturnTypes_01()
+        [Theory]
+        [InlineData(@"$""Text{1}""", @"$""{1}Text""")]
+        [InlineData(@"$""Text"" + $""{1}""", @"$""{1}"" + $""Text""")]
+        public void MixedBuilderReturnTypes_01(string expression1, string expression2)
         {
             var source = @"
 using System;
 
-Console.WriteLine($""Text{1}"");
-Console.WriteLine($""{1}Text"");
+Console.WriteLine(" + expression1 + @");
+Console.WriteLine(" + expression2 + @");
 
 namespace System.Runtime.CompilerServices
 {
@@ -3620,21 +3782,23 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics(
                 // (4,25): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "bool").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "bool").WithLocation(4, 15 + expression1.Length),
                 // (5,24): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"{1}Text");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "void").WithLocation(5, 24)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "void").WithLocation(5, 14 + expression2.Length)
             );
         }
 
-        [Fact]
-        public void MixedBuilderReturnTypes_02()
+        [Theory]
+        [InlineData(@"$""Text{1}""", @"$""{1}Text""")]
+        [InlineData(@"$""Text"" + $""{1}""", @"$""{1}"" + $""Text""")]
+        public void MixedBuilderReturnTypes_02(string expression1, string expression2)
         {
             var source = @"
 using System;
 
-Console.WriteLine($""Text{1}"");
-Console.WriteLine($""{1}Text"");
+Console.WriteLine(" + expression1 + @");
+Console.WriteLine(" + expression2 + @");
 
 namespace System.Runtime.CompilerServices
 {
@@ -3656,10 +3820,10 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics(
                 // (4,25): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "void").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "void").WithLocation(4, 15 + expression1.Length),
                 // (5,24): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"{1}Text");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "bool").WithLocation(5, 24)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "bool").WithLocation(5, 14 + expression2.Length)
             );
         }
 

@@ -380,6 +380,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                     }
                     break;
+                case BoundBinaryOperator unconvertedBinaryOperator:
+                    {
+                        result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;

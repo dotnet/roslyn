@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // syntactic context where it could be either a pointer or a span, and
                     // in that case it requires conversion to one or the other.
                     return this.Type is null;
+                case BoundKind.BinaryOperator:
+                    return ((BoundBinaryOperator)this).IsUnconvertedInterpolatedStringAddition;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:
@@ -283,6 +285,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol? Method => Data?.Method;
 
         internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
+
+        internal bool IsUnconvertedInterpolatedStringAddition => Data?.IsUnconvertedInterpolatedStringAddition ?? false;
+
+        internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
 
         internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
