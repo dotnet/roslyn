@@ -264,18 +264,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
-            TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: false);
-            TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false);
+            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: false);
+            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false);
 
             // If we don't have an unterminated raw string, then also try with some trailing trivia attached.
             if (!markup.Contains("CS" + (int)ErrorCode.ERR_Unterminated_raw_string_literal))
             {
-                TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true);
-                TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true);
+                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true);
+                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true);
             }
         }
 
-        private static void TestSingleToken(
+        private static void TestSingleTokenWorker(
             string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia, bool trailingTrivia)
         {
             if (leadingTrivia)
@@ -330,6 +330,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
                 // (2,9): error CS9100: Raw string literals are not allowed in preprocessor directives
                 // #line 1 """c:\"""
                 Diagnostic(ErrorCode.ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives, "").WithLocation(2, 9));
+        }
+
+        [Fact]
+        public void AllSingleCharactersInSingleLineLiteral()
+        {
+            for (var charValue = '\0'; ; charValue++)
+            {
+                if (charValue == '"' || SyntaxFacts.IsNewLine(charValue))
+                    continue;
+
+                TestSingleToken("\"\"\"" + charValue + "\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, charValue.ToString());
+
+                if (charValue == char.MaxValue)
+                    break;
+            }
+        }
+
+        [Fact]
+        public void AllSingleCharactersInMultiLineLiteral()
+        {
+            for (var charValue = '\0'; ; charValue++)
+            {
+                TestSingleToken("\"\"\"\r\n" + charValue + "\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, charValue.ToString());
+
+                if (charValue == char.MaxValue)
+                    break;
+            }
+        }
+
+        public static IEnumerable<object[]> EscapeSequences => new[]
+        {
+            new object[] { "\\'" },
+            new object[] { "\\\"" },
+            new object[] { "\\\\" },
+            new object[] { "\\0" },
+            new object[] { "\\a" },
+            new object[] { "\\b" },
+            new object[] { "\\f" },
+            new object[] { "\\n" },
+            new object[] { "\\r" },
+            new object[] { "\\t" },
+            new object[] { "\\v" },
+            new object[] { "\\u1234" },
+            new object[] { "\\U12345678" },
+            new object[] { "\\x1234" },
+        };
+
+        [Theory, MemberData(nameof(EscapeSequences))]
+        public void AllEscapeSequencesInSingleLineLiteral(string escapeSequence)
+        {
+            TestSingleToken("\"\"\" " + escapeSequence + " \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, $" {escapeSequence} ");
+        }
+
+        [Theory, MemberData(nameof(EscapeSequences))]
+        public void AllEscapeSequencesInMultiLineLiteral(string escapeSequence)
+        {
+            TestSingleToken("\"\"\"\r\n" + escapeSequence + "\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, escapeSequence);
         }
     }
 }
