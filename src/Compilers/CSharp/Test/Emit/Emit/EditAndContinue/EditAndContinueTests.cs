@@ -1052,20 +1052,31 @@ class D
 @"class C
 {
     static void Main() { }
-    static string F(string input) { return input; }
+    static string F(string input, int a) { return input; }
 }";
             var source1 =
 @"class C
 {
     static void Main() { }
-    static string F([System.ComponentModel.Description(""input"")]string input) { return input; }
+    static string F([System.ComponentModel.Description(""input"")]string input, int a) { return input; }
+    static void G(string input) { }
+}";
+            var source2 =
+@"class C
+{
+    static void Main() { }
+    static string F([System.ComponentModel.Description(""input"")]string input, int a) { return input; }
+    static void G([System.ComponentModel.Description(""input"")]string input) { }
 }";
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var methodF0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var methodF1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var methodG1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var methodG2 = compilation2.GetMember<MethodSymbol>("C.G");
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray();
@@ -1075,6 +1086,7 @@ class D
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
             CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
             CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+            CheckNames(reader0, reader0.GetParameterDefNames(), "input", "a");
 
             CheckAttributes(reader0,
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
@@ -1087,7 +1099,9 @@ class D
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, methodF0, methodF1, options: SemanticEditOption.EmitAllParametersForMethodUpdate),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, methodG1)));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -1097,11 +1111,12 @@ class D
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
             CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetMethodDefNames(), "F");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "G");
             CheckNames(readers, reader1.GetMemberRefNames(), /*DescriptionAttribute*/".ctor");
+            CheckNames(readers, reader1.GetParameterDefNames(), "input", "a", "input");
 
             CheckAttributes(reader1,
-                 new CustomAttributeRow(Handle(2, TableIndex.Param), Handle(5, TableIndex.MemberRef)));
+                 new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(5, TableIndex.MemberRef)));
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -1110,21 +1125,150 @@ class D
                 Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),             // New method, G
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),        // New param on method, G
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),                 // Support for the above
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(6, TableIndex.TypeRef),
                 Handle(7, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
                 Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param),
+                Handle(5, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+
+            var diff2 = compilation2.EmitDifference(
+              diff1.NextGeneration,
+              ImmutableArray.Create(
+                  SemanticEdit.Create(SemanticEditKind.Update, methodG1, methodG2, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "G");
+            CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor");
+            CheckNames(readers, reader2.GetParameterDefNames(), "input");
+
+            CheckAttributes(reader2,
+                 new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(5, TableIndex.MemberRef)));
+
+            CheckEncLog(reader2,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),             // New method, G
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),        // New param on method, G
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),                 // Support for the above
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader2,
+                Handle(6, TableIndex.TypeRef),
+                Handle(7, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param),
                 Handle(5, TableIndex.MemberRef),
                 Handle(4, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.StandAloneSig),
                 Handle(2, TableIndex.AssemblyRef));
         }
 
+        [Fact]
+        public void ModifyDelegateInvokeMethod_AddAttributes()
+        {
+            var source0 = @"
+class A : System.Attribute { }
+delegate void D(int x);
+";
+            var source1 = @"
+class A : System.Attribute { }
+delegate void D([A]int x);
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var invoke0 = compilation0.GetMember<MethodSymbol>("D.Invoke");
+            var beginInvoke0 = compilation0.GetMember<MethodSymbol>("D.BeginInvoke");
+            var invoke1 = compilation1.GetMember<MethodSymbol>("D.Invoke");
+            var beginInvoke1 = compilation1.GetMember<MethodSymbol>("D.BeginInvoke");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, invoke0, invoke1, options: SemanticEditOption.EmitAllParametersForMethodUpdate),
+                    SemanticEdit.Create(SemanticEditKind.Update, beginInvoke0, beginInvoke1, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetMethodDefNames(), "Invoke", "BeginInvoke");
+            CheckNames(readers, reader1.GetParameterDefNames(), "x", "x", "callback", "object");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(3, TableIndex.Param), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(4, TableIndex.Param), Handle(1, TableIndex.MethodDef)));
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),             // Updating existing parameter defs
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),   // Adding new custom attribute rows
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(10, TableIndex.TypeRef),
+                Handle(11, TableIndex.TypeRef),
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param),
+                Handle(6, TableIndex.Param),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.AssemblyRef));
+        }
 
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
