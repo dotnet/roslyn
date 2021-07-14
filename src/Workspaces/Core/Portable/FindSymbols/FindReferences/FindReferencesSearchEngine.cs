@@ -128,13 +128,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             foreach (var symbol in symbols)
             {
+                // See if this is the first time we're running across this symbol.  Note: no locks are needed
+                // here betwen checking and then adding because this is only ever called serially from within
+                // FindReferencesAsync above (though we still need a ConcurrentDictionary as reads of these 
+                // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
+                // after the dependent symbol values were written in, so it will be safe to blindly read them
+                // out.
                 if (!_symbolToGroup.ContainsKey(symbol))
                 {
                     var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
                     var group = new SymbolGroup(linkedSymbols);
 
                     foreach (var groupSymbol in group.Symbols)
-                        Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
+                        _symbolToGroup.TryAdd(groupSymbol, group);
 
                     await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
                 }
@@ -217,6 +223,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
             {
+                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                // happened.  So tehre must be a group for this symbol in our map.
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {
