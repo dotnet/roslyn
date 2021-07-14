@@ -1,6 +1,5 @@
 parameters:
   windowsPool: Hosted Windows 2019 with VS2019
-  includeMacOS:
 
 jobs:
 - job: Windows
@@ -25,30 +24,9 @@ jobs:
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
 
-- job: Linux
-  pool:
-    vmImage: Ubuntu 20.04
-  steps:
-  - checkout: self
-    clean: true
-  - template: install-dependencies.yml
-  - template: dotnet.yml
-
-- job: macOS
-  condition: ${{ parameters.includeMacOS }}
-  pool:
-    vmImage: macOS-10.15
-  steps:
-  - checkout: self
-    clean: true
-  - template: install-dependencies.yml
-  - template: dotnet.yml
-
 - job: WrapUp
   dependsOn:
   - Windows
-  - Linux
-  - macOS
   pool:
     vmImage: Ubuntu 20.04
   condition: succeededOrFailed()
@@ -59,5 +37,3 @@ jobs:
     parameters:
       initArgs: -NoRestore
   - template: publish-codecoverage.yml
-    parameters:
-      includeMacOS: ${{ parameters.includeMacOS }}

@@ -1,20 +1,8 @@
-parameters:
-  includeMacOS:
-
 steps:
 - download: current
   artifact: coverageResults-Windows
   displayName: Download Windows code coverage results
   continueOnError: true
-- download: current
-  artifact: coverageResults-Linux
-  displayName: Download Linux code coverage results
-  continueOnError: true
-- download: current
-  artifact: coverageResults-macOS
-  displayName: Download macOS code coverage results
-  continueOnError: true
-  condition: ${{ parameters.includeMacOS }}
 - powershell: |
     dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 4.8.5 --configfile azure-pipelines/justnugetorg.nuget.config
     Copy-Item -Recurse $(Pipeline.Workspace)/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj

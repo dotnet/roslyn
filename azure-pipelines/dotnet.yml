@@ -1,9 +1,17 @@
 steps:
-- script: dotnet build --no-restore -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
-  displayName: dotnet build
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Build /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+  displayName: msbuild /t:Build
 
-- script: dotnet pack --no-build -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
-  displayName: dotnet pack
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Pack /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+  displayName: msbuild /t:Pack
 
 - task: DotNetCoreCLI@2
   displayName: dotnet test -f net472
