@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case CompilationUnitSyntax compilation:
                     return compilation.Members;
-                case NamespaceDeclarationSyntax @namespace:
+                case BaseNamespaceDeclarationSyntax @namespace:
                     return @namespace.Members;
                 case TypeDeclarationSyntax type:
                     return type.Members;

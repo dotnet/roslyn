@@ -621,6 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+<<<<<<< HEAD
             internal override bool IsCallerLineNumber
             {
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
@@ -644,6 +645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
                 get { throw ExceptionUtilities.Unreachable; }
             }
+=======
+            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+            internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+>>>>>>> upstream/main
 
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

@@ -110,11 +110,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавление "{0}" в интерфейс сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">Добавление позиционного параметра в запись остановит сеанс отладки.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">При добавлении метода с явным спецификатором интерфейса вы не сможете продолжить сеанс отладки.</target>
@@ -139,6 +134,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Условия чередования не выполняют запись, и им невозможно присвоить имя</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
@@ -235,6 +235,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Изменение "{0}" на "{1}" сделает продолжение сеанса отладки невозможным, так как меняет форму конечной машины.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">Изменение видимости {0} сделает продолжение сеанса отладки невозможным.</target>
@@ -318,11 +333,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Создать и назначить оставшиеся как свойства</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">Удаление позиционного параметра из записи остановит сеанс отладки.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -3014,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 Если описатель формата "g" используется без других описателей пользовательского формата, он интерпретируется как описатель "g" стандартного формата даты и времени.</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">переменная диапазона</target>
@@ -3174,11 +3189,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Обновление предложения Implements объекта "{0}" сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Изменение ограничения с "{0}" на "{1}" сделает продолжение сеанса отладки невозможным.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">Обновление вариантности объекта "{0}" сделает продолжение сеанса отладки невозможным.</target>
@@ -3222,11 +3232,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">Обновление типа метода доступа для свойства или события сделает продолжение сеанса отладки невозможным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">Обновление типа метода (Sub/Function) сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3841,6 +3846,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Для значений DateTimeOffset описатель формата "K" равнозначен описателю формата "zzz" и дает результирующую строку, содержащую смещение значения DateTimeOffset от UTC.
 
 Если описатель формата "K" используется без других описателей пользовательского формата, он интерпретируется как описатель стандартного формата даты и времени и вызывает исключение FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

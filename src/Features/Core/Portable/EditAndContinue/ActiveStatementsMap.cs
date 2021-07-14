@@ -180,8 +180,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var hasAnyLineDirectives = false;
-            foreach (var (unmappedSection, mappedSection) in oldTree.GetLineMappings(cancellationToken))
+            foreach (var lineMapping in oldTree.GetLineMappings(cancellationToken))
             {
+                var unmappedSection = lineMapping.Span;
+                var mappedSection = lineMapping.MappedSpan;
+
                 hasAnyLineDirectives = true;
 
                 var targetPath = mappedSection.HasMappedPath ? mappedSection.Path : oldTree.FilePath;

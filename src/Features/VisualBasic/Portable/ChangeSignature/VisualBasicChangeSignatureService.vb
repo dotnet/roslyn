@@ -604,13 +604,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Shared Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
+        Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
-            Dim declaredParameters = declarationSymbol.GetParameters()
+            Dim declaredParameters = GetParameters(declarationSymbol)
             If paramNodes.Length <> declaredParameters.Length Then
                 Return ImmutableArray(Of SyntaxNode).Empty
             End If
@@ -754,6 +754,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
             Return Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace)
+        End Function
+
+        Protected Overrides Function TryGetRecordPrimaryConstructor(typeSymbol As INamedTypeSymbol, ByRef primaryConstructor As IMethodSymbol) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function GetParameters(declarationSymbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return declarationSymbol.GetParameters()
         End Function
     End Class
 End Namespace

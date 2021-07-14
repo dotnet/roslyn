@@ -86,10 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+<<<<<<< HEAD
         internal override int CallerArgumentExpressionParameterIndex
         {
             get { return -1; }
         }
+=======
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
+>>>>>>> upstream/main
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {

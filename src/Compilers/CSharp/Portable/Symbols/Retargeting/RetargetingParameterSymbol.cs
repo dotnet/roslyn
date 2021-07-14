@@ -122,6 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return null; }
         }
+
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
     }
 
     internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol

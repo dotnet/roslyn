@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument)
+                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument, nameof(AnalyzersResources.Add_readonly_modifier))
             {
             }
         }

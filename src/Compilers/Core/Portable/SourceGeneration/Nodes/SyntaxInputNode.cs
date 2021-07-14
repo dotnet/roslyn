@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
-            public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
+            public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
                 tables[_owner._filterKey] = _filterTable.ToImmutableAndFree();
                 tables[_owner] = _transformTable.ToImmutableAndFree();

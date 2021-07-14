@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)));
+                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)), $"Message for error {code} is null or empty.");
             }
         }
 
@@ -263,12 +263,16 @@ class X
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
                         case ErrorCode.WRN_UnreadRecordParameter:
                         case ErrorCode.WRN_DoNotCompareFunctionPointers:
+<<<<<<< HEAD
                         case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+=======
+                        case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+>>>>>>> upstream/main
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -430,6 +434,7 @@ class X
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
