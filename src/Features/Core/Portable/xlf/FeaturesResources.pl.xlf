@@ -3304,16 +3304,6 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
         <target state="translated">Usunięcie elementu „{0}” w ramach aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Dodanie treści metody uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Usunięcie treści metody uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">Aktualizowanie modyfikatora asynchronicznego lub powiązanego z iteratorem w pobliżu aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
