@@ -28,9 +28,26 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     public enum IncrementalGeneratorOutputKind
     {
+        /// <summary>
+        /// Represents no output kinds. Can be used when creating a driver to indicate that no outputs should be disabled.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// A regular source output, registered via <see cref="IncrementalGeneratorInitializationContext.RegisterSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{SourceProductionContext, TSource})"/> 
+        /// or <see cref="IncrementalGeneratorInitializationContext.RegisterSourceOutput{TSource}(IncrementalValuesProvider{TSource}, Action{SourceProductionContext, TSource})"/>
+        /// </summary>
         Source = 0b1,
+
+        /// <summary>
+        /// A post-initialization output, which will be visible to later phases, registered via <see cref="IncrementalGeneratorInitializationContext.RegisterPostInitializationOutput(Action{IncrementalGeneratorPostInitializationContext})"/>
+        /// </summary>
         PostInit = 0b10,
+
+        /// <summary>
+        /// An Implementation only source output, registered via <see cref="IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{SourceProductionContext, TSource})"/>
+        /// or <see cref="IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput{TSource}(IncrementalValuesProvider{TSource}, Action{SourceProductionContext, TSource})"/>
+        /// </summary>
         Implementation = 0b100
     }
 }
