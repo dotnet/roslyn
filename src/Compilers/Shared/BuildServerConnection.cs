@@ -283,6 +283,71 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
+            string pipeName,
+            int timeoutMs,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken)
+        {
+            NamedPipeClientStream? pipeStream = null;
+            try
+            {
+                // Machine-local named pipes are named "\\.\pipe\<pipename>".
+                // We use the SHA1 of the directory the compiler exes live in as the pipe name.
+                // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
+                logger.Log("Attempt to open named pipe '{0}'", pipeName);
+
+                pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                logger.Log("Attempt to connect named pipe '{0}'", pipeName);
+                try
+                {
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken), cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (e is IOException || e is TimeoutException)
+                {
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
+
+                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    pipeStream.Dispose();
+                    return null;
+                }
+                logger.Log("Named pipe '{0}' connected", pipeName);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Verify that we own the pipe.
+                if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
+                {
+                    pipeStream.Dispose();
+                    logger.LogError("Owner of named pipe is incorrect");
+                    return null;
+                }
+
+                return pipeStream;
+            }
+            catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
+            {
+                logger.LogException(e, "Exception while connecting to process");
+                pipeStream?.Dispose();
+                return null;
+            }
+        }
+
         /// <summary>
         /// This will attempt to start a compiler server process using the executable inside the 
         /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
@@ -365,71 +430,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     return false;
                 }
-            }
-        }
-
-        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
-            string pipeName,
-            int timeoutMs,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-        {
-            NamedPipeClientStream? pipeStream = null;
-            try
-            {
-                // Machine-local named pipes are named "\\.\pipe\<pipename>".
-                // We use the SHA1 of the directory the compiler exes live in as the pipe name.
-                // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
-                logger.Log("Attempt to open named pipe '{0}'", pipeName);
-
-                pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                logger.Log("Attempt to connect named pipe '{0}'", pipeName);
-                try
-                {
-                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
-                    // tries to move potentially expensive work (actually connecting to the pipe) to
-                    // a background thread with Task.Factory.StartNew. However, that call will merely
-                    // queue the work onto the TaskScheduler associated with the "current" Task which
-                    // does not guarantee it will be processed on a background thread and this could
-                    // lead to a hang.
-                    // To avoid this, we first force ourselves to a background thread using Task.Run.
-                    // This ensures that the Task created by ConnectAsync will run on the default
-                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
-                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken), cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (e is IOException || e is TimeoutException)
-                {
-                    // Note: IOException can also indicate timeout. From docs:
-                    // TimeoutException: Could not connect to the server within the
-                    //                   specified timeout period.
-                    // IOException: The server is connected to another client and the
-                    //              time-out period has expired.
-
-                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
-                    pipeStream.Dispose();
-                    return null;
-                }
-                logger.Log("Named pipe '{0}' connected", pipeName);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Verify that we own the pipe.
-                if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
-                {
-                    pipeStream.Dispose();
-                    logger.LogError("Owner of named pipe is incorrect");
-                    return null;
-                }
-
-                return pipeStream;
-            }
-            catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
-            {
-                logger.LogException(e, "Exception while connecting to process");
-                pipeStream?.Dispose();
-                return null;
             }
         }
 
