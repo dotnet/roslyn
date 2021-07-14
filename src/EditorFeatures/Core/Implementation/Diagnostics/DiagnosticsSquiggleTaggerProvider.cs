@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
         }
 
-        protected internal override bool IsEnabled => true;
-
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
