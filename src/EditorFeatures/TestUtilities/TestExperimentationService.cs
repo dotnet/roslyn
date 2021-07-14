@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public void SetExperimentOption(string experimentName, bool enabled)
-            => _experimentsOptionValues[experimentName] = enabled;
-
         public bool IsExperimentEnabled(string experimentName)
             => _experimentsOptionValues.TryGetValue(experimentName, out var enabled) && enabled;
+
+        public void EnableExperiment(string experimentName, bool value)
+            => _experimentsOptionValues[experimentName] = value;
     }
 }

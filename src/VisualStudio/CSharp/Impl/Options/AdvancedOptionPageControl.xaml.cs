@@ -35,10 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         private readonly ColorSchemeApplier _colorSchemeApplier;
+        private readonly IExperimentationService _experimentationService;
 
         public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel, IExperimentationService experimentationService) : base(optionStore)
         {
             _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
+            _experimentationService = experimentationService;
 
             InitializeComponent();
 
@@ -156,11 +158,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void UpdatePullDiagnosticsOptions()
         {
             var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetDiagnosticModeCheckboxValue(normalPullDiagnosticsOption);
+            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
 
             Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
 
-            static bool? GetDiagnosticModeCheckboxValue(DiagnosticMode mode)
+            static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
             {
                 return mode switch
                 {
@@ -172,16 +174,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        private void Enable_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
+        private void Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull);
-            UpdatePullDiagnosticsOptions();
-        }
+            // Three state is only valid for the initial option state (default).  If changed we only
+            // allow the checkbox to be on or off.
+            Enable_pull_diagnostics_experimental_requires_restart.IsThreeState = false;
+            var checkboxValue = Enable_pull_diagnostics_experimental_requires_restart.IsChecked;
+            var newDiagnosticMode = GetDiagnosticModeForCheckboxValue(checkboxValue);
+            if (checkboxValue != null)
+            {
+                // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
+                _experimentationService.EnableExperiment(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
+            }
 
-        private void Enable_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Push);
+            // Update the workspace option.
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, newDiagnosticMode);
+
             UpdatePullDiagnosticsOptions();
+
+            static DiagnosticMode GetDiagnosticModeForCheckboxValue(bool? checkboxValue)
+            {
+                return checkboxValue switch
+                {
+                    true => DiagnosticMode.Pull,
+                    false => DiagnosticMode.Push,
+                    null => DiagnosticMode.Default
+                };
+            }
         }
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)

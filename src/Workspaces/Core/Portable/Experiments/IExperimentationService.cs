@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Experiments
     internal interface IExperimentationService : IWorkspaceService
     {
         bool IsExperimentEnabled(string experimentName);
+
+        void EnableExperiment(string experimentName, bool value);
     }
 
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Experiments
         }
 
         public bool IsExperimentEnabled(string experimentName) => false;
+
+        public void EnableExperiment(string experimentName, bool value) { }
     }
 
     internal static class WellKnownExperimentNames
