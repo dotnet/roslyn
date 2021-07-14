@@ -418,8 +418,8 @@ function TestUsingRunTests() {
     $args += " --retry"
     $args += " --sequential"
     # Skip VS integration tests prior to having a build of dev17 available for testing
-    # $args += " --include '\.IntegrationTests'"
-    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
+    $args += " --include '\.IntegrationTests'"
+    # $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
