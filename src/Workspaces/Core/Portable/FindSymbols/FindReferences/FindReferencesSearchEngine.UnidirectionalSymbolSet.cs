@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
             {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(_upSymbols.Count + _initialAndDownSymbols.Count, out var result);
                 result.AddRange(_upSymbols);
                 result.AddRange(_initialAndDownSymbols);
                 result.RemoveDuplicates();
