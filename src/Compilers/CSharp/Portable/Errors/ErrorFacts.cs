@@ -476,16 +476,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
-<<<<<<< HEAD
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
-=======
                 case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
->>>>>>> upstream/main
                     return 1;
                 default:
                     return 0;

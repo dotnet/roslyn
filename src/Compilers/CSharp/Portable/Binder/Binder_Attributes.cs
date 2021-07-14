@@ -738,39 +738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sourceIndices;
         }
 
-<<<<<<< HEAD
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, int argumentsCount, BindingDiagnosticBag diagnostics)
-=======
-        private TypedConstant GetMatchingNamedOrOptionalConstructorArgument(
-            out int matchingArgumentIndex,
-            ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string?> constructorArgumentNamesOpt,
-            ParameterSymbol parameter,
-            int startIndex,
-            int argumentsCount,
-            ref int argsConsumedCount,
-            AttributeSyntax syntax,
-            BindingDiagnosticBag diagnostics)
-        {
-            int index = GetMatchingNamedConstructorArgumentIndex(parameter.Name, constructorArgumentNamesOpt, startIndex, argumentsCount);
-
-            if (index < argumentsCount)
-            {
-                // found a matching named argument
-                Debug.Assert(index >= startIndex);
-
-                // increment argsConsumedCount
-                argsConsumedCount++;
-                matchingArgumentIndex = index;
-                return constructorArgsArray[index];
-            }
-            else
-            {
-                matchingArgumentIndex = -1;
-                return GetDefaultValueArgument(parameter, syntax, diagnostics);
-            }
-        }
-
         private static int GetMatchingNamedConstructorArgumentIndex(string parameterName, ImmutableArray<string?> argumentNamesOpt, int startIndex, int argumentsCount)
         {
             RoslynDebug.Assert(parameterName != null);
@@ -798,8 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argIndex;
         }
 
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, BindingDiagnosticBag diagnostics)
->>>>>>> upstream/main
+        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, int argumentsCount, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
             ConstantValue? defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;

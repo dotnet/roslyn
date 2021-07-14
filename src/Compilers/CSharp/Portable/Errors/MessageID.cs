@@ -230,15 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMemebers = MessageBase + 12806,
-<<<<<<< HEAD
-
-        // PROTOTYPE: compact before merge
-        IDS_FeatureCallerArgumentExpression = MessageBase + 13000,
-=======
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
->>>>>>> upstream/main
+        // PROTOTYPE: compact before merge
+        IDS_FeatureCallerArgumentExpression = MessageBase + 13000,
     }
 
     // Message IDs may refer to strings that need to be localized.
