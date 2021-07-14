@@ -144,7 +144,7 @@ class C
         }
 
         [Fact]
-        public void TestUneachableSwitchCase1()
+        public void TestUnreachableSwitchCase1()
         {
             CreateCompilation(
 @"class C
