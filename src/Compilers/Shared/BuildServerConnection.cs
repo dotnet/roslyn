@@ -54,23 +54,76 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 libDirectory: libDirectory);
         }
 
-        internal static Task<BuildResponse> RunServerShutdownRequestAsync(
+        /// <summary>
+        /// Shutting down the server is an inherently racy operation.  The server can be started or stopped by
+        /// external parties at any time.
+        /// 
+        /// This function will return success if at any time in the function the server is determined to no longer
+        /// be running.
+        /// </summary>
+        internal static async Task<bool> RunServerShutdownRequestAsync(
             string pipeName,
             int? timeoutOverride,
+            bool waitForProcess,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
-            var request = BuildRequest.CreateShutdown();
+            if (wasServerRunning(pipeName) == false)
+            {
+                // The server holds the mutex whenever it is running, if it's not open then the 
+                // server simply isn't running.
+                return true;
+            }
 
-            // Don't create the server when sending a shutdown request. That would defeat the 
-            // purpose a bit.
-            return RunServerBuildRequestAsync(
-                request,
-                pipeName,
-                timeoutOverride,
-                tryCreateServerFunc: (_, _) => false,
-                logger,
-                cancellationToken);
+            try
+            {
+                var request = BuildRequest.CreateShutdown();
+
+                // Don't create the server when sending a shutdown request. That would defeat the 
+                // purpose a bit.
+                var response = await RunServerBuildRequestAsync(
+                    request,
+                    pipeName,
+                    timeoutOverride,
+                    tryCreateServerFunc: (_, _) => false,
+                    logger,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (response is ShutdownBuildResponse shutdownBuildResponse)
+                {
+                    if (waitForProcess)
+                    {
+                        try
+                        {
+                            var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
+                            process.WaitForExit();
+                        }
+                        catch (Exception)
+                        {
+                            // There is an inherent race here with the server process.  If it has already shutdown
+                            // by the time we try to access it then the operation has succeed.
+                        }
+                    }
+
+                    return true;
+                }
+
+                return wasServerRunning(pipeName) == false;
+            }
+            catch (Exception)
+            {
+                // If the server was in the process of shutting down when we connected then it's reasonable
+                // for an exception to happen.  If the mutex has shutdown at this point then the server 
+                // is shut down.
+                return wasServerRunning(pipeName) == false;
+            }
+
+            // Was a server running with the specified session key during the execution of this call?
+            static bool? wasServerRunning(string pipeName)
+            {
+                string mutexName = GetServerMutexName(pipeName);
+                return WasServerMutexOpen(mutexName);
+            }
         }
 
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
@@ -283,6 +336,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        /// <summary>
+        /// Attempt to connect to the server and return a null task if connection failed. This
+        /// method will throw on cancellation
+        /// </summary>
+        /// <param name="pipeName"></param>
+        /// <param name="timeoutMs"></param>
+        /// <param name="logger"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
@@ -346,6 +408,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 pipeStream?.Dispose();
                 return null;
             }
+        }
+
+        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
+        {
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var commandLineArgs = $@"""-pipename:{pipeName}""";
+            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
         }
 
         /// <summary>
@@ -431,13 +500,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return false;
                 }
             }
-        }
-
-        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
-        {
-            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
-            var commandLineArgs = $@"""-pipename:{pipeName}""";
-            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
         }
 
         /// <returns>

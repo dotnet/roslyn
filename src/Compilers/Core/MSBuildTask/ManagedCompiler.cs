@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
                 if (clientDirectory is null || tempDirectory is null)
                 {
-                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
