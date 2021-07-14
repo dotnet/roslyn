@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 if (symbol is IParameterSymbol or ITypeParameterSymbol)
                 {
+                    // Can just defer to the standard helper here.  We only want to get the summary portion for just the
+                    // param/type-param and we have no need for remarks/returns/value.
                     _documentationMap.Add(
                         SymbolDescriptionGroups.Documentation,
                         symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
@@ -183,6 +185,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var format = ISymbolExtensions2.CrefFormat;
                 var compilation = _semanticModel.Compilation;
 
+                // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
+                // lsif (which does this for every symbol in an entire solution).
                 var documentationComment = original is IMethodSymbol method
                     ? ISymbolExtensions2.GetMethodDocumentation(method, compilation, CancellationToken)
                     : original.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken);
