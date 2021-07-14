@@ -17,7 +17,12 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj" />
+    <!-- <Caravela> See CommandLine\CSharpCompiler.cs. -->
+    <ProjectReference Include="..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj">
+      <!-- This is to avoid adding a dependency on non-existing Caravela.Compiler.Interface NuGet package to Caravela.Roslyn.CodeAnalysis.CSharp NuGet package. -->
+      <PrivateAssets>All</PrivateAssets>
+    </ProjectReference>
+    <!-- </Caravela> -->
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
