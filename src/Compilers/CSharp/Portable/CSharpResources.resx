@@ -6812,4 +6812,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings" xml:space="preserve">
     <value>Multi-line raw string literals are only allowed in verbatim interpolated strings</value>
   </data>
+  <data name="ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content" xml:space="preserve">
+    <value>Multi-line raw string literals must contain at least one line of content</value>
+  </data>
 </root>
