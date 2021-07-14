@@ -9057,6 +9057,32 @@ public class C
         }
 
         [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultLiteral_Nullability()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static void Main()
+    {
+        (int i, string s) = default;
+        s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,29): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (int i, string s) = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(8, 29),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 9)
+                );
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
         public void TestDeconstructDefaultExpression()
         {
             string source = @"
