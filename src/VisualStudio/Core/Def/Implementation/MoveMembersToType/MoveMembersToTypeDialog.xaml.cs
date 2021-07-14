@@ -17,14 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
     /// </summary>
     internal partial class MoveMembersToTypeDialog : DialogWindow
     {
-        private readonly MoveMembersToTypeDialogViewModel _viewModel;
+        private readonly MoveMembersToTypeViewModel _viewModel;
 
         public string MoveMembersToTypeDialogTitle => ServicesVSResources.Move_members_to_type;
         public string NamespaceLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 
-        internal MoveMembersToTypeDialog(MoveMembersToTypeDialogViewModel viewModel)
+        internal MoveMembersToTypeDialog(MoveMembersToTypeViewModel viewModel)
             : base()
         {
             _viewModel = viewModel;

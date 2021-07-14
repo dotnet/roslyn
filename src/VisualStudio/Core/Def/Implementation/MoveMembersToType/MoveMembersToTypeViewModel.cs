@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
 {
-    internal class MoveMembersToTypeDialogViewModel : AbstractNotifyPropertyChanged
+    internal class MoveMembersToTypeViewModel : AbstractNotifyPropertyChanged
     {
 
     }
