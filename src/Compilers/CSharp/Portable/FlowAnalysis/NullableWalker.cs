@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameters(); // assign parameters
                 if (methodThisParameter is object)
                 {
-                    _variables.SetType(methodThisParameter, methodThisParameter.TypeWithAnnotations);
+                    EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
 
                 makeNotNullMembersMaybeNull();
@@ -2381,20 +2381,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
         {
             _variables.SetType(parameter, parameterType);
-            int slot = GetOrCreateSlot(parameter);
 
-            Debug.Assert(!IsConditionalState);
-            if (slot > 0)
+            if (parameter.RefKind != RefKind.Out)
             {
-                var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
-                this.State[slot] = state;
-                if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
+                int slot = GetOrCreateSlot(parameter);
+
+                Debug.Assert(!IsConditionalState);
+                if (slot > 0)
                 {
-                    InheritNullableStateOfTrackableStruct(
-                        parameterType.Type,
-                        slot,
-                        valueSlot: -1,
-                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
+                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
+                    this.State[slot] = state;
+                    if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
+                    {
+                        InheritNullableStateOfTrackableStruct(
+                            parameterType.Type,
+                            slot,
+                            valueSlot: -1,
+                            isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
+                    }
                 }
             }
         }
