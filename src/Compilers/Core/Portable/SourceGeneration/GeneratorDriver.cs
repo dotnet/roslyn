@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis
 
         private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
         {
+            Debug.Assert(outputKind != IncrementalGeneratorOutputKind.None);
             IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
             foreach (var outputNode in outputNodes)
             {
