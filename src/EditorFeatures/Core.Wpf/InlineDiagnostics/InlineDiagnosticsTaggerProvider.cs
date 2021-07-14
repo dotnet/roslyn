@@ -9,13 +9,16 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -42,6 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
         }
 
+        // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
+        // to the TaggerEventSource, otherwise it does not get updated until there is a change in the editor.
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
+        }
+
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return
@@ -51,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         }
 
         /// <summary>
-        /// Creates the InlineErrorTag with the error distinction
+        /// Creates the InlineDiagnosticsTag with the error distinction
         /// </summary>
         protected override InlineDiagnosticsTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {

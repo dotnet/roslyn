@@ -55,17 +55,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             var sourceContainer = TextView.TextBuffer.AsTextContainer();
             if (sourceContainer is null)
             {
+                AdornmentLayer.RemoveAllAdornments();
                 return;
             }
 
             if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
             {
+                AdornmentLayer.RemoveAllAdornments();
                 return;
             }
 
             var document = sourceContainer.GetOpenDocumentInCurrentContext();
             if (document is null)
             {
+                AdornmentLayer.RemoveAllAdornments();
                 return;
             }
 
@@ -84,13 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             if (AdornmentLayer is not null)
             {
-                var elements = AdornmentLayer.Elements;
-                foreach (var element in elements)
+                foreach (var element in AdornmentLayer.Elements)
                 {
                     var tag = (InlineDiagnosticsTag)element.Tag;
-                    var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.TagID + tag.ErrorType);
+                    var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
                     var format = GetFormat(classificationType);
-                    tag.UpdateColor(format, element.Adornment);
+                    InlineDiagnosticsTag.UpdateColor(format, element.Adornment);
                 }
             }
         }
@@ -103,14 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
-        private IDictionary<int, (IMappingTagSpan<InlineDiagnosticsTag> mapTagSpan, SnapshotSpan snapshotSpan)> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private IDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
-            if (changedSpanCollection.IsEmpty())
-            {
-                return SpecializedCollections.EmptyDictionary<int, (IMappingTagSpan<InlineDiagnosticsTag>, SnapshotSpan)>();
-            }
-
-            var map = new Dictionary<int, (IMappingTagSpan<InlineDiagnosticsTag> mapTagSpan, SnapshotSpan snapshotSpan)>();
+            var map = new Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>();
             var viewLines = TextView.TextViewLines;
 
             foreach (var changedSpan in changedSpanCollection)
@@ -130,20 +127,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                     var mappedPoint = GetMappedPoint(changedSpan, tagMappingSpan);
 
-                    // mappedPoint is known to not be null here because it is checked in the ShouldNotDrawTag method call.
+                    // mappedPoint is known to not be null here because it is checked in the ShouldDrawTag method call.
                     var lineNum = mappedPoint!.Value.GetContainingLine().LineNumber;
 
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(lineNum, out var value))
                     {
-                        map.Add(lineNum, (tagMappingSpan, changedSpan));
+                        map.Add(lineNum, tagMappingSpan);
                     }
 
                     // If the map has a value and the value is not a syntax error, then rewrite the value in the map since
                     // each line with errors will be ordered by importance
-                    if (value.mapTagSpan is not null && value.mapTagSpan.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
+                    if (value is not null && value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
                     {
-                        map[lineNum] = (tagMappingSpan, changedSpan);
+                        map[lineNum] = tagMappingSpan;
                     }
                 }
             }
@@ -159,11 +156,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             // this method should only run on UI thread as we do WPF here.
             Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+            if (changedSpanCollection.IsEmpty())
+            {
+                return;
+            }
 
             var viewLines = TextView.TextViewLines;
             var map = GetSpansOnEachLine(changedSpanCollection);
-            foreach (var (lineNum, (tagMappingSpan, snapshotSpan)) in map)
+            foreach (var (lineNum, tagMappingSpan) in map)
             {
+                // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
+                // be no adornments drawn on disjoint spans.
                 if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
                 {
                     continue;
@@ -173,11 +176,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 if (geometry != null)
                 {
                     var tag = tagMappingSpan.Tag;
-                    var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.TagID + tag.ErrorType);
+                    var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
                     var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
 
                     // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
-                    var point = tagMappingSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+                    var point = tagMappingSpan.Span.Start.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
                     if (point == null)
                     {
                         continue;
@@ -193,6 +196,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     else if (tag.Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                     {
                         Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
                     }
 
                     Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);

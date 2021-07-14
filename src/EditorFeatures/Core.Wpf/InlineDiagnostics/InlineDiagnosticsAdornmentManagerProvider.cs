@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
-using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
     {
-        private const string LayerName = "RoslynInlineErrors";
+        private const string LayerName = "RoslynInlineDiagnostics";
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Name(LayerName)]
         [ContentType(ContentTypeNames.RoslynContentType)]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
-        internal readonly AdornmentLayerDefinition InlineErrorLayer;
+        internal readonly AdornmentLayerDefinition InlineDiagnosticsLayer;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

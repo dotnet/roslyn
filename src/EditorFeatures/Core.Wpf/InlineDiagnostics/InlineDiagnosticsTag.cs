@@ -10,9 +10,11 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;
         public readonly InlineDiagnosticsLocations Location;
+
         private readonly DiagnosticData _diagnostic;
         private readonly INavigateToLinkService _navigateToLinkService;
         private readonly IEditorFormatMap _editorFormatMap;
@@ -132,20 +135,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         }
 
         private ImageMoniker GetMoniker()
-        {
-            switch (_diagnostic.Severity)
+            => _diagnostic.Severity switch
             {
-                case DiagnosticSeverity.Warning:
-                    return KnownMonikers.StatusWarning;
-                default:
-                    return KnownMonikers.StatusError;
-            }
-        }
+                DiagnosticSeverity.Warning => KnownMonikers.StatusWarning,
+                _ => KnownMonikers.StatusError,
+            };
+
+        public static string GetClassificationId(string error)
+            => error switch
+            {
+                EditAndContinueErrorTypeDefinition.Name => "inline diagnostics - Edit and Continue",
+                PredefinedErrorTypeNames.SyntaxError => "inline diagnostics - syntax error",
+                _ => "inline diagnostics - compiler warning"
+            };
 
         /// <summary>
         /// Gets called when the ClassificationFormatMap is changed to update the adornment
         /// </summary>
-        public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
+        public static void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
         {
             var border = (Border)adornment;
             border.BorderBrush = format.BackgroundBrush;

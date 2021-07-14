@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal ClassificationTypeDefinition InlineErrorsErrorTypeDefinition;
+        internal ClassificationTypeDefinition InlineDiagnosticsErrorTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal ClassificationTypeDefinition InlineErrorsWarningTypeDefinition;
+        internal ClassificationTypeDefinition InlineDiagnosticsWarningTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export]
         [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal ClassificationTypeDefinition InlineErrorsRudeEditTypeDefinition;
+        internal ClassificationTypeDefinition InlineDiagnosticsRudeEditTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
