@@ -1,0 +1,131 @@
+﻿<vs:DialogWindow
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
+    xmlns:Imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" xmlns:Imaging1="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    x:Uid="MoveMembersToTypeDialog"
+    x:Name="dialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.MoveMembersToTypeDialog"
+    x:ClassModifier="internal"
+    mc:Ignorable="d"
+    WindowStartupLocation="CenterOwner"
+    Height="598"
+    Width="500"
+    MinHeight="598"
+    MinWidth="510"
+    HasDialogFrame="True"
+    ShowInTaskbar="False"
+    ResizeMode="CanResizeWithGrip"
+    Title="{Binding MoveMembersToTypeDialogTitle, ElementName=dialog}">
+    <vs:DialogWindow.Resources>
+        <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
+        <sys:Double x:Key="ButtonWidth">73</sys:Double>
+        <sys:Double x:Key="ButtonHeight">21</sys:Double>
+        <Style x:Key="TreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
+            <Style.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="Grid.ColumnSpan" Value="2"/>
+                </Style>
+            </Style.Resources>
+            <Setter Property="IsSelected" Value="{Binding IsChecked, Mode=TwoWay}"/>
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}"/>
+            <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}"/>
+            <Setter Property="IsExpanded" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </vs:DialogWindow.Resources>
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="25*"/>
+            <ColumnDefinition Width="218*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40*"/>
+            <RowDefinition Height="60*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!--Label
+            Grid.Row="0"
+            x:Uid="TitleDescription"
+            x:Name="TitleDescription"
+            Margin="0,0,0,12"
+            Content="{Binding Description, ElementName=dialog}"/-->
+        <ComboBox x:Uid="NamespaceBox"
+                          Name="NamespaceBox"
+                          IsEditable="True"
+                          IsReadOnly="False"
+                          AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
+                          Text="{Binding NamespaceName, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                          ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
+                          BorderThickness="0" 
+                          Margin="0,0,20,200"
+                          MaxDropDownHeight="200" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <ComboBox.ItemTemplate>
+                <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace.NamespaceItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--imaging:CrispImage 
+                                Grid.Column="0" 
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" /-->
+
+                        <TextBlock Grid.Column="1" Text="{Binding Namespace}" />
+                    </Grid>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <GroupBox
+            x:Uid="MemberSelectionLabel"
+            Header="{Binding SelectMembers, ElementName=dialog}"
+            Grid.Row="2"
+            MinHeight="200"
+            MinWidth="250"
+            BorderThickness="0" Grid.ColumnSpan="2">
+
+            <ContentControl Content="{Binding MemberSelectionControl, ElementName=dialog}" />
+        </GroupBox>
+        <StackPanel
+            Grid.Row="3"
+            Margin="0, 5, 8, 0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal" Grid.Column="1">
+            <Button
+                x:Name="OKButton"
+                x:Uid="OKButton"
+                Click="OKButton_Click"
+                IsDefault="True"
+                Margin="0"
+                IsEnabled="{Binding OkButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
+                Padding="{StaticResource ResourceKey=ButtonPadding}"
+                Content="{Binding OK, ElementName=dialog}"
+                MinWidth="{StaticResource ResourceKey=ButtonWidth}"
+                MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
+            <Button
+                x:Name="CancelButton"
+                x:Uid="CancelButton"
+                Click="CancelButton_Click"
+                IsCancel="True"
+                Padding="{StaticResource ResourceKey=ButtonPadding}"
+                Margin="7, 0, 0, 0"
+                Content="{Binding Cancel, ElementName=dialog}"
+                MinWidth="{StaticResource ResourceKey=ButtonWidth}"
+                MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>
