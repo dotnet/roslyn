@@ -141,6 +141,12 @@
   <data name="overloads_" xml:space="preserve">
     <value>overloads</value>
   </data>
+  <data name="type" xml:space="preserve">
+    <value>type</value>
+  </data>
+  <data name="property_accessor" xml:space="preserve">
+    <value>property accessor</value>
+  </data>
   <data name="_0_Keyword" xml:space="preserve">
     <value>{0} Keyword</value>
   </data>
@@ -432,9 +438,6 @@
   <data name="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</value>
   </data>
-  <data name="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</value>
-  </data>
   <data name="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating the variance of '{0}' will prevent the debug session from continuing.</value>
   </data>
@@ -461,9 +464,6 @@
   </data>
   <data name="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating the kind of an property/event accessor will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</value>
   </data>
   <data name="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating the library name of Declare Statement will prevent the debug session from continuing.</value>
@@ -2888,10 +2888,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Changing parameter types of '{0}' will prevent the debug session from continuing.</value>
   </data>
-  <data name="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing return type of '{0}' will prevent the debug session from continuing.</value>
-  </data>
   <data name="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Changing type parameters of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing constraints of '{0}' will prevent the debug session from continuing.</value>
   </data>
 </root>
