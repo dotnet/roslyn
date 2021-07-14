@@ -5,6 +5,8 @@
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
     <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
 
