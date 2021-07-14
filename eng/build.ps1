@@ -233,7 +233,7 @@ function BuildSolution() {
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
-  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
@@ -379,7 +379,7 @@ function TestUsingRunTests() {
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
+    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
@@ -417,9 +417,8 @@ function TestUsingRunTests() {
     $args += " --tfm net472"
     $args += " --retry"
     $args += " --sequential"
-    # Skip VS integration tests prior to having a build of dev17 available for testing
     $args += " --include '\.IntegrationTests'"
-    # $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
+    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
