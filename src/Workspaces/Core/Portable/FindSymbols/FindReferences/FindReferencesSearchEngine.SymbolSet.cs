@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // If we're overriding a member, then add it to the up-set
-                if (symbol.GetOverriddenMember() is { } overriddenMember)
+                if (symbol.GetOverriddenMember() is ISymbol overriddenMember)
                     await AddCascadedAndLinkedSymbolsToAsync(engine, overriddenMember, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
 
                 // An explicit interface method will cascade to all the methods that it implements in the up direction.
