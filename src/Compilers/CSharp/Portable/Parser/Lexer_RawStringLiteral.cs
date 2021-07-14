@@ -154,6 +154,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.HasErrors)
                     return;
 
+                // The trivial raw string literal is not legal in the language.
+                if (contentLineCount == 0)
+                {
+                    this.AddError(
+                        position: TextWindow.Position - startingQuoteCount,
+                        width: startingQuoteCount,
+                        ErrorCode.ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content);
+                    return;
+                }
+
                 // Now, do the second pass, building up the literal value.  This may produce an error as well if the
                 // indentation whitespace of the lines isn't complimentary.
 

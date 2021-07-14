@@ -144,7 +144,7 @@ class C
         }
 
         [Fact]
-        public void TestUneachableSwitchCase1()
+        public void TestUnreachableSwitchCase1()
         {
             CreateCompilation(
 @"class C
@@ -213,12 +213,14 @@ class C
     void M()
     {
         var v = $""{""""""
+
 """"""}"";
     }
 }").VerifyDiagnostics(
                 // (5,20): error CS9105: Multi-line raw string literals are only allowed in verbatim interpolated strings
                 //         var v = $"{"""
                 Diagnostic(ErrorCode.ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings, @"""""""
+
 """"""").WithLocation(5, 20));
         }
 
@@ -231,6 +233,7 @@ class C
     void M()
     {
         var v = $@""{""""""
+
 """"""}"";
     }
 }").VerifyDiagnostics();
@@ -246,6 +249,7 @@ class C
     {
         var v = $@""{
 """"""
+
 """"""
 }"";
     }
