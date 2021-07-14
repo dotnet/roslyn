@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null, localSigProvider, true));
                 Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, null, true));
                 Assert.NotNull(EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, localSigProvider, true));
-
             }
         }
     }
