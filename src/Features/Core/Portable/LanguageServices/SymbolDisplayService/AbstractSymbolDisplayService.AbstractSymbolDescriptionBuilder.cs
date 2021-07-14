@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -434,11 +435,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
             {
+                var includeNavigationHints = this.Workspace.Options.GetOption(QuickInfoOptions.IncludeNavigationHintsInQuickInfo);
+
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
                 {
-                    var taggedText = parts.ToTaggedText(_getNavigationHint);
+                    var taggedText = parts.ToTaggedText(_getNavigationHint, includeNavigationHints);
                     if (group == SymbolDescriptionGroups.MainDescription)
                     {
                         // Mark the main description as a code block.
