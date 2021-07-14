@@ -14189,6 +14189,22 @@ class C { static void M(string a) { } }
         }
 
         [Fact]
+        public void Parameter_Attribute_Insert_SupportedByRuntime_NonCustomAttribute()
+        {
+            var src1 = @"class C { public void M(int a) {} }";
+            var src2 = @"class C { public void M([System.Runtime.InteropServices.InAttribute]int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+        }
+
+        [Fact]
         public void Parameter_Attribute_Insert_SupportedByRuntime_SecurityAttribute1()
         {
             var attribute = "public class AAttribute : System.Security.Permissions.SecurityAttribute { }\n\n";
