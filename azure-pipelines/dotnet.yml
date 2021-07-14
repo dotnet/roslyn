@@ -14,35 +14,19 @@ steps:
   displayName: msbuild /t:Pack
 
 - task: DotNetCoreCLI@2
+  displayName: dotnet test -f net46
+  inputs:
+    command: test
+    arguments: --no-build -c $(BuildConfiguration) -f net46 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net46.binlog"
+    testRunTitle: net46-$(Agent.JobName)
+  condition: succeededOrFailed()
+
+- task: DotNetCoreCLI@2
   displayName: dotnet test -f net472
   inputs:
     command: test
     arguments: --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net472.binlog"
     testRunTitle: net472-$(Agent.JobName)
-  condition: succeededOrFailed()
-
-- task: DotNetCoreCLI@2
-  displayName: dotnet test -f netcoreapp2.1
-  inputs:
-    command: test
-    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_netcoreapp2.1.binlog"
-    testRunTitle: netcoreapp2.1-$(Agent.JobName)
-  condition: succeededOrFailed()
-
-- task: DotNetCoreCLI@2
-  displayName: dotnet test -f netcoreapp3.1
-  inputs:
-    command: test
-    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp3.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_netcoreapp3.1.binlog"
-    testRunTitle: netcoreapp3.1-$(Agent.JobName)
-  condition: succeededOrFailed()
-
-- task: DotNetCoreCLI@2
-  displayName: dotnet test -f net5.0
-  inputs:
-    command: test
-    arguments: --no-build -c $(BuildConfiguration) -f net5.0 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net5.0.binlog"
-    testRunTitle: net5.0-$(Agent.JobName)
   condition: succeededOrFailed()
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
