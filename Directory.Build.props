@@ -51,8 +51,7 @@
 
   <Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
-      <!-- TEMPLATE USER: replace the ORG/REPO (or entire link) below and uncomment. -->
-      <!-- <PackageReleaseNotes>https://github.com/ORG/REPO/releases/tag/v$(Version)</PackageReleaseNotes> -->
+       <PackageReleaseNotes>https://github.com/microsoft/vs-extension-testing/releases/tag/v$(Version)</PackageReleaseNotes> 
     </PropertyGroup>
   </Target>
 

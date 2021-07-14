@@ -9,13 +9,13 @@ with any additional questions or comments.
 
 ## Best practices
 
-* Use Windows PowerShell or [PowerShell Core][pwsh] (including on Linux/OSX) to run .ps1 scripts.
+* Use Windows PowerShell or [PowerShell Core][pwsh] to run .ps1 scripts.
   Some scripts set environment variables to help you, but they are only retained if you use PowerShell as your shell.
 
 ## Prerequisites
 
 All dependencies can be installed by running the `init.ps1` script at the root of the repository
-using Windows PowerShell or [PowerShell Core][pwsh] (on any OS).
+using Windows PowerShell or [PowerShell Core][pwsh].
 Some dependencies installed by `init.ps1` may only be discoverable from the same command line environment the init script was run from due to environment variables, so be sure to launch Visual Studio or build the repo from that same environment.
 Alternatively, run `init.ps1 -InstallLocality Machine` (which may require elevation) in order to install dependencies at machine-wide locations so Visual Studio and builds work everywhere.
 
@@ -35,7 +35,7 @@ to the feeds that packages for this repo come from, if any.
 
 ## Building
 
-This repository can be built on Windows, Linux, and OSX.
+This repository can only be built on Windows.
 
 Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
 
