@@ -47,5 +47,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string LspPullDiagnosticsFeatureFlag = "Lsp.PullDiagnostics";
         public const string OOPCoreClr = "Roslyn.OOPCoreClr";
         public const string ProgressionForceLegacySearch = "Roslyn.ProgressionForceLegacySearch";
+        public const string AsynchronousQuickActions = "Roslyn.AsynchronousQuickActions";
     }
 }
