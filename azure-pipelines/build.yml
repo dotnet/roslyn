@@ -25,8 +25,6 @@ jobs:
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
 
-  - template: expand-template.yml
-
 - job: Linux
   pool:
     vmImage: Ubuntu 20.04
@@ -35,7 +33,6 @@ jobs:
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
-  - template: expand-template.yml
 
 - job: macOS
   condition: ${{ parameters.includeMacOS }}
@@ -46,7 +43,6 @@ jobs:
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
-  - template: expand-template.yml
 
 - job: WrapUp
   dependsOn:
