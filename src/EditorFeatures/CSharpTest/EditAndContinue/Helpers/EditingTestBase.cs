@@ -64,18 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription? activeStatements = null,
             SemanticEditDescription[]? semanticEdits = null,
             RudeEditDiagnosticDescription[]? diagnostics = null)
-            => new(activeStatements, semanticEdits, diagnostics);
+            => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
-        private static SyntaxTree ParseSource(string markedSource)
+        private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
-                path: "test.cs");
+                path: documentIndex.ToString());
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
+        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
         {
-            var tree1 = ParseSource(src1);
-            var tree2 = ParseSource(src2);
+            var tree1 = ParseSource(src1, documentIndex);
+            var tree2 = ParseSource(src2, documentIndex);
 
             tree1.GetDiagnostics().Verify();
             tree2.GetDiagnostics().Verify();
