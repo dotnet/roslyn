@@ -5,6 +5,7 @@
     <TargetFramework>net452</TargetFramework>
     <OutputType>Exe</OutputType>
     <Platforms>x86</Platforms>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
