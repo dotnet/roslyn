@@ -9734,7 +9734,7 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "Public Sub M()", DeletedSymbolDisplay(FeaturesResources.type_parameter, "A")),
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, " : ", "method"))
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, " : ", FeaturesResources.method))
         End Sub
 
         <Fact>
