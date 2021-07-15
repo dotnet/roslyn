@@ -64,7 +64,9 @@ class Program
             var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" {VisualStudioInstanceFactory.VsLaunchArgs}";
 
             var process = Process.Start(pathToDevenv, commandLine);
-            Assert.True(process.WaitForExit((int)Helper.HangMitigatingTimeout.TotalMilliseconds));
+
+            // TODO: Use a hang mitigating timeout, but make sure to collect a heap dump if the wait times out
+            process.WaitForExit();
 
             Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
 
