@@ -1981,16 +1981,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedAndNormalNamespace = 8955,
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
-
-        // PROTOTYPE: Compact these before merge
-        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 9000,
-        ERR_NoConversionForCallerArgumentExpressionParam = 9001,
-        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 9002,
-        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 9003,
-        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 9004,
-        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 9005,
-        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 9006,
-        WRN_CallerArgumentExpressionAttributeSelfReferential = 9007,
+        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8958,
+        ERR_NoConversionForCallerArgumentExpressionParam = 8959,
+        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 8960,
+        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 8961,
+        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 8962,
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 8963,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
 
         #endregion
 
