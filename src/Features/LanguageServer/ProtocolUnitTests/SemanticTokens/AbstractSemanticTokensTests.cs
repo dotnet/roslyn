@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
-                CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+                CreateSemanticTokensParams(caret), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensParams CreateSemanticTokensParams(LSP.Location caret)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+                CreateSemanticTokensRangeParams(caret, range), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>(LSP.Methods.TextDocumentSemanticTokensFullDeltaName,
-                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensDeltaParams CreateSemanticTokensParams(LSP.Location caret, string previousResultId)

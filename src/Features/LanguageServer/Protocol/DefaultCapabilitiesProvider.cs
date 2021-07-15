@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var capabilities = new ServerCapabilities();
-            if (clientCapabilities is VSClientCapabilities vsClientCapabilities && vsClientCapabilities.SupportsVisualStudioExtensions)
+            if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities && vsClientCapabilities.SupportsVisualStudioExtensions)
             {
                 capabilities = GetVSServerCapabilities();
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private static VSServerCapabilities GetVSServerCapabilities()
         {
             var vsServerCapabilities = new VSInternalServerCapabilities();
-            vsServerCapabilities.OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
+            vsServerCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
             vsServerCapabilities.DocumentHighlightProvider = true;
             vsServerCapabilities.ProjectContextProvider = true;
 

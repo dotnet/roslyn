@@ -91,21 +91,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else if (context.TriggerKind is LSP.CompletionTriggerKind.Invoked or LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
             {
-                if (context is not LSP.VSCompletionContext vsCompletionContext)
+                if (context is not LSP.VSInternalCompletionContext vsCompletionContext)
                 {
                     return Completion.CompletionTrigger.Invoke;
                 }
 
                 switch (vsCompletionContext.InvokeKind)
                 {
-                    case LSP.VSCompletionInvokeKind.Explicit:
+                    case LSP.VSInternalCompletionInvokeKind.Explicit:
                         return Completion.CompletionTrigger.Invoke;
 
-                    case LSP.VSCompletionInvokeKind.Typing:
+                    case LSP.VSInternalCompletionInvokeKind.Typing:
                         var insertionChar = await GetInsertionCharacterAsync(document, position, cancellationToken).ConfigureAwait(false);
                         return Completion.CompletionTrigger.CreateInsertionTrigger(insertionChar);
 
-                    case LSP.VSCompletionInvokeKind.Deletion:
+                    case LSP.VSInternalCompletionInvokeKind.Deletion:
                         Contract.ThrowIfNull(context.TriggerCharacter);
                         Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
                         return Completion.CompletionTrigger.CreateDeletionTrigger(triggerChar);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
             {
-                TextDocument = new LSP.VersionedTextDocumentIdentifier { Uri = uri },
+                TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),
             }).ToArray();
 
@@ -543,36 +543,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var imageId = glyph.GetImageId();
             return new LSP.VSImageId
             {
-                GuidString = imageId.Guid.ToString(),
+                Guid = imageId.Guid,
                 Id = imageId.Id
             };
         }
 
         // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
-        public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        public static LSP.VSInternalReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
         {
-            using var _ = ArrayBuilder<LSP.ReferenceKind>.GetInstance(out var referenceKinds);
+            using var _ = ArrayBuilder<LSP.VSInternalReferenceKind>.GetInstance(out var referenceKinds);
             if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
             {
                 var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
                 if (usageInfo.IsReadFrom())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Read);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Read);
                 }
 
                 if (usageInfo.IsWrittenTo())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Write);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Write);
                 }
 
                 if (usageInfo.IsReference())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Reference);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Reference);
                 }
 
                 if (usageInfo.IsNameOnly())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Name);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Name);
                 }
             }
 
@@ -581,39 +581,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Qualified);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Qualified);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.TypeArgument);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.TypeArgument);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.TypeConstraint);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.TypeConstraint);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.BaseType);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.BaseType);
                 }
 
                 // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
                 if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Constructor);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Constructor);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Import);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Import);
                 }
 
                 // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
                 if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Declaration);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Declaration);
                 }
             }
 
