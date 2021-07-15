@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool IgnoreAccessibility => false;
 
         /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta => false;
-
-        /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
         internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)

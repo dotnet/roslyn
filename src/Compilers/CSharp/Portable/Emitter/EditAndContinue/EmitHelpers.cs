@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-            var changes = moduleBeingBuilt.Changes;
+            var changes = moduleBeingBuilt.EncSymbolChanges;
+            Debug.Assert(changes != null);
 
             EmitBaseline? newBaseline = null;
 

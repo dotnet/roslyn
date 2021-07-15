@@ -71,10 +71,27 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitOptions = emitOptions;
         }
 
+#nullable enable
         /// <summary>
-        /// EnC generation.
+        /// Symbol changes when emitting EnC delta.
         /// </summary>
-        public abstract int CurrentGenerationOrdinal { get; }
+        public abstract SymbolChanges? EncSymbolChanges { get; }
+
+        /// <summary>
+        /// Previous EnC generation baseline, or null if this is not EnC delta.
+        /// </summary>
+        public abstract EmitBaseline? PreviousGeneration { get; }
+
+        /// <summary>
+        /// True if this module is an EnC update.
+        /// </summary>
+        public bool IsEncDelta => PreviousGeneration != null;
+
+        /// <summary>
+        /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
+        /// </summary>
+        public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;
+#nullable disable
 
         /// <summary>
         /// If this module represents an assembly, name of the assembly used in AssemblyDef table. Otherwise name of the module same as <see cref="ModuleName"/>.
@@ -605,6 +622,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(_namesOfTopLevelTypes == null);
                 _namesOfTopLevelTypes = names;
             }
+
+            static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
@@ -644,11 +664,6 @@ namespace Microsoft.CodeAnalysis.Emit
             DiagnosticBag diagnostics)
         {
             return new MetadataConstant(Translate(type, syntaxNodeOpt, diagnostics), value);
-        }
-
-        private static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
-        {
-            names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
         private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
