@@ -254,6 +254,7 @@ namespace Microsoft.CodeAnalysis
                     count -= copyCount;
                     chunkIndex++;
                 }
+
                 Debug.Assert(count == 0);
 
                 return builder.MoveToImmutable();
