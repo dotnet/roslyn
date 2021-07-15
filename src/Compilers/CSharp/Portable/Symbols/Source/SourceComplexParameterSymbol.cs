@@ -1071,13 +1071,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsValidCallerInfoContext(node))
             {
-                // CS9000: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
+                // CS8958: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteInfo))
             {
-                // CS9001: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
+                // CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
                 diagnostics.Add(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
             }
@@ -1085,33 +1085,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Unconsumed location checks happen first, so we require a default value.
 
-                // CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, node.Name.Location);
             }
             else if (IsCallerLineNumber)
             {
-                // CS9002: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                // CS8960: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (IsCallerFilePath)
             {
-                // CS9003: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                // CS8961: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (IsCallerMemberName)
             {
-                // CS9004: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
+                // CS8962: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (attribute.CommonConstructorArguments.Length == 1 &&
                 GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == -1)
             {
-                // CS9005: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
+                // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
             {
-                // CS9006: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
+                // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 

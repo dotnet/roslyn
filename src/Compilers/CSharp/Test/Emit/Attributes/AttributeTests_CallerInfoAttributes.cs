@@ -64,7 +64,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -130,7 +130,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -195,9 +195,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (29,22): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
                 // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
@@ -251,9 +251,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (28,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (28,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(28, 33),
                 // (28,63): error CS1741: A ref or out parameter cannot have a default value
@@ -310,9 +310,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (29,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
                 // (39,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
@@ -367,9 +367,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // (29,33): warning CS9005: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
+                // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
                 //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
                 ).VerifyIL("Program.Main", @"
@@ -412,7 +412,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
@@ -451,7 +451,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
         }
 
@@ -490,7 +490,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
         }
 
@@ -518,7 +518,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
@@ -545,7 +545,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
@@ -576,7 +576,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
@@ -602,7 +602,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
         }
 
@@ -628,7 +628,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
         }
 
@@ -714,7 +714,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -749,7 +749,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -789,7 +789,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
@@ -848,7 +848,7 @@ public static class C
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                // (11,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
                 //         [CallerArgumentExpression("p")] string p = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
                 );
@@ -977,7 +977,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
@@ -1011,7 +1011,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
@@ -1044,7 +1044,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
@@ -1081,7 +1081,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
@@ -1187,7 +1187,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -1229,7 +1229,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -1275,7 +1275,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
@@ -1351,7 +1351,7 @@ public class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                // (10,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
                 //         [CallerArgumentExpression("p")] string p = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
                 );
@@ -1440,7 +1440,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1472,7 +1472,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1504,7 +1504,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1537,7 +1537,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1576,7 +1576,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_default, param2: param2_default
@@ -1620,7 +1620,7 @@ class Program
         _ = new MyAttribute(0+0, c: 1+1);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
 '0', '2', '2', '0+0', '', '1+1'").VerifyDiagnostics();
         }
@@ -1652,7 +1652,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
         }
 
@@ -1711,7 +1711,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
         }
 
@@ -1739,7 +1739,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (8,36): error CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
@@ -1799,7 +1799,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
@@ -1833,7 +1833,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"2, 1+  1
 4, explicit-value").VerifyDiagnostics();
         }
@@ -1869,7 +1869,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
@@ -1907,7 +1907,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
@@ -1946,7 +1946,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
@@ -1997,7 +1997,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
