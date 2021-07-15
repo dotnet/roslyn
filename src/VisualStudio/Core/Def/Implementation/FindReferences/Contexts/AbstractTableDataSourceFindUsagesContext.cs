@@ -143,6 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
+                    presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
 
@@ -406,7 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
+            private ValueTask UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {
@@ -426,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         _findReferencesWindow.SetProgress(current, maximum);
                 }
 
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
             }
 
             #endregion

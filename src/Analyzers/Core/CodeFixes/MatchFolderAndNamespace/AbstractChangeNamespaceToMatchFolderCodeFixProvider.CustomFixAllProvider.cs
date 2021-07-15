@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 if (diagnostics.IsDefaultOrEmpty)
                     return null;
 
+                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
                 return new MyCodeAction(
-                    FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext),
+                    title,
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,

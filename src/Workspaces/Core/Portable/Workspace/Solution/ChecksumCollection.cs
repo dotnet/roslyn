@@ -36,13 +36,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
         internal static async Task FindAsync<TState>(
             TextDocumentStates<TState> documentStates,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken) where TState : TextDocumentState
         {
-            foreach (var state in documentStates.States)
+            foreach (var (_, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 

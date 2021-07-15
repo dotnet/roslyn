@@ -220,9 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            // Only "unsafe" modifier allowed if we're an explicit impl.
+            // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
             if (method.ExplicitInterfaceImplementations.Any())
             {
+                if (method.IsStatic)
+                {
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                }
+
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
                 {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
@@ -237,6 +242,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, options, Accessibility.Private);
 
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
                     if (method.IsAbstract)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
@@ -245,11 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (method.IsSealed)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-                    }
-
-                    if (method.IsStatic)
-                    {
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
                     // Don't show the readonly modifier if the containing type is already readonly
