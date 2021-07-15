@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
@@ -1250,6 +1251,7 @@ tryAgain:
             return _allocatedILMarkers[ilMarker].AbsoluteOffset;
         }
 
+        [UnconditionalSuppressMessage("trimming", "IL2075", Justification = "Only used in tests")]
         private string GetDebuggerDisplay()
         {
 #if DEBUG

@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public void AddILMarker(int marker)
             {
-                //  We assume that all IL markers allocated for the same basic block are 
+                //  We assume that all IL markers allocated for the same basic block are
                 //  allocated sequentially and don't interleave with markers from other blocks
                 Debug.Assert((this.FirstILMarker < 0) == (this.LastILMarker < 0));
                 Debug.Assert((this.LastILMarker < 0) || (this.LastILMarker + 1 == marker));
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public void RemoveTailILMarker(int marker)
             {
-                //  We assume that all IL markers allocated for the same basic block are 
+                //  We assume that all IL markers allocated for the same basic block are
                 //  allocated sequentially and don't interleave with markers from other blocks
                 Debug.Assert(this.FirstILMarker >= 0);
                 Debug.Assert(this.LastILMarker >= 0);
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            //destination of the branch. 
+            //destination of the branch.
             //null if branch code is nop or ret or if label is not yet marked.
             public BasicBlock BranchBlock
             {
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             /// <summary>
-            /// If possible, changes the branch code of the current block to the short version and 
+            /// If possible, changes the branch code of the current block to the short version and
             /// updates the delta correspondingly.
             /// </summary>
             /// <param name="delta">Position delta created by previous block size reductions.</param>
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         this.SetBranch(null, ILOpCode.Nop);
 
                         // If current block has no regular instructions the resulting block is a trivial noop
-                        // TryOptimizeBranchOverUncondBranch relies on an invariant that 
+                        // TryOptimizeBranchOverUncondBranch relies on an invariant that
                         // trivial blocks are not targeted by branches,
                         // make sure we are not breaking this condition.
                         if (this.HasNoRegularInstructions)
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (curBranchCode.IsConditionalBranch() &&
                     next.EnclosingHandler == this.EnclosingHandler)
                 {
-                    // check for branch to next, 
+                    // check for branch to next,
                     // or if both blocks are identical
                     if (BranchBlock.Start - next.Start == 0 ||
                         AreIdentical(BranchBlock, next))
@@ -583,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return result;
                 }
 
-                // For some instructions reverse can be unambiguously inferred, 
+                // For some instructions reverse can be unambiguously inferred,
                 // but in other cases it depends on whether it was a float or an integer operation.
                 // (we do not know if _un means unsigned or unordered here)
                 switch (this.BranchCode)
@@ -641,6 +642,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
+            [UnconditionalSuppressMessage("trimming", "IL2075", Justification = "only used in tests")]
             private string GetDebuggerDisplay()
             {
 #if DEBUG
@@ -754,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get
                 {
                     // switch (N, t1, t2... tN)
-                    //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 > 
+                    //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >
 
                     // size(ILOpCode.Switch) = 1
                     // size(N) = 4

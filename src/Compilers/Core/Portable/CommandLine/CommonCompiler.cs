@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         protected abstract void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,

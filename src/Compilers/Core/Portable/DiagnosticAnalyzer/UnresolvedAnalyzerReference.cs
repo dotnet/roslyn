@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -51,11 +52,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return ImmutableArray<DiagnosticAnalyzer>.Empty;
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return ImmutableArray<DiagnosticAnalyzer>.Empty;

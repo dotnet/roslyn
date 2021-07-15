@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Resources;
@@ -72,6 +73,9 @@ namespace Microsoft.CodeAnalysis
             _formatArguments = formatArguments;
         }
 
+        [UnconditionalSuppressMessage("trimming", "IL2026", Justification = "The type being deserialized must be present" +
+            "because it was serialized by this app. Members may be trimmed, but its assembly location should always be" +
+            "preserved, which is all that's depended on by ResourecManager")]
         private LocalizableResourceString(ObjectReader reader)
         {
             _resourceSource = reader.ReadType();

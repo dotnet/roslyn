@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -33,7 +34,7 @@ namespace Roslyn.Utilities
     internal sealed partial class ObjectReader : IDisposable
     {
         /// <summary>
-        /// We start the version at something reasonably random.  That way an older file, with 
+        /// We start the version at something reasonably random.  That way an older file, with
         /// some random start-bytes, has little chance of matching our version.  When incrementing
         /// this version, just change VersionByte2.
         /// </summary>
@@ -51,8 +52,8 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
-        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
-        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
+        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but
+        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us
         /// local copy we can work with without needing to worry about anyone else mutating.
         /// </summary>
         private readonly ObjectBinderSnapshot _binderSnapshot;
@@ -78,7 +79,7 @@ namespace Roslyn.Utilities
             _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
-            // Capture a copy of the current static binder state.  That way we don't have to 
+            // Capture a copy of the current static binder state.  That way we don't have to
             // access any locks while we're doing our processing.
             _binderSnapshot = ObjectBinder.GetSnapshot();
 
@@ -652,6 +653,7 @@ namespace Roslyn.Utilities
             return array;
         }
 
+        [RequiresUnreferencedCode("Arbitary type deserialization")]
         public Type ReadType()
         {
             _reader.ReadByte();

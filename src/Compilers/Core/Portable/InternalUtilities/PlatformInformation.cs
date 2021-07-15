@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace Roslyn.Utilities
@@ -16,6 +17,8 @@ namespace Roslyn.Utilities
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => Path.DirectorySeparatorChar == '/';
+
+        [UnconditionalSuppressMessage("trimming", "IL2026", Justification = "Fetching Mono.Runtime will always succeed or always fail")]
         public static bool IsRunningOnMono
         {
             get

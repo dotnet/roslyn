@@ -11,14 +11,15 @@ using System.Reflection;
 using System.Linq;
 using System.Text;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
-    // These classes are for debug and testing purposes only. It is frequently handy to be 
+    // These classes are for debug and testing purposes only. It is frequently handy to be
     // able to create a string representation of a complex tree-based data type. The idea
     // here is to first transform your tree into a standard "tree dumper node" tree, where
     // each node in the tree has a name, some optional data, and a sequence of child nodes.
-    // Once in a standard format the tree can then be rendered in a variety of ways 
+    // Once in a standard format the tree can then be rendered in a variety of ways
     // depending on what is most useful to you.
     //
     // I've started with two string formats. First, a "compact" format in which there is
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
                 _sb.Append('\u2500');
 
-                // First precondition met; now work out the string needed to indent 
+                // First precondition met; now work out the string needed to indent
                 // the child node's children:
                 DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
             }
@@ -161,12 +162,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         // an (awful) test for a null read-only-array.  Is there no better way to do this?
+        [UnconditionalSuppressMessage("trimming", "IL2075", Justification = "reflection is only used for debugging")]
         private static bool IsDefaultImmutableArray(Object o)
         {
-            var ti = o.GetType().GetTypeInfo();
+            var ti = o.GetType();
             if (ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
             {
-                var result = ti?.GetDeclaredMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
+                var result = ti?.GetMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
                 return result is bool b && b;
             }
 

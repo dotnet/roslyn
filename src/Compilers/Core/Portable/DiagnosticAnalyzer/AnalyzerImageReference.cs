@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -34,11 +35,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _id = Guid.NewGuid().ToString();
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return _analyzers;
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return _analyzers;

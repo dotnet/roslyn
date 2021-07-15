@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Represents an analyzer assembly reference that contains diagnostic analyzers.
     /// </summary>
     /// <remarks>
-    /// Represents a logical location of the analyzer reference, not the content of the reference. 
+    /// Represents a logical location of the analyzer reference, not the content of the reference.
     /// The content might change in time. A snapshot is taken when the compiler queries the reference for its analyzers.
     /// </remarks>
     public abstract class AnalyzerReference
@@ -53,26 +54,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// In most instances, either the analyzer reference is associated with a project or is being queried for analyzers in a particular language context.
         /// If so, use <see cref="GetAnalyzers(string)"/> method.
         /// </summary>
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages();
 
         /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference for the given <paramref name="language"/>.
         /// </summary>
         /// <param name="language">Language name.</param>
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
 
         /// <summary>
         /// Gets all the source generators defined in this assembly reference.
         /// </summary>
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public virtual ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages() => ImmutableArray<ISourceGenerator>.Empty;
 
         [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public virtual ImmutableArray<ISourceGenerator> GetGenerators() => ImmutableArray<ISourceGenerator>.Empty;
 
         /// <summary>
         /// Gets all the diagnostic generators defined in this assembly reference for the given <paramref name="language"/>.
         /// </summary>
         /// <param name="language">Language name.</param>
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public virtual ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray<ISourceGenerator>.Empty;
     }
 }

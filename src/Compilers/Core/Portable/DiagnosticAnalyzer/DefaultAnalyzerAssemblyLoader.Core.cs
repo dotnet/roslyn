@@ -7,6 +7,7 @@
 #if NETCOREAPP
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -16,12 +17,13 @@ namespace Microsoft.CodeAnalysis
     {
         private AssemblyLoadContext _loadContext;
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
-            //.NET Native doesn't support AssemblyLoadContext.GetLoadContext. 
+            //.NET Native doesn't support AssemblyLoadContext.GetLoadContext.
             // Initializing the _loadContext in the .ctor would cause
-            // .NET Native builds to fail because the .ctor is called. 
-            // However, LoadFromPathImpl is never called in .NET Native, so 
+            // .NET Native builds to fail because the .ctor is called.
+            // However, LoadFromPathImpl is never called in .NET Native, so
             // we do a lazy initialization here to make .NET Native builds happy.
             if (_loadContext == null)
             {
@@ -29,7 +31,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (System.Threading.Interlocked.CompareExchange(ref _loadContext, loadContext, null) == null)
                 {
-                    _loadContext.Resolving += (context, name) =>
+                    _loadContext.Resolving += wrapper;
+
+                    [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
+                    Assembly wrapper(AssemblyLoadContext context, AssemblyName name)
                     {
                         Debug.Assert(ReferenceEquals(context, _loadContext));
                         return Load(name.FullName);
@@ -40,6 +45,7 @@ namespace Microsoft.CodeAnalysis
             return LoadImpl(fullPath);
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         protected virtual Assembly LoadImpl(string fullPath) => _loadContext.LoadFromAssemblyPath(fullPath);
     }
 }

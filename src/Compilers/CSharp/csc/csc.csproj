@@ -10,6 +10,7 @@
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <TargetFrameworks>net6.0;netcoreapp3.1;net472</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <PublishTrimmed>true</PublishTrimmed>
     <UseAppHost>false</UseAppHost>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

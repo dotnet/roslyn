@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         protected override Assembly LoadImpl(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();

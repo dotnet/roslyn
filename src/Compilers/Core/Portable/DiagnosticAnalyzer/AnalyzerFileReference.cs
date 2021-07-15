@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Represents analyzers stored in an analyzer assembly file.
     /// </summary>
     /// <remarks>
-    /// Analyzer are read from the file, owned by the reference, and doesn't change 
+    /// Analyzer are read from the file, owned by the reference, and doesn't change
     /// since the reference is accessed until the reference object is garbage collected.
-    /// 
+    ///
     /// If you need to manage the lifetime of the analyzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override int GetHashCode()
             => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             // This API returns duplicates of analyzers that support multiple languages.
@@ -112,22 +113,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensionsForAllLanguages(includeDuplicates: true);
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
         {
             return _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
         }
 
         [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
             return _generators.GetExtensions(LanguageNames.CSharp);
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
         {
             return _generators.GetExtensions(language);
@@ -183,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
         {
             _diagnosticAnalyzers.AddExtensions(builder, language);
@@ -191,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="ISourceGenerator"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
+        [RequiresUnreferencedCode("Generators are not supported when trimming")]
         internal void AddGenerators(ImmutableArray<ISourceGenerator>.Builder builder, string language)
         {
             _generators.AddExtensions(builder, language);
@@ -359,6 +366,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             internal ImmutableArray<TExtension> GetExtensionsForAllLanguages(bool includeDuplicates)
             {
                 if (_lazyAllExtensions.IsDefault)
@@ -369,6 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _lazyAllExtensions;
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions, bool includeDuplicates)
             {
                 // Get all analyzers in the assembly.
@@ -403,6 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public int GetHashCode(TExtension obj) => obj.GetType().GetHashCode();
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             internal ImmutableArray<TExtension> GetExtensions(string language)
             {
                 if (string.IsNullOrEmpty(language))
@@ -413,6 +423,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableInterlocked.GetOrAdd(ref _lazyExtensionsPerLanguage, language, CreateLanguageSpecificExtensions, this);
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             private static ImmutableArray<TExtension> CreateLanguageSpecificExtensions(string language, Extensions<TExtension> extensions)
             {
                 // Get all analyzers in the assembly for the given language.
@@ -432,6 +443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _lazyExtensionTypeNameMap;
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             internal void AddExtensions(ImmutableSortedDictionary<string, ImmutableArray<TExtension>>.Builder builder)
             {
                 ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
@@ -476,6 +488,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
             {
                 ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
@@ -519,6 +532,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
             {
                 ImmutableSortedSet<string>? languageSpecificAnalyzerTypeNames;
@@ -529,6 +543,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
             }
 
+            [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
             private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
             {
                 var analyzers = ImmutableArray.CreateBuilder<TExtension>();
@@ -586,6 +601,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public Assembly GetAssembly()
         {
             if (_lazyAssembly == null)

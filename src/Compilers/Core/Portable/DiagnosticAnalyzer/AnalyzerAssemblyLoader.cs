@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Roslyn.Utilities;
 
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         // maps file name to a full path (lock _guard to read/write):
         private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         protected abstract Assembly LoadFromPathImpl(string fullPath);
 
         #region Public API
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public Assembly LoadFromPath(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
@@ -54,11 +57,13 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         private Assembly LoadFromPathUnchecked(string fullPath)
         {
             return LoadFromPathUncheckedCore(fullPath);
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity identity = null)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -153,6 +158,7 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
+        [RequiresUnreferencedCode("Analyzers are not supported when trimming")]
         public Assembly Load(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))

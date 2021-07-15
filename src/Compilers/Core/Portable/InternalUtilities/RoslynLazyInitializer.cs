@@ -11,16 +11,16 @@ namespace Roslyn.Utilities
     internal static class RoslynLazyInitializer
     {
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T)"/>
-        public static T EnsureInitialized<T>([NotNull] ref T? target) where T : class
-            => LazyInitializer.EnsureInitialized<T>(ref target!);
+        public static T EnsureInitialized<T>([NotNull] ref T? target) where T : class, new()
+            => LazyInitializer.EnsureInitialized<T>(ref target!, () => new T());
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, Func{T})"/>
         public static T EnsureInitialized<T>([NotNull] ref T? target, Func<T> valueFactory) where T : class
             => LazyInitializer.EnsureInitialized<T>(ref target!, valueFactory);
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object)"/>
-        public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNullIfNotNull("syncLock")] ref object? syncLock)
-            => LazyInitializer.EnsureInitialized<T>(ref target!, ref initialized, ref syncLock);
+        public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNullIfNotNull("syncLock")] ref object? syncLock) where T : new()
+            => LazyInitializer.EnsureInitialized<T>(ref target!, ref initialized, ref syncLock, () => new T());
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object, Func{T})"/>
         public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNullIfNotNull("syncLock")] ref object? syncLock, Func<T> valueFactory)
