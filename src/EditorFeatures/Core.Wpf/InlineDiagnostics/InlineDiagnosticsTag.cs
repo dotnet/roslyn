@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             {
                 if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                 {
-                    Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+                    Canvas.SetLeft(border, view.ViewportRight - border.DesiredSize.Width);
                 }
             }
 

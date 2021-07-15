@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                     {
                         continue;
                     }
-                    
+
                     // add the visual to the adornment layer.
                     var geometry = viewLines.GetMarkerGeometry(span);
                     if (geometry != null)

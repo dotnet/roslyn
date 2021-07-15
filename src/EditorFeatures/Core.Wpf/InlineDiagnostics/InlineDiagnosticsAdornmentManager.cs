@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
                     else if (tag.Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                     {
-                        Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
+                        Canvas.SetLeft(visualElement, TextView.ViewportRight - visualElement.DesiredSize.Width);
                     }
                     else
                     {
