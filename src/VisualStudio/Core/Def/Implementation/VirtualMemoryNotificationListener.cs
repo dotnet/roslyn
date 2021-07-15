@@ -83,6 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 case VSConstants.VSM_VIRTUALMEMORYLOW:
                 case VSConstants.VSM_VIRTUALMEMORYCRITICAL:
+                case VSConstants.VSM_MEMORYHIGH:
+                case VSConstants.VSM_MEMORYEXCESSIVE:
                     {
                         if (!_alreadyLogged)
                         {
