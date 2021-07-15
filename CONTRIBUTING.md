@@ -37,6 +37,6 @@ to the feeds that packages for this repo come from, if any.
 
 This repository can only be built on Windows.
 
-Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
+Building, testing, and packing this repository can be done by using the standard MSBuild targets from a Visual Studio 2019 Developer Command Prompt (e.g. `MSBuild /t:Build`, `MSBuild /t:Pack`, etc.). Testing can be performed with `dotnet test`.
 
 [pwsh]: https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-6
