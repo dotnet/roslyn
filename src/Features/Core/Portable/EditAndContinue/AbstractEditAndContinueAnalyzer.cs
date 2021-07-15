@@ -3517,28 +3517,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (hasAttributeChange)
                 {
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newDelegateType, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newDelegateType, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
                 }
 
                 if (hasReturnTypeAttributeChange)
                 {
                     // attributes applied on return type of a delegate are applied to both Invoke and BeginInvoke methods
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newDelegateInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newDelegateInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
                     AddDelegateBeginInvokeEdit(newDelegateType);
                 }
             }
             else if (newSymbol is INamedTypeSymbol or IFieldSymbol or IPropertySymbol or IEventSymbol)
             {
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
             }
             else if (newSymbol is ITypeParameterSymbol)
             {
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
             }
             else if (newSymbol is IParameterSymbol)
             {
                 var newContainingSymbol = newSymbol.ContainingSymbol;
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
 
                 // attributes applied on parameters of a delegate are applied to both Invoke and BeginInvoke methods
                 if (newContainingSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } newContainingDelegateType)
@@ -3555,7 +3555,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var beginInvokeMethod = delegateType.GetMembers("BeginInvoke").FirstOrDefault();
                 if (beginInvokeMethod != null)
                 {
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(beginInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(beginInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null, SemanticEditOption.None));
                 }
             }
         }
@@ -4983,8 +4983,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
-
-            AnalyzeCustomAttributes(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, semanticEdits: null, syntaxMap: null, cancellationToken);
 
             // We allow parameters to be changed to discards, but not the other way around
             if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, allowDiscards: true))
