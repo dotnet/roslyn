@@ -5,7 +5,7 @@ if ($env:AGENT_TEMPDIRECTORY) {
         $env:AGENT_TEMPDIRECTORY = (Get-ChildItem $env:AGENT_TEMPDIRECTORY -Directory |? { $_.Name -match $guidRegex } |% { Get-ChildItem "$($_.FullName)\testhost*.dmp","$($_.FullName)\devenv*.dmp","$($_.FullName)\Sequence_*.xml" -Recurse });
     }
 } else {
-    $testRoot = Resolve-Path "$PSScriptRoot\..\..\test"
+    $testRoot = Resolve-Path "$PSScriptRoot\..\..\src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests"
     @{
         $testRoot = (Get-ChildItem "$testRoot\TestResults" -Recurse -Directory | Get-ChildItem -Recurse -File);
     }
