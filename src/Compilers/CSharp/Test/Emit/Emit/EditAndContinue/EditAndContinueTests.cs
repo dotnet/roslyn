@@ -1163,35 +1163,25 @@ class D
             CheckNames(readers, reader2.GetParameterDefNames(), "input");
 
             CheckAttributes(reader2,
-                 new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(5, TableIndex.MemberRef)));
+                 new CustomAttributeRow(Handle(3, TableIndex.Param), Handle(6, TableIndex.MemberRef)));
 
             CheckEncLog(reader2,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),             // New method, G
-                Row(1, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
-                Row(2, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),        // New param on method, G
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default),                 // Support for the above
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),             // Update existing param, from the first delta
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader2,
-                Handle(6, TableIndex.TypeRef),
-                Handle(7, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
                 Handle(4, TableIndex.MethodDef),
-                Handle(1, TableIndex.Param),
-                Handle(2, TableIndex.Param),
                 Handle(3, TableIndex.Param),
-                Handle(5, TableIndex.MemberRef),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(6, TableIndex.MemberRef),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(3, TableIndex.AssemblyRef));
         }
 
         [Fact]

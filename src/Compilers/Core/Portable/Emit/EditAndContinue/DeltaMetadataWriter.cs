@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // original metadata
         private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
 
+        private readonly Dictionary<MethodDefinitionHandle, int> _firstParamRowMap;
         private readonly List<int> _paramEncMapRows;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
@@ -108,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _customAttributeEncMapRows = new List<int>();
             _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
 
+            _firstParamRowMap = new Dictionary<MethodDefinitionHandle, int>();
             _paramEncMapRows = new List<int>();
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
                 fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
                 methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                paramsAdded: AddRange(_previousGeneration.ParamsAdded, _parameterDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                firstParamRowMap: AddRange(_previousGeneration.FirstParamRowMap, _firstParamRowMap),
                 propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
                 eventMapAdded: AddRange(_previousGeneration.EventMapAdded, _eventMap.GetAdded()),
                 propertyMapAdded: AddRange(_previousGeneration.PropertyMapAdded, _propertyMap.GetAdded()),
@@ -544,6 +546,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (added)
                 {
+                    _firstParamRowMap.Add(GetMethodDefinitionHandle(methodDef), _parameterDefs.NextRowId);
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
@@ -564,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                     else
                     {
-                        EmitParametersFromDelta(methodDef);
+                        EmitParametersFromDelta(methodDef, handle);
                     }
                 }
 
@@ -651,13 +654,13 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        private void EmitParametersFromDelta(IMethodDefinition methodDef)
+        private void EmitParametersFromDelta(IMethodDefinition methodDef, MethodDefinitionHandle handle)
         {
-            foreach (var paramDef in GetParametersToEmit(methodDef))
+            if (_previousGeneration.FirstParamRowMap.TryGetValue(handle, out var firstRowId))
             {
-                if (_previousGeneration.ParamsAdded.TryGetValue(paramDef, out var rowId))
+                foreach (var paramDef in GetParametersToEmit(methodDef))
                 {
-                    _parameterDefs.Add(paramDef, rowId);
+                    _parameterDefs.Add(paramDef, firstRowId++);
                     _parameterDefList.Add(paramDef, methodDef);
                 }
             }
@@ -1291,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 get { return _firstRowId; }
             }
 
-            public int NextRowId
+            public virtual int NextRowId
             {
                 get { return this.added.Count + _firstRowId; }
             }
@@ -1552,8 +1555,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
         {
+            private int _addedInPreviousGenerations;
+
             public ParameterDefinitionIndex(int lastRowId)
-                : base(lastRowId, Cci.SymbolEquivalentEqualityComparer.Instance)
+                : base(lastRowId, ReferenceEqualityComparer.Instance)
             {
             }
 
@@ -1564,15 +1569,32 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public void Add(IParameterDefinition item)
             {
-                Add(item, this.NextRowId);
+                AddInternal(item, this.NextRowId);
             }
 
             public void Add(IParameterDefinition item, int index)
+            {
+                _addedInPreviousGenerations++;
+                AddInternal(item, index);
+            }
+
+            private void AddInternal(IParameterDefinition item, int index)
             {
                 Debug.Assert(!this.IsFrozen);
 
                 this.added.Add(item, index);
                 this.rows.Add(item);
+            }
+
+            public override int NextRowId
+            {
+                get
+                {
+                    // Because we sometimes re-emit parameters and track their original row numbers
+                    // we don't want to cound the rows in added for those parameters when working out
+                    // the next row Id to use.
+                    return base.NextRowId - _addedInPreviousGenerations;
+                }
             }
         }
 
