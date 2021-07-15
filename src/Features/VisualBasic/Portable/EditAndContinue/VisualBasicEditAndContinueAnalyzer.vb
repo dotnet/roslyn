@@ -2289,10 +2289,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ClassifyUpdate(DirectCast(oldNode, NamespaceStatementSyntax), DirectCast(newNode, NamespaceStatementSyntax))
                         Return
 
-                    Case SyntaxKind.VariableDeclarator
-                        ClassifyUpdate(DirectCast(oldNode, VariableDeclaratorSyntax), DirectCast(newNode, VariableDeclaratorSyntax))
-                        Return
-
                     Case SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Update)
                         Return
