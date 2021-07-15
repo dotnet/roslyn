@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
+            view.LayoutChanged += View_LayoutChanged;
 
             return new GraphicsResult(border, dispose:
                 () =>
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
 
                     view.ViewportWidthChanged -= ViewportWidthChangedHandler;
+                    view.LayoutChanged -= View_LayoutChanged;
                 });
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
@@ -123,6 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                 {
                     Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+                }
+            }
+
+            void View_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+            {
+                if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
+                {
+                    Canvas.SetLeft(border, view.ViewportRight - border.DesiredSize.Width);
                 }
             }
 
