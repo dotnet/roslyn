@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             var id = new Run(_diagnostic.Id);
             Hyperlink? link = null;
 
-            if (_diagnostic.HelpLink is null)
+            if (_diagnostic.HelpLink is null || _diagnostic.HelpLink.Length is 0)
             {
                 block.Inlines.Add(id);
             }
@@ -166,8 +166,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             var border = (Border)adornment;
             border.BorderBrush = format.BackgroundBrush;
-            var block = (TextBlock)border.Child;
-            block.Foreground = format.ForegroundBrush;
+            var stackPanel = (StackPanel)border.Child;
+            foreach (var child in stackPanel.Children)
+            {
+                if (child is TextBlock block)
+                {
+                    block.Foreground = format.ForegroundBrush;
+                }
+            }
         }
 
         /// <summary>
