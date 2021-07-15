@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
+        private readonly IAsynchronousOperationListener _asyncListener;
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
         private readonly Workspace _workspace;
@@ -55,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
             : this(workspace,
                    threadingContext,
@@ -62,7 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                    typeMap,
                    formatMapService,
                    classificationFormatMapService,
-                   GetCustomColumns(columns))
+                   GetCustomColumns(columns),
+                   asynchronousOperationListenerProvider)
         {
         }
 
@@ -77,7 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                   exportProvider.GetExportedValue<ClassificationTypeMap>(),
                   exportProvider.GetExportedValue<IEditorFormatMapService>(),
                   exportProvider.GetExportedValue<IClassificationFormatMapService>(),
-                  exportProvider.GetExportedValues<ITableColumnDefinition>())
+                  exportProvider.GetExportedValues<ITableColumnDefinition>(),
+                  exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>())
         {
         }
 
@@ -89,13 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            IEnumerable<ITableColumnDefinition> columns)
+            IEnumerable<ITableColumnDefinition> columns,
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
             : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
+            _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.FindReferences);
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             _customColumns = columns.ToImmutableArray();

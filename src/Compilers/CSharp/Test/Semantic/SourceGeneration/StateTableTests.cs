@@ -127,6 +127,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Table_Single_Returns_First_Item()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            Assert.Equal(1, table.Single());
+        }
+
+        [Fact]
+        public void Node_Table_Single_Returns_Second_Item_When_First_Is_Removed()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            AssertTableEntries(table, new[] { (1, EntryState.Added) });
+
+            // remove the first item and replace it in the table
+            builder = table.ToBuilder();
+            builder.RemoveEntries();
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
+            table = builder.ToImmutableAndFree();
+
+            AssertTableEntries(table, new[] { (1, EntryState.Removed), (2, EntryState.Added) });
+            Assert.Equal(2, table.Single());
+        }
+
+        [Fact]
+        public void Node_Builder_Handles_Modification_When_Both_Tables_Have_Empty_Entries()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1, 2), EntryState.Added);
+            builder.AddEntries(ImmutableArray<int>.Empty, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3, 4), EntryState.Added);
+            var previousTable = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Added));
+            AssertTableEntries(previousTable, expected);
+
+            builder = previousTable.ToBuilder();
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), EqualityComparer<int>.Default)); // ((3, EntryState.Modified), (2, EntryState.Cached))
+            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, EqualityComparer<int>.Default)); // nothing
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), EqualityComparer<int>.Default)); // ((3, EntryState.Cached), (5, EntryState.Modified))
+            var newTable = builder.ToImmutableAndFree();
+
+            expected = ImmutableArray.Create((3, EntryState.Modified), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Modified));
+            AssertTableEntries(newTable, expected);
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;
@@ -257,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
         private DriverStateTable.Builder GetBuilder(DriverStateTable previous)
         {
-            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var c = CSharpCompilation.Create("empty");
             var state = new GeneratorDriverState(options,
                     CompilerAnalyzerConfigOptionsProvider.Empty,

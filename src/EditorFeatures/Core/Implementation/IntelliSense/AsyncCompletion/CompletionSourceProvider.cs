@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
@@ -21,15 +22,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly ITextDocumentFactoryService _factoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionSourceProvider(
             IThreadingContext threadingContext,
+            ITextDocumentFactoryService factoryService,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
+            _factoryService = factoryService;
         }
 
         public IAsyncCompletionSource? GetOrCreate(ITextView textView)
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CompletionSource(textView, _streamingPresenter, _threadingContext);
+            return new CompletionSource(textView, _factoryService, _streamingPresenter, _threadingContext);
         }
     }
 }

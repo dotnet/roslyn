@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ImplicitReturnIsOkay(MethodSymbol method)
         {
-            return method.ReturnsVoid || method.IsIterator || method.IsAsyncReturningTask(this.Compilation);
+            return method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(this.Compilation);
         }
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -2656,16 +2656,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInAsyncMethod(this.ContainingMemberOrLambda as MethodSymbol);
         }
 
-        protected bool IsTaskReturningAsyncMethod()
+        protected bool IsEffectivelyTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningTask(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningTask(this.Compilation);
         }
 
-        protected bool IsGenericTaskReturningAsyncMethod()
+        protected bool IsEffectivelyGenericTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningGenericTask(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningGenericTask(this.Compilation);
         }
 
         protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
@@ -2768,7 +2768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on a lambda expression of unknown return type.
             if ((object)retType != null)
             {
-                if (retType.IsVoidType() || IsTaskReturningAsyncMethod())
+                if (retType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     if (arg != null)
                     {
@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg == null)
                     {
                         // Error case: non-void-returning or Task<T>-returning method or lambda but just have "return;"
-                        var requiredType = IsGenericTaskReturningAsyncMethod()
+                        var requiredType = IsEffectivelyGenericTaskReturningAsyncMethod()
                             ? retType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single()
                             : retType;
 
@@ -2851,7 +2851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(returnRefKind == RefKind.None);
 
-                if (!IsGenericTaskReturningAsyncMethod())
+                if (!IsEffectivelyGenericTaskReturningAsyncMethod())
                 {
                     conversion = Conversion.NoConversion;
                     badAsyncReturnAlreadyReported = true;
@@ -2888,7 +2888,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
+                        if (IsEffectivelyGenericTaskReturningAsyncMethod()
+                            && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
@@ -3177,7 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
-                else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
+                else if (returnType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.

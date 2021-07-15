@@ -867,7 +867,9 @@ namespace Comments.XmlComments.UndocumentedKeywords
 #line 6
 #line 2 "test.cs"
 #line default
-#line hidden</value>
+#line hidden
+#line (1, 1) - (2, 2) 3 "test.cs"
+</value>
   </data>
   <data name="AllInOneVisualBasicBaseline" xml:space="preserve">
     <value>Option Infer On

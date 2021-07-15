@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             _rootGrid.Children.Add(new TextBlock()
             {
-                Text = "Select an appropriate symbol to start value tracking"
+                Text = ServicesVSResources.Select_an_appropriate_symbol_to_start_value_tracking
             });
 
             Content = _rootGrid;
@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
             : base(null)
         {
+            Caption = ServicesVSResources.Value_Tracking;
             Content = _rootGrid;
             ViewModel = viewModel;
         }

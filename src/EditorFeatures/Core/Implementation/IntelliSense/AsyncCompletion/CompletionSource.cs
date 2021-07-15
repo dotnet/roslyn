@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly ITextDocumentFactoryService _documentFactoryService;
         private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(
             ITextView textView,
+            ITextDocumentFactoryService factoryService,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             IThreadingContext threadingContext)
             : base(threadingContext)
@@ -71,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             _streamingPresenter = streamingPresenter;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
+            _documentFactoryService = factoryService; 
         }
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
@@ -87,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // No completion with multiple selection
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
+
+            var doc = _documentFactoryService.TryGetTextDocument(triggerLocation.Snapshot.TextBuffer, out var txtdoc);
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)

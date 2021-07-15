@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
 
-        public static string Option_use_64bit_analysis_process
-            => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
+        public static string Option_run_code_analysis_in_separate_process
+            => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
         public static string Option_Inline_Hints_experimental
             => ServicesVSResources.Inline_Hints_experimental;

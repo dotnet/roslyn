@@ -36,10 +36,20 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
 
+        private readonly Workspace _workspace;
+
         private readonly object _gate = new();
 
-        private Solution? _lazyCompileTimeSolution;
-        private int? _correspondingDesignTimeSolutionVersion;
+        /// <summary>
+        /// Cached compile time solution corresponding to the <see cref="Workspace.PrimaryBranchId"/>
+        /// </summary>
+        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _primaryBranchCompileTimeCache;
+
+        /// <summary>
+        /// Cached compile time solution for a forked branch.  This is used primarily by LSP cases where
+        /// we fork the workspace solution and request diagnostics for the forked solution.
+        /// </summary>
+        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _forkedBranchCompileTimeCache;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
@@ -49,11 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     lock (_gate)
                     {
-                        _lazyCompileTimeSolution = null;
-                        _correspondingDesignTimeSolutionVersion = null;
+                        _primaryBranchCompileTimeCache = null;
+                        _forkedBranchCompileTimeCache = null;
                     }
                 }
             };
+            _workspace = workspace;
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
@@ -63,17 +74,16 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             lock (_gate)
             {
+                var cachedCompileTimeSolution = GetCachedCompileTimeSolution(designTimeSolution);
+
                 // Design time solution hasn't changed since we calculated the last compile-time solution:
-                if (designTimeSolution.WorkspaceVersion == _correspondingDesignTimeSolutionVersion)
+                if (cachedCompileTimeSolution != null)
                 {
-                    Contract.ThrowIfNull(_lazyCompileTimeSolution);
-                    return _lazyCompileTimeSolution;
+                    return cachedCompileTimeSolution;
                 }
 
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                 using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
-
-                var compileTimeSolution = designTimeSolution;
 
                 foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
                 {
@@ -101,12 +111,43 @@ namespace Microsoft.VisualStudio.LanguageServices
                     }
                 }
 
-                _lazyCompileTimeSolution = designTimeSolution
+                var compileTimeSolution = designTimeSolution
                     .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
                     .RemoveDocuments(documentIdsToRemove.ToImmutable());
 
-                _correspondingDesignTimeSolutionVersion = designTimeSolution.WorkspaceVersion;
-                return _lazyCompileTimeSolution;
+                UpdateCachedCompileTimeSolution(designTimeSolution, compileTimeSolution);
+
+                return compileTimeSolution;
+            }
+        }
+
+        private Solution? GetCachedCompileTimeSolution(Solution designTimeSolution)
+        {
+            // If the design time solution is for the primary branch, retrieve the last cached solution for it.
+            // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
+            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeCache : _forkedBranchCompileTimeCache;
+
+            // Verify that the design time solution has not changed since the last calculated compile time solution and that
+            // the design time solution branch matches the branch of the design time solution we calculated the compile time solution for.
+            if (cachedCompileTimeSolution != null
+                    && designTimeSolution.WorkspaceVersion == cachedCompileTimeSolution.Value.DesignTimeSolutionVersion
+                    && designTimeSolution.BranchId == cachedCompileTimeSolution.Value.DesignTimeSolutionBranch)
+            {
+                return cachedCompileTimeSolution.Value.CompileTimeSolution;
+            }
+
+            return null;
+        }
+
+        private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)
+        {
+            if (designTimeSolution.BranchId == _workspace.PrimaryBranchId)
+            {
+                _primaryBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
+            }
+            else
+            {
+                _forkedBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
             }
         }
     }

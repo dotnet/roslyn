@@ -87,10 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.List(nodes),
                 SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
 
-            return docTrivia
-                .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
-                .WithTrailingTrivia(trailingTrivia)
-                .WithTrailingTrivia(
+            docTrivia = docTrivia.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
+                .WithTrailingTrivia(trailingTrivia);
+
+            if (lastWhitespaceTrivia == default)
+                return docTrivia.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString));
+
+            return docTrivia.WithTrailingTrivia(
                 SyntaxFactory.EndOfLine(endOfLineString),
                 lastWhitespaceTrivia);
         }
@@ -2116,6 +2119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             .WithLeadingTrivia(lambda.GetLeadingTrivia())
                             .WithTrailingTrivia(lambda.GetTrailingTrivia());
                     }
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 default:
                     return declaration;
             }

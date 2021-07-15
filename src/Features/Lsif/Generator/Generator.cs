@@ -22,12 +22,32 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal sealed class Generator
     {
+        // LSIF generator capabilities. See https://github.com/microsoft/lsif-node/blob/main/protocol/src/protocol.ts#L925 for details.
+        private const bool HoverProvider = true;
+        private const bool DeclarationProvider = false;
+        private const bool DefinitionProvider = true;
+        private const bool ReferencesProvider = true;
+        private const bool TypeDefinitionProvider = false;
+        private const bool DocumentSymbolProvider = false;
+        private const bool FoldingRangeProvider = true;
+        private const bool DiagnosticProvider = false;
+
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
 
-        public Generator(ILsifJsonWriter lsifJsonWriter)
+        private Generator(ILsifJsonWriter lsifJsonWriter)
         {
             _lsifJsonWriter = lsifJsonWriter;
+        }
+
+        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter)
+        {
+            var generator = new Generator(lsifJsonWriter);
+            var capabilitiesVertex = new Capabilities(generator._idFactory,
+                HoverProvider, DeclarationProvider, DefinitionProvider, ReferencesProvider,
+                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider);
+            generator._lsifJsonWriter.Write(capabilitiesVertex);
+            return generator;
         }
 
         public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)

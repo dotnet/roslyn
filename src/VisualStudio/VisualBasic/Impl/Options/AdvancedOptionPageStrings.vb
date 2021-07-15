@@ -27,8 +27,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
             ServicesVSResources.Entire_solution
 
-        Public ReadOnly Property Option_use_64bit_analysis_process As String =
-            ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart
+        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
+            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators

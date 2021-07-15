@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Move_declaration_near_reference, createChangedDocument)
+                : base(FeaturesResources.Move_declaration_near_reference, createChangedDocument, nameof(FeaturesResources.Move_declaration_near_reference))
             {
             }
 
