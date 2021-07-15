@@ -108,7 +108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic16_9
 
                 Case Feature.CallerArgumentExpression
-                    ' PROTOTYPE(caller-expr): Map to language version matching whatever VS version the feature will be shipped in.
                     Return LanguageVersion.VisualBasic17
 
                 Case Else

@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic15_5 = 1505
         VisualBasic16 = 1600
         VisualBasic16_9 = 1609
-        ' PROTOTYPE(caller-expr): Map to language version matching whatever VS version the feature will be shipped in.
         VisualBasic17 = 1700
 
         Latest = Integer.MaxValue

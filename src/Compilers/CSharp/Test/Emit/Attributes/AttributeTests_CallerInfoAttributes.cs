@@ -896,6 +896,56 @@ C.M(""value"");
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestInterpolatedStringHandler()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+M(1 + /**/ 1, $""""); // Should print ""1 + 1""
+
+void M(object o, [InterpolatedStringHandlerArgument(""o"")] CustomHandler c) => Console.WriteLine(c.ToString());
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    private readonly StringBuilder _builder;
+    public CustomHandler(int literalLength, int formattedCount, object o, [CallerArgumentExpression(""o"")] string s = """")
+    {
+        _builder = new StringBuilder();
+        _builder.Append(s);
+    }
+    public void AppendLiteral(string s) => _builder.AppendLine(s.ToString());
+    public void AppendFormatted(object o) => _builder.AppendLine(""value:"" + o.ToString());
+    public override string ToString() => _builder.ToString();
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerArgumentAttribute : Attribute
+    {
+        public InterpolatedStringHandlerArgumentAttribute(string argument) => Arguments = new string[] { argument };
+        public InterpolatedStringHandlerArgumentAttribute(params string[] arguments) => Arguments = arguments;
+        public string[] Arguments { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerAttribute : Attribute
+    {
+        public InterpolatedStringHandlerAttribute()
+        {
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "1 + /**/ 1").VerifyDiagnostics();
+        }
         #endregion
 
         #region CallerArgumentExpression - Attribute constructor
