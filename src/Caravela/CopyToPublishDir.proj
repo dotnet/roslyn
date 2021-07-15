@@ -39,7 +39,6 @@
         <!-- Visual Basic is needed by Caravela.Try -->
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.$(Version).nupkg"/>
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Features.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Scripting.$(Version).nupkg"/>
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(Version).nupkg"/>
         
         
