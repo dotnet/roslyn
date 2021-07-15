@@ -40,12 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetNamespaceImports(TNamespaceDeclarationSyntax node);
 
         /// <summary>
-        /// Generate an import directive that corresponds to imporing the given namespace. This is for the case where are pulling from one namespace
-        /// to another, but our members reference something in the source namespace (which isn't imported). If uneccessary, it will be removed later.
-        /// </summary>
-        protected abstract TUsingOrAliasSyntax GenerateNamespaceImportDeclaration(TNamespaceDeclarationSyntax node, SyntaxGenerator generator);
-
-        /// <summary>
         /// Name used for our removable import annotation <see cref="s_annotation"/>
         /// </summary>
         private const string AnnotationKind = "PullMemberRemovableImport";
@@ -76,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         }
 
         public Task<Solution> PullMembersUpAsync(
-             Document document,
-             PullMembersUpOptions pullMembersUpOptions,
-             CancellationToken cancellationToken)
+            Document document,
+            PullMembersUpOptions pullMembersUpOptions,
+            CancellationToken cancellationToken)
         {
             if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
             {
@@ -305,17 +299,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // But if the member is abstract itself, it will still be removed.
             foreach (var analysisResult in result.MemberAnalysisResults)
             {
+                sourceImports.Add(
+                    (TUsingOrAliasSyntax)destinationEditor.Generator.NamespaceImportDeclaration(
+                        analysisResult.Member.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
+                    .WithAdditionalAnnotations(s_annotation, Formatting.Formatter.Annotation));
+
                 foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                 {
                     var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    sourceImports.AddRange(GetImports(syntax, destinationEditor.Generator)
-                        .Select(import => import
-                            .WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
-                            .WithPrependedLeadingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
-                            .WithAdditionalAnnotations(s_annotation)));
+                    sourceImports.AddRange(GetImports(syntax)
+                        .Select(import => import.WithAdditionalAnnotations(s_annotation, Formatting.Formatter.Annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -338,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             // add imports by moving all source imports to destination container, then taking out unneccessary
-            // imports that we just added.
+            // imports that we just added (marked by our annotation).
             var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
             var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
@@ -389,14 +385,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));
         }
 
-        private ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node, SyntaxGenerator generator)
+        /// <summary>
+        /// Get all import statements in scope for this syntax by traversing up the tree and searching in containing namespaces and compilation units.
+        /// </summary>
+        /// <param name="node">The node to start traversing up from</param>
+        /// <returns>All the import/using directives found along the traversal</returns>
+        private ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node)
         {
             return node.AncestorsAndSelf()
                 .Where(node => node is TCompilationUnitSyntax || node is TNamespaceDeclarationSyntax)
                 .SelectMany(node => node switch
                 {
                     TCompilationUnitSyntax c => GetCompilationImports(c),
-                    TNamespaceDeclarationSyntax n => GetNamespaceImports(n).Concat(GenerateNamespaceImportDeclaration(n, generator)),
+                    TNamespaceDeclarationSyntax n => GetNamespaceImports(n),
                     _ => throw ExceptionUtilities.UnexpectedValue(node)
                 })
                 .ToImmutableArray();

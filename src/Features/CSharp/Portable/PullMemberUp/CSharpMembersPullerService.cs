@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.PullMemberUp
@@ -18,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PullMemberUp
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpMembersPullerService()
         {
-        }
-
-        protected override UsingDirectiveSyntax GenerateNamespaceImportDeclaration(NamespaceDeclarationSyntax node, SyntaxGenerator generator)
-        {
-            return (UsingDirectiveSyntax)generator.NamespaceImportDeclaration(node.Name);
         }
 
         protected override SyntaxList<UsingDirectiveSyntax> GetCompilationImports(CompilationUnitSyntax node) => node.Usings;
