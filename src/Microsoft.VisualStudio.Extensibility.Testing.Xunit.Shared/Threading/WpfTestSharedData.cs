@@ -8,7 +8,9 @@ namespace Xunit.Threading
     using System.Threading;
 
     [Serializable]
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
     public sealed class WpfTestSharedData
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         internal static readonly WpfTestSharedData Instance = new WpfTestSharedData();
 
@@ -26,7 +28,9 @@ namespace Xunit.Threading
         /// </summary>
         private readonly List<string> _recentTestCases = new List<string>();
 
+#pragma warning disable CA2235 // Mark all non-serializable fields
         private Semaphore _testSerializationGate = new Semaphore(1, 1, TestSerializationGateName.ToString("N"));
+#pragma warning restore CA2235 // Mark all non-serializable fields
 
         private WpfTestSharedData()
         {

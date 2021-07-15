@@ -1,0 +1,39 @@
+parameters:
+  windowsPool: Hosted Windows 2019 with VS2019
+
+jobs:
+- job: Windows
+  pool: ${{ parameters.windowsPool }}
+  steps:
+  - checkout: self
+    clean: true
+
+  - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
+    - template: schedule-only-steps.yml
+
+  - template: install-dependencies.yml
+
+  - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
+    displayName: Set build number
+
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    - template: microbuild.before.yml
+
+  - template: dotnet.yml
+
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    - template: microbuild.after.yml
+
+- job: WrapUp
+  dependsOn:
+  - Windows
+  pool:
+    vmImage: Ubuntu 20.04
+  condition: succeededOrFailed()
+  steps:
+  - checkout: self
+    clean: true
+  - template: install-dependencies.yml
+    parameters:
+      initArgs: -NoRestore
+  - template: publish-codecoverage.yml

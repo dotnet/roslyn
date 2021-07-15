@@ -73,7 +73,9 @@ namespace Xunit.InProcess
                 },
                 CancellationToken.None,
                 TaskCreationOptions.None,
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 new SynchronizationContextTaskScheduler(synchronizationContext)).Unwrap().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
             return Tuple.Create(result, aggregator.ToException());
         }

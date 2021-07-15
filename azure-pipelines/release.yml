@@ -1,0 +1,71 @@
+trigger: none # We only want to trigger manually or based on resources
+pr: none
+
+resources:
+  pipelines:
+  - pipeline: CI
+    source: Library # TODO: This should match the name of your CI pipeline
+    trigger:
+      tags:
+      - auto-release
+
+stages:
+- stage: GitHubRelease
+  displayName: GitHub Release
+  jobs:
+  - deployment: create
+    pool:
+      vmImage: ubuntu-latest
+    environment: No-Approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: none
+          - powershell: |
+              Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+            displayName: Set pipeline name
+          - task: GitHubRelease@1
+            displayName: GitHub release (create)
+            inputs:
+              gitHubConnection: # TODO: fill in service connection here
+              repositoryName: $(Build.Repository.Name)
+              target: $(resources.pipeline.CI.sourceCommit)
+              tagSource: userSpecifiedTag
+              tag: v$(resources.pipeline.CI.runName)
+              title: v$(resources.pipeline.CI.runName)
+              isDraft: true # After running this step, visit the new draft release, edit, and publish.
+              changeLogCompareToRelease: lastNonDraftRelease
+              changeLogType: issueBased
+              changeLogLabels: |
+                [
+                  { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
+                  { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
+                ]
+
+- stage: nuget_org
+  displayName: nuget.org
+  dependsOn: GitHubRelease
+  jobs:
+  - deployment: push
+    pool:
+      vmImage: ubuntu-latest
+    environment: No-Approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: CI
+            artifact: deployables-Windows
+            displayName: Download deployables-Windows artifact
+          - task: NuGetToolInstaller@1
+            displayName: Use NuGet 5.x
+            inputs:
+              versionSpec: 5.x
+          - task: NuGetCommand@2
+            displayName: NuGet push
+            inputs:
+              command: push
+              packagesToPush: $(Pipeline.Workspace)/CI/deployables-Windows/NuGet/*.nupkg
+              nuGetFeedType: external
+              publishFeedCredentials: # TODO: fill in service connection here

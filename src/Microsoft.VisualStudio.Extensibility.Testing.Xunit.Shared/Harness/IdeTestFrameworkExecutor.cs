@@ -4,6 +4,7 @@
 namespace Xunit.Harness
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using Xunit.Abstractions;
     using Xunit.Sdk;
@@ -15,6 +16,7 @@ namespace Xunit.Harness
         {
         }
 
+        [SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "Follows pattern expected by Xunit framework.")]
         protected override async void RunTestCases(IEnumerable<IXunitTestCase> testCases, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
         {
             try

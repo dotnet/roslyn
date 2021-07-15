@@ -1,0 +1,77 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+    - 'validate/*'
+  paths:
+    exclude:
+    - doc/
+    - '*.md'
+    - .vscode/
+#schedules:
+#- cron: "0 3 * * *" # Daily @ 8 PM PST
+#  displayName: Daily vs-insertion
+#  branches:
+#    include:
+#    - microbuild
+
+parameters:
+- name: SignTypeSelection
+  displayName: Sign type
+  type: string
+  default: Test
+  values: [ 'Test', 'Real' ]
+- name: includeMacOS
+  displayName: Build on macOS
+  type: boolean
+  default: false # macOS is often bogged down in Azure Pipelines
+
+variables:
+  NugetSecurityAnalysisWarningLevel: none # nuget.config requires signed packages by trusted owners
+
+stages:
+
+- stage: Build
+  variables:
+    TreatWarningsAsErrors: true
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    BuildConfiguration: Release
+    push_to_ci: true
+    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+    SignTypeSelection: ${{ parameters.SignTypeSelection }}
+
+  jobs:
+  - template: build.yml
+    parameters:
+      windowsPool: VSEngSS-MicroBuild2019
+      includeMacOS: ${{ parameters.includeMacOS }}
+
+- stage: symbol_archive
+  displayName: Symbol archival
+  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+  jobs:
+  - job: archive
+    pool: VSEng-ReleasePool
+    steps:
+    - download: current
+      artifact: Variables-Windows
+      displayName: Download Variables-Windows artifact
+    - task: PowerShell@2
+      displayName: Set VSTS variables based on artifacts
+      inputs:
+        targetType: filePath
+        filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+    - download: current
+      artifact: symbols-Windows
+      displayName: Download symbols-Windows artifact
+    - task: MicroBuildArchiveSymbols@1
+      displayName: Archive symbols to Symweb
+      inputs:
+        SymbolsFeatureName: $(SymbolsFeatureName)
+        SymbolsSymwebProject: VS
+        SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
+        SymbolsEmailContacts: vsidemicrobuild
+        SymbolsAgentPath: $(Pipeline.Workspace)/symbols-Windows
+    - task: MicroBuildCleanup@1
+      displayName: Send Telemetry

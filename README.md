@@ -3,7 +3,7 @@
 This project allows Visual Studio extension developers to write integration tests that run inside an experimental
 instance of Visual Studio.
 
-[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE)
+[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE) [![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Extensibility.Testing.Xunit.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Extensibility.Testing.Xunit)
 
 # Installation and Use
 

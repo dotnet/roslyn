@@ -1,0 +1,69 @@
+steps:
+- powershell: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
+  failOnStderr: true
+  displayName: Prepare Visual Studio
+  condition: succeededOrFailed()
+
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Build /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+  displayName: msbuild /t:Build
+
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Pack /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+  displayName: msbuild /t:Pack
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet test -f net46
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net46 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net46.binlog"
+    testRunTitle: net46-$(Agent.JobName)
+  condition: succeededOrFailed()
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet test -f net472
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net472.binlog"
+    testRunTitle: net472-$(Agent.JobName)
+  condition: succeededOrFailed()
+
+- powershell: azure-pipelines/variables/_pipelines.ps1
+  failOnStderr: true
+  displayName: Update pipeline variables based on build outputs
+  condition: succeededOrFailed()
+
+- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)"
+  failOnStderr: true
+  displayName: Publish artifacts
+  condition: succeededOrFailed()
+
+- task: PublishSymbols@2
+  inputs:
+    SymbolsFolder: $(Build.ArtifactStagingDirectory)/symbols-$(Agent.JobName)
+    SearchPattern: '**/*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
+  displayName: Publish symbols to symbol server
+  condition: and(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT')) # Execute on failed test runs too.
+
+- task: PublishSymbols@2
+  inputs:
+    SymbolsFolder: $(Build.ArtifactStagingDirectory)/test_symbols-$(Agent.JobName)
+    SearchPattern: '**/*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
+  displayName: Publish test symbols to symbol server
+  condition: and(failed(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT')) # Execute on failed test runs only.
+
+- bash: bash <(curl -s https://codecov.io/bash)
+  displayName: Publish code coverage results to codecov.io
+  condition: ne(variables['codecov_token'], '')
+  timeoutInMinutes: 3
+  continueOnError: true

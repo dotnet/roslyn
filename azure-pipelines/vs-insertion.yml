@@ -1,0 +1,50 @@
+trigger: none # We only want to trigger manually or based on resources
+pr: none
+
+resources:
+  pipelines:
+  - pipeline: CI
+    source: Library # TODO: This should match the name of your CI pipeline
+    tags:
+    - Real signed
+    trigger:
+      tags:
+      - Real signed
+      - auto-insertion
+
+stages:
+- stage: VS
+  displayName: VS insertion
+  jobs:
+  - deployment: insertion
+    pool: VSEng-ReleasePool
+    environment: No-Approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - powershell: |
+              Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+            displayName: Set pipeline name
+          - template: release-deployment-prep.yml
+          - download: CI
+            artifact: VSInsertion-Windows
+            displayName: Download VSInsertion-Windows artifact
+          - task: NuGetCommand@2
+            displayName: Push CoreXT packages to VS feed
+            inputs:
+              command: push
+              packagesToPush: $(Pipeline.Workspace)/CI/VSInsertion-windows/*.nupkg
+              publishVstsFeed: 97a41293-2972-4f48-8c0e-05493ae82010
+              allowPackageConflicts: true
+          - task: MicroBuildInsertVsPayload@4
+            displayName: Insert VS Payload
+            inputs:
+              TeamName: $(TeamName)
+              TeamEmail: $(TeamEmail)
+              InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
+              InsertionBuildPolicy: Request Perf DDRITs
+              AutoCompletePR: true
+              AutoCompleteMergeStrategy: Squash
+          - task: MicroBuildCleanup@1
+            displayName: Send Telemetry

@@ -73,6 +73,9 @@
     <!-- IDE0003 duplicates functionality provided by SX1101 -->
     <Rule Id="IDE0003" Action="None" />
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers.CSharp" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers.CSharp">
+    <Rule Id="VSTHRD010" Action="None" />
+  </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1101" Action="None" />
     <Rule Id="SA1139" Action="None" /> <!-- https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/2275 -->

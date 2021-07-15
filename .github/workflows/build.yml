@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - microbuild
+      - validate/*
+  pull_request:
+
+env:
+  TreatWarningsAsErrors: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BUILDCONFIGURATION: Release
+  codecov_token: c8862aaf-0c6d-48ee-a4a7-e88af58ef469
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+    - name: Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+      shell: pwsh
+    - name: Set pipeline variables based on source
+      run: azure-pipelines/variables/_pipelines.ps1
+      shell: pwsh
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Prepare Visual Studio
+      run: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
+    - name: build
+      run: msbuild /t:Build /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
+    - name: pack
+      run: msbuild /t:Pack /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
+    - name: test
+      run: dotnet test --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
+    - name: Update pipeline variables based on build outputs
+      run: azure-pipelines/variables/_pipelines.ps1
+      shell: pwsh
+    - name: Collect artifacts
+      run: azure-pipelines/artifacts/_stage_all.ps1
+      shell: pwsh
+      if: always()
+    - name: Upload project.assets.json files
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: projectAssetsJson-${{ runner.os }}
+        path: obj/_artifacts/projectAssetsJson
+      continue-on-error: true
+    - name: Upload variables
+      uses: actions/upload-artifact@v1
+      with:
+        name: variables
+        path: obj/_artifacts/variables
+      if: runner.os == 'Windows'
+      continue-on-error: true
+    - name: Upload build_logs
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: build_logs-${{ runner.os }}
+        path: obj/_artifacts/build_logs
+      continue-on-error: true
+    - name: Upload testResults
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: testResults-${{ runner.os }}
+        path: obj/_artifacts/testResults
+      continue-on-error: true
+    - name: Upload coverageResults
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: coverageResults-${{ runner.os }}
+        path: obj/_artifacts/coverageResults
+      continue-on-error: true
+    - name: Upload symbols
+      uses: actions/upload-artifact@v1
+      with:
+        name: symbols
+        path: obj/_artifacts/symbols
+      if: runner.os == 'Windows'
+      continue-on-error: true
+    - name: Upload deployables
+      uses: actions/upload-artifact@v1
+      with:
+        name: deployables
+        path: obj/_artifacts/deployables
+      if: always() && runner.os == 'Windows'
+    - name: Publish code coverage results to codecov.io
+      run: bash <(curl -s https://codecov.io/bash)
+      shell: bash
+      timeout-minutes: 3
+      continue-on-error: true

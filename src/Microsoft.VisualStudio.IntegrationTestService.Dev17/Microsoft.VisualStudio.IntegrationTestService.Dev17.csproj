@@ -21,6 +21,7 @@
       This extension is deployed on-demand by the integration test harness.
     -->
     <DeployExtension>False</DeployExtension>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

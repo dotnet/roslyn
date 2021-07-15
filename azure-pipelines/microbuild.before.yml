@@ -1,0 +1,6 @@
+steps:
+- task: MicroBuildSigningPlugin@3
+  inputs:
+    signType: $(SignType)
+    zipSources: false
+  displayName: Install MicroBuild Signing Plugin

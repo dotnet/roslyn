@@ -3,9 +3,11 @@
 
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
+    <!-- The assembly name must be consistent so consumers don't need to conditionally-specify TestFrameworkAttribute -->
     <AssemblyName>Microsoft.VisualStudio.Extensibility.Testing.Xunit</AssemblyName>
     <RootNamespace>Xunit</RootNamespace>
 
+    <PackageId>Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -40,15 +42,15 @@
 
   <ItemGroup>
     <!-- Embedded assemblies -->
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.11\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.11.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.11.exe" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.12\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.12.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.12.exe" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.14\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.exe" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.15\bin\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.exe" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.16\bin\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.exe" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.11\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.11.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.11.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.12\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.12.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.12.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.14\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.15\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.16\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev11\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev11\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems" Label="Shared" />

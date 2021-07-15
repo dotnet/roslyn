@@ -34,7 +34,9 @@ namespace Xunit.Harness
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 var result = _testAssemblyRunner.RunAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
             }
         }
