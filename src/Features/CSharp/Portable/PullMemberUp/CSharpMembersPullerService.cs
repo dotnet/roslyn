@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.  
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.PullMemberUp
 {
@@ -23,17 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.PullMemberUp
         {
         }
 
-        protected override ImmutableArray<UsingDirectiveSyntax> GetImports(SyntaxNode node)
+        protected override UsingDirectiveSyntax GenerateNamespaceImportDeclaration(NamespaceDeclarationSyntax node, SyntaxGenerator generator)
         {
-            return node.AncestorsAndSelf()
-                .Where(node => node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax)
-                .SelectMany(node => node switch
-                {
-                    CompilationUnitSyntax c => c.Usings,
-                    NamespaceDeclarationSyntax n => n.Usings,
-                    _ => throw ExceptionUtilities.UnexpectedValue(node),
-                })
-                .ToImmutableArray();
+            return (UsingDirectiveSyntax)generator.NamespaceImportDeclaration(node.Name);
         }
+
+        protected override SyntaxList<UsingDirectiveSyntax> GetCompilationImports(CompilationUnitSyntax node) => node.Usings;
+
+        protected override SyntaxList<UsingDirectiveSyntax> GetNamespaceImports(NamespaceDeclarationSyntax node) => node.Usings;
     }
 }

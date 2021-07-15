@@ -1493,6 +1493,369 @@ public class Derived : Base
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public Foo Test[||]Method()
+        {
+            return null;
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    using System;
+    using A_TestNs2;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public Foo TestMethod()
+        {
+            return null;
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using System;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public Foo Test[||]Method()
+        {
+            var uri = new Uri(""http://localhost"");
+            return null;
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using A_TestNs2;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public Foo TestMethod()
+        {
+            var uri = new Uri(""http://localhost"");
+            return null;
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using System;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithExtensionViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using TestNs2;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public int TestMethod()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithExtensionViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using TestNs1;
+using TestNs3;
+using TestNs4;
+
+namespace TestNs2
+{
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File3.cs"">
+namespace TestNs3
+{
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File4.cs"">
+using TestNs3;
+
+namespace TestNs4
+{
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using TestNs3;
+using TestNs4;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public int TestMethod()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using TestNs1;
+using TestNs3;
+using TestNs4;
+
+namespace TestNs2
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File3.cs"">
+namespace TestNs3
+{
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File4.cs"">
+using TestNs3;
+
+namespace TestNs4
+{
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
         {
             var testText = @"
@@ -1541,6 +1904,64 @@ public class Base
         <Document FilePath = ""File2.cs"">
 using Enumer = System.Linq.Enumerable;
 using Sys = System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithBaseAliasUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using Enumer = System.Linq.Enumerable;
+
+public class Base
+{
+    public void TestMethod()
+    {
+        System.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point{ get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using Enumer = System.Linq.Enumerable;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public void TestMethod()
+    {
+        System.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
 
 public class Derived : Base
 {
@@ -1604,6 +2025,130 @@ namespace TestNs2
     {
     }
 }
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithNewNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+        public Other Get[||]Other() => null;
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using X.Y;
+
+namespace A.B
+{
+    class Base
+    {
+        public Other GetOther() => null;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+        public int Get[||]Five() => 5;
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+        public int GetFive() => 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
 ";
             await TestInRegularAndScriptAsync(testText, expected);
         }

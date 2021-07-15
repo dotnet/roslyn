@@ -24,19 +24,37 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax, TCompilationSyntax, TNamespaceSyntax> : IMembersPullerService
+    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax, TCompilationUnitSyntax, TNamespaceDeclarationSyntax> : IMembersPullerService
         where TUsingOrAliasSyntax : SyntaxNode
-        where TCompilationSyntax : SyntaxNode
-        where TNamespaceSyntax : SyntaxNode
+        where TCompilationUnitSyntax : SyntaxNode
+        where TNamespaceDeclarationSyntax : SyntaxNode
     {
         /// <summary>
-        /// Gets all the imports/aliases in scope of <paramref name="node"/>.
+        /// Gets all the imports/aliases in scope of the compilation unit <paramref name="node"/>.
         /// </summary>
-        protected abstract ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node);
+        protected abstract SyntaxList<TUsingOrAliasSyntax> GetCompilationImports(TCompilationUnitSyntax node);
 
-        protected const string Kind = "PullMemberRemovableImport";
+        /// <summary>
+        /// Gets all the imports/aliases in scope of the namespace declared at <paramref name="node"/>.
+        /// </summary>
+        protected abstract SyntaxList<TUsingOrAliasSyntax> GetNamespaceImports(TNamespaceDeclarationSyntax node);
 
-        protected static SyntaxAnnotation Annotation = new(Kind);
+        /// <summary>
+        /// Generate an import directive that corresponds to imporing the given namespace. This is for the case where are pulling from one namespace
+        /// to another, but our members reference something in the source namespace (which isn't imported). If uneccessary, it will be removed later.
+        /// </summary>
+        protected abstract TUsingOrAliasSyntax GenerateNamespaceImportDeclaration(TNamespaceDeclarationSyntax node, SyntaxGenerator generator);
+
+        /// <summary>
+        /// Name used for our removable import annotation <see cref="s_annotation"/>
+        /// </summary>
+        private const string AnnotationKind = "PullMemberRemovableImport";
+
+        /// <summary>
+        /// Annotation used to mark imports that we move over, so that we can remove these imports if they are unnecessary
+        /// (and so we don't remove any other unnecessary imports)
+        /// </summary>
+        private static readonly SyntaxAnnotation s_annotation = new(AnnotationKind);
 
         public CodeAction TryComputeCodeAction(
             Document document,
@@ -293,11 +311,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    sourceImports.AddRange(GetImports(syntax)
+                    sourceImports.AddRange(GetImports(syntax, destinationEditor.Generator)
                         .Select(import => import
-                            .NormalizeWhitespace()
-                            .WithTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
-                            .WithAdditionalAnnotations(Annotation)));
+                            .WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
+                            .WithPrependedLeadingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
+                            .WithAdditionalAnnotations(s_annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -323,9 +341,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // imports that we just added.
             var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
             var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
-            var semanticModel = await destinationEditor.GetChangedDocument().GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
-                semanticModel.Compilation,
+                destinationEditor.SemanticModel.Compilation,
                 node,
                 node.GetCurrentNode(destinationSyntaxNode),
                 sourceImports,
@@ -339,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
-                node => node.HasAnnotations(Kind),
+                node => node.HasAnnotations(AnnotationKind),
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -352,9 +369,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return solutionEditor.GetChangedSolution();
         }
 
-        // In the case where we have imports from the source that get moved up, but none are necessary
-        // and are all removed, the adding/removing can destroy or copy leading trivia, including comments.
-        // So, we grab the leading trivia before we do import operations, and add it back in after.
+        /// <summary>
+        /// In the case where we have imports from the source that get moved up, but none are necessary
+        /// and are all removed, the adding/removing can destroy or copy leading trivia, including comments.
+        /// So, we grab the leading trivia before we do import operations, and add it back in after.
+        /// </summary>
         private static SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         {
             var members = syntaxFacts.GetMembersOfCompilationUnit(root);
@@ -368,6 +387,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // guaranteed to have at least one member, as we need a base class
             var firstMember = members.First();
             return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));
+        }
+
+        private ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node, SyntaxGenerator generator)
+        {
+            return node.AncestorsAndSelf()
+                .Where(node => node is TCompilationUnitSyntax || node is TNamespaceDeclarationSyntax)
+                .SelectMany(node => node switch
+                {
+                    TCompilationUnitSyntax c => GetCompilationImports(c),
+                    TNamespaceDeclarationSyntax n => GetNamespaceImports(n).Concat(GenerateNamespaceImportDeclaration(n, generator)),
+                    _ => throw ExceptionUtilities.UnexpectedValue(node)
+                })
+                .ToImmutableArray();
         }
 
         private static ISymbol MakeAbstractVersion(ISymbol member)
