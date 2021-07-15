@@ -12,7 +12,7 @@ env:
   TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BUILDCONFIGURATION: Release
-  codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  codecov_token: c8862aaf-0c6d-48ee-a4a7-e88af58ef469
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
 jobs:
@@ -23,8 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - ubuntu-18.04
-        - macos-latest
         - windows-latest
 
     steps:
@@ -39,10 +37,12 @@ jobs:
     - name: Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
     - name: build
-      run: dotnet build --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
+      run: msbuild /t:Build /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
     - name: pack
-      run: dotnet pack --no-build -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
+      run: msbuild /t:Pack /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
     - name: test
       run: dotnet test --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
     - name: Update pipeline variables based on build outputs

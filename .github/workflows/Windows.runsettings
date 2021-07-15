@@ -4,7 +4,7 @@
       <DataCollector friendlyName="blame" enabled="True">
         <Configuration>
           <CollectDump DumpType="full" />
-          <CollectDumpOnTestSessionHang TestTimeout="30000" DumpType="full" />
+          <CollectDumpOnTestSessionHang TestTimeout="600000" DumpType="full" />
           <!-- This ResultsDirectory must exist, but it is totally ignored. -->
           <ResultsDirectory>%GITHUB_WORKSPACE%</ResultsDirectory>
         </Configuration>
