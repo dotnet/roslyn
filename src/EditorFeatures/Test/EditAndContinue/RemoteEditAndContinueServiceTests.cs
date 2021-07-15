@@ -179,7 +179,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
                 return true;
             };
 
@@ -193,7 +193,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 var project = solution.Projects.Single();
                 Assert.Equal("proj", project.Name);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
 
                 var deltas = ImmutableArray.Create(new ManagedModuleUpdate(
                     module: moduleId1,
@@ -283,7 +283,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 Assert.Equal(instructionId1, instructionId);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
                 return new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
             };
 
@@ -321,7 +321,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             mockEncService.GetAdjustedActiveStatementSpansImpl = (document, activeStatementSpanProvider) =>
             {
                 Assert.Equal("test.cs", document.Name);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document.Id, "test.cs", CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document.Id, "test.cs", CancellationToken.None).AsTask().Result);
                 return ImmutableArray.Create(activeStatementSpan1);
             };
 

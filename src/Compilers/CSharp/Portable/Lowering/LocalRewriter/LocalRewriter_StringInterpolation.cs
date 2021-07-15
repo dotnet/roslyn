@@ -282,7 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
                 }
 
-                if (length == 1)
+                // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
+                // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
+                // we need to test for null and ensure "" if it is.
+                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
                 {
                     result = _factory.Coalesce(result!, _factory.StringLiteral(""));
                 }

@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         VarianceUpdate = 7,
         FieldKindUpdate = 8,
         TypeUpdate = 9,
-        ConstraintKindUpdate = 10,
+        //ConstraintKindUpdate = 10,
         InitializerUpdate = 11,
         FixedSizeFieldUpdate = 12,
         EnumUnderlyingTypeUpdate = 13,
         BaseTypeOrInterfaceUpdate = 14,
         TypeKindUpdate = 15,
         AccessorKindUpdate = 16,
-        MethodKindUpdate = 17,
+        //MethodKindUpdate = 17,
         DeclareLibraryUpdate = 18,
         DeclareAliasUpdate = 19,
         Renamed = 20,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ChangeImplicitMainReturnType = 102,
         ChangingParameterTypes = 103,
-        ChangingReturnType = 104,
-        ChangingTypeParameters = 105,
+        ChangingTypeParameters = 104,
+        ChangingConstraints = 105,
     }
 }

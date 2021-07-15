@@ -1071,5 +1071,20 @@ class C1 : [|I1|]
                 expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
+
+        [Fact]
+        public async Task UpgradeProjectForTargetTypedConditional()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class C
+{
+    void M(bool b)
+    {
+        int? i = [|b ? 1 : null|];
+    }
+}",
+                expected: LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }
