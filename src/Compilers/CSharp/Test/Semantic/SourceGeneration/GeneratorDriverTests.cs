@@ -2029,20 +2029,23 @@ class C { }
 
             // verify the expected outputs were generated
             // NOTE: adding new output types will cause this test to fail. Update above as needed.
-            foreach (var kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
+            foreach (IncrementalGeneratorOutputKind kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
             {
-                if ((IncrementalGeneratorOutputKind)kind == IncrementalGeneratorOutputKind.None)
+                if (kind == IncrementalGeneratorOutputKind.None)
                     continue;
 
                 if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
                 {
-                    Assert.DoesNotContain(result.Results[0].GeneratedSources, (s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs");
+                    Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
                 }
                 else
                 {
-                    Assert.Contains(result.Results[0].GeneratedSources, (s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs");
+                    Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
                 }
+
+                bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
+
         }
     }
 }
