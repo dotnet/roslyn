@@ -27,18 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var member = GenerateEnumMemberDeclaration(enumMember, destination, options);
 
-            if (members.Count == 0 || members.LastOrDefault().IsKind(SyntaxKind.CommaToken))
-            {
-                members.Add(member);
-            }
-            else
+            if (members.Count > 0 && !members.LastOrDefault().IsKind(SyntaxKind.CommaToken))
             {
                 var lastMember = members.Last();
                 var trailingTrivia = lastMember.GetTrailingTrivia();
                 members[members.Count - 1] = lastMember.WithTrailingTrivia();
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
-                members.Add(member);
             }
+
+            members.Add(member);
 
             if (options.Options.GetOption(CSharpCodeStyleOptions.PreferTrailingCommas).Value)
             {
