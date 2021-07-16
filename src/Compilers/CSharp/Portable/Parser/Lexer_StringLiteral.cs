@@ -726,12 +726,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
-                    if (IsAtEnd())
+                    var ch = _lexer.TextWindow.PeekChar();
+
+                    // See if we ran into an disallowed new line.  If so, this is recoverable, so just skip past it but
+                    // give a good message about the issue.  This will prevent a lot of cascading issues with the remainder
+                    // of the interpolated string that comes on the following lines.
+                    var allowNewLines = _isVerbatim && _allowNewlines;
+                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
+                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string);
+
+                    if (IsAtEnd(allowNewline: true))
                     {
                         return; // let the caller complain about the unterminated quote
                     }
 
-                    var ch = _lexer.TextWindow.PeekChar();
                     _lexer.TextWindow.AdvanceChar();
                     if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
                     {

@@ -775,6 +775,429 @@ public class Test
                 Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(6, 30));
         }
 
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string1()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */ } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string2()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string3()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment
+         } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string4()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */ 0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string5()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */
+                        0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string6()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /*
+                         * comment
+                         */ } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string7()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */ 0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string8()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */
+                        0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,37): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { /* comment */
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string9()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,23): error CS1733: Expected expression
+                //       string s = $"x { /* comment */
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
+                // (6,37): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { /* comment */
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string10()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */ 0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string11()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /* comment */
+                        0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string12()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /*
+                         * comment
+                         */
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string13()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /*
+                         * comment
+                         */ 0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string14()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /*
+                         * comment
+                         */
+                        0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string15()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { /*
+                         * comment
+                         */
+                        0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string16()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /* comment */ } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string17()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /* comment */ 0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string18()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         * comment
+                         */ } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string19()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         * comment
+                         */ 0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string20()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         * comment
+                         */
+                        0 } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string21()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         * comment
+                         */
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string22()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         * comment
+                         */ 0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9002ERR_Multiline_comment_is_not_allowed_inside_a_non_verbatim_interpolated_string23()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        /*
+                         *comment
+                         */
+                        0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
