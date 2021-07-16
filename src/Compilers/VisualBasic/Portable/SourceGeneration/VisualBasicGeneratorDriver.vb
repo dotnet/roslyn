@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(state)
         End Sub
 
-        Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), disabledOutputs As IncrementalGeneratorOutputKind)
-            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False, disabledOutputs)
+        Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), driverOptions As GeneratorDriverOptions)
+            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False, driverOptions)
         End Sub
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxTree.ParseTextLazy(input.Text, CType(_state.ParseOptions, VisualBasicParseOptions), fileName)
         End Function
 
-        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing, Optional disabledOutputs As IncrementalGeneratorOutputKind = IncrementalGeneratorOutputKind.None) As VisualBasicGeneratorDriver
-            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), disabledOutputs)
+        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing, Optional driverOptions As GeneratorDriverOptions? = Nothing) As VisualBasicGeneratorDriver
+            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), If(driverOptions, GeneratorDriverOptions.Default))
         End Function
 
         ' 3.11 BACK COMPAT OVERLOAD -- DO NOT TOUCH
         <EditorBrowsable(EditorBrowsableState.Never)>
         Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText), parseOptions As VisualBasicParseOptions, analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider) As VisualBasicGeneratorDriver
-            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), IncrementalGeneratorOutputKind.None)
+            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), GeneratorDriverOptions.Default)
         End Function
 
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection

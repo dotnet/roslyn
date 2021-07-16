@@ -2020,7 +2020,7 @@ class C { }
                 ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, disabledOutputs: disabledOutput, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, driverOptions: new GeneratorDriverOptions(disabledOutput), parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
             var result = driver.GetRunResult();
 
