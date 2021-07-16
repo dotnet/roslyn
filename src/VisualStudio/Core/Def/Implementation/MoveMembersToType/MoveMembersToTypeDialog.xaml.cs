@@ -8,6 +8,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
@@ -17,14 +18,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
     /// </summary>
     internal partial class MoveMembersToTypeDialog : DialogWindow
     {
-        private readonly MoveMembersToTypeViewModel _viewModel;
+        private readonly MoveMembersToTypeDialogViewModel _viewModel;
 
-        public string MoveMembersToTypeDialogTitle => ServicesVSResources.Move_members_to_type;
+        public string MoveMembersToTypeDialogTitle => "Test";
         public string NamespaceLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
+        public string SelectMembers => ServicesVSResources.Select_members_colon;
 
-        internal MoveMembersToTypeDialog(MoveMembersToTypeViewModel viewModel)
+        MemberSelection MemberSelectionControl { get; }
+
+        internal MoveMembersToTypeDialog(MoveMembersToTypeDialogViewModel viewModel)
             : base()
         {
             _viewModel = viewModel;
@@ -51,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
         internal readonly struct TestAccessor
         {
-            private readonly MoveToNamespaceDialog _dialog;
-            public TestAccessor(MoveToNamespaceDialog dialog)
+            private readonly MoveMembersToTypeDialog _dialog;
+            public TestAccessor(MoveMembersToTypeDialog dialog)
                 => _dialog = dialog;
 
-            public Button OKButton => _dialog.OKButton;
-            public Button CancelButton => _dialog.CancelButton;
-            public ComboBox NamespaceBox => _dialog.NamespaceBox;
+            //public Button OKButton => _dialog.OKButton;
+            //public Button CancelButton => _dialog.CancelButton;
+            //public ComboBox NamespaceBox => _dialog.NamespaceBox;
 
         }
     }
