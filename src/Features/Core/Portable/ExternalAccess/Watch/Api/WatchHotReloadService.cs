@@ -70,7 +70,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(_capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(
+                solution,
+                new DebuggerService(_capabilities),
+                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureAllMatchingDocuments: true,
+                reportDiagnostics: false,
+                cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
