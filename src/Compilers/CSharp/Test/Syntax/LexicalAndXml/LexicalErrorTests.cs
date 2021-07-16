@@ -448,7 +448,7 @@ class Test
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string1()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string1()
         {
             var test = @"
 public class Test
@@ -464,7 +464,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string2()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string2()
         {
             var test = @"
 public class Test
@@ -478,28 +478,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,28): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @" "
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
-                // (6,28): error CS1002: ; expected
-                //       string s = $"x { @" "
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 28),
-                // (7,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(7, 26),
-                // (7,26): error CS1010: Newline in constant
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 26),
-                // (7,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(7, 26),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 28));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string3()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string3()
         {
             var test = @"
 public class Test
@@ -515,11 +500,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string4()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string4()
         {
             var test = @"
 public class Test
@@ -534,28 +519,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
+                // (6,24): error CS9000: Multiline verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24),
-                // (7,27): error CS1002: ; expected
-                //                          "
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 27),
-                // (8,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(8, 26),
-                // (8,26): error CS1010: Newline in constant
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 26),
-                // (8,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(8, 26),
-                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+                Diagnostic(ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string5()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string5()
         {
             var test = @"
 public class Test
@@ -569,34 +539,25 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
-                // (6,23): error CS1733: Expected expression
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                // (6,23): error CS1525: Invalid expression term ''
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
-                // (6,23): error CS1002: ; expected
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23),
-                // (7,30): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
+                // (7,1): error CS1073: Unexpected token '@'
                 //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 30),
-                // (7,33): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
+                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
                 //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(7, 33),
-                // (7,33): error CS1010: Newline in constant
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
+                // (7,28): error CS1002: ; expected
                 //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 33),
-                // (7,33): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(7, 33),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, @""" } y""").WithLocation(7, 28));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string6()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string6()
         {
             var test = @"
 public class Test
@@ -611,34 +572,25 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
-                // (6,23): error CS1733: Expected expression
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                // (6,23): error CS1525: Invalid expression term ''
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
-                // (6,23): error CS1002: ; expected
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23),
-                // (8,28): error CS1002: ; expected
-                //                          " } y";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 28),
-                // (8,31): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                          " } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(8, 31),
-                // (8,31): error CS1010: Newline in constant
-                //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 31),
-                // (8,31): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                          " } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(8, 31),
-                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
+                // (7,1): error CS1073: Unexpected token '@'
+                //                         @" " } y";
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
+                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                //                         @" " } y";
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
+                // (7,28): error CS1002: ; expected
+                //                         @" " } y";
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, @"").WithLocation(7, 27));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string7()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string7()
         {
             var test = @"
 public class Test
@@ -654,15 +606,24 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
-                // (6,23): error CS1733: Expected expression
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                // (6,23): error CS1525: Invalid expression term ''
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
-                // (6,23): error CS1002: ; expected
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
+                // (7,1): error CS1073: Unexpected token '@'
+                //                         @"
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
+                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                //                         @"
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
+                // (7,27): error CS1002: ; expected
+                //                         @"
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 27),
+                // (8,26): error CS1010: Newline in constant
+                //                          "
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 26),
                 // (8,27): error CS1002: ; expected
                 //                          "
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 27),
@@ -681,7 +642,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string8()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string8()
         {
             var test = @"
 public class Test
@@ -698,11 +659,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string9()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string9()
         {
             var test = @"
 public class Test
@@ -719,11 +680,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string10()
+        public void CS9000ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string10()
         {
             var test = @"
 public class Test
@@ -740,7 +701,7 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,30): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { $@" { @"
-                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
         }
 
         [Fact]

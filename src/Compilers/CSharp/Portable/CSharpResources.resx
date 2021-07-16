@@ -6794,7 +6794,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
-  <data name="ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string" xml:space="preserve">
-    <value>Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</value>
+  <data name="ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string" xml:space="preserve">
+    <value>Multiline verbatim string literal is not allowed inside a non-verbatim interpolated string</value>
+  </data>
+  <data name="ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string" xml:space="preserve">
+    <value>Newline is not allowed inside a non-verbatim interpolated string</value>
   </data>
 </root>

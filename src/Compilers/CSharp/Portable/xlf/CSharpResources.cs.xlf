@@ -782,9 +782,9 @@
         <target state="translated">Inicializační metoda modulu {0} musí být statická, nesmí mít žádné parametry a musí vracet void.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string">
-        <source>Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</source>
-        <target state="new">Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</target>
+      <trans-unit id="ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string">
+        <source>Multiline verbatim string literal is not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Multiline verbatim string literal is not allowed inside a non-verbatim interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -810,6 +810,11 @@
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string">
+        <source>Newline is not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Newline is not allowed inside a non-verbatim interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">

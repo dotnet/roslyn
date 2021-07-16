@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
                 // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
                 if (!allowNewlines && SyntaxFacts.IsNewLine(ch) && error == null)
-                    error = ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string;
+                    error = ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string;
 
                 TextWindow.AdvanceChar();
                 _builder.Append(ch);
@@ -510,9 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 while (true)
                 {
+                    char ch = _lexer.TextWindow.PeekChar();
+
                     var allowNewLines = _isVerbatim && _allowNewlines;
-                    if (!allowNewLines && SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()) && error == null)
-                        error = _lexer.MakeError(_lexer.TextWindow.Position, width: 1, ErrorCode.ERR_New_line_is_not_allowed_inside_a_non_verbatim_interpolated_string);
+                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch) && error == null)
+                        error = _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string);
 
                     if (IsAtEnd(allowNewline: true))
                     {
@@ -520,7 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return;
                     }
 
-                    char ch = _lexer.TextWindow.PeekChar();
                     switch (ch)
                     {
                         case '#':

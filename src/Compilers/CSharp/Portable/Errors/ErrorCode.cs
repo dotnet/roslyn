@@ -1982,8 +1982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
 
-        ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string = 9000,
-        ERR_New_line_is_not_allowed_inside_a_non_verbatim_interpolated_string = 9001,
+        ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string = 9000,
+        ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string = 9001,
 
         #endregion
 
