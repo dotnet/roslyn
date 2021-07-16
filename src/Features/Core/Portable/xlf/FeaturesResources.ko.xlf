@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="new">#{0} directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM(약식)</target>
@@ -585,6 +590,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">로컬 소개</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">쿼리 변수 지정</target>
@@ -664,11 +684,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">제어 문자가 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 식을 포함하는 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2080,6 +2095,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">활성 문 주위에서 '{0}'을(를) 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">람다 식에 블록 본문 사용</target>
@@ -2363,7 +2383,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2429,6 +2449,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" 사용자 지정 형식 지정자(및 임의 개수의 추가 "H" 지정자)는 시간을 00부터 23까지의 숫자로 나타냅니다. 즉, 시간은 자정부터 경과한 시간을 계산하는 0 기반 24시간제로 표현됩니다. 한 자릿수 시간은 앞에 0이 있는 형식으로 지정됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2570,6 +2595,16 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">소스(특성)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

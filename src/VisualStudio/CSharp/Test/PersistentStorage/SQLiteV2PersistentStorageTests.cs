@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Xunit;
@@ -23,7 +24,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
         internal override AbstractPersistentStorageService GetStorageService(OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
-            => new SQLitePersistentStorageService(options, exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value, locationService, faultInjector);
+            => new SQLitePersistentStorageService(
+                options,
+                exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
+                locationService,
+                exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),
+                faultInjector);
 
         [Fact]
         public async Task TestCrashInNewConnection()

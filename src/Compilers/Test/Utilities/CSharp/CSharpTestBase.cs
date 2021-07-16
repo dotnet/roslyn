@@ -876,7 +876,7 @@ namespace System.Runtime.CompilerServices
         {
             if ((object)options == null)
             {
-                options = TestOptions.Regular;
+                options = TestOptions.RegularPreview;
             }
 
             var stringText = StringText.From(text, encoding ?? Encoding.UTF8);
@@ -1121,7 +1121,7 @@ namespace System.Runtime.CompilerServices
 
             if (experimentalFeature.HasValue)
             {
-                parseOptions = (parseOptions ?? TestOptions.Regular).WithExperimental(experimentalFeature.Value);
+                parseOptions = (parseOptions ?? TestOptions.RegularPreview).WithExperimental(experimentalFeature.Value);
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
@@ -1881,6 +1881,7 @@ namespace System.Runtime.CompilerServices
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 

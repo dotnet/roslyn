@@ -63,6 +63,7 @@ variables:
     value: '[Skip-SymbolCheck]'
 
 stages:
+
 - stage: build
   displayName: Build and Test
 
@@ -72,6 +73,8 @@ stages:
       CreatePr: false
       LclSource: lclFilesfromPackage
       LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
+  - template: eng/common/templates/jobs/source-build.yml
 
   - job: OfficialBuild
     displayName: Official Build

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
-            if (!(destination.IsDelegateType() || (destination.SpecialType == SpecialType.System_Delegate && IsFeatureInferredDelegateTypeEnabled(source))))
+            if (!(destination.IsDelegateType() || destination.SpecialType == SpecialType.System_Delegate))
             {
                 return Conversion.NoConversion;
             }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (signature, true, new CallingConventionInfo(signature.CallingConvention, signature.GetCallingConventionModifiers()));
             }
 
-            var delegateType = (type.SpecialType == SpecialType.System_Delegate) && methodGroup.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) ?
+            var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
                 type.GetDelegateType();

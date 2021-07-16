@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
@@ -214,6 +215,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
+        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
+        {
+            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
+            {
+                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
+
+                if (Compilation.SourceModule != method.ContainingModule)
+                {
+                    Debug.Assert(syntax.SyntaxTree is object);
+                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
+                }
+            }
+        }
+
         private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
@@ -319,11 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
+                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
+                var binder = GetRequiredBinder(oldCase.Syntax);
                 var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
-                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
@@ -346,6 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversion.IsUserDefined);
 
             if (!conversion.IsValid)
             {
@@ -511,9 +534,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            if ((destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType()) &&
-                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
+            if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
                 BoundLambda boundLambda;
@@ -581,9 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (destination.SpecialType == SpecialType.System_Delegate &&
-                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
+            if (destination.SpecialType == SpecialType.System_Delegate)
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);
@@ -788,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!IsBadBaseAccess(node, receiverOpt, methodSymbol, diagnostics))
             {
-                CheckRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
             }
 
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))

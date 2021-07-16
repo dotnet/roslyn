@@ -201,6 +201,26 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return -1;
         }
 
+        public int FindIndex<TArg>(Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(0, Count, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(startIndex, Count - startIndex, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, int count, Func<T, TArg, bool> match, TArg arg)
+        {
+            var endIndex = startIndex + count;
+            for (var i = startIndex; i < endIndex; i++)
+            {
+                if (match(_builder[i], arg))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public bool Remove(T element)
         {
             return _builder.Remove(element);

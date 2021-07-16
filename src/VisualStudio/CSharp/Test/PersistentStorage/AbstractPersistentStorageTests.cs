@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
@@ -841,6 +842,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                             exceptions.Add(ex);
                         }
                     }
+
                     countdown.Signal();
                 });
             }
@@ -873,6 +875,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                             exceptions.Add(ex);
                         }
                     }
+
                     countdown.Signal();
                 }, i);
             }

@@ -109,6 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Else
                     workspace.Dispose()
                 End If
+
                 Throw
             End Try
 

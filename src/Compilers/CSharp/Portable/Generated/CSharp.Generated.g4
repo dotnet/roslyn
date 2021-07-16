@@ -98,7 +98,6 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
-  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -178,7 +177,11 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  ;
+
+explicit_interface_specifier
+  : name '.'
   ;
 
 destructor_declaration
@@ -187,10 +190,6 @@ destructor_declaration
 
 method_declaration
   : attribute_list* modifier* type explicit_interface_specifier? identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
-  ;
-
-explicit_interface_specifier
-  : name '.'
   ;
 
 type_parameter_list
@@ -230,7 +229,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_property_declaration
@@ -602,7 +601,16 @@ positional_pattern_clause
   ;
 
 subpattern
-  : name_colon? pattern
+  : base_expression_colon? pattern
+  ;
+
+base_expression_colon
+  : expression_colon
+  | name_colon
+  ;
+
+expression_colon
+  : expression ':'
   ;
 
 property_pattern_clause
@@ -744,7 +752,7 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : attribute_list* modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* type? parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
@@ -1172,7 +1180,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
-  | line_directive_trivia
+  | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
   | pragma_checksum_directive_trivia
@@ -1226,8 +1234,21 @@ error_directive_trivia
   : '#' 'error'
   ;
 
+line_or_span_directive_trivia
+  : line_directive_trivia
+  | line_span_directive_trivia
+  ;
+
 line_directive_trivia
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
+  ;
+
+line_span_directive_trivia
+  : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
+  ;
+
+line_directive_position
+  : '(' numeric_literal_token ',' numeric_literal_token ')'
   ;
 
 load_directive_trivia

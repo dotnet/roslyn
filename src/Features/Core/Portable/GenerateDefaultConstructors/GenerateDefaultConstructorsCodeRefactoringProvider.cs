@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 return;
             }
 
-            var service = document.GetLanguageService<IGenerateDefaultConstructorsService>();
+            var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
             var actions = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }

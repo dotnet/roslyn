@@ -411,6 +411,19 @@
           <LocCanonicalName>RemoveUnusedReferences</LocCanonicalName>
         </Strings>
       </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0x0203" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Track Value Source</ButtonText>
+          <CommandName>ShowValueTrackingCommandName</CommandName>
+          <CanonicalName>ShowValueTracking</CanonicalName>
+          <LocCanonicalName>ViewEditorConfigSettings</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -516,6 +529,10 @@
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
     </CommandPlacement>
+  
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
@@ -601,6 +618,8 @@
       <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
 
       <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
+    
+      <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">

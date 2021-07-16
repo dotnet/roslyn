@@ -381,8 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndKeyword = 8439,
         /// <summary>Represents <see langword="not"/>.</summary>
         NotKeyword = 8440,
-        /// <summary>Represents <see langword="data"/>.</summary>
-        DataKeyword = 8441,
+
+        // Don't use 8441. It corresponds to a deleted kind (DataKeyword) that was previously shipped.
+
         /// <summary>Represents <see langword="with"/>.</summary>
         WithKeyword = 8442,
         /// <summary>Represents <see langword="init"/>.</summary>
@@ -856,5 +857,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         FunctionPointerUnmanagedCallingConvention = 9067,
 
         RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
     }
 }

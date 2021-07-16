@@ -519,5 +519,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         InheritanceMargin_NavigateToTarget = 488,
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
+
+        ValueTracking_Command = 490,
+        ValueTracking_TrackValueSource = 491,
+
+        InheritanceMargin_GetInheritanceMemberItems = 492,
     }
 }

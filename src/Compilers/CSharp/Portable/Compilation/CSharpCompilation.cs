@@ -3352,7 +3352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3364,7 +3363,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken);
         }
@@ -4335,7 +4333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.Contains(_name))
+                    if (typeDecl.MemberNames.ContainsKey(_name))
                     {
                         return true;
                     }
