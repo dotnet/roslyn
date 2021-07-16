@@ -8,13 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 {
     [Shared]
     [Export(typeof(IDocumentOptionsProviderFactory))]
-    [Order(Before = PredefinedDocumentOptionsProviderNames.EditorConfig)]
+    [ExtensionOrder(Before = PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class RazorDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly Lazy<IRazorDocumentOptionsService> _innerRazorDocumentOptionsService;
