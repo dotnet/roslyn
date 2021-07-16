@@ -795,12 +795,18 @@ public class Test
    public static int Main()
    {
       string s = $""x { $@"" { // comment
-                             } } y"";
+                             } "" } y"";
    }
 }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test);
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,29): error CS1733: Expected expression
+                //       string s = $"x { $@" { // comment
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 29),
+                // (6,30): error CS8077: A single-line comment may not be used in an interpolated string.
+                //       string s = $"x { $@" { // comment
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(6, 30));
         }
         [Fact]
         public void CS8077ERR_SingleLineCommentInExpressionHole4()
@@ -851,12 +857,15 @@ public class Test
    {
       string s = $""x { $@"" { // comment
                                0
-                             } } y"";
+                             } "" } y"";
    }
 }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test);
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,30): error CS8077: A single-line comment may not be used in an interpolated string.
+                //       string s = $"x { $@" { // comment
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(6, 30));
         }
 
         #endregion
