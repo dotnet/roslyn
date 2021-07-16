@@ -295,6 +295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowBlankLineAfterColonInConstructorInitializer)}")});
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferTrailingCommas = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTrailingCommas),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            "csharp_style_prefer_trailing_commas",
+            $"TextEditor.CSharp.Specific.{nameof(PreferTrailingCommas)}");
+
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
