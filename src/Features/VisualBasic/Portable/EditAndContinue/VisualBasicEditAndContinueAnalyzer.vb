@@ -2289,52 +2289,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ClassifyUpdate(DirectCast(oldNode, NamespaceStatementSyntax), DirectCast(newNode, NamespaceStatementSyntax))
                         Return
 
-                    Case SyntaxKind.VariableDeclarator
-                        ClassifyUpdate(DirectCast(oldNode, VariableDeclaratorSyntax), DirectCast(newNode, VariableDeclaratorSyntax))
-                        Return
-
-                    Case SyntaxKind.ModifiedIdentifier
-                        ClassifyUpdate(DirectCast(newNode, ModifiedIdentifierSyntax))
-                        Return
-
-                    Case SyntaxKind.SubBlock,
-                         SyntaxKind.FunctionBlock
-                        ClassifyUpdate(DirectCast(oldNode, MethodBlockSyntax), DirectCast(newNode, MethodBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.SubStatement,
-                         SyntaxKind.FunctionStatement
-                        ClassifyUpdate(DirectCast(oldNode, MethodStatementSyntax), DirectCast(newNode, MethodStatementSyntax))
-                        Return
-
-                    Case SyntaxKind.OperatorBlock
-                        ClassifyUpdate(DirectCast(oldNode, OperatorBlockSyntax), DirectCast(newNode, OperatorBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.ConstructorBlock
-                        ClassifyUpdate(DirectCast(oldNode, ConstructorBlockSyntax), DirectCast(newNode, ConstructorBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.PropertyStatement
-                        ClassifyUpdate(DirectCast(oldNode, PropertyStatementSyntax), DirectCast(newNode, PropertyStatementSyntax))
-                        Return
-
-                    Case SyntaxKind.EventStatement
-                        ClassifyUpdate(DirectCast(oldNode, EventStatementSyntax), DirectCast(newNode, EventStatementSyntax))
-                        Return
-
-                    Case SyntaxKind.GetAccessorBlock,
-                         SyntaxKind.SetAccessorBlock,
-                         SyntaxKind.AddHandlerAccessorBlock,
-                         SyntaxKind.RemoveHandlerAccessorBlock,
-                         SyntaxKind.RaiseEventAccessorBlock
-                        ClassifyUpdate(DirectCast(oldNode, AccessorBlockSyntax), DirectCast(newNode, AccessorBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.EnumMemberDeclaration
-                        ClassifyUpdate(DirectCast(oldNode, EnumMemberDeclarationSyntax), DirectCast(newNode, EnumMemberDeclarationSyntax))
-                        Return
-
                     Case SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Update)
                         Return
@@ -2352,161 +2306,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyUpdate(oldNode As NamespaceStatementSyntax, newNode As NamespaceStatementSyntax)
                 Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Name, newNode.Name))
                 ReportError(RudeEditKind.Renamed)
-            End Sub
-
-            Private Sub ClassifyUpdate(newNode As ModifiedIdentifierSyntax)
-                ' Otherwise only the size of the array changed, which is a legal initializer update
-                ' unless it contains lambdas, queries etc.
-                ClassifyDeclarationBodyRudeUpdates(newNode)
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As VariableDeclaratorSyntax, newNode As VariableDeclaratorSyntax)
-                Dim typeDeclaration = DirectCast(oldNode.Parent.Parent, TypeBlockSyntax)
-                If typeDeclaration.BlockStatement.Arity > 0 Then
-                    ReportError(RudeEditKind.GenericTypeInitializerUpdate)
-                    Return
-                End If
-
-                If ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
-                                                  oldNode.AsClause,
-                                                  newNode.Initializer,
-                                                  newNode.AsClause) Then
-                    ' Check if a constant field is updated:
-                    Dim fieldDeclaration = DirectCast(oldNode.Parent, FieldDeclarationSyntax)
-                    If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
-                        ReportError(RudeEditKind.Update)
-                        Return
-                    End If
-                End If
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As PropertyStatementSyntax, newNode As PropertyStatementSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.ImplementsClause, newNode.ImplementsClause) Then
-                    ReportError(RudeEditKind.ImplementsClauseUpdate)
-                    Return
-                End If
-
-                If ClassifyTypeAndInitializerUpdates(oldNode.Initializer, oldNode.AsClause, newNode.Initializer, newNode.AsClause) Then
-                    ' change in an initializer of an auto-property
-                    Dim typeDeclaration = DirectCast(oldNode.Parent, TypeBlockSyntax)
-                    If typeDeclaration.BlockStatement.Arity > 0 Then
-                        ReportError(RudeEditKind.GenericTypeInitializerUpdate)
-                        Return
-                    End If
-                End If
-            End Sub
-
-            ' Returns true if the initializer has changed.
-            Private Function ClassifyTypeAndInitializerUpdates(oldEqualsValue As EqualsValueSyntax,
-                                                               oldClause As AsClauseSyntax,
-                                                               newEqualsValue As EqualsValueSyntax,
-                                                               newClause As AsClauseSyntax) As Boolean
-
-                Dim oldInitializer = GetInitializerExpression(oldEqualsValue, oldClause)
-                Dim newInitializer = GetInitializerExpression(newEqualsValue, newClause)
-
-                If newInitializer IsNot Nothing AndAlso Not SyntaxFactory.AreEquivalent(oldInitializer, newInitializer) Then
-                    ClassifyDeclarationBodyRudeUpdates(newInitializer)
-                    Return True
-                End If
-
-                Return False
-            End Function
-
-            Private Sub ClassifyUpdate(oldNode As EventStatementSyntax, newNode As EventStatementSyntax)
-                ' A custom event can't be matched with a field event and vice versa:
-                Debug.Assert(SyntaxFactory.AreEquivalent(oldNode.CustomKeyword, newNode.CustomKeyword))
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.ImplementsClause, newNode.ImplementsClause) Then
-                    ReportError(RudeEditKind.ImplementsClauseUpdate)
-                    Return
-                End If
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As MethodBlockSyntax, newNode As MethodBlockSyntax)
-                ClassifyMethodBodyRudeUpdate(oldNode,
-                                             newNode,
-                                             containingMethod:=newNode,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As MethodStatementSyntax, newNode As MethodStatementSyntax)
-                ' TODO (tomat): We can support this
-                If Not SyntaxFactory.AreEquivalent(oldNode.HandlesClause, newNode.HandlesClause) Then
-                    ReportError(RudeEditKind.HandlesClauseUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.ImplementsClause, newNode.ImplementsClause) Then
-                    ReportError(RudeEditKind.ImplementsClauseUpdate)
-                    Return
-                End If
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As OperatorBlockSyntax, newNode As OperatorBlockSyntax)
-                ClassifyMethodBodyRudeUpdate(oldNode,
-                                             newNode,
-                                             containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As AccessorBlockSyntax, newNode As AccessorBlockSyntax)
-                Debug.Assert(newNode.Parent.IsKind(SyntaxKind.EventBlock) OrElse
-                             newNode.Parent.IsKind(SyntaxKind.PropertyBlock))
-
-                ClassifyMethodBodyRudeUpdate(oldNode,
-                                             newNode,
-                                             containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As EnumMemberDeclarationSyntax, newNode As EnumMemberDeclarationSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer) Then
-                    ReportError(RudeEditKind.InitializerUpdate)
-                    Return
-                End If
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As ConstructorBlockSyntax, newNode As ConstructorBlockSyntax)
-                ClassifyMethodBodyRudeUpdate(oldNode,
-                                             newNode,
-                                             containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyMethodBodyRudeUpdate(oldBody As MethodBlockBaseSyntax,
-                                                     newBody As MethodBlockBaseSyntax,
-                                                     containingMethod As MethodBlockSyntax,
-                                                     containingType As TypeBlockSyntax)
-
-                If (oldBody.EndBlockStatement Is Nothing) <> (newBody.EndBlockStatement Is Nothing) Then
-                    If oldBody.EndBlockStatement Is Nothing Then
-                        ReportError(RudeEditKind.MethodBodyAdd)
-                        Return
-                    Else
-                        ReportError(RudeEditKind.MethodBodyDelete)
-                        Return
-                    End If
-                End If
-
-                ' The method only gets called if there are no other changes to the method declaration.
-                ' Since we got the update edit something has to be different in the body.
-                Debug.Assert(newBody.EndBlockStatement IsNot Nothing)
-
-                ClassifyMemberBodyRudeUpdate(containingMethod, containingType, isTriviaUpdate:=False)
-                ClassifyDeclarationBodyRudeUpdates(newBody)
-            End Sub
-
-            Public Sub ClassifyMemberBodyRudeUpdate(containingMethodOpt As MethodBlockSyntax, containingTypeOpt As TypeBlockSyntax, isTriviaUpdate As Boolean)
-                If containingMethodOpt?.SubOrFunctionStatement.TypeParameterList IsNot Nothing Then
-                    ReportError(If(isTriviaUpdate, RudeEditKind.GenericMethodTriviaUpdate, RudeEditKind.GenericMethodUpdate))
-                    Return
-                End If
-
-                If containingTypeOpt?.BlockStatement.Arity > 0 Then
-                    ReportError(If(isTriviaUpdate, RudeEditKind.GenericTypeTriviaUpdate, RudeEditKind.GenericTypeUpdate))
-                    Return
-                End If
             End Sub
 
             Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
@@ -2565,20 +2364,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberUpdateRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
+        Friend Overrides Sub ReportMemberBodyUpdateRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
             Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newMember, EditKind.Update, span:=span)
-
-            classifier.ClassifyMemberBodyRudeUpdate(
-                TryCast(newMember, MethodBlockSyntax),
-                newMember.FirstAncestorOrSelf(Of TypeBlockSyntax)(),
-                isTriviaUpdate:=True)
-
             classifier.ClassifyDeclarationBodyRudeUpdates(newMember)
         End Sub
 
 #End Region
 
 #Region "Semantic Rude Edits"
+        Protected Overrides Function AreFixedSizeBufferSizesEqual(oldField As IFieldSymbol, newField As IFieldSymbol, cancellationToken As CancellationToken) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function AreHandledEventsEqual(oldMethod As IMethodSymbol, newMethod As IMethodSymbol) As Boolean
+            Return oldMethod.HandledEvents.SequenceEqual(
+                newMethod.HandledEvents,
+                Function(x, y)
+                    Return x.HandlesKind = y.HandlesKind AndAlso
+                           SymbolsEquivalent(x.EventContainer, y.EventContainer) AndAlso
+                           SymbolsEquivalent(x.EventSymbol, y.EventSymbol) AndAlso
+                           SymbolsEquivalent(x.WithEventsSourceProperty, y.WithEventsSourceProperty)
+                End Function)
+        End Function
+
         Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
             Dim kind = GetInsertedMemberSymbolRudeEditKind(newSymbol, insertingIntoExistingContainingType)
 

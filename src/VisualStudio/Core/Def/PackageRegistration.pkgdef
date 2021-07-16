@@ -16,7 +16,7 @@
 [$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
 "Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
 "Value"=dword:00000000
-"Title"="Enable experimental C#/VB editor (requires restart)"
+"Title"="C#/VB LSP editor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
 [$RootKey$\FeatureFlags\Roslyn\LSP\Completion]
