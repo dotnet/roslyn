@@ -484,7 +484,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -492,7 +492,15 @@ class C
         (string name, int age) [|person|] = default;
         Console.WriteLine(person.name + "" "" + person.age);
     }
-}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)));
+}",
+@"class C
+{
+    void M()
+    {
+        (string name, int age) = default;
+        Console.WriteLine(name + "" "" + age);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]

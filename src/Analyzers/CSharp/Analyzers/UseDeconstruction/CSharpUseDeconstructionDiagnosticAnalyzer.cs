@@ -176,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             if (conversion.Exists &&
                 !conversion.IsIdentity &&
+                !conversion.IsDefaultLiteral &&
                 !conversion.IsTupleConversion &&
                 !conversion.IsTupleLiteralConversion)
             {

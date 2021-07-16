@@ -8946,7 +8946,7 @@ class C
         }
 
         [Fact]
-        public void TestDeconstructDefaultLiteral_InCSharp7_2()
+        public void TestDeconstructDefaultLiteral_InCSharp9()
         {
             string source = @"
 class C
@@ -8957,16 +8957,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,29): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (6,29): error CS8773: Feature 'deconstruction on default' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int i, string s) = default;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "default").WithArguments("deconstruction on default", "10.0").WithLocation(6, 29)
                 );
         }
 
         [Fact]
-        public void TestDeconstructDefaultLiteral_Nested_InCSharp7_2()
+        public void TestDeconstructDefaultLiteral_Nested_InCSharp9()
         {
             string source = @"
 class C
@@ -8977,16 +8977,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,43): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (6,43): error CS8773: Feature 'deconstruction on default' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int x, (int i, string s)) = (42, default);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "default").WithArguments("deconstruction on default", "10.0").WithLocation(6, 43)
                 );
         }
 
         [Fact]
-        public void TestDeconstructDefaultLiteral_Nested2_InCSharp7_2()
+        public void TestDeconstructDefaultLiteral_Nested2_InCSharp9()
         {
             string source = @"
 class C
@@ -8997,11 +8997,11 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,39): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (6,39): error CS8773: Feature 'deconstruction on default' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int x, (int i, string s)) =  default;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "default").WithArguments("deconstruction on default", "10.0").WithLocation(6, 39)
                 );
         }
 
@@ -9018,7 +9018,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
 
@@ -9054,6 +9054,32 @@ public class C
   IL_0024:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultLiteral_Nullability()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static void Main()
+    {
+        (int i, string s) = default;
+        s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,29): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (int i, string s) = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(8, 29),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 9)
+                );
         }
 
         [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
@@ -9201,7 +9227,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
 
@@ -9280,7 +9306,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
 
@@ -9329,7 +9355,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 True");
 
@@ -9354,7 +9380,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (6,22): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
                 //         (int x, var (i, s)) = (0, default);
