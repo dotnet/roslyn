@@ -39,6 +39,7 @@ stages:
     BuildConfiguration: Release
     push_to_ci: true
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+    MicroBuild_DoNotStrongNameSign: true
     SignTypeSelection: ${{ parameters.SignTypeSelection }}
 
   jobs:
