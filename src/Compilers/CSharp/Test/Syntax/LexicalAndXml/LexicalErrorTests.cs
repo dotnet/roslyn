@@ -541,19 +541,7 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
-                // (6,23): error CS1525: Invalid expression term ''
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
-                // (7,1): error CS1073: Unexpected token '@'
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
-                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
-                // (7,28): error CS1002: ; expected
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, @""" } y""").WithLocation(7, 28));
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
@@ -574,19 +562,7 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
-                // (6,23): error CS1525: Invalid expression term ''
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
-                // (7,1): error CS1073: Unexpected token '@'
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
-                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
-                // (7,28): error CS1002: ; expected
-                //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, @"").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
@@ -608,37 +584,7 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
-                // (6,23): error CS1525: Invalid expression term ''
-                //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("").WithLocation(6, 23),
-                // (7,1): error CS1073: Unexpected token '@'
-                //                         @"
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("@").WithLocation(7, 1),
-                // (7,25): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //                         @"
-                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(7, 25),
-                // (7,27): error CS1002: ; expected
-                //                         @"
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 27),
-                // (8,26): error CS1010: Newline in constant
-                //                          "
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(8, 26),
-                // (8,27): error CS1002: ; expected
-                //                          "
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 27),
-                // (9,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(9, 26),
-                // (9,26): error CS1010: Newline in constant
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(9, 26),
-                // (9,26): error CS1519: Invalid token '";' in class, record, struct, or interface member declaration
-                //                       } y";
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @""";").WithArguments("\";").WithLocation(9, 26),
-                // (11,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1));
+                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]

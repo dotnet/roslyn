@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private readonly Lexer _lexer;
             private bool _isVerbatim;
             private bool _allowNewlines;
+
             public SyntaxDiagnosticInfo error;
 
             public InterpolatedStringScanner(
@@ -674,10 +675,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             /// <summary>
-            /// The lexer can run away consuming the rest of the input when delimiters are mismatched.
-            /// This is a test for when we are attempting to recover from that situation.
+            /// The lexer can run away consuming the rest of the input when delimiters are mismatched. This is a test
+            /// for when we are attempting to recover from that situation.  Note that just running into new lines will
+            /// not make us thing we're in runaway lexing.
             /// </summary>
-            private bool RecoveringFromRunawayLexing() => this.error != null;
+            private bool RecoveringFromRunawayLexing()
+            {
+                if (this.error == null)
+                    return false;
+
+                var code = (ErrorCode)this.error.Code;
+                switch (code)
+                {
+                    case ErrorCode.ERR_Multiline_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string:
+                    case ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string:
+                    case ErrorCode.ERR_SingleLineCommentInExpressionHole:
+                        return false;
+                }
+
+                return true;
+            }
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {
