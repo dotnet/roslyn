@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
-        private IDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private void GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
+            Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> map)
         {
-            var map = new Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>();
             var viewLines = TextView.TextViewLines;
 
             foreach (var changedSpan in changedSpanCollection)
@@ -138,8 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
                 }
             }
-
-            return map;
         }
 
         /// <summary>
@@ -156,7 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var viewLines = TextView.TextViewLines;
-            var map = GetSpansOnEachLine(changedSpanCollection);
+            using var _ = PooledDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
+            GetSpansOnEachLine(changedSpanCollection, map);
             foreach (var (lineNum, tagMappingSpan) in map)
             {
                 // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
