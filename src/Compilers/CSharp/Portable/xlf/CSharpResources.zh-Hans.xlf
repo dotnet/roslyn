@@ -782,6 +782,11 @@
         <target state="translated">模块初始值设定项方法“{0}”必须是静态的，不能有任何参数，并且必须返回 "void"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string">
+        <source>Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">多个分析器配置文件不能位于同一目录({0})中。</target>

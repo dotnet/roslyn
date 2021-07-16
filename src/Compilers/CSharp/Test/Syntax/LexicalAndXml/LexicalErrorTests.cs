@@ -447,6 +447,194 @@ class Test
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string1()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @"" "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string2()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @"" ""
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string3()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @""
+                         "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { @"
+                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string4()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @""
+                         ""
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string5()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        @"" "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string6()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        @""
+                         "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string7()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x {
+                        @""
+                         ""
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string8()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @""
+
+                         "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { @"
+                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string9()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { @""
+
+                         "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { @"
+                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS9000ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string10()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { $@"" { @""
+
+                                "" } "" } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,30): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { $@" { @"
+                Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
+        }
+
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"

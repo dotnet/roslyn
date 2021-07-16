@@ -152,71 +152,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        private void ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines = true)
+        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines)
         {
             _builder.Length = 0;
 
-            if (TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"')
+            Debug.Assert(TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"');
+            TextWindow.AdvanceChar(2);
+
+            ErrorCode? error = null;
+            while (true)
             {
-                TextWindow.AdvanceChar(2);
-                bool done = false;
-                char ch;
-                _builder.Length = 0;
-                while (!done)
+                var ch = TextWindow.PeekChar();
+                if (ch == '"')
                 {
-                    switch (ch = TextWindow.PeekChar())
+                    TextWindow.AdvanceChar();
+                    if (TextWindow.PeekChar() == '"')
                     {
-                        case '"':
-                            TextWindow.AdvanceChar();
-                            if (TextWindow.PeekChar() == '"')
-                            {
-                                // Doubled quote -- skip & put the single quote in the string
-                                TextWindow.AdvanceChar();
-                                _builder.Append(ch);
-                            }
-                            else
-                            {
-                                done = true;
-                            }
-
-                            break;
-
-                        case SlidingTextWindow.InvalidCharacter:
-                            if (!TextWindow.IsReallyAtEnd())
-                            {
-                                goto default;
-                            }
-
-                            // Reached the end of the source without finding the end-quote.  Give
-                            // an error back at the starting point.
-                            this.AddError(ErrorCode.ERR_UnterminatedStringLit);
-                            done = true;
-                            break;
-
-                        default:
-                            if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
-                            {
-                                this.AddError(ErrorCode.ERR_UnterminatedStringLit);
-                                done = true;
-                                break;
-                            }
-
-                            TextWindow.AdvanceChar();
-                            _builder.Append(ch);
-                            break;
+                        // Doubled quote -- skip & put the single quote in the string and keep goign.
+                        TextWindow.AdvanceChar();
+                        _builder.Append(ch);
+                        continue;
                     }
+
+                    // otherwise, the string is finished.
+                    break;
                 }
 
-                info.Kind = SyntaxKind.StringLiteralToken;
-                info.Text = TextWindow.GetText(false);
-                info.StringValue = _builder.ToString();
+                if (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
+                {
+                    // Reached the end of the source without finding the end-quote.  Give an error back at the
+                    // starting point. And finish lexing this string.
+                    error = ErrorCode.ERR_UnterminatedStringLit;
+                    break;
+                }
+
+                // If we hit a new line when it's not allowed.  Give an error at that new line, but keep on consuming
+                // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
+                // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
+                if (!allowNewlines && SyntaxFacts.IsNewLine(ch) && error == null)
+                    error = ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string;
+
+                TextWindow.AdvanceChar();
+                _builder.Append(ch);
             }
-            else
-            {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
-                info.StringValue = null;
-            }
+
+            info.Kind = SyntaxKind.StringLiteralToken;
+            info.Text = TextWindow.GetText(false);
+            info.StringValue = _builder.ToString();
+
+            return error;
         }
 
         private void ScanInterpolatedStringLiteral(bool isVerbatim, ref TokenInfo info)
@@ -608,7 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (_lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
                             {
                                 // check for verbatim string inside an expression hole.
-                                ScanInterpolatedStringLiteralNestedVerbatimString();
+                                var nestedStringPosition = _lexer.TextWindow.Position;
+                                var errorCode = ScanInterpolatedStringLiteralNestedVerbatimString();
+                                if (error == null && errorCode != null)
+                                    error = _lexer.MakeError(nestedStringPosition, width: 2, errorCode.Value);
+
                                 continue;
                             }
                             else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
@@ -722,10 +710,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.ScanStringLiteral(ref discarded, inDirective: false);
             }
 
-            private void ScanInterpolatedStringLiteralNestedVerbatimString()
+            private ErrorCode? ScanInterpolatedStringLiteralNestedVerbatimString()
             {
                 var discarded = default(TokenInfo);
-                _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
+                return _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
             }
 
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)

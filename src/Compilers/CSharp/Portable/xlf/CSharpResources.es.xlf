@@ -782,6 +782,11 @@
         <target state="translated">El método inicializador de módulos "{0}" debe ser estático, no debe tener parámetros y debe devolver "void".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string">
+        <source>Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">No es posible que un mismo directorio ("{0}") contenga varios archivos de configuración del analizador.</target>
