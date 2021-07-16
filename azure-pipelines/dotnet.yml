@@ -51,7 +51,7 @@ steps:
     IndexSources: false
     SymbolServerType: TeamServices
   displayName: Publish symbols to symbol server
-  condition: and(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT')) # Execute on failed test runs too.
+  condition: eq(variables['Agent.OS'], 'Windows_NT') # Execute on failed test runs too. Windows-only till https://github.com/microsoft/azure-pipelines-tasks/issues/13821 is fixed.
 
 - task: PublishSymbols@2
   inputs:
@@ -60,7 +60,7 @@ steps:
     IndexSources: false
     SymbolServerType: TeamServices
   displayName: Publish test symbols to symbol server
-  condition: and(failed(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT')) # Execute on failed test runs only.
+  condition: and(failed(), eq(variables['Agent.OS'], 'Windows_NT')) # Execute on failed test runs only.
 
 - bash: bash <(curl -s https://codecov.io/bash)
   displayName: Publish code coverage results to codecov.io

@@ -4,7 +4,7 @@
   <!-- We always want a good debugging experience in integration tests -->
   <PropertyGroup>
     <Optimize>false</Optimize>
-    <DebugType>embedded</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
