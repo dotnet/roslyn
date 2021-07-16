@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
+        /// <summary>
+        /// Returns an appropriate error code if scanning this verbatim literal ran into an error.
+        /// </summary>
         private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines)
         {
             _builder.Length = 0;
@@ -627,9 +630,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // check for verbatim string inside an expression hole.
                                 var nestedStringPosition = _lexer.TextWindow.Position;
-                                var errorCode = ScanInterpolatedStringLiteralNestedVerbatimString();
-                                if (UnrecoverableError == null && errorCode != null)
-                                    UnrecoverableError = _lexer.MakeError(nestedStringPosition, width: 2, errorCode.Value);
+
+                                // Note that this verbatim string may encounter an error (for example if it contains a
+                                // new line and we don't allow that).  This should be reported to the user, but should
+                                // not put us into an unrecoverable position.  We can clearly see that this was intended
+                                // to be a normal verbatim string, so we can continue on an attempt to understand the
+                                // outer interpolated string properly.
+                                var discarded = default(TokenInfo);
+                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
+                                if (errorCode != null)
+                                    RecoverableError ??= _lexer.MakeError(nestedStringPosition, width: 2, errorCode.Value);
 
                                 continue;
                             }
@@ -735,12 +745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var discarded = default(TokenInfo);
                 _lexer.ScanStringLiteral(ref discarded, inDirective: false);
-            }
-
-            private ErrorCode? ScanInterpolatedStringLiteralNestedVerbatimString()
-            {
-                var discarded = default(TokenInfo);
-                return _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
             }
 
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)
