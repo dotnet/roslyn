@@ -743,6 +743,122 @@ public class Test
                 Diagnostic(ErrorCode.ERR_Multi_line_verbatim_string_literal_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
         }
 
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole1()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { // comment
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,23): error CS1733: Expected expression
+                //       string s = $"x { // comment
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
+                // (6,24): error CS8077: A single-line comment may not be used in an interpolated string.
+                //       string s = $"x { // comment
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole2()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $@""x { // comment
+                       } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,24): error CS1733: Expected expression
+                //       string s = $@"x { // comment
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole3()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { $@"" { // comment
+                             } } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole4()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { // comment
+                        0
+                      } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,24): error CS8077: A single-line comment may not be used in an interpolated string.
+                //       string s = $"x { // comment
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole5()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $@""x { // comment
+                         0
+                       } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
+        [Fact]
+        public void CS8077ERR_SingleLineCommentInExpressionHole6()
+        {
+            var test = @"
+public class Test
+{
+   public static int Main()
+   {
+      string s = $""x { $@"" { // comment
+                               0
+                             } } y"";
+   }
+}
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test);
+        }
+
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"

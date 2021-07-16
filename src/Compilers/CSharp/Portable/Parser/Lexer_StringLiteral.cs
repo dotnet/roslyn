@@ -510,7 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 while (true)
                 {
-                    if (IsAtEnd())
+                    var allowNewLines = _isVerbatim && _allowNewlines;
+                    if (!allowNewLines && SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()) && error == null)
+                        error = _lexer.MakeError(_lexer.TextWindow.Position, width: 1, ErrorCode.ERR_New_line_is_not_allowed_inside_a_non_verbatim_interpolated_string);
+
+                    if (IsAtEnd(allowNewline: true))
                     {
                         // the caller will complain
                         return;
@@ -626,26 +630,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
                                 case '/':
-                                    if (_isVerbatim && _allowNewlines)
+                                    if (!_isVerbatim || !_allowNewlines)
                                     {
-                                        _lexer.TextWindow.AdvanceChar(); // skip /
-                                        _lexer.TextWindow.AdvanceChar(); // skip /
-                                        while (!IsAtEnd(false))
-                                        {
-                                            _lexer.TextWindow.AdvanceChar(); // skip // comment character
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // error: single-line comment not allowed in an interpolated string
+                                        // error: single-line comment not allowed in an interpolated string.
+                                        // report the error but keep going for good error recovery.
                                         if (error == null)
-                                        {
                                             error = _lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole);
-                                        }
-
-                                        _lexer.TextWindow.AdvanceChar();
-                                        _lexer.TextWindow.AdvanceChar();
                                     }
+
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    while (!IsAtEnd(allowNewline: false))
+                                        _lexer.TextWindow.AdvanceChar(); // skip // comment character
+
                                     continue;
                                 case '*':
                                     // check for and scan /* comment */
