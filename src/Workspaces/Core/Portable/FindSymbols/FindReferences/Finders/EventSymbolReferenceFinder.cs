@@ -14,22 +14,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IEventSymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IEventSymbol symbol,
             Solution solution,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(
+                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
+
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
                                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                                     .ToImmutableArray<ISymbol>();
+                                                     .ToImmutableArray();
 
             var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                            .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
-                                                            .CastArray<ISymbol>();
+                                                            .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol));
 
-            return Task.FromResult(backingFields.Concat(associatedNamedTypes));
+            return baseSymbols.Concat(backingFields.SelectAsArray(f => ((ISymbol)f, cascadeDirection)))
+                              .Concat(associatedNamedTypes.SelectAsArray(n => ((ISymbol)n, cascadeDirection)));
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
