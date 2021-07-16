@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, document, semanticModel, tokens, findParentNode: null, cancellationToken);
+                symbol, document, semanticModel, tokens,
+                findParentNode: null, cancellationToken: cancellationToken);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
@@ -149,7 +150,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInContainerAsync(
-                symbol, container, document, semanticModel, findParentNode: null, cancellationToken);
+                symbol, container, document, semanticModel,
+                findParentNode: null, cancellationToken: cancellationToken);
         }
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(

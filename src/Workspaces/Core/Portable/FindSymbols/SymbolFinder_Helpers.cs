@@ -42,12 +42,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
 
-            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
-            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
-            // comparison.
-            if (searchSymbol.Equals(symbolToMatch))
-                return true;
-
             if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
 
@@ -78,16 +72,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             if (searchSymbol == null || symbolToMatch == null)
+            {
                 return false;
+            }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
             symbolToMatch = symbolToMatch.GetOriginalUnreducedDefinition();
-
-            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
-            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
-            // comparison.
-            if (searchSymbol.Equals(symbolToMatch, SymbolEqualityComparer.Default))
-                return true;
 
             // We compare the given searchSymbol and symbolToMatch for equivalence using SymbolEquivalenceComparer
             // as follows:
