@@ -1980,6 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MultipleFileScopedNamespace = 8954,
         ERR_FileScopedAndNormalNamespace = 8955,
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
+        ERR_NoImplicitConvTargetTypedConditional = 8957,
 
         #endregion
 
