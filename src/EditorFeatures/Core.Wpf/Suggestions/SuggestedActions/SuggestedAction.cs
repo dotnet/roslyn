@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,14 +11,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -22,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -31,6 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
+
+        private bool _isApplied;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
@@ -55,17 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        protected static int GetTelemetryPrefix(CodeAction codeAction)
-        {
-            // AssemblyQualifiedName will change across version numbers, FullName won't
-            var type = codeAction.GetType();
-            type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-            return type.FullName.GetHashCode();
-        }
+        internal bool IsForCodeQualityImprovement
+            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = new Guid(GetTelemetryPrefix(CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = CodeAction.GetType().GetTelemetryId();
             return true;
         }
 
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
@@ -91,6 +96,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
+            SourceProvider.UIThreadOperationExecutor.Execute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true, action: context =>
+            {
+                // If we want to report progress, we need to create a scope inside the context -- the main context itself doesn't have a way
+                // to report progress. We pass the same allow cancellation and message so otherwise nothing changes.
+                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+                using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
+                Invoke(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token);
+            });
+        }
+
+        public void Invoke(IUIThreadOperationContext context)
+        {
+            using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+            this.Invoke(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken);
+        }
+
+        private void Invoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
             // While we're not technically doing anything async here, we need to let the
             // integration test harness know that it should not proceed until all this
             // work is done.  Otherwise it might ask to do some work before we finish.
@@ -99,19 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // to the UI thread as well.
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods
-                // later in this call chain, do not await them.
-                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
-                {
-                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
-                    {
-                        InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
-                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                        {
-                            actionCallback.Value.OnSuggestedActionExecuted(this);
-                        }
-                    }
-                });
+                InnerInvoke(progressTracker, cancellationToken);
+                foreach (var actionCallback in SourceProvider.ActionCallbacks)
+                    actionCallback.Value.OnSuggestedActionExecuted(this);
             }
         }
 
@@ -169,9 +182,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    _isApplied = EditHandler.Apply(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).Wait(cancellationToken);
+                        progressTracker, cancellationToken);
                 }
             }
         }
@@ -186,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
-            if (TryGetTelemetryId(out Guid telemetryId))
+            if (TryGetTelemetryId(out var telemetryId))
             {
                 // Lightbulb correlation info
                 map["TelemetryId"] = telemetryId.ToString();
@@ -211,6 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
+        public string DisplayTextSuffix => "";
+
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -227,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual bool HasPreview => false;
 
         public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-            => SpecializedTasks.Default<object>();
+            => SpecializedTasks.Null<object>();
 
         public virtual bool HasActionSets => false;
 
@@ -251,11 +266,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var tags = CodeAction.Tags;
                 if (tags.Length > 0)
                 {
-                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    foreach (var service in SourceProvider.ImageIdServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
+                        if (service.Value.TryGetImageId(tags, out var imageId) && !imageId.Equals(default(ImageId)))
                         {
-                            return moniker;
+                            // Not using the extension method because it's not available in Cocoa
+                            return new ImageMoniker
+                            {
+                                Guid = imageId.Guid,
+                                Id = imageId.Id
+                            };
                         }
                     }
                 }
@@ -314,5 +334,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SuggestedAction _suggestedAction;
+
+            public TestAccessor(SuggestedAction suggestedAction)
+                => _suggestedAction = suggestedAction;
+
+            public ref bool IsApplied => ref _suggestedAction._isApplied;
+        }
     }
 }

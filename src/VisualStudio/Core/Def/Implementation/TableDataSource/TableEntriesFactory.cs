@@ -1,26 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class TableEntriesFactory<TData> : ITableEntriesSnapshotFactory
+    internal class TableEntriesFactory<TItem, TData> : ITableEntriesSnapshotFactory
+        where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly AbstractTableDataSource<TData> _tableSource;
+        private readonly AbstractTableDataSource<TItem, TData> _tableSource;
         private readonly AggregatedEntriesSource _entriesSources;
-        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new WeakReference<ITableEntriesSnapshot>(null);
+        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new(null);
 
         private int _lastVersion = 0;
 
-        public TableEntriesFactory(AbstractTableDataSource<TData> tableSource, AbstractTableEntriesSource<TData> entriesSource)
+        public TableEntriesFactory(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> entriesSource)
         {
             _tableSource = tableSource;
             _entriesSources = new AggregatedEntriesSource(_tableSource, entriesSource);
@@ -73,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public void OnDataAddedOrChanged(object data)
+        public void OnDataAddedOrChanged(TData data)
         {
             lock (_gate)
             {
@@ -83,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public bool OnDataRemoved(object data)
+        public bool OnDataRemoved(TData data)
         {
             lock (_gate)
             {
@@ -101,9 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void UpdateVersion_NoLock()
-        {
-            _lastVersion++;
-        }
+            => _lastVersion++;
 
         public void Dispose()
         {
@@ -115,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                    lastSnapshot.VersionNumber == version;
         }
 
-        private ITableEntriesSnapshot CreateSnapshot(int version, ImmutableArray<TableItem<TData>> items)
+        private ITableEntriesSnapshot CreateSnapshot(int version, ImmutableArray<TItem> items)
         {
             var snapshot = _entriesSources.CreateSnapshot(version, items, _entriesSources.GetTrackingPoints(items));
             _lastSnapshotWeakReference.SetTarget(snapshot);
@@ -126,25 +130,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private class AggregatedEntriesSource
         {
             private readonly EntriesSourceCollections _sources;
-            private readonly AbstractTableDataSource<TData> _tableSource;
+            private readonly AbstractTableDataSource<TItem, TData> _tableSource;
 
-            public AggregatedEntriesSource(AbstractTableDataSource<TData> tableSource, AbstractTableEntriesSource<TData> primary)
+            public AggregatedEntriesSource(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> primary)
             {
                 _tableSource = tableSource;
                 _sources = new EntriesSourceCollections(primary);
             }
 
-            public void OnDataAddedOrChanged(object data)
-            {
-                _sources.OnDataAddedOrChanged(data, _tableSource);
-            }
+            public void OnDataAddedOrChanged(TData data)
+                => _sources.OnDataAddedOrChanged(data, _tableSource);
 
-            public bool OnDataRemoved(object data)
-            {
-                return _sources.OnDataRemoved(data, _tableSource);
-            }
+            public bool OnDataRemoved(TData data)
+                => _sources.OnDataRemoved(data, _tableSource);
 
-            public ImmutableArray<TableItem<TData>> GetItems()
+            public ImmutableArray<TItem> GetItems()
             {
                 if (_sources.Primary != null)
                 {
@@ -153,15 +153,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 // flatten items from multiple sources and group them by deduplication identity
                 // merge duplicated items into de-duplicated item list
-                var items = _sources.GetSources()
-                                    .SelectMany(s => s.GetItems())
-                                    .GroupBy(d => d.DeduplicationKey)
-                                    .Select(g => (IList<TableItem<TData>>)g);
-
-                return _tableSource.Deduplicate(items);
+                return _tableSource.AggregateItems(
+                    _sources.GetSources()
+                    .SelectMany(s => s.GetItems())
+                    .GroupBy(d => d, _tableSource.GroupingComparer));
             }
 
-            public ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TData>> items)
+            public ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TItem> items)
             {
                 if (items.Length == 0)
                 {
@@ -173,10 +171,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _sources.Primary.GetTrackingPoints(items);
                 }
 
-                return _tableSource.Workspace.CreateTrackingPoints(items[0].PrimaryDocumentId, items, (d, s) => _tableSource.CreateTrackingPoint(d, s));
+                return _tableSource.Workspace.CreateTrackingPoints(items[0].DocumentId, items);
             }
 
-            public AbstractTableEntriesSnapshot<TData> CreateSnapshot(int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public AbstractTableEntriesSnapshot<TItem> CreateSnapshot(int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 if (_sources.Primary != null)
                 {
@@ -194,15 +192,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return _tableSource.CreateSnapshot(source, version, items, trackingPoints);
             }
 
-            private class EmptySnapshot : AbstractTableEntriesSnapshot<TData>
+            private class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
             {
-                public EmptySnapshot(int version) :
-                    base(version, ImmutableArray<TableItem<TData>>.Empty, ImmutableArray<ITrackingPoint>.Empty)
+                public EmptySnapshot(int version)
+                    : base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
                 {
                 }
 
-                protected override bool IsEquivalent(TData item1, TData item2) => false;
-                public override bool TryNavigateTo(int index, bool previewTab) => false;
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken) => false;
 
                 public override bool TryGetValue(int index, string columnName, out object content)
                 {
@@ -213,16 +210,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private class EntriesSourceCollections
             {
-                private AbstractTableEntriesSource<TData> _primary;
-                private Dictionary<object, AbstractTableEntriesSource<TData>> _sources;
+                private AbstractTableEntriesSource<TItem> _primary;
+                private Dictionary<object, AbstractTableEntriesSource<TItem>> _sources;
 
-                public EntriesSourceCollections(AbstractTableEntriesSource<TData> primary)
+                public EntriesSourceCollections(AbstractTableEntriesSource<TItem> primary)
                 {
                     Contract.ThrowIfNull(primary);
                     _primary = primary;
                 }
 
-                public AbstractTableEntriesSource<TData> Primary
+                public AbstractTableEntriesSource<TItem> Primary
                 {
                     get
                     {
@@ -240,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public IEnumerable<AbstractTableEntriesSource<TData>> GetSources()
+                public IEnumerable<AbstractTableEntriesSource<TItem>> GetSources()
                 {
                     EnsureSources();
                     return _sources.Values;
@@ -250,13 +247,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     if (_sources == null)
                     {
-                        _sources = new Dictionary<object, AbstractTableEntriesSource<TData>>();
-                        _sources.Add(_primary.Key, _primary);
+                        _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>
+                        {
+                            { _primary.Key, _primary }
+                        };
                         _primary = null;
                     }
                 }
 
-                public void OnDataAddedOrChanged(object data, AbstractTableDataSource<TData> tableSource)
+                public void OnDataAddedOrChanged(TData data, AbstractTableDataSource<TItem, TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
                     if (_primary != null && _primary.Key.Equals(key))
@@ -278,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _sources.Add(source.Key, source);
                 }
 
-                public bool OnDataRemoved(object data, AbstractTableDataSource<TData> tableSource)
+                public bool OnDataRemoved(TData data, AbstractTableDataSource<TItem, TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
                     if (_primary != null && _primary.Key.Equals(key))

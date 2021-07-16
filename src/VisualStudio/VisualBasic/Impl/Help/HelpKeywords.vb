@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
     Friend NotInheritable Class HelpKeywords
@@ -89,6 +91,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
         Friend Const Iterator As String = "vb.Iterator"
         Friend Const Await As String = "vb.Await"
         Friend Const Yield As String = "vb.Yield"
+        Friend Const PrivateProtected As String = "vb.PrivateProtected"
+        Friend Const ProtectedFriend As String = "vb.ProtectedFriend"
 
     End Class
 

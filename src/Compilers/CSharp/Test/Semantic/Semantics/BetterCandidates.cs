@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -219,9 +223,9 @@ class MyEnumerator : System.Collections.IEnumerator
 }
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is either static or not public.
+                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (var q in c) { }
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");
@@ -264,7 +268,7 @@ class MyEnumerator
                 // (26,24): error CS0111: Type 'MyEnumerator' already defines a member called 'MoveNext' with the same parameter types
                 //     public static bool MoveNext() => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "MoveNext").WithArguments("MoveNext", "MyEnumerator").WithLocation(26, 24),
-                // (6,27): error CS0202: foreach requires that the return type 'MyEnumerator' of 'MyCollection.GetEnumerator()' must have a suitable public MoveNext method and public Current property
+                // (6,27): error CS0202: foreach requires that the return type 'MyEnumerator' of 'MyCollection.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
                 //         foreach (var q in c) { }
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "c").WithArguments("MyEnumerator", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );
@@ -299,9 +303,6 @@ class MyDeconstructable
                 // (6,26): error CS0121: The call is ambiguous between the following methods or properties: 'MyDeconstructable.Deconstruct(out int, out int)' and 'MyDeconstructable.Deconstruct(out long, out long)'
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "o").WithArguments("MyDeconstructable.Deconstruct(out int, out int)", "MyDeconstructable.Deconstruct(out long, out long)").WithLocation(6, 26),
-                // (6,26): error CS8129: No suitable Deconstruct instance or extension method was found for type 'MyDeconstructable', with 2 out parameters and a void return type.
-                //         (var a, var b) = o;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("MyDeconstructable", "2").WithLocation(6, 26),
                 // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'a'.
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "a").WithArguments("a").WithLocation(6, 14),
@@ -1001,7 +1002,7 @@ End Class
         D.P[null] = o;   // C# does not support static indexed properties
     }
 }";
-            CreateCompilationWithoutBetterCandidates(source2, references: new[] { reference1  }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithoutBetterCandidates(source2, references: new[] { reference1 }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (13,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.P[A]'
                 //         o = D.P[null];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "D.P[null]").WithArguments("C.P[A]").WithLocation(13, 13),

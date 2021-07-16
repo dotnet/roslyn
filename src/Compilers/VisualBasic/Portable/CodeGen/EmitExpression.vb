@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitExpressionCore(expression, used)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression))
                 Throw New EmitCancelledException()
@@ -288,35 +290,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
-                    EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
+                    receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
 
                     If Not receiverType.IsReferenceType Then
-                        ' unconstrained case needs to handle case where T Is actually a struct.
-                        ' such values are never nulls
-                        ' we will emit a check for such case, but the check Is really a JIT-time 
-                        ' constant since JIT will know if T Is a struct Or Not.
-                        '
-                        ' if ((object)default(T) != null) 
-                        ' {
-                        '     goto whenNotNull
-                        ' }
-                        ' else
-                        ' {
-                        '     temp = receiverRef
-                        '     receiverRef = ref temp
-                        ' }
-                        EmitInitObj(receiverType, True, receiver.Syntax)
-                        EmitBox(receiverType, receiver.Syntax)
-                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
-                        EmitLoadIndirect(receiverType, receiver.Syntax)
+                        If receiverTemp Is Nothing Then
+                            ' unconstrained case needs to handle case where T Is actually a struct.
+                            ' such values are never nulls
+                            ' we will emit a check for such case, but the check Is really a JIT-time 
+                            ' constant since JIT will know if T Is a struct Or Not.
+                            '
+                            ' if ((object)default(T) != null) 
+                            ' {
+                            '     goto whenNotNull
+                            ' }
+                            ' else
+                            ' {
+                            '     temp = receiverRef
+                            '     receiverRef = ref temp
+                            ' }
+                            EmitInitObj(receiverType, True, receiver.Syntax)
+                            EmitBox(receiverType, receiver.Syntax)
+                            _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
+                            EmitLoadIndirect(receiverType, receiver.Syntax)
 
-                        temp = AllocateTemp(receiverType, receiver.Syntax)
-                        _builder.EmitLocalStore(temp)
-                        _builder.EmitLocalAddress(temp)
-                        _builder.EmitLocalLoad(temp)
-                        EmitBox(receiver.Type, receiver.Syntax)
+                            temp = AllocateTemp(receiverType, receiver.Syntax)
+                            _builder.EmitLocalStore(temp)
+                            _builder.EmitLocalAddress(temp)
+                            _builder.EmitLocalLoad(temp)
+                            EmitBox(receiverType, receiver.Syntax)
 
-                        ' here we have loaded a ref to a temp And its boxed value { &T, O }
+                            ' here we have loaded a ref to a temp And its boxed value { &T, O }
+                        Else
+                            ' We are calling the expression on a copy of the target anyway, 
+                            ' so even if T is a struct, we don't need to make sure we call the expression on the original target.
+
+                            ' We currently have an address on the stack. Duplicate it, and load the value of the address.
+                            _builder.EmitOpCode(ILOpCode.Dup)
+                            EmitLoadIndirect(receiverType, receiver.Syntax)
+                            EmitBox(receiverType, receiver.Syntax)
+                        End If
                     Else
                         _builder.EmitOpCode(ILOpCode.Dup)
                         ' here we have loaded two copies of a reference   { O, O }
@@ -360,6 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkLabel(whenNotNullLabel)
 
                 If Not nullCheckOnCopy Then
+                    Debug.Assert(receiverTemp Is Nothing)
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
                     Debug.Assert(receiverTemp Is Nothing OrElse receiver.IsDefaultValue())
                 End If
@@ -994,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         '       otherwise we should not use direct 'call' and must use constrained call;
 
                         ' calling a method defined in a value type considered a "write" to the target unless the target is "Me"
-                        Debug.Assert(receiverType = method.ContainingType)
+                        Debug.Assert(TypeSymbol.Equals(receiverType, method.ContainingType, TypeCompareKind.ConsiderEverything))
                         tempOpt = EmitReceiverRef(
                             receiver,
                             isAccessConstrained:=False, addressKind:=If(IsMeReceiver(receiver),
@@ -1281,7 +1294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfConsequence = expr.Type
 
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfAlternative AndAlso expr.Type <> mergeTypeOfConsequence) Then
+                ElseIf (expr.Type.IsInterfaceType() AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfAlternative, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfConsequence, TypeCompareKind.ConsiderEverything)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1297,14 +1310,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         '''   push x
         '''   dup x
         '''   if pop isnot null goto LEFT_NOT_NULL
-        '''     pop 
+        '''     pop
         '''     push y
         '''   LEFT_NOT_NULL:
         ''' </remarks>
         Private Sub EmitBinaryConditionalExpression(expr As BoundBinaryConditionalExpression, used As Boolean)
             Debug.Assert(expr.ConvertedTestExpression Is Nothing, "coalesce with nontrivial test conversions are lowered into ternary.")
-            Debug.Assert(expr.Type = expr.ElseExpression.Type)
-            Debug.Assert(expr.Type.IsReferenceType)
+            Debug.Assert(TypeSymbol.Equals(expr.Type, expr.ElseExpression.Type, TypeCompareKind.ConsiderEverything))
+            Debug.Assert(Not expr.Type.IsValueType)
 
             EmitExpression(expr.TestExpression, used:=True)
 
@@ -1336,7 +1349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If (IsVarianceCast(expr.Type, mergeTypeOfRightValue)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfRightValue = expr.Type
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfLeftValue AndAlso expr.Type <> mergeTypeOfRightValue) Then
+                ElseIf (expr.Type.IsInterfaceType() AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfLeftValue, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfRightValue, TypeCompareKind.ConsiderEverything)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1420,7 +1433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' "complicated" casts and make them static casts to ensure we are all on 
         ' the same page with what type should be tracked.
         Private Shared Function IsVarianceCast(toType As TypeSymbol, fromType As TypeSymbol) As Boolean
-            If (toType = fromType) Then
+            If (TypeSymbol.Equals(toType, fromType, TypeCompareKind.ConsiderEverything)) Then
                 Return False
             End If
 
@@ -1435,9 +1448,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return IsVarianceCast(DirectCast(toType, ArrayTypeSymbol).ElementType, DirectCast(fromType, ArrayTypeSymbol).ElementType)
             End If
 
-            Return (toType.IsDelegateType() AndAlso toType <> fromType) OrElse
+            Return (toType.IsDelegateType() AndAlso Not TypeSymbol.Equals(toType, fromType, TypeCompareKind.ConsiderEverything)) OrElse
                    (toType.IsInterfaceType() AndAlso fromType.IsInterfaceType() AndAlso
-                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(DirectCast(toType, NamedTypeSymbol)))
+                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(DirectCast(toType, NamedTypeSymbol)))
 
         End Function
 
@@ -2156,7 +2169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Debug.Assert(getField IsNot Nothing)
             EmitSymbolToken(getField, node.Syntax)
-            If node.Type <> getField.ReturnType Then
+            If Not TypeSymbol.Equals(node.Type, getField.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If
@@ -2165,22 +2178,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitMethodInfoExpression(node As BoundMethodInfo, used As Boolean)
+            Dim method As MethodSymbol = node.Method
+
+            If method.IsTupleMethod Then
+                method = method.TupleUnderlyingMethod
+            End If
+
             _builder.EmitOpCode(ILOpCode.Ldtoken)
-            EmitSymbolToken(node.Method, node.Syntax)
+            EmitSymbolToken(method, node.Syntax)
             Dim getMethod As MethodSymbol
-            If Not node.Method.ContainingType.IsGenericType AndAlso Not node.Method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
+            If Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
-                EmitSymbolToken(node.Method.ContainingType, node.Syntax)
+                EmitSymbolToken(method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If
 
             Debug.Assert(getMethod IsNot Nothing)
             EmitSymbolToken(getMethod, node.Syntax)
-            If node.Type <> getMethod.ReturnType Then
+            If Not TypeSymbol.Equals(node.Type, getMethod.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If

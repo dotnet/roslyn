@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 
@@ -37,49 +41,35 @@ namespace Microsoft.CodeAnalysis.GenerateType
     internal class TypeKindOptionsHelper
     {
         public static bool IsClass(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Class) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Class) != 0 ? true : false;
 
         public static bool IsStructure(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Structure) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Structure) != 0 ? true : false;
 
         public static bool IsInterface(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Interface) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Interface) != 0 ? true : false;
 
         public static bool IsEnum(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Enum) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Enum) != 0 ? true : false;
 
         public static bool IsDelegate(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Delegate) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Delegate) != 0 ? true : false;
 
         public static bool IsModule(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Module) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Module) != 0 ? true : false;
 
         public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params TypeKindOptions[] removeValues)
         {
             var tempReturnValue = fromValue;
             foreach (var removeValue in removeValues)
             {
-                tempReturnValue = tempReturnValue & ~removeValue;
+                tempReturnValue &= ~removeValue;
             }
 
             return tempReturnValue;
         }
 
         internal static TypeKindOptions AddOption(TypeKindOptions toValue, TypeKindOptions addValue)
-        {
-            return toValue | addValue;
-        }
+            => toValue | addValue;
     }
 }

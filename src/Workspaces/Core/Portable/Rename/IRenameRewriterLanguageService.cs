@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            IEnumerable<ISymbol> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,
@@ -112,6 +117,37 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         /// <param name="token">The token to get the complexification target for.</param>
         /// <returns></returns>
-        SyntaxNode GetExpansionTargetForLocation(SyntaxToken token);
+        SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
+    }
+
+    internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterLanguageService
+    {
+        public abstract SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
+        public abstract Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(string replacementText, ISymbol renamedSymbol, ISymbol renameSymbol, IEnumerable<ISymbol> referencedSymbols, Solution baseSolution, Solution newSolution, IDictionary<Location, Location> reverseMappedLocations, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken);
+        public abstract ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(ISymbol renamedSymbol, SemanticModel semanticModel, Location originalDeclarationLocation, int newDeclarationLocationStartingPosition, CancellationToken cancellationToken);
+        public abstract SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
+        public abstract bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService);
+        public abstract bool LocalVariableConflict(SyntaxToken token, IEnumerable<ISymbol> newReferencedSymbols);
+        public abstract void TryAddPossibleNameConflicts(ISymbol symbol, string newName, ICollection<string> possibleNameConflicts);
+
+        protected static void AddConflictingParametersOfProperties(
+            IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
+        {
+            // check if the new property name conflicts with any parameter of the properties.
+            // Note: referencedSymbols come from the original solution, so there is no need to reverse map the locations of the parameters
+            foreach (var symbol in properties)
+            {
+                var prop = (IPropertySymbol)symbol;
+
+                var conflictingParameter = prop.Parameters.FirstOrDefault(
+                    param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
+
+                if (conflictingParameter != null)
+                {
+                    conflicts.AddRange(conflictingParameter.Locations);
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -12,20 +12,15 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private int _recursionDepth;
 
-        internal void VisitArray<T>(IEnumerable<T> operations) where T : IOperation
+        private void VisitChildOperations(IOperation operation)
         {
-            foreach (var operation in operations)
+            foreach (var child in ((Operation)operation).ChildOperations)
             {
-                VisitOperationArrayElement(operation);
+                Visit(child);
             }
         }
 
-        internal void VisitOperationArrayElement<T>(T operation) where T : IOperation
-        {
-            Visit(operation);
-        }
-
-        public override void Visit(IOperation operation)
+        public override void Visit(IOperation? operation)
         {
             if (operation != null)
             {
@@ -44,12 +39,60 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override void DefaultVisit(IOperation operation)
         {
-            VisitArray(operation.Children);
+            VisitChildOperations(operation);
         }
 
         internal override void VisitNoneOperation(IOperation operation)
         {
-            VisitArray(operation.Children);
+            VisitChildOperations(operation);
+        }
+    }
+
+    /// <summary>
+    /// Represents a <see cref="OperationVisitor{TArgument, TResult}"/> that descends an entire <see cref="IOperation"/> tree
+    /// visiting each IOperation and its child IOperation nodes in depth-first order. Returns null.
+    /// </summary>
+    public abstract class OperationWalker<TArgument> : OperationVisitor<TArgument, object?>
+    {
+        private int _recursionDepth;
+
+        private void VisitChildrenOperations(IOperation operation, TArgument argument)
+        {
+            foreach (var child in ((Operation)operation).ChildOperations)
+            {
+                Visit(child, argument);
+            }
+        }
+
+        public override object? Visit(IOperation? operation, TArgument argument)
+        {
+            if (operation != null)
+            {
+                _recursionDepth++;
+                try
+                {
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    operation.Accept(this, argument);
+                }
+                finally
+                {
+                    _recursionDepth--;
+                }
+            }
+
+            return null;
+        }
+
+        public override object? DefaultVisit(IOperation operation, TArgument argument)
+        {
+            VisitChildrenOperations(operation, argument);
+            return null;
+        }
+
+        internal override object? VisitNoneOperation(IOperation operation, TArgument argument)
+        {
+            VisitChildrenOperations(operation, argument);
+            return null;
         }
     }
 }

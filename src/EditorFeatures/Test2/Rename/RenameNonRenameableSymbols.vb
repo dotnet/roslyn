@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
 
@@ -14,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameInheritedMetadataButRenameCascade()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameInheritedMetadataButRenameCascade(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -44,16 +47,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 </Document>
                             </MetadataReferenceFromSource>
                         </Project>
-                    </Workspace>, renameTo:="proper")
-
+                    </Workspace>, host:=host, renameTo:="proper")
 
                 result.AssertLabeledSpansAre("conflict", "proper", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameEventWithInvalidNames()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameEventWithInvalidNames(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -65,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="!x")
+                    </Workspace>, host:=host, renameTo:="!x")
 
                 result.AssertReplacementTextInvalid()
                 result.AssertLabeledSpansAre("Invalid", "!x", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameSpecialNames()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSpecialNames(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -88,15 +90,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameTrivia()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameTrivia(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -105,16 +107,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 {[|$$ |]}
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameCandidateSymbol()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameCandidateSymbol(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -128,15 +130,15 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameSyntheticDefinition()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSyntheticDefinition(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -150,15 +152,15 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameXmlLiteralProperty()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameXmlLiteralProperty(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -168,15 +170,15 @@ class Program
                                 End Module
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameSymbolDefinedInMetaData()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolDefinedInMetaData(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -190,15 +192,15 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameSymbolInReadOnlyBuffer()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolInReadOnlyBuffer(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -212,9 +214,9 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Using readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit()
                     readOnlyEdit.CreateReadOnlyRegion(New Span(0, textBuffer.CurrentSnapshot.Length))
@@ -225,9 +227,9 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameSymbolThatBindsToErrorType()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolThatBindsToErrorType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -241,16 +243,16 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
-        Public Sub CannotRenameSynthesizedParameters()
+        Public Sub CannotRenameSynthesizedParameters(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -265,16 +267,16 @@ class Program
                                 End Module
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(539554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539554")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenamePredefinedType()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenamePredefinedType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -284,16 +286,16 @@ class Program
                                 End Module
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(542937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542937")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameContextualKeyword()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameContextualKeyword(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -312,16 +314,16 @@ class Program
                                 End Module
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(543714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543714")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameOperator()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameOperator(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -340,16 +342,16 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameExternAlias()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameExternAlias(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -362,16 +364,16 @@ class Program
                                 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
         <WorkItem(543969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameElementFromPreviousSubmission()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameElementFromPreviousSubmission(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Submission Language="C#" CommonReferences="true">
@@ -380,16 +382,16 @@ class Program
                         <Submission Language="C#" CommonReferences="true">
                             $$goo = 42;
                         </Submission>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
         <WorkItem(689002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameHiddenElement()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameHiddenElement(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -398,7 +400,7 @@ Class $$R
 End Class
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
                 navigationService._canNavigateToSpan = False
@@ -408,9 +410,9 @@ End Class
         End Sub
 
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameConstructorInVb()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameConstructorInVb(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -430,16 +432,16 @@ Class R
 End Class
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameConstructorInVb2()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameConstructorInVb2(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -453,16 +455,16 @@ Class R
 End Class
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
         End Sub
 
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameConstructorInVb3()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameConstructorInVb3(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -478,7 +480,7 @@ Class R
 End Class
                             ]]></Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 AssertTokenNotRenamable(workspace)
             End Using
@@ -488,10 +490,10 @@ End Class
 
         <WorkItem(10898, "https://github.com/dotnet/roslyn/issues/10898")>
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
-        Public Sub RenameTupleFiledInDeclaration()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub RenameTupleFiledInDeclaration(host As RenameTestHost)
 
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -530,7 +532,7 @@ namespace System
 }
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, host)
 
                 ' NOTE: this is currently intentionally blocked
                 '       see https://github.com/dotnet/roslyn/issues/10898
@@ -541,10 +543,10 @@ namespace System
 
         <WorkItem(10898, "https://github.com/dotnet/roslyn/issues/10898")>
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
-        Public Sub RenameTupleFiledInLiteral()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub RenameTupleFiledInLiteral(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                    <Workspace>
                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="__DEMO__">
@@ -584,7 +586,7 @@ namespace System
 }
                             </Document>
                        </Project>
-                   </Workspace>)
+                   </Workspace>, host)
 
                 ' NOTE: this is currently intentionally blocked
                 '       see https://github.com/dotnet/roslyn/issues/10898
@@ -594,10 +596,10 @@ namespace System
 
         <WorkItem(10898, "https://github.com/dotnet/roslyn/issues/10898")>
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
-        Public Sub RenameTupleFiledInFieldAccess()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub RenameTupleFiledInFieldAccess(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
        <Workspace>
            <Project Language="C#" CommonReferences="true" PreprocessorSymbols="__DEMO__">
@@ -635,7 +637,7 @@ namespace System
 }
                             </Document>
            </Project>
-       </Workspace>)
+       </Workspace>, host)
 
                 ' NOTE: this is currently intentionally blocked
                 '       see https://github.com/dotnet/roslyn/issues/10898
@@ -645,10 +647,10 @@ namespace System
         End Sub
 
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/14600")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
-        Public Sub RenameTupleFiledInLiteralRegress14600()
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub RenameTupleFiledInLiteralRegress14600(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                    <Workspace>
                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="__DEMO__">
@@ -690,7 +692,7 @@ namespace System
 }
                             </Document>
                        </Project>
-                   </Workspace>)
+                   </Workspace>, host)
 
                 ' NOTE: this is currently intentionally blocked
                 '       see https://github.com/dotnet/roslyn/issues/10898
@@ -700,5 +702,28 @@ namespace System
 
 #End Region
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolDefinedInSourceGeneratedDocument(host As RenameTestHost)
+            Using workspace = CreateWorkspaceWithWaiter(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class Program
+{
+    private $$C _c;
+}
+                           </Document>
+                           <DocumentFromSourceGenerator>
+class C
+{
+}
+                           </DocumentFromSourceGenerator>
+                       </Project>
+                   </Workspace>, host)
+
+                AssertTokenNotRenamable(workspace)
+            End Using
+        End Sub
     End Class
 End Namespace

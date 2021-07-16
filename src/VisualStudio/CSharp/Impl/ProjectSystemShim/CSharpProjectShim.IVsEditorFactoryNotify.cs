@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -13,18 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal partial class CSharpProjectShim : IVsEditorFactoryNotify
     {
         public int NotifyDependentItemSaved(IVsHierarchy hier, uint itemidParent, string documentParentMoniker, uint itemidDpendent, string documentDependentMoniker)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public int NotifyItemAdded(uint grfEFN, IVsHierarchy hier, uint itemid, string documentId)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public int NotifyItemRenamed(IVsHierarchy hier, uint itemid, string documentOldMoniker, string documentNewMoniker)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
     }
 }

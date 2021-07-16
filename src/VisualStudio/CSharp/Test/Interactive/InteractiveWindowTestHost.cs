@@ -1,16 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text.Utilities;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -19,59 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         internal readonly IInteractiveWindow Window;
         internal readonly TestInteractiveEvaluator Evaluator;
 
-        private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
-
-        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            ExportProviderCache.GetOrCreateAssemblyCatalog(
-                new[]
-                {
-                    typeof(TestWaitIndicator).Assembly,
-                    typeof(TestInteractiveEvaluator).Assembly,
-                    typeof(IInteractiveWindow).Assembly
-                }
-                .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
-                .Concat(MinimalTestExportProvider.GetEditorAssemblies())));
-
-        // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
-        [Export(typeof(ILoggingServiceInternal))]
-        private sealed class HACK_LoggingProvider : ILoggingServiceInternal
+        internal InteractiveWindowTestHost(IInteractiveWindowFactoryService interactiveWindowFactory)
         {
-            public void AdjustCounter(string key, string name, int delta = 1)
-            {
-            }
-
-            public void PostCounters()
-            {
-            }
-
-            public void PostEvent(string key, params object[] namesAndProperties)
-            {
-            }
-
-            public void PostEvent(string key, IReadOnlyList<object> namesAndProperties)
-            {
-            }
-
-            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result = TelemetryResult.Success, params (string name, object property)[] namesAndProperties)
-            {
-            }
-
-            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result, IReadOnlyList<(string name, object property)> namesAndProperties)
-            {
-            }
-
-            public void PostFault(string eventName, string description, Exception exceptionObject, string additionalErrorInfo, bool? isIncludedInWatsonSample)
-            {
-            }
-        }
-
-        internal InteractiveWindowTestHost(ExportProvider exportProvider)
-        {
-            _exportProvider = exportProvider.AsExportProvider();
-
-            var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();
-            Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
+            Window = interactiveWindowFactory.CreateWindow(Evaluator);
             Window.InitializeAsync().Wait();
         }
 

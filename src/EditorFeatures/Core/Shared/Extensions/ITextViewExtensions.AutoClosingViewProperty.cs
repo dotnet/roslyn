@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<object, TProperty> _map = new Dictionary<object, TProperty>();
+            private readonly Dictionary<object, TProperty> _map = new();
 
             public static bool GetOrCreateValue(
                 TTextView textView,
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 Contract.ThrowIfTrue(textView.IsClosed);
 
                 var properties = textView.Properties.GetOrCreateSingletonProperty(() => new AutoClosingViewProperty<TProperty, TTextView>(textView));
-                if (!properties.TryGetValue(key, out value))
+                if (!properties.TryGetValue(key, out var priorValue))
                 {
                     // Need to create it.
                     value = valueCreator(textView);
@@ -32,13 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 }
 
                 // Already there.
+                value = priorValue;
                 return false;
             }
 
             public static bool TryGetValue(
                 TTextView textView,
                 object key,
-                out TProperty value)
+                [MaybeNullWhen(false)] out TProperty value)
             {
                 Contract.ThrowIfTrue(textView.IsClosed);
 
@@ -71,26 +75,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _textView.Closed += OnTextViewClosed;
             }
 
-            private void OnTextViewClosed(object sender, EventArgs e)
+            private void OnTextViewClosed(object? sender, EventArgs e)
             {
                 _textView.Closed -= OnTextViewClosed;
                 _textView.Properties.RemoveProperty(typeof(AutoClosingViewProperty<TProperty, TTextView>));
             }
 
-            public bool TryGetValue(object key, out TProperty value)
-            {
-                return _map.TryGetValue(key, out value);
-            }
+            public bool TryGetValue(object key, [MaybeNullWhen(false)] out TProperty value)
+                => _map.TryGetValue(key, out value);
 
             public void Add(object key, TProperty value)
-            {
-                _map[key] = value;
-            }
+                => _map[key] = value;
 
             public void Remove(object key)
-            {
-                _map.Remove(key);
-            }
+                => _map.Remove(key);
         }
     }
 }

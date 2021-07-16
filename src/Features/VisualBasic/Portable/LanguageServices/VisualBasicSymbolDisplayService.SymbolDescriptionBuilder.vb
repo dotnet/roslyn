@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -21,13 +23,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue) _
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue)
 
-            Public Sub New(displayService As ISymbolDisplayService,
-                           semanticModel As SemanticModel,
+            Private Shared ReadOnly s_minimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants _
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
+
+            Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
                            workspace As Workspace,
                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                            cancellationToken As CancellationToken)
-                MyBase.New(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -62,6 +66,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
+            Protected Overrides Sub AddEnumUnderlyingTypeSeparator()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Keyword("As"),
+                    Space())
+            End Sub
+
             Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))
@@ -72,6 +83,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
 
                 Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
+            End Function
+
+            Protected Overrides Function ToMinimalDisplayParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer, format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
+                Return CodeAnalysis.VisualBasic.ToMinimalDisplayParts(symbol, semanticModel, position, format)
+            End Function
+
+            Protected Overrides Function GetNavigationHint(symbol As ISymbol) As String
+                Return If(symbol Is Nothing, Nothing, CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat))
             End Function
 
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)
@@ -146,11 +165,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Protected Overrides Sub AddAwaitableUsageText(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer)
-                AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position))
-            End Sub
-
             Protected Overrides Sub AddCaptures(symbol As ISymbol)
                 Dim method = TryCast(symbol, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
@@ -168,6 +182,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
                 Get
                     Return s_minimallyQualifiedFormatWithConstants
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat
+                Get
+                    Return s_minimallyQualifiedFormatWithConstantsAndModifiers
                 End Get
             End Property
         End Class

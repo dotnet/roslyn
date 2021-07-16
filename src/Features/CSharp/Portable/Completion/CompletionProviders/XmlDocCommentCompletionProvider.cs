@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +17,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,17 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     using static DocumentationCommentXmlNames;
 
+    [ExportCompletionProvider(nameof(XmlDocCommentCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PartialTypeCompletionProvider))]
+    [Shared]
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var c = text[characterPosition];
             return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position,
@@ -53,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
 
                 ISymbol declaredSymbol = null;
                 var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();
@@ -70,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
 
-                if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
+                if (IsAttributeNameContext(token, position, out var elementName, out var existingAttributes))
                 {
                     return GetAttributeItems(elementName, existingAttributes);
                 }
@@ -83,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                if (IsAttributeValueContext(token, out elementName, out string attributeName))
+                if (IsAttributeValueContext(token, out elementName, out var attributeName))
                 {
                     return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
                 }
@@ -143,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 items.AddRange(GetAlwaysVisibleItems());
                 return items;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
@@ -192,15 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
                 // <elem attr1="" $$attr2	
                 // <elem attr1="" attr2$$
-                var attributeSyntax = (XmlAttributeSyntax)token.Parent;
 
                 if (token == attributeSyntax.EndQuoteToken)
                 {
@@ -238,33 +251,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 default:
                     nameSyntax = null;
-                    attributes = default(SyntaxList<XmlAttributeSyntax>);
+                    attributes = default;
                     break;
             }
 
-            return (name: nameSyntax?.LocalName.ValueText, attributes: attributes);
+            return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
-        private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
+        private static bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax = null;
-
-            if (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
+            XmlAttributeSyntax attributeSyntax;
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
+                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {
                 // Handle the special 'name' attributes: name="bar$$
-                attributeSyntax = (XmlNameAttributeSyntax)token.Parent.Parent;
+                attributeSyntax = xmlName;
             }
-            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax xmlText))
             {
                 // Handle the other general text attributes: foo="bar$$
-                attributeSyntax = (XmlTextAttributeSyntax)token.Parent;
+                attributeSyntax = xmlText;
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) || token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // When there's no attribute value yet, the parent attribute is returned:
                 //     name="$$
                 //     foo="$$
-                attributeSyntax = (XmlAttributeSyntax)token.Parent;
                 if (token != attributeSyntax.StartQuoteToken)
                 {
                     attributeSyntax = null;
@@ -352,9 +366,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static CompletionItemRules s_defaultRules = 
+        protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
+        {
+            var declaredParameters = declarationSymbol.GetParameters();
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
+                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+            {
+                declaredParameters = primaryConstructor.Parameters;
+            }
+
+            return declaredParameters;
+        }
+
+        private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                filterCharacterRules: FilterRules, 
+                filterCharacterRules: FilterRules,
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
                 enterKeyRule: EnterKeyRule.Never);
     }

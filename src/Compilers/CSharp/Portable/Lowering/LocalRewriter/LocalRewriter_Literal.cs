@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,19 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitLiteral(BoundLiteral node)
         {
+            Debug.Assert(node.ConstantValue is { });
             return MakeLiteral(node.Syntax, node.ConstantValue, node.Type, oldNodeOpt: node);
         }
 
-        private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
+        private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol? type, BoundLiteral? oldNodeOpt = null)
         {
             Debug.Assert(constantValue != null);
 
             if (constantValue.IsDecimal)
             {
                 //  Rewrite decimal literal
-                Debug.Assert((object)type != null);
-                Debug.Assert(type.SpecialType == SpecialType.System_Decimal);
-
+                Debug.Assert(type is { SpecialType: SpecialType.System_Decimal });
                 return MakeDecimalLiteral(syntax, constantValue);
             }
             else if (constantValue.IsDateTime)
@@ -34,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# does not support DateTime constants but VB does; we might have obtained a 
                 // DateTime constant by calling a method with an optional parameter with a DateTime
                 // for its default value.
-                Debug.Assert((object)type != null);
-                Debug.Assert(type.SpecialType == SpecialType.System_DateTime);
+                Debug.Assert(type is { SpecialType: SpecialType.System_DateTime });
                 return MakeDateTimeLiteral(syntax, constantValue);
             }
             else if (oldNodeOpt != null)
@@ -68,11 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we are building static constructor of System.Decimal, accessing static fields 
                 // would be bad.
                 var curMethod = _factory.CurrentFunction;
+                Debug.Assert(curMethod is { });
                 if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
                    curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
                    !_inExpressionLambda)
                 {
-                    Symbol useField = null;
+                    Symbol? useField = null;
 
                     if (value == decimal.Zero)
                     {
@@ -87,9 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
                     }
 
-                    if ((object)useField != null &&
-                        !useField.HasUseSiteError &&
-                        !useField.ContainingType.HasUseSiteError)
+                    if (useField is { HasUseSiteError: false, ContainingType: { HasUseSiteError: false } })
                     {
                         var fieldSymbol = (FieldSymbol)useField;
                         return new BoundFieldAccess(syntax, null, fieldSymbol, constantValue);
@@ -135,8 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
-                default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                constantValue, null, null, ctor.ContainingType);
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+                constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
         }
 
         private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
@@ -154,8 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is not a constant from C#'s perspective, so do not mark it as one.
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
-                default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                ConstantValue.NotAvailable, null, null, ctor.ContainingType);
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+                constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);
         }
     }
 }

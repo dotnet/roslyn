@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild.Logging
 {
     internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     {
-        private string _projectFilePath;
-        private DiagnosticLog _log;
-        private MSB.Framework.IEventSource _eventSource;
+        private string? _projectFilePath;
+        private DiagnosticLog? _log;
+        private MSB.Framework.IEventSource? _eventSource;
 
-        public string Parameters { get; set; }
+        public string? Parameters { get; set; }
         public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
 
         public void SetProjectAndLog(string projectFilePath, DiagnosticLog log)
@@ -22,11 +25,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Logging
 
         private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
         {
+            RoslynDebug.AssertNotNull(_projectFilePath);
             _log?.Add(new MSBuildDiagnosticLogItem(WorkspaceDiagnosticKind.Failure, _projectFilePath, e.Message, e.File, e.LineNumber, e.ColumnNumber));
         }
 
         private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
         {
+            RoslynDebug.AssertNotNull(_projectFilePath);
             _log?.Add(new MSBuildDiagnosticLogItem(WorkspaceDiagnosticKind.Warning, _projectFilePath, e.Message, e.File, e.LineNumber, e.ColumnNumber));
         }
 

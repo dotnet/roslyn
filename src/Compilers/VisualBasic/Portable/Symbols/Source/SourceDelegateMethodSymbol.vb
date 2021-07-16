@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -68,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                               <Out> ByRef beginInvoke As MethodSymbol,
                                               <Out> ByRef endInvoke As MethodSymbol,
                                               <Out> ByRef invoke As MethodSymbol,
-                                              diagnostics As DiagnosticBag)
+                                              diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(TypeOf syntax Is DelegateStatementSyntax OrElse
                          TypeOf syntax Is EventStatementSyntax)
@@ -103,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Function BindReturnType(syntax As VisualBasicSyntaxNode, binder As Binder, diagnostics As DiagnosticBag) As TypeSymbol
+        Private Shared Function BindReturnType(syntax As VisualBasicSyntaxNode, binder As Binder, diagnostics As BindingDiagnosticBag) As TypeSymbol
             If syntax.Kind = SyntaxKind.DelegateFunctionStatement Then
                 Dim delegateSyntax = DirectCast(syntax, DelegateStatementSyntax)
 
@@ -247,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     syntax As VisualBasicSyntaxNode,
                     binder As Binder,
                     parameterListOpt As ParameterListSyntax,
-                    diagnostics As DiagnosticBag)
+                    diagnostics As BindingDiagnosticBag)
 
                 MyBase.New(delegateType,
                            syntax,

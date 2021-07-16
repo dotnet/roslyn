@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -107,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            hierarchyToItemIDsMap = null;
             rqnames = null;
             if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
             {
@@ -135,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
             {
                 return false;
             }
@@ -183,12 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
-                if (ErrorHandler.Failed(hierarchy.ParseCanonicalName(document.FilePath, out uint itemID)))
-                {
-                    continue;
-                }
+                var itemID = hierarchy.TryGetItemId(document.FilePath);
 
-                if (itemID == (uint)VSConstants.VSITEMID.Nil)
+                if (itemID == VSConstants.VSITEMID_NIL)
                 {
                     continue;
                 }

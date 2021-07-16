@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -73,7 +77,7 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
-            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetSymbol().GetType().Name);
             Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
 
             Assert.Equal(info0.Type, info2.Type);
@@ -1058,7 +1062,14 @@ public class ClassA
 
         #region "AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit"
 
-        private void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
+        private static void CheckAnonymousType(TypeSymbol type, string name, string metadataName)
+        {
+            Assert.NotNull(type);
+            Assert.Equal(name, type.Name);
+            Assert.Equal(metadataName, type.MetadataName);
+        }
+
+        private static void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
         {
             Assert.NotNull(type);
             Assert.Equal(name, type.Name);
@@ -1317,7 +1328,7 @@ public class ClassA
     }
 }";
             var data = Compile(source, 1,
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v1 =    new { }   )
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
             );
@@ -1354,7 +1365,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
   Initializer: 
     null";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
             };
@@ -1705,6 +1716,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
         [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
@@ -1781,31 +1793,31 @@ class ClassA
 }
 ";
             string expectedOperationTree = @"
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid) (Syntax: 'new { f1 =  ... = default }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid) (Syntax: 'new { f1 =  ... = default }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, Constant: null, IsInvalid) (Syntax: 'f1 = null')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, ? f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f2 = M')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, ? f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
             Children(1):
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassA, IsInvalid, IsImplicit) (Syntax: 'M')
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f3 = default')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'f3 = default')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f3 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f3')
+          IPropertyReferenceOperation: ? <anonymous type: error f1, error f2, ? f3>.f3 { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'f3')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
-          IDefaultValueOperation (OperationKind.DefaultValue, Type: null, IsInvalid) (Syntax: 'default')
+          IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(6,35): error CS0828: Cannot assign '<null>' to anonymous type property
@@ -1814,9 +1826,9 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                 // file.cs(6,46): error CS0828: Cannot assign 'method group' to anonymous type property
                 //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f2 = M").WithArguments("method group").WithLocation(6, 46),
-                // file.cs(6,54): error CS0828: Cannot assign 'default' to anonymous type property
+                // file.cs(6,59): error CS8716: There is no target type for the default literal.
                 //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f3 = default").WithArguments("default").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 59)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1865,14 +1877,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
         private void AssertCannotConstruct(ISymbol type)
         {
-            var namedType = type as NamedTypeSymbol;
+            var namedType = type as INamedTypeSymbol;
             Assert.NotNull(namedType);
 
-            var objType = namedType.BaseType();
+            var objType = namedType.BaseType;
             Assert.NotNull(objType);
             Assert.Equal("System.Object", objType.ToTestDisplayString());
 
-            TypeSymbol[] args = new TypeSymbol[namedType.Arity];
+            ITypeSymbol[] args = new ITypeSymbol[namedType.Arity];
             for (int i = 0; i < namedType.Arity; i++)
             {
                 args[i] = objType;
@@ -1905,7 +1917,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
         private void CheckFieldNameAndLocation(TestData data, ITypeSymbol type, SyntaxNode identifier)
         {
-            var anonymousType = (NamedTypeSymbol)type;
+            var anonymousType = (INamedTypeSymbol)type;
 
             var current = identifier;
             while (current.Span == identifier.Span && !current.IsKind(SyntaxKind.IdentifierName))
@@ -1918,13 +1930,13 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var span = node.Span;
             var fieldName = node.ToString();
 
-            var property = anonymousType.GetMember<PropertySymbol>(fieldName);
+            var property = anonymousType.GetMember<IPropertySymbol>(fieldName);
             Assert.NotNull(property);
             Assert.Equal(fieldName, property.Name);
             Assert.Equal(1, property.Locations.Length);
             Assert.Equal(span, property.Locations[0].SourceSpan);
 
-            MethodSymbol getter = property.GetMethod;
+            IMethodSymbol getter = property.GetMethod;
             Assert.NotNull(getter);
             Assert.Equal("get_" + fieldName, getter.Name);
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -9,20 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
     {
-        int IVsExpansionFunction.GetDefaultValue(out string bstrValue, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]out int fHasDefaultValue)
-        {
-            return GetDefaultValue(CancellationToken.None, out bstrValue, out fHasDefaultValue);
-        }
+        int IVsExpansionFunction.GetDefaultValue(out string bstrValue, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] out int fHasDefaultValue)
+            => GetDefaultValue(CancellationToken.None, out bstrValue, out fHasDefaultValue);
 
         int IVsExpansionFunction.GetCurrentValue(out string bstrValue, out int fHasCurrentValue)
-        {
-            return GetCurrentValue(CancellationToken.None, out bstrValue, out fHasCurrentValue);
-        }
+            => GetCurrentValue(CancellationToken.None, out bstrValue, out fHasCurrentValue);
 
         int IVsExpansionFunction.FieldChanged(string bstrField, out int fRequeryFunction)
-        {
-            return FieldChanged(bstrField, out fRequeryFunction);
-        }
+            => FieldChanged(bstrField, out fRequeryFunction);
 
         int IVsExpansionFunction.GetFunctionType(out uint funcType)
         {
@@ -38,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         int IVsExpansionFunction.GetListText(int index, out string text)
         {
-            index = 0;
             text = string.Empty;
             return VSConstants.E_NOTIMPL;
         }

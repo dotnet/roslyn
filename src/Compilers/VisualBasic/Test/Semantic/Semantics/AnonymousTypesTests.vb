@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -45,7 +47,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '.b + .a')
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '.b + .a')
             Left: 
               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.b')
                 Instance Receiver: 
@@ -819,7 +821,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {a * 2}')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
+          IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
             Left: 
               ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
             Right: 

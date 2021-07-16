@@ -1,12 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
@@ -14,17 +21,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     [ExportLanguageService(typeof(IAnonymousTypeDisplayService), LanguageNames.CSharp), Shared]
     internal class CSharpAnonymousTypeDisplayService : AbstractAnonymousTypeDisplayService
     {
-        public override IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpAnonymousTypeDisplayService()
         {
-            var members = new List<SymbolDisplayPart>();
+        }
+
+        public override ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
+        {
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
 
             members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)));
             members.AddRange(Space());
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken)));
             members.AddRange(Space());
 
-            bool first = true;
+            var first = true;
             foreach (var property in anonymousType.GetValidAnonymousTypeProperties())
             {
                 if (!first)
@@ -34,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
 
                 first = false;
-                members.AddRange(displayService.ToMinimalDisplayParts(semanticModel, position, property.Type).Select(p => p.MassageErrorTypeNames("?")));
+                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position).Select(p => p.MassageErrorTypeNames("?")));
                 members.AddRange(Space());
                 members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
             }
@@ -42,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.AddRange(Space());
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
 
-            return members;
+            return members.ToImmutable();
         }
     }
 }

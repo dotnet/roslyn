@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Text
@@ -11,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' A NoPiaIllegalGenericInstantiationSymbol is a special kind of ErrorSymbol that represents
     ''' a generic type instantiation that cannot cross assembly boundaries according to NoPia rules.
     ''' </summary>
-    Friend Class NoPiaIllegalGenericInstantiationSymbol
+    Friend NotInheritable Class NoPiaIllegalGenericInstantiationSymbol
         Inherits ErrorTypeSymbol
 
         Private ReadOnly _underlyingSymbol As NamedTypeSymbol
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return RuntimeHelpers.GetHashCode(Me)
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
             Return obj Is Me
         End Function
 

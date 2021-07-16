@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
 
-            if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken, cancellationToken))
+            if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken))
             {
                 var token = context.TargetToken;
 
@@ -32,9 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
+                UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken) ||
                 context.IsAnyExpressionContext ||
                 context.IsObjectCreationTypeContext ||
                 context.IsIsOrAsTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||

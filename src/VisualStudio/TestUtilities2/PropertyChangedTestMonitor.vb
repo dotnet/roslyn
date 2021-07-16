@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Linq.Expressions
 Imports System.ComponentModel
@@ -7,8 +9,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class PropertyChangedTestMonitor
 
         Private ReadOnly _propertyChangedObject As INotifyPropertyChanged
-        Private _expectationCountMap As Dictionary(Of String, Integer)
-        Private _failures As List(Of String)
+        Private ReadOnly _expectationCountMap As Dictionary(Of String, Integer)
+        Private ReadOnly _failures As List(Of String)
 
         Public Sub New(propertyChangedObject As INotifyPropertyChanged, Optional strict As Boolean = False)
             AddHandler propertyChangedObject.PropertyChanged, AddressOf PropertyChangedHandler

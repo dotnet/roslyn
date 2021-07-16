@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -20,23 +24,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public ISyntaxFactsService SyntaxFactsService { get; }
         public ICodeGenerationService CodeGenerator { get; }
         public VisualStudioWorkspace Workspace { get; }
+        public ProjectCodeModelFactory ProjectCodeModelFactory { get; }
 
         public CodeModelState(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
             HostLanguageServices languageServices,
-            VisualStudioWorkspace workspace)
+            VisualStudioWorkspace workspace,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             Debug.Assert(threadingContext != null);
             Debug.Assert(serviceProvider != null);
             Debug.Assert(languageServices != null);
             Debug.Assert(workspace != null);
 
+            // ⚠ This code runs on the main thread. Language services accessed here should be preloaded in
+            // ProjectCodemodelFactory to avoid blocking MEF operations.
             this.ThreadingContext = threadingContext;
             this.ServiceProvider = serviceProvider;
             this.CodeModelService = languageServices.GetService<ICodeModelService>();
             this.SyntaxFactsService = languageServices.GetService<ISyntaxFactsService>();
             this.CodeGenerator = languageServices.GetService<ICodeGenerationService>();
+            this.ProjectCodeModelFactory = projectCodeModelFactory;
             this.Workspace = workspace;
         }
     }

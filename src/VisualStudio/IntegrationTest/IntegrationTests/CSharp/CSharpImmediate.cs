@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -44,12 +48,12 @@ class Program
 }
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint("Program.cs", "}");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
             VisualStudio.SendKeys.Send("?n");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.CompletionSet);
             VisualStudio.SendKeys.Send("1", VirtualKey.Tab, VirtualKey.Enter);
             Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
         }

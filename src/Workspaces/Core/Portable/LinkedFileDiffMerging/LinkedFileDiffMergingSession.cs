@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,23 +19,20 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class LinkedFileDiffMergingSession
     {
-        private readonly bool _logSessionInfo;
-
         private readonly Solution _oldSolution;
         private readonly Solution _newSolution;
-        private SolutionChanges _solutionChanges;
+        private readonly SolutionChanges _solutionChanges;
 
-        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges, bool logSessionInfo)
+        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
         {
             _oldSolution = oldSolution;
             _newSolution = newSolution;
             _solutionChanges = solutionChanges;
-            _logSessionInfo = logSessionInfo;
         }
 
         internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
         {
-            LinkedFileDiffMergingSessionInfo sessionInfo = new LinkedFileDiffMergingSessionInfo();
+            var sessionInfo = new LinkedFileDiffMergingSessionInfo();
 
             var linkedDocumentGroupsWithChanges = _solutionChanges
                 .GetProjectChanges()
@@ -70,8 +71,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            LogLinkedFileDiffMergingSessionInfo(sessionInfo);
-
             return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
         }
 
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis
 
             // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
-            var textDifferencingService = _oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>() ?? new DefaultDocumentTextDifferencingService();
+            var textDifferencingService = _oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
             var unmergedChanges = new List<UnmergedDocumentChanges>();
 
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis
 
             if (unmergedChanges.Any())
             {
-                mergeConflictHandler = mergeConflictHandler ?? _oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
+                mergeConflictHandler ??= _oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
                 var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(originalSourceText, unmergedChanges);
 
                 allChanges = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, mergeConflictResolutionSpan, groupSessionInfo);
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             var unmergedDocumentChanges = new List<TextChange>();
             var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
 
-            int cumulativeChangeIndex = 0;
+            var cumulativeChangeIndex = 0;
 
             var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
             foreach (var change in textchanges)
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis
             return successfullyMergedChanges.ToImmutableAndFree();
         }
 
-        private IEnumerable<TextChange> MergeChangesWithMergeFailComments(
+        private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
             IEnumerable<TextChange> mergedChanges,
             IEnumerable<TextChange> commentChanges,
             IList<TextSpan> mergeConflictResolutionSpans,
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis
             return NormalizeChanges(combinedChanges);
         }
 
-        private IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+        private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
         {
             if (changes.Count() <= 1)
             {
@@ -315,24 +314,12 @@ namespace Microsoft.CodeAnalysis
             return normalizedChanges;
         }
 
-        private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
-        {
-            if (!_logSessionInfo)
-            {
-                return;
-            }
-
-            LinkedFileDiffMergingLogger.LogSession(this._newSolution.Workspace, sessionInfo);
-        }
-
         internal class LinkedFileDiffMergingSessionInfo
         {
-            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
+            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new();
 
             public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
-            {
-                LinkedFileGroups.Add(info);
-            }
+                => LinkedFileGroups.Add(info);
         }
 
         internal class LinkedFileGroupSessionInfo

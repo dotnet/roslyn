@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -39,7 +44,7 @@ namespace Goo.Bar
             var baseType = symbol?.BaseType;
             Assert.NotNull(baseType);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
-            Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
+            Assert.Equal(LookupResultKind.Inaccessible, baseType.GetSymbol<ErrorTypeSymbol>().ResultKind); // Script class members are private.
         }
 
         [Fact]
@@ -121,7 +126,7 @@ int field = constantField;
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
             var symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 local1", symbol.ToTestDisplayString());
-            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
+            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol.GetSymbol());
         }
 
         [WorkItem(540513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]

@@ -1,48 +1,64 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public ImplementAbstractClassTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
-            OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection AllOptionsOff
+            => new OptionsCollection(GetLanguage())
+            {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
         internal Task TestAllOptionsOffAsync(
-            string initialMarkup, string expectedMarkup,
-            int index = 0, IDictionary<OptionKey, object> options = null)
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            OptionsCollection options = null,
+            ParseOptions parseOptions = null)
         {
-            options = options ?? new Dictionary<OptionKey, object>();
-            foreach (var kvp in AllOptionsOff)
-            {
-                options.Add(kvp);
-            }
+            options = options ?? new OptionsCollection(GetLanguage());
+            options.AddRange(AllOptionsOff);
 
             return TestInRegularAndScriptAsync(
-                initialMarkup, expectedMarkup,
-                index: index, options: options);
+                initialMarkup,
+                expectedMarkup,
+                index: index,
+                options: options,
+                parseOptions: parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -432,7 +448,7 @@ class b : d
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestOptionalStructParameter()
+        public async Task TestOptionalStructParameter_CSharp7()
         {
             await TestAllOptionsOffAsync(
 @"struct b
@@ -459,6 +475,41 @@ abstract class d
 class c : d
 {
     public override void goo(b x = default(b))
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestOptionalStructParameter()
+        {
+            await TestAllOptionsOffAsync(
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void goo(b x = new b());
+}
+
+class [|c|] : d
+{
+}",
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void goo(b x = new b());
+}
+
+class c : d
+{
+    public override void goo(b x = default)
     {
         throw new System.NotImplementedException();
     }
@@ -695,41 +746,6 @@ class [|Program|] : Goo
 #line hidden
 }
 #line default");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestGenerateIntoNonHiddenPart()
-        {
-            await TestAllOptionsOffAsync(
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class [|Program|] : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program ",
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class Program : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program
-{
-    public override void F()
-    {
-        throw new NotImplementedException();
-    }
-}
-");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -1229,9 +1245,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1266,9 +1284,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1322,9 +1342,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1359,9 +1381,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1385,9 +1409,11 @@ class [|T|] : A
 class T : A
 {
     public override int M { get => throw new System.NotImplementedException(); }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1509,7 +1535,7 @@ namespace My
 
         [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestNullableOptionalParameters()
+        public async Task TestNullableOptionalParameters_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"struct V { }
@@ -1530,6 +1556,75 @@ abstract class B
 sealed class D : B
 {
     public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void M2<T>(T? i = null)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                parseOptions: TestOptions.Regular7);
+        }
+
+        [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableOptionalParametersCSharp7()
+        {
+            await TestAsync(
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class [|D|] : B
+{
+}",
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class D : B
+{
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void M2<T>(T? i = null)
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableOptionalParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class [|D|] : B
+{
+}",
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class D : B
+{
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default)
     {
         throw new System.NotImplementedException();
     }
@@ -1685,7 +1780,7 @@ public class Test : TestParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestUnmanagedConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -1707,6 +1802,243 @@ public class Test : ParentTest
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact]
+        public async Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
+        {
+            await TestMissingAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    internal abstract void Method();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class [|Derived|] : Base
+{
+    Base inner;
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithIncompleteGenericInBaseList()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A<int
+{
+
+}",
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A<int
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithRecords()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record [|B|] : A
+{
+
+}",
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record B : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithRecordsWithPositionalMembers()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record [|B|](int i) : A
+{
+
+}",
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record B(int i) : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D|] : B<int>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D : B<int>
+{
+    public override int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<T> where T : struct
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public override T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<(T, T)>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public override (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestAllOptionsOffAsync(
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class [|D<T>|] : B<{passToBase}>{constraint}
+{{
+}}",
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public override T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -765,7 +769,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -788,7 +792,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -808,7 +812,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (6,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 12));

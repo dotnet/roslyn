@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.TextView.TextBuffer.PostChanged += this.OnTextViewBufferPostChanged;
         }
 
-        internal abstract void OnModelUpdated(TModel result);
+        internal abstract void OnModelUpdated(TModel result, bool updateController);
         internal abstract void OnTextViewBufferPostChanged(object sender, EventArgs e);
         internal abstract void OnCaretPositionChanged(object sender, EventArgs e);
 
@@ -67,14 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return sessionOpt.WaitForController();
         }
 
-        void IController<TModel>.OnModelUpdated(TModel result)
+        void IController<TModel>.OnModelUpdated(TModel result, bool updateController)
         {
             // This is only called from the model computation if it was not cancelled.  And if it was 
             // not cancelled then we must have a pointer to it (as well as the presenter session).
             AssertIsForeground();
             VerifySessionIsActive();
 
-            this.OnModelUpdated(result);
+            this.OnModelUpdated(result, updateController);
         }
 
         IAsyncToken IController<TModel>.BeginAsyncOperation(string name, object tag, string filePath, int lineNumber)

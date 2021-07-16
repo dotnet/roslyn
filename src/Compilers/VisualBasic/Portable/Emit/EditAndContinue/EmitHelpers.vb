@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -7,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -20,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethods As ICollection(Of MethodDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -31,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
+
+            Dim updatedMethods = ArrayBuilder(Of MethodDefinitionHandle).GetInstance()
+            Dim updatedTypes = ArrayBuilder(Of TypeDefinitionHandle).GetInstance()
 
             Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
             Try
@@ -44,9 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
             Catch e As NotSupportedException
-                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
-                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+                ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing, updatedMethods:=updatedMethods.ToImmutableAndFree(), updatedTypes:=updatedTypes.ToImmutableAndFree())
             End Try
 
             If testData IsNot Nothing Then
@@ -62,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=AddressOf changes.RequiresCompilation,
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
@@ -79,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOpts.PdbFilePath,
@@ -88,7 +94,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New EmitDifferenceResult(
                 success:=newBaseline IsNot Nothing,
                 diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                baseline:=newBaseline)
+                baseline:=newBaseline,
+                updatedMethods:=updatedMethods.ToImmutableAndFree(),
+                updatedTypes:=updatedTypes.ToImmutableAndFree())
         End Function
 
         Friend Function MapToCompilation(
@@ -105,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
-            Dim currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers()
+            Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()

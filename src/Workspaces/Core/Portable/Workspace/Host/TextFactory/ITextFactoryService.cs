@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Text;
@@ -27,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
-        SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default);
-
+        SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates <see cref="SourceText"/> from a reader with given <paramref name="encoding"/>.
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <param name="encoding">Specifies an encoding for the <see cref="SourceText"/>SourceText. 
         /// it could be null. but if null is given, it won't be able to calculate checksum</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default);
+        SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default);
     }
 }
 

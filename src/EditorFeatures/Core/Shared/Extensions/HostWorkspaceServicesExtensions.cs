@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class HostWorkspaceServicesExtensions
     {
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, ITextBuffer textBuffer)
         {
             return workspaceServices.GetLanguageServices(textBuffer.ContentType);
         }
 
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)
@@ -39,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
         private static readonly ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
-            = new ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>>();
+            = new();
 
-        private static string GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
+        private static string? GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
         {
             if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {
@@ -60,10 +62,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (mefHostServices != null)
             {
+                // Two assemblies may export the same language to content type mapping during development cycles where
+                // a type is moving to a new assembly. Avoid failing during content type discovery by de-duplicating
+                // services with identical metadata, opting to instead fail only in cases where the impacted service
+                // instance is used.
                 var exports = mefHostServices.GetExports<ILanguageService, ContentTypeLanguageMetadata>();
                 return exports
                         .Where(lz => !string.IsNullOrEmpty(lz.Metadata.DefaultContentType))
-                        .ToDictionary(lz => lz.Metadata.Language, lz => lz.Metadata.DefaultContentType);
+                        .Select(lz => (lz.Metadata.Language, lz.Metadata.DefaultContentType))
+                        .Distinct()
+                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType);
             }
 
             // We can't do anything special, so fall back to the expensive path

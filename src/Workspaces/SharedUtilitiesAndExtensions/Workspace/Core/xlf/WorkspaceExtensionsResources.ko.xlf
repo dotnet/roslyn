@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../WorkspaceExtensionsResources.resx">
+    <body>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="translated">작업을 수행하는 데 컴파일이 필요하지만 프로젝트 {0}에서 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="translated">모든 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="translated">'{1}'의 모든 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="translated">솔루션의 모든 '{0}' 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="translated">작업을 수행하는 데 ID가 {0}인 프로젝트가 필요하지만, 솔루션에서 해당 프로젝트를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="translated">제공된 진단은 null일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="translated">작업을 수행하는 데 구문 트리가 필요하지만 문서 {0}에서 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_does_not_contain_the_specified_document">
+        <source>The solution does not contain the specified document.</source>
+        <target state="translated">솔루션에 지정한 문서가 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
+        <source>Warning: Declaration changes scope and may change meaning.</source>
+        <target state="translated">경고: 선언 시 범위가 변경되고 의미가 변경될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

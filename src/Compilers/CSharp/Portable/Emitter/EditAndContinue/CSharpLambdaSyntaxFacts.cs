@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Emit;
 
@@ -13,16 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public override SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax)
-        {
-            return LambdaUtilities.GetLambda(lambdaOrLambdaBodySyntax);
-        }
+            => LambdaUtilities.GetLambda(lambdaOrLambdaBodySyntax);
 
-        public override SyntaxNode TryGetCorrespondingLambdaBody(
-            SyntaxNode previousLambdaSyntax,
-            SyntaxNode lambdaOrLambdaBodySyntax)
-        {
-            return LambdaUtilities.TryGetCorrespondingLambdaBody(
-                lambdaOrLambdaBodySyntax, previousLambdaSyntax);
-        }
+        public override SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax)
+            => LambdaUtilities.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax, previousLambdaSyntax);
+
+        public override int GetDeclaratorPosition(SyntaxNode node)
+            => LambdaUtilities.GetDeclaratorPosition(node);
     }
 }

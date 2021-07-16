@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractPartialMethodCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
         protected static readonly SymbolDisplayFormat SignatureDisplayFormat =
-                new SymbolDisplayFormat(
+                new(
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeParameters,
@@ -31,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
+        protected abstract bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken);
         protected abstract bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
         protected abstract string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position);
         protected abstract bool IsPartial(IMethodSymbol method);
@@ -65,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: ImmutableArray<AttributeData>.Empty,
-                accessibility: Accessibility.NotApplicable,
+                accessibility: IncludeAccessibility(method, cancellationToken) ? method.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
-                returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                returnType: method.ReturnType,
                 refKind: method.RefKind,
                 explicitInterfaceImplementations: default,
                 name: member.Name,
@@ -80,13 +85,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document document, int position, TextSpan span, DeclarationModifiers modifiers, SyntaxToken token, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken) as INamedTypeSymbol;
 
             // Only inside classes and structs
-            if (enclosingSymbol == null || !(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
-            {
+            if (semanticModel.GetEnclosingSymbol(position, cancellationToken) is not INamedTypeSymbol enclosingSymbol)
                 return null;
-            }
+
+            if (enclosingSymbol.TypeKind is not (TypeKind.Struct or TypeKind.Class))
+                return null;
 
             var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)
                                         .OfType<IMethodSymbol>()
@@ -95,22 +100,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = text.Lines.IndexOf(position);
             var lineSpan = text.Lines.GetLineFromPosition(position).Span;
-            return symbols.Select(s => CreateItem(s, line, lineSpan, span, semanticModel, modifiers, document, token));
+            return symbols.Select(s => CreateItem(s, line, span, semanticModel, modifiers, token));
         }
 
-        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan lineSpan, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, Document document, SyntaxToken token)
+        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, SyntaxToken token)
         {
-            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.IsUnsafe(), isPartial: true, isAsync: modifiers.IsAsync);
+            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifier(), isPartial: true, isAsync: modifiers.IsAsync);
             var displayText = GetDisplayText(method, semanticModel, span.Start);
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
+                displayTextSuffix: "",
                 modifiers,
                 line,
                 method,
                 token,
                 span.Start,
-                rules: this.GetRules());
+                rules: GetRules());
         }
     }
 }

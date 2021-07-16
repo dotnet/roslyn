@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -754,6 +756,7 @@ Interface ISibling
 End Interface")
         End Function
 
+        <WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
@@ -767,7 +770,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
@@ -1323,7 +1326,7 @@ End Class")
 
         <WorkItem(539821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539821")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Async Function TestEscapeParametername() As Task
+        Public Async Function TestEscapeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -1331,16 +1334,14 @@ End Class")
  [|[Me]|]([string])
     End Sub
 End Module",
-"Imports System
-
-Module Program
+"Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
 
     Private Sub [Me]([string] As String)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Module")
         End Function
@@ -2393,8 +2394,6 @@ Class Program
 End Class
 </text>.Value.Replace(vbLf, vbCrLf),
 <text>
-Imports System
-
 Class Program
     Sub Main(args As String())
         Goo()
@@ -2402,7 +2401,7 @@ Class Program
     End Sub
 
     Private Sub Goo(Of T)()
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Private Sub Goo()
@@ -2636,7 +2635,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
+    Private Sub sub1(Of T1, T2)(vs1() As T1, vs2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -3752,6 +3751,29 @@ End Class",
 index:=1)
         End Function
 
+        <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodConditionalAccess5() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?[|.B|]()
+    End Sub
+End Structure",
+"Imports System
+
+Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?.B()
+    End Sub
+
+    Private Function B() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Structure")
+        End Function
+
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
@@ -3902,7 +3924,7 @@ Module M
         Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
     End Sub 
 End Module",
-"Imports System
+"Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
 
@@ -4191,10 +4213,10 @@ Class Program
 End Class")
         End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName1() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName1() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4219,12 +4241,12 @@ End Class
 Enum Goo
     One
 End Enum")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName2() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName2() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4245,12 +4267,12 @@ Class C
 End Class
 
 Delegate Sub Goo()")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName3() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName3() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4276,12 +4298,12 @@ End Class
 Class Goo
     
 End Class")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName4() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName4() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4306,12 +4328,12 @@ End Class
 Structure Goo
 
 End Structure")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName5() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName5() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4336,12 +4358,12 @@ End Class
 Interface Goo
     
 End Interface")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName6() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName6() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4366,7 +4388,7 @@ End Class
 Namespace Goo
 
 End Namespace")
-            End Function
+        End Function
 
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest

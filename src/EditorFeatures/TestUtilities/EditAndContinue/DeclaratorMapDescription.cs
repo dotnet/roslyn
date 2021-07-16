@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             NewSpans = GetSpans(newSource);
 
             Assert.Equal(OldSpans.Length, NewSpans.Length);
-            for (int i = 0; i < OldSpans.Length; i++)
+            for (var i = 0; i < OldSpans.Length; i++)
             {
                 Assert.Equal(OldSpans[i].Length, NewSpans[i].Length);
             }
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var matches = s_statementPattern.Matches(src);
             var result = new List<List<TextSpan>>();
 
-            for (int i = 0; i < matches.Count; i++)
+            for (var i = 0; i < matches.Count; i++)
             {
                 var stmt = matches[i].Groups["Node"];
                 var id = matches[i].Groups["Id"].Value.Split('.');
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             get
             {
-                for (int j = 0; j < OldSpans[i].Length; j++)
+                for (var j = 0; j < OldSpans[i].Length; j++)
                 {
                     yield return KeyValuePairUtil.Create(OldSpans[i][j], NewSpans[i][j]);
                 }
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             while (i >= list.Count)
             {
-                list.Add(default(T));
+                list.Add(default);
             }
         }
     }

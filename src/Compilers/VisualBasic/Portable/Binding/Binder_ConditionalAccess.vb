@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -10,9 +12,9 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
 
-        Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim placeholder As BoundRValuePlaceholder = Nothing
             Dim boundExpression As BoundExpression = BindConditionalAccessReceiver(node, diagnostics, placeholder)
 
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundConditionalAccess(node, boundExpression, placeholder, whenNotNull, Nothing)
         End Function
 
-        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef placeholder As BoundRValuePlaceholder) As BoundExpression
+        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As BindingDiagnosticBag, <Out> ByRef placeholder As BoundRValuePlaceholder) As BoundExpression
             Dim boundExpression As BoundExpression
 
             If node.Expression Is Nothing Then
@@ -66,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overridable Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax,
                                                                              accessingBinder As Binder,
-                                                                             diagnostics As DiagnosticBag) As BoundExpression
+                                                                             diagnostics As BindingDiagnosticBag) As BoundExpression
             Debug.Assert(Me.ContainingBinder IsNot Nothing)
             Return Me.ContainingBinder.TryBindOmittedLeftForConditionalAccess(node, accessingBinder, diagnostics)
         End Function
@@ -76,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If result Is Nothing Then
                 Dim placeholder As BoundRValuePlaceholder = Nothing
-                BindConditionalAccessReceiver(node, New DiagnosticBag(), placeholder)
+                BindConditionalAccessReceiver(node, BindingDiagnosticBag.Discarded, placeholder)
                 Return placeholder
             End If
 

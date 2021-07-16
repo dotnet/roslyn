@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -368,19 +372,19 @@ End Class";
         End RaiseEvent
     End Event
 End Class";
-                ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
+                static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
                 {
                     var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
                     return ImmutableArray.Create<IEventSymbol>(
                         new CodeGenerationEventSymbol(
-                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
+                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel),
                             attributes: default,
                             Accessibility.Public,
                             modifiers: default,
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                             explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
-                };
+                }
 
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(

@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
@@ -17,11 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     Friend Class ViewCreationListener
         Implements ITextViewConnectionListener
 
-        Private ReadOnly _waitIndicator As IWaitIndicator
+        Private ReadOnly _uiThreadOperationExecutor As IUIThreadOperationExecutor
 
         <ImportingConstructor()>
-        Public Sub New(waitIndicator As IWaitIndicator)
-            Me._waitIndicator = waitIndicator
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(uiThreadOperationExecutor As IUIThreadOperationExecutor)
+            _uiThreadOperationExecutor = uiThreadOperationExecutor
         End Sub
 
         Public Sub SubjectBuffersConnected(
@@ -43,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Sub
 
         Private Sub AddConstructPairTo(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Connect())
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _uiThreadOperationExecutor)).Connect())
         End Sub
 
         Private Sub RemoveConstructPairFrom(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Disconnect())
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _uiThreadOperationExecutor)).Disconnect())
 
             buffers.Where(
                 Function(b) b.Properties.GetProperty(Of AutomaticEndConstructCorrector)(GetType(AutomaticEndConstructCorrector)).IsDisconnected).Do(

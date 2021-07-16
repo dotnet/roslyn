@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,18 +14,24 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
+    // Used in https://github.com/aspnet/AspNetCore-Tooling/tree/main/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/OOPTagHelperResolver.cs
+    [Obsolete("Use Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient instead")]
     internal sealed class RazorLanguageServiceClient
     {
         private readonly RemoteHostClient _client;
-        private readonly string _serviceName;
+        private readonly RemoteServiceName _serviceName;
 
         internal RazorLanguageServiceClient(RemoteHostClient client, string serviceName)
         {
             _client = client;
-            _serviceName = serviceName;
+            _serviceName = new RemoteServiceName(serviceName);
         }
 
-        public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => await _client.RunRemoteAsync<T>(_serviceName, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
+
+        [Obsolete("Use TryRunRemoteAsync instead")]
+        public async Task<Session?> CreateSessionAsync(Solution solution, object? callbackTarget = null, CancellationToken cancellationToken = default)
         {
             if (solution == null)
             {
@@ -29,15 +39,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var innerSession = await _client.TryCreateSessionAsync(_serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (innerSession == null)
+            var connection = await _client.CreateConnectionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+
+            SessionWithSolution? session = null;
+            try
             {
-                return null;
+                // transfer ownership of the connection to the session object:
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (session == null)
+                {
+                    connection.Dispose();
+                }
             }
 
-            return new Session(innerSession);
+            return new Session(session);
         }
 
+        [Obsolete("Use TryRunRemoteAsync instead")]
         public sealed class Session : IDisposable
         {
             private readonly SessionWithSolution _inner;
@@ -49,22 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken);
             }
 
             public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments, cancellationToken);
-            }
-
-            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            {
-                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-            }
-
-            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            {
-                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
             }
 
             public void Dispose()

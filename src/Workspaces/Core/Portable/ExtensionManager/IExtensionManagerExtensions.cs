@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -8,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task PerformActionAsync(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task> function)
+            Func<Task?> function)
         {
             try
             {
@@ -84,22 +85,23 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task<T> PerformFunctionAsync<T>(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task<T>> function,
+            Func<Task<T>?> function,
             T defaultValue)
         {
+            if (extensionManager.IsDisabled(extension))
+            {
+                return defaultValue;
+            }
+
             try
             {
-                if (!extensionManager.IsDisabled(extension))
+                var task = function();
+                if (task != null)
                 {
-                    var task = function() ?? SpecializedTasks.Default<T>();
                     return await task.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (!(e is OperationCanceledException) && extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }

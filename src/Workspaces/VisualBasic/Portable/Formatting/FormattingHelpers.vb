@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -93,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -103,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlMemberAccess.Token2 = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -113,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.ColonToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -123,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -133,6 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -143,6 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.EqualsToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -153,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -163,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.GreaterThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -173,6 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlBracketedName.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -183,6 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlBracketedName.GreaterThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -197,6 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If xmlElement.StartTag.LessThanToken = token Then
                     Return True
                 End If
+
                 Return False
             End If
 
@@ -208,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    IsGreaterThanInXmlTag(xmlElement.EndTag, token) Then
                     Return True
                 End If
+
                 Return False
             End If
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -230,7 +232,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' When binding the inherits clause, we don't want to look to base types of our own type, to follow how actual
                         ' determination of the base type is done. This is done by using a BasesBeingResolvedBinder.
                         Debug.Assert(containingNamedTypeBinder.ContainingType IsNot Nothing)
-                        Return New BasesBeingResolvedBinder(containingBinder, ConsList(Of Symbol).Empty.Prepend(containingNamedTypeBinder.ContainingType))
+                        Return New BasesBeingResolvedBinder(containingBinder, BasesBeingResolved.Empty.PrependInheritsBeingResolved(containingNamedTypeBinder.ContainingType))
+                    Else
+                        Return containingBinder
+                    End If
+
+                Case NodeUsage.ImplementsStatement
+                    Dim containingNamedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
+
+                    If containingNamedTypeBinder IsNot Nothing Then
+                        Debug.Assert(containingNamedTypeBinder.ContainingType IsNot Nothing)
+                        Return New BasesBeingResolvedBinder(containingBinder, BasesBeingResolved.Empty.PrependImplementsBeingResolved(containingNamedTypeBinder.ContainingType))
                     Else
                         Return containingBinder
                     End If

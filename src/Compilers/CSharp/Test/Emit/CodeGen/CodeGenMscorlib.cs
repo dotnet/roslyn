@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -223,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
         [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [Fact]
+        [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
         public void NoDecimalConversion()
         {
             var source1 =
@@ -964,6 +969,7 @@ namespace System
     public struct Int32 { }
     public struct Char { }
     public struct Boolean { }
+    public class Exception { }
 
     public class String 
     { 
@@ -1071,6 +1077,7 @@ namespace System
     public struct Int32 { }
     public struct Char { }
     public struct Boolean { }
+    public class Exception { }
 
     public class String 
     { 

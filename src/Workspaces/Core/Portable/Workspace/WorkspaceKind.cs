@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,8 +19,12 @@ namespace Microsoft.CodeAnalysis
         public const string Preview = nameof(Preview);
         public const string MSBuild = "MSBuildWorkspace"; // This string is specifically used to avoid a breaking change.
 
-        internal const string Test = nameof(Test);
-        internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
+        /// <summary>
+        /// <see cref="AdhocWorkspace"/> kind.
+        /// </summary>
+        internal const string Custom = "Custom";
+
+        internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
         internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);
     }

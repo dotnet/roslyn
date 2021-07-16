@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -12,13 +16,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class BlindAggregatorFactory
     {
         public static unsafe IntPtr CreateWrapper()
-        {
-            return (IntPtr)BlindAggregator.CreateInstance();
-        }
+            => (IntPtr)BlindAggregator.CreateInstance();
 
         public static unsafe void SetInnerObject(IntPtr wrapperUnknown, IntPtr innerUnknown, IntPtr managedObjectGCHandlePtr)
         {
-            BlindAggregator* pWrapper = (BlindAggregator*)wrapperUnknown;
+            var pWrapper = (BlindAggregator*)wrapperUnknown;
             pWrapper->SetInnerObject(innerUnknown, managedObjectGCHandlePtr);
         }
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public static unsafe BlindAggregator* CreateInstance()
             {
-                BlindAggregator* pResult = (BlindAggregator*)Marshal.AllocCoTaskMem(sizeof(BlindAggregator));
+                var pResult = (BlindAggregator*)Marshal.AllocCoTaskMem(sizeof(BlindAggregator));
                 if (pResult != null)
                 {
                     pResult->Construct();
@@ -79,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private struct VTable
             {
                 // Need these to keep the delegates alive
-                private static unsafe readonly QueryInterfaceDelegateType s_queryInterface = BlindAggregator.QueryInterface;
-                private static unsafe readonly AddRefDelegateType s_addRef = BlindAggregator.AddRef;
-                private static unsafe readonly ReleaseDelegateType s_release = BlindAggregator.Release;
-                private static unsafe readonly GetGCHandlePtrDelegateType s_get_GCHandlePtr = BlindAggregator.GetGCHandlePtr;
+                private static readonly unsafe QueryInterfaceDelegateType s_queryInterface = BlindAggregator.QueryInterface;
+                private static readonly unsafe AddRefDelegateType s_addRef = BlindAggregator.AddRef;
+                private static readonly unsafe ReleaseDelegateType s_release = BlindAggregator.Release;
+                private static readonly unsafe GetGCHandlePtrDelegateType s_get_GCHandlePtr = BlindAggregator.GetGCHandlePtr;
 
                 private IntPtr _queryInterfacePtr;
                 private IntPtr _addRefPtr;
@@ -112,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     ~CoTaskMemPtr()
-                    {
-                        Marshal.FreeCoTaskMem(this.VTablePtr);
-                    }
+                        => Marshal.FreeCoTaskMem(this.VTablePtr);
                 }
 
                 // Singleton instance of the VTable allocated in native memory. Since it's static, the
@@ -157,13 +157,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             private static unsafe uint AddRef(BlindAggregator* pThis)
-            {
-                return unchecked((uint)Interlocked.Increment(ref pThis->_refCount));
-            }
+                => unchecked((uint)Interlocked.Increment(ref pThis->_refCount));
 
             private static unsafe uint Release(BlindAggregator* pThis)
             {
-                uint result = unchecked((uint)Interlocked.Decrement(ref pThis->_refCount));
+                var result = unchecked((uint)Interlocked.Decrement(ref pThis->_refCount));
                 if (result == 0u)
                 {
                     pThis->FinalRelease();

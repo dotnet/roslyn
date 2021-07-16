@@ -1,19 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     [ExportOptionProvider, Shared]
-    internal class FormattingOptionsProvider : IOptionProvider
+    internal sealed class FormattingOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            FormattingOptions.UseTabs,
-            FormattingOptions.TabSize,
-            FormattingOptions.IndentationSize,
-            FormattingOptions.SmartIndent);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FormattingOptionsProvider()
+        {
+        }
+
+        public ImmutableArray<IOption> Options { get; } = FormattingOptions2.AllOptions.As<IOption>();
     }
 }

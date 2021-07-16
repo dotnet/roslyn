@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,14 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
     public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
-        public TupleConstructionSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new TupleConstructionSignatureHelpProvider();
-        }
+        internal override Type GetSignatureHelpProviderType()
+            => typeof(TupleConstructionSignatureHelpProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvocationAfterOpenParen()
@@ -33,7 +30,22 @@ class C
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0, parameterDocumentation: ""));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task InvocationWithNullableReferenceTypes()
+        {
+            var markup = @"
+class C
+{
+    (string?, string) y = [|($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(string?, string)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -82,7 +94,7 @@ class C
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1, parameterDocumentation: ""));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

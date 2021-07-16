@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         public readonly string Text;
 
-        internal SyntaxTrivia(SyntaxKind kind, string text, DiagnosticInfo[] diagnostics = null, SyntaxAnnotation[] annotations = null)
+        internal SyntaxTrivia(SyntaxKind kind, string text, DiagnosticInfo[]? diagnostics = null, SyntaxAnnotation[]? annotations = null)
             : base(kind, diagnostics, annotations, text.Length)
         {
             this.Text = text;
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return 0;
         }
 
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
         {
             return new SyntaxTrivia(this.Kind, this.Text, diagnostics, GetAnnotations());
         }
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         {
             return new SyntaxTrivia(this.Kind, this.Text, GetDiagnostics(), annotations);
         }
@@ -107,12 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.Write(Text);
         }
 
-        public static implicit operator Microsoft.CodeAnalysis.SyntaxTrivia(SyntaxTrivia trivia)
+        public static implicit operator CodeAnalysis.SyntaxTrivia(SyntaxTrivia trivia)
         {
-            return new Microsoft.CodeAnalysis.SyntaxTrivia(default(Microsoft.CodeAnalysis.SyntaxToken), trivia, position: 0, index: 0);
+            return new CodeAnalysis.SyntaxTrivia(token: default, trivia, position: 0, index: 0);
         }
 
-        public override bool IsEquivalentTo(GreenNode other)
+        public override bool IsEquivalentTo(GreenNode? other)
         {
             if (!base.IsEquivalentTo(other))
             {
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return true;
         }
 
-        internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
         {
             throw ExceptionUtilities.Unreachable;
         }

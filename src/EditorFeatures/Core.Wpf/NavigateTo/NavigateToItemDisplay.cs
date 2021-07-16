@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
@@ -22,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
         public NavigateToItemDisplay(INavigateToSearchResult searchResult)
-        {
-            _searchResult = searchResult;
-        }
+            => _searchResult = searchResult;
 
         public string AdditionalInformation => _searchResult.AdditionalInformation;
 
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return new List<DescriptionItem>().AsReadOnly();
             }
 
-            var sourceText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var sourceText = document.GetTextSynchronously(CancellationToken.None);
+            var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
 
             var items = new List<DescriptionItem>
                     {
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun("Line:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(_searchResult.NavigableItem.SourceSpan.Start) + 1).ToString()) }))
+                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) }))
                     };
 
             var summary = _searchResult.Summary;
@@ -101,10 +103,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-            // Document tabs opened by NavigateTo are carefully created as preview or regular
-            // tabs by them; trying to specifically open them in a particular kind of tab here
-            // has no effect.
-            navigationService.TryNavigateToSpan(workspace, document.Id, _searchResult.NavigableItem.SourceSpan);
+            // Document tabs opened by NavigateTo are carefully created as preview or regular tabs
+            // by them; trying to specifically open them in a particular kind of tab here has no
+            // effect.
+            //
+            // In the case of a stale item, don't require that the span be in bounds of the document
+            // as it exists right now.
+            //
+            // TODO: Get the platform to use and pass us an operation context, or create one
+            // ourselves.
+            navigationService.TryNavigateToSpan(
+                workspace,
+                document.Id,
+                _searchResult.NavigableItem.SourceSpan,
+                options: null,
+                allowInvalidSpan: _searchResult.NavigableItem.IsStale,
+                CancellationToken.None);
         }
 
         public int GetProvisionalViewingStatus()

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 
@@ -9,41 +13,33 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         // null object
         protected class NullSelectionResult : SelectionResult
         {
-            public NullSelectionResult() :
-                this(OperationStatus.FailedWithUnknownReason)
+            public NullSelectionResult()
+                : this(OperationStatus.FailedWithUnknownReason)
             {
             }
 
-            protected NullSelectionResult(OperationStatus status) :
-                base(status)
+            protected NullSelectionResult(OperationStatus status)
+                : base(status)
             {
             }
 
-            protected override bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-            {
-                throw new InvalidOperationException();
-            }
+            protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+                => throw new InvalidOperationException();
 
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
 
             public override SyntaxNode GetContainingScope()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
 
             public override ITypeSymbol GetContainingScopeType()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
         }
 
         protected class ErrorSelectionResult : NullSelectionResult
         {
-            public ErrorSelectionResult(OperationStatus status) :
-                base(status.MakeFail())
+            public ErrorSelectionResult(OperationStatus status)
+                : base(status.MakeFail())
             {
             }
         }

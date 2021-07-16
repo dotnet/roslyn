@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,13 +14,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly ConstantValue _value;
 
         public EELocalConstantSymbol(
             MethodSymbol method,
             string name,
             TypeSymbol type,
+            ConstantValue value)
+            : this(method, name, TypeWithAnnotations.Create(type), value)
+        {
+        }
+
+        public EELocalConstantSymbol(
+            MethodSymbol method,
+            string name,
+            TypeWithAnnotations type,
             ConstantValue value)
         {
             _method = method;
@@ -28,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalConstantSymbol(method, _name, type.Type, _value);
+            return new EELocalConstantSymbol(method, _name, type, _value);
         }
 
         public override string Name
@@ -51,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -66,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             if (diagnostics != null && _value.IsBad)
             {

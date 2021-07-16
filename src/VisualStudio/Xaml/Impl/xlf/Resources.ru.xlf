@@ -12,6 +12,11 @@
         <target state="translated">Удалить ненужные пространства имен</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">&amp;Сортировать пространства имен</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

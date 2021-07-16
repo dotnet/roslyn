@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,75 +21,66 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
-    internal class GoToAdjacentMemberCommandHandler : 
-        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>, 
-        VSCommanding.ICommandHandler<GoToPreviousMemberCommandArgs>
+    internal class GoToAdjacentMemberCommandHandler :
+        ICommandHandler<GoToNextMemberCommandArgs>,
+        ICommandHandler<GoToPreviousMemberCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
         public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
-        {
-            _outliningManagerService = outliningManagerService;
-        }
+            => _outliningManagerService = outliningManagerService;
 
-        public VSCommanding.CommandState GetCommandState(GoToNextMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+        public CommandState GetCommandState(GoToNextMemberCommandArgs args)
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToNextMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: true, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: true, context);
 
-        public VSCommanding.CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+        public CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToPreviousMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: false, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: false, context);
 
-        private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
-        { 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            return IsAvailable(document, caretPoint) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
-        }
-
-        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint)
+        private static CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
+            {
+                return CommandState.Unspecified;
+            }
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {
-                return false;
+                return CommandState.Unspecified;
             }
 
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(document) == true;
+            return CommandState.Available;
         }
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(document, caretPoint))
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
+            {
+                return false;
+            }
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document?.SupportsSyntaxTree != true)
             {
                 return false;
             }
@@ -100,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             if (targetPosition != null)
             {
-                args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
+                args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
             }
 
             return true;

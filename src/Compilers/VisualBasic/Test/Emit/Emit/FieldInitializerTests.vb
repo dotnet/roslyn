@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Linq
 Imports System.Text
@@ -583,7 +585,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
 </expected>)
         End Sub
 
-#If NET46 Then
+#If NET472 Then
         <Fact>
         Public Sub ChrChrWAscAscWAreConst()
             Dim source =

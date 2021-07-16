@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Linq
 Imports System.Xml.Linq
@@ -134,7 +136,7 @@ End Class
 
 
         Public Sub New()
-            ' The following two libraries are shrinked code pulled from
+            ' The following two libraries are shrunk code pulled from
             ' corresponding files in the csharp5 legacy tests
             Dim eventLibSrc =
                 <compilation><file name="EventLibrary.vb">
@@ -1305,7 +1307,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1385,7 +1387,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1418,7 +1420,7 @@ End Namespace
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
             AssertTheseDeclarationDiagnostics(comp, <errors><![CDATA[
 BC31091: Import of type 'EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
     Event E As System.Action    

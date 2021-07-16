@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 // Note: if we're in a lambda that has a block body, then we don't ever get here
                 // because of the early check for IsInBlockContext.
-                if (!_service.IsInConstructorInitializer(this.Expression))
+                if (!_service.IsInConstructorInitializer(Expression))
                 {
                     return false;
                 }
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 // Can't extract out an anonymous type used in a constructor initializer.
-                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken);
+                var info = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
                 if (info.Type.ContainsAnonymousType())
                 {
                     return false;

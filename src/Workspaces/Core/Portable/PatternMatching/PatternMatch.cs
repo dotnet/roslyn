@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -51,50 +55,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         public PatternMatch WithMatchedSpans(ImmutableArray<TextSpan> matchedSpans)
-            => new PatternMatch(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
+            => new(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
 
         public int CompareTo(PatternMatch other)
             => CompareTo(other, ignoreCase: false);
 
         public int CompareTo(PatternMatch other, bool ignoreCase)
-        {
-            int diff;
-            if ((diff = CompareType(this, other)) != 0 ||
-                (diff = CompareCase(this, other, ignoreCase)) != 0 ||
-                (diff = ComparePunctuation(this, other)) != 0)
-            {
-                return diff;
-            }
+            => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
 
-            return 0;
-        }
-
-        private static int ComparePunctuation(PatternMatch result1, PatternMatch result2)
-        {
-            // Consider a match to be better if it was successful without stripping punctuation
-            // versus a match that had to strip punctuation to succeed.
-            if (result1._punctuationStripped != result2._punctuationStripped)
-            {
-                return result1._punctuationStripped ? 1 : -1;
-            }
-
-            return 0;
-        }
-
-        private static int CompareCase(PatternMatch result1, PatternMatch result2, bool ignoreCase)
-        {
-            if (!ignoreCase)
-            {
-                if (result1.IsCaseSensitive != result2.IsCaseSensitive)
-                {
-                    return result1.IsCaseSensitive ? -1 : 1;
-                }
-            }
-
-            return 0;
-        }
-
-        private static int CompareType(PatternMatch result1, PatternMatch result2)
-            => result1.Kind - result2.Kind;
+        private static readonly ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
+                // Compare types
+                (p, b) => p.Kind,
+                // Compare cases
+                (p, b) => !b && !p.IsCaseSensitive,
+                // Consider a match to be better if it was successful without stripping punctuation
+                // versus a match that had to strip punctuation to succeed.
+                (p, b) => p._punctuationStripped);
     }
 }

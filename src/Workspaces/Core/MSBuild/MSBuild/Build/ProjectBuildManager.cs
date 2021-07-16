@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 {
     internal class ProjectBuildManager
     {
-        private static readonly XmlReaderSettings s_xmlReaderSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlReaderSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null
@@ -27,7 +31,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+#if NETCOREAPP
+            { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
+#else
+            // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:
+            // https://github.com/microsoft/msbuild/blob/ab9b2f36a5ff7a85f842b205d5529e77fdc9d7ab/src/Tasks/Microsoft.Common.CurrentVersion.targets#L3462-L3470
             { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
+#endif
 
             { PropertyNames.BuildProjectReferences, bool.FalseString },
             { PropertyNames.BuildingProject, bool.FalseString },
@@ -38,105 +48,62 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             // don't actually run the compiler
             { PropertyNames.SkipCompilerExecution, bool.TrueString },
 
-            { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
+            { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue },
+
+            // this ensures that the parent project's configuration and platform will be used for
+            // referenced projects. So, setting Configuration=Release will also cause any project
+            // references to also be built with Configuration=Release. This is necessary for getting
+            // a more-likely-to-be-correct output path from project references.
+            { PropertyNames.ShouldUnsetParentConfigurationAndPlatform, bool.FalseString }
         }.ToImmutableDictionary();
 
-        private MSB.Evaluation.ProjectCollection _projectCollection;
-        private MSBuildDiagnosticLogger _logger;
-        private bool _started;
+        private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
+        private readonly ILogger? _msbuildLogger;
+        private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
+        private MSBuildDiagnosticLogger? _batchBuildLogger;
 
         ~ProjectBuildManager()
         {
-            if (_started)
+            if (BatchBuildStarted)
             {
-                new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
+                throw new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
             }
         }
 
-        private static MSB.Evaluation.Project FindProject(
-            string path,
-            IDictionary<string, string> globalProperties,
-            MSB.Evaluation.ProjectCollection projectCollection,
-            CancellationToken cancellationToken)
+        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
         {
-            var loadedProjects = projectCollection.GetLoadedProjects(path);
-            if (loadedProjects == null || loadedProjects.Count == 0)
-            {
-                return null;
-            }
-
-            // We need to walk through all of the projects that have been previously loaded from this path and
-            // find the one that has the given set of global properties, plus the default global properties that
-            // we load every project with.
-
-            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-            var totalGlobalProperties = projectCollection.GlobalProperties.Count + globalProperties.Count;
-
-            foreach (var loadedProject in loadedProjects)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // If this project has a different number of global properties than we expect, it's not the
-                // one we're looking for.
-                if (loadedProject.GlobalProperties.Count != totalGlobalProperties)
-                {
-                    continue;
-                }
-
-                // Since we loaded all of them, the projects in this collection should all have the default
-                // global properties (i.e. the ones in _projectCollection.GlobalProperties). So, we just need to
-                // check the extra global properties.
-
-                var found = true;
-                foreach (var (key, value) in globalProperties)
-                {
-                    // MSBuild escapes the values of a project's global properties, so we must too.
-                    var escapedValue = MSB.Evaluation.ProjectCollection.Escape(value);
-
-                    if (!loadedProject.GlobalProperties.TryGetValue(key, out var actualValue) ||
-                        !string.Equals(actualValue, escapedValue, StringComparison.Ordinal))
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    return loadedProject;
-                }
-            }
-
-            // We couldn't find a project with this path and the set of global properties we expect.
-            return null;
+            _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+            _msbuildLogger = msbuildLogger;
         }
 
-        public async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
-            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        private ImmutableDictionary<string, string> AllGlobalProperties
+            => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
+
+        private static async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
+            string path, MSB.Evaluation.ProjectCollection? projectCollection, CancellationToken cancellationToken)
         {
             var log = new DiagnosticLog();
 
             try
             {
-                var projectCollection = _projectCollection ?? new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
-
-                var project = FindProject(path, globalProperties, projectCollection, cancellationToken);
-
-                if (project == null)
+                var loadedProjects = projectCollection?.GetLoadedProjects(path);
+                if (loadedProjects != null && loadedProjects.Count > 0)
                 {
-                    using (var stream = FileUtilities.OpenAsyncRead(path))
-                    using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
-                    using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
-                    {
-                        var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+                    Debug.Assert(loadedProjects.Count == 1);
 
-                        // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                        // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                        xml.FullPath = path;
-
-                        project = new MSB.Evaluation.Project(xml, globalProperties, toolsVersion: null, projectCollection);
-                    }
+                    return (loadedProjects.First(), log);
                 }
+
+                using var stream = FileUtilities.OpenAsyncRead(path);
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+                using var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings);
+                var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+
+                // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                xml.FullPath = path;
+
+                var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
 
                 return (project, log);
             }
@@ -147,42 +114,71 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public async Task<string> TryGetOutputFilePathAsync(
-            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
+            string path, CancellationToken cancellationToken)
         {
-            // This tries to get the project output path and retrieving the $(TargetPath) property.
+            if (BatchBuildStarted)
+            {
+                return LoadProjectAsync(path, _batchBuildProjectCollection, cancellationToken);
+            }
+            else
+            {
+                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties);
+                try
+                {
+                    return LoadProjectAsync(path, projectCollection, cancellationToken);
+                }
+                finally
+                {
+                    // unload project so collection will release global strings
+                    projectCollection.UnloadAllProjects();
+                }
+            }
+        }
 
-            var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+        public async Task<string?> TryGetOutputFilePathAsync(
+            string path, CancellationToken cancellationToken)
+        {
+            Debug.Assert(BatchBuildStarted);
+
+            // This tries to get the project output path and retrieving the evaluated $(TargetPath) property.
+
+            var (project, _) = await LoadProjectAsync(path, cancellationToken).ConfigureAwait(false);
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
-        public void Start()
+        public bool BatchBuildStarted { get; private set; }
+
+        public void StartBatchBuild(IDictionary<string, string>? globalProperties = null)
         {
-            if (_started)
+            if (BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
 
-            _projectCollection = new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
-
-            _logger = new MSBuildDiagnosticLogger()
+            globalProperties ??= ImmutableDictionary<string, string>.Empty;
+            var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
+            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
+            _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
-            var buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
+            var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = new MSB.Framework.ILogger[] { _logger }
+                Loggers = _msbuildLogger is null
+                    ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
+                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
-            _started = true;
+            BatchBuildStarted = true;
         }
 
-        public void Stop()
+        public void EndBatchBuild()
         {
-            if (!_started)
+            if (!BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
@@ -190,16 +186,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
 
             // unload project so collection will release global strings
-            _projectCollection.UnloadAllProjects();
-            _projectCollection = null;
-            _logger = null;
-            _started = false;
+            _batchBuildProjectCollection?.UnloadAllProjects();
+            _batchBuildProjectCollection = null;
+            _batchBuildLogger = null;
+            BatchBuildStarted = false;
         }
 
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
-            Debug.Assert(_started);
+            Debug.Assert(BatchBuildStarted);
 
             var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
@@ -223,7 +219,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
-            _logger.SetProjectAndLog(projectInstance.FullPath, log);
+            _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
             var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
 
@@ -241,9 +237,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
+        private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
 
-        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
             using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -252,7 +248,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 

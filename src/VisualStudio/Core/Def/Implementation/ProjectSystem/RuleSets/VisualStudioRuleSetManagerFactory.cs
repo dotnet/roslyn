@@ -1,40 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(VisualStudioRuleSetManager), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioRuleSetManagerFactory : IWorkspaceServiceFactory
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
+        private readonly IThreadingContext _threadingContext;
+        private readonly FileChangeWatcherProvider _fileChangeWatcherProvider;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioRuleSetManagerFactory(
-            SVsServiceProvider serviceProvider,
-            IForegroundNotificationService foregroundNotificationService,
+            IThreadingContext threadingContext,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _serviceProvider = serviceProvider;
-            _foregroundNotificationService = foregroundNotificationService;
+            _threadingContext = threadingContext;
+            _fileChangeWatcherProvider = fileChangeWatcherProvider;
             _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            IVsFileChangeEx fileChangeService = (IVsFileChangeEx)_serviceProvider.GetService(typeof(SVsFileChangeEx));
-            return new VisualStudioRuleSetManager(fileChangeService, _foregroundNotificationService, _listener);
-        }
+            => new VisualStudioRuleSetManager(_threadingContext, _fileChangeWatcherProvider.Watcher, _listener);
     }
 }

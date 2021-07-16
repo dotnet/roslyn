@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -8,12 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ImplementsClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New ImplementsClauseCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(ImplementsClauseCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -466,7 +464,7 @@ Class A
     Public Function Equals(other As Integer) As Boolean Implements IEquatable(
 End Class</text>.Value
 
-            Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c, "")
+            Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c)
         End Function
 
         <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
@@ -507,7 +505,7 @@ Class C
     Public Sub test Implements [Interface].
 End Class</text>.Value
 
-            Await VerifyProviderCommitAsync(text, "Interface", expected, "."c, "")
+            Await VerifyProviderCommitAsync(text, "Interface", expected, "."c)
         End Function
 
         <WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
@@ -639,10 +637,10 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(element)
+            Using workspace = TestWorkspace.Create(element, exportProvider:=ExportProvider)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
             End Using

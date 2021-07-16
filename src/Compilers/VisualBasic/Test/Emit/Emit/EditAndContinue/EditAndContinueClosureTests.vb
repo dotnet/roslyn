@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
@@ -220,7 +222,7 @@ End Class
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -433,9 +435,9 @@ End Module
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <WorkItem(1067140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067140")>

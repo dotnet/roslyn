@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Like HasErrors property, but also returns false for a null node. 
-        public static bool HasErrors(this BoundNode node)
+        public static bool HasErrors([NotNullWhen(true)] this BoundNode? node)
         {
             return node != null && node.HasErrors;
         }
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsConstructorInitializer(this BoundStatement statement)
         {
             Debug.Assert(statement != null);
-            if (statement.Kind == BoundKind.ExpressionStatement)
+            if (statement!.Kind == BoundKind.ExpressionStatement)
             {
                 BoundExpression expression = ((BoundExpressionStatement)statement).Expression;
                 if (expression.Kind == BoundKind.Sequence && ((BoundSequence)expression).SideEffects.IsDefaultOrEmpty)
@@ -53,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsConstructorInitializer(this BoundCall call)
         {
             Debug.Assert(call != null);
-            MethodSymbol method = call.Method;
-            BoundExpression receiverOpt = call.ReceiverOpt;
+            MethodSymbol method = call!.Method;
+            BoundExpression? receiverOpt = call!.ReceiverOpt;
             return method.MethodKind == MethodKind.Constructor &&
                 receiverOpt != null &&
                 (receiverOpt.Kind == BoundKind.ThisReference || receiverOpt.Kind == BoundKind.BaseReference);
@@ -64,6 +65,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             node.WasCompilerGenerated = true;
             return node;
+        }
+
+        public static bool ContainsAwaitExpression(this ImmutableArray<BoundExpression> expressions)
+        {
+            var visitor = new ContainsAwaitVisitor();
+            foreach (var expression in expressions)
+            {
+                visitor.Visit(expression);
+                if (visitor.ContainsAwait)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private class ContainsAwaitVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public bool ContainsAwait = false;
+
+            public override BoundNode? Visit(BoundNode? node) => ContainsAwait ? null : base.Visit(node);
+
+            public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                ContainsAwait = true;
+                return null;
+            }
         }
     }
 }

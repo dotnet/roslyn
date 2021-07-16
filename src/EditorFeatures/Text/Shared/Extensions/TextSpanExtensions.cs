@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 {
@@ -12,9 +13,13 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/>.
         /// </summary>
         public static Span ToSpan(this TextSpan textSpan)
-        {
-            return new Span(textSpan.Start, textSpan.Length);
-        }
+            => new Span(textSpan.Start, textSpan.Length);
+
+        /// <summary>
+        /// Add an offset to a <see cref="TextSpan"/>.
+        /// </summary>
+        public static TextSpan MoveTo(this TextSpan textSpan, int offset)
+            => new TextSpan(textSpan.Start + offset, textSpan.Length);
 
         /// <summary>
         /// Convert a <see cref="TextSpan"/> to a <see cref="SnapshotSpan"/> on the given <see cref="ITextSnapshot"/> instance

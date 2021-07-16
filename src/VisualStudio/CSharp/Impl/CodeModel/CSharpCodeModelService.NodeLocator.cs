@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -18,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractNodeLocator CreateNodeLocator()
-        {
-            return new NodeLocator();
-        }
+            => new NodeLocator();
 
         private class NodeLocator : AbstractNodeLocator
         {
@@ -39,8 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetStartPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetStartPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:
@@ -87,8 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetEndPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetEndPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:
@@ -180,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var lineText = lineAfterOpenBrace.ToString();
 
                     var lineEndColumn = lineText.GetColumnFromLineOffset(lineText.Length, indentSize);
-                    int indentColumn = memberStartColumn + indentSize;
+                    var indentColumn = memberStartColumn + indentSize;
                     var virtualSpaces = indentColumn - lineEndColumn;
 
                     return new VirtualTreePoint(openBrace.SyntaxTree, text, lineAfterOpenBrace.End, virtualSpaces);

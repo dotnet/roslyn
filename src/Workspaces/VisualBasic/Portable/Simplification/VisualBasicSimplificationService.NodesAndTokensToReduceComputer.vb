@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -71,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Me._simplifyAllDescendants Then
                         Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
                     End If
+
                     node = MyBase.Visit(node)
                 End If
 
@@ -78,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return node
             End Function
 
-            Private Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
+            Private Shared Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
                     node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
             End Function
@@ -125,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, MethodBlockSyntax).Update(node.Kind, DirectCast(b, MethodStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -133,6 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, OperatorBlockSyntax).Update(DirectCast(b, OperatorStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -141,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, ConstructorBlockSyntax).Update(DirectCast(b, SubNewStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -149,6 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, AccessorBlockSyntax).Update(node.Kind, DirectCast(b, AccessorStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 

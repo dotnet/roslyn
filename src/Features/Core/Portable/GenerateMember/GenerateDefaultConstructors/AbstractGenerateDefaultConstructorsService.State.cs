@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -48,10 +52,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     return false;
                 }
 
-                this.ClassType = classType;
+                ClassType = classType;
 
-                var baseType = this.ClassType.BaseType;
-                if (this.ClassType.IsStatic ||
+                var baseType = ClassType.BaseType;
+                if (ClassType.IsStatic ||
                     baseType == null ||
                     baseType.TypeKind == TypeKind.Error)
                 {
@@ -59,23 +63,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 }
 
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
-                var classConstructors = this.ClassType.InstanceConstructors;
+                var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
-                this.UnimplementedConstructors =
+                UnimplementedConstructors =
                     baseType.InstanceConstructors
-                            .WhereAsArray(c => c.IsAccessibleWithin(this.ClassType) &&
+                            .WhereAsArray(c => c.IsAccessibleWithin(ClassType) &&
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
-                return this.UnimplementedConstructors.Length > 0;
+                return UnimplementedConstructors.Length > 0;
             }
 
-            private bool IsMissing(
-                IMethodSymbol constructor, 
-                ImmutableArray<IMethodSymbol> classConstructors, 
+            private static bool IsMissing(
+                IMethodSymbol constructor,
+                ImmutableArray<IMethodSymbol> classConstructors,
                 bool isCaseSensitive)
             {
                 var matchingConstructor = classConstructors.FirstOrDefault(

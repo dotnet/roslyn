@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -540,7 +542,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_WithDim()
-            'Declare static local in conjunction with an Dim keyword 
+            'Declare static local in conjunction with a Dim keyword 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
@@ -1082,7 +1084,7 @@ End Class
 
 
 
-        Public Sub Semantic_InheritenceConstructor()
+        Public Sub Semantic_InheritanceConstructor()
             'The Use of Static Locals in both a base and derived class constructor - instance method
 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(

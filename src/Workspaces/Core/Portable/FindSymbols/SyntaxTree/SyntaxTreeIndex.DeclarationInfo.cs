@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -8,14 +12,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct DeclarationInfo
+        private readonly struct DeclarationInfo
         {
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
             public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-            {
-                DeclaredSymbolInfos = declaredSymbolInfos;
-            }
+                => DeclaredSymbolInfos = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var declaredSymbolCount = reader.ReadInt32();
                     var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
-                    for (int i = 0; i < declaredSymbolCount; i++)
+                    for (var i = 0; i < declaredSymbolCount; i++)
                     {
                         builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
                     }

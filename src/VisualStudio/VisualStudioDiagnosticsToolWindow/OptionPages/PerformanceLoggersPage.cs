@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -12,7 +17,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
@@ -20,35 +24,45 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
         private IGlobalOptionService _optionService;
-        private IRemoteHostClientService _remoteHostClientService;
+        private IThreadingContext _threadingContext;
+        private IRemoteHostClientProvider _remoteClientProvider;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             if (_optionService == null)
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+
                 _optionService = componentModel.GetService<IGlobalOptionService>();
+                _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _remoteHostClientService = workspace.Services.GetService<IRemoteHostClientService>();
+                _remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             base.OnApply(e);
 
-            var loggerTypes = GetLoggerTypes().ToList();
+            SetLoggers(_optionService, _threadingContext, _remoteClientProvider);
+        }
+
+        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientProvider remoteClientProvider)
+        {
+            var loggerTypes = GetLoggerTypes(optionService).ToList();
 
             // first set VS options
-            var options = Logger.GetLoggingChecker(_optionService);
+            var options = Logger.GetLoggingChecker(optionService);
+
             SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
             SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
+            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
 
             // second set RemoteHost options
-            var client = ThreadHelper.JoinableTaskFactory.Run(() => _remoteHostClientService.TryGetRemoteHostClientAsync(CancellationToken.None));
+            var client = threadingContext.JoinableTaskFactory.Run(() => remoteClientProvider.TryGetRemoteHostClientAsync(CancellationToken.None));
             if (client == null)
             {
                 // Remote host is disabled
@@ -56,10 +70,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
 
             var functionIds = GetFunctionIds(options).ToList();
-            _ = ThreadHelper.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
+
+            threadingContext.JoinableTaskFactory.Run(() => client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
+                solution: null,
                 new object[] { loggerTypes, functionIds },
+                callbackTarget: null,
                 CancellationToken.None));
         }
 
@@ -74,16 +91,21 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
         }
 
-        private IEnumerable<string> GetLoggerTypes()
+        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService optionService)
         {
-            if (_optionService.GetOption(LoggerOptions.EtwLoggerKey))
+            if (optionService.GetOption(LoggerOptions.EtwLoggerKey))
             {
                 yield return nameof(EtwLogger);
             }
 
-            if (_optionService.GetOption(LoggerOptions.TraceLoggerKey))
+            if (optionService.GetOption(LoggerOptions.TraceLoggerKey))
             {
                 yield return nameof(TraceLogger);
+            }
+
+            if (optionService.GetOption(LoggerOptions.OutputWindowLoggerKey))
+            {
+                yield return nameof(OutputWindowLogger);
             }
         }
 

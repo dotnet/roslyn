@@ -3,13 +3,23 @@ This guide is meant to help developers setup an environment for debugging / cont
 Particularly for developers who aren't experienced with .NET Core development on Linux. 
 
 ## Working with the code
-1. Install the [.NET Core SDK](https://www.microsoft.com/net/download/core)
+1. Ensure the commands `git` and `curl` are available
 1. Clone git@github.com:dotnet/roslyn.git
 1. Run `./build.sh --restore`
 1. Run `./build.sh --build`
 
+## Working in Visual Studio Code
+1. Install [VS Code](https://code.visualstudio.com/Download)
+    - After you install VS Code, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
+    - Important tip: You can look up editor commands by name by hitting *Ctrl+Shift+P*, or by hitting *Ctrl+P* and typing a `>` character. This will help you get familiar with editor commands mentioned below. On a Mac, use *⌘* instead of *Ctrl*.
+2. Install a recent preview [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core). At time of writing, Roslyn uses .NET 5 preview 8. The exact version in use is recorded in our [global.json](https://github.com/dotnet/roslyn/blob/main/global.json) file.
+3. You can build from VS Code by running the *Run Build Task* command, then selecting an appropriate task such as *build* or *build current project* (the latter builds the containing project for the current file you're viewing in the editor).
+4. You can run tests from VS Code by opening a test class in the editor, then using the *Run Tests in Context* and *Debug Tests in Context* editor commands. You may want to bind these commands to keyboard shortcuts that match their Visual Studio equivalents (**Ctrl+R, T** for *Run Tests in Context* and **Ctrl+R, Ctrl+T** for *Debug Tests in Context*).
+
 ## Running Tests
-The unit tests can be executed by running `./build.sh --test`
+The unit tests can be executed by running `./build.sh --test`.
+
+To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 
 ## GitHub
 The best way to clone and push is to use SSH. On Windows you typically use HTTPS and this is not directly compatible
@@ -22,51 +32,68 @@ https://help.github.com/articles/connecting-to-github-with-ssh/
 The best way to debug is using lldb with the SOS plugin. This is the same SOS as used in WinDbg and if you're familiar
 with it then lldb debugging will be pretty straight forward. 
 
-Here are the CoreCLR guidelines for Linux debugging:
+The [dotnet/diagnostics](https://github.com/dotnet/diagnostics) repo has more information:
 
-- https://github.com/dotnet/coreclr/blob/master/Documentation/botr/xplat-minidump-generation.md
-- https://github.com/dotnet/coreclr/blob/master/Documentation/building/debugging-instructions.md#debugging-core-dumps-with-lldb.
+- [Getting LLDB](https://github.com/dotnet/diagnostics/blob/main/documentation/lldb/linux-instructions.md)
+- [Installing SOS](https://github.com/dotnet/diagnostics/blob/main/documentation/installing-sos-instructions.md)
+- [Using SOS](https://github.com/dotnet/diagnostics/blob/main/documentation/sos-debugging-extension.md)
+
+CoreCLR also has some guidelines for specific Linux debugging scenarios:
+
+- https://github.com/dotnet/coreclr/blob/main/Documentation/botr/xplat-minidump-generation.md
+- https://github.com/dotnet/coreclr/blob/main/Documentation/building/debugging-instructions.md#debugging-core-dumps-with-lldb.
 
 Corrections:
 - LLDB and createdump must be run as root
 - `dotnet tool install -g dotnet-symbol` must be run from `$HOME` 
 
-Furthermore the version of SOS that comes with the runtime will likely not work with the lldb you have. In order to 
-use SOS you will need to build it by hand
+### Core Dumps
+The CoreClr does not used the standard core dumping mechanisms on Linux. Instead you must specify via 
+environment variables that you want a core dump to be produced. The simplest setup is to do the following:
 
-1. Clone git@github.com:dotnet/diagnostics.git
-1. Run `./build.sh`
-
-This will produce libsosplugin.so that can be used in lldb. Once it's built you can start lldb with the following 
-command line (replace `/home/jaredpar` as appropriate):
-
-``` bash
-> sudo lldb -o "plugin load /home/jaredpar/code/diagnostics/artifacts/Debug/bin/Linux.x64/libsosplugin.so" 
-/home/jaredpar/code/roslyn/Binaries/Tools/dotnet/dotnet
+```
+> export COMPlus_DbgEnableMiniDump=1
+> export COMPlus_DbgMiniDumpType=4
 ```
 
-From there you should be able to attach to running processes or load up coredumps.
+This will cause full memory dumps to be produced which can then be loaded into LLDB.
+
+A preview of [dotnet-dump](https://github.com/dotnet/diagnostics/blob/main/documentation/dotnet-dump-instructions.md) is also available for interactively creating and analyzing dumps.
+
+### GC stress failures
+When you suspect there is a GC failure related to your test then you can use the following environment variables
+to help track it down.
+
+```
+> export COMPlus_HeapVerify=1
+> export COMPlus_gcConcurrent=1
+```
+
+The `COMPlus_HeapVerify` variable causes GC to run a verification routine on every entry and exit. Will crash with
+a more actionable trace for the GC team.
+
+The `COMPlus_gcConcurrent` variable removes concurrency in the GC. This helps isolate whether this is a GC failure
+or memory corruption outside the GC. This should be set after you use `COMPLUS_HeapVerify` to determine it is
+indeed crashing in the GC.
+
+Note: this variables can also be used on Windows as well.
 
 ## Ubuntu 18.04
 The recommended OS for developing Roslyn is Ubuntu 18.04. This guide was written using Ubuntu 18.04 but should be 
-applicable to most Linux enviroments. Ubuntu 18.04 was chosen here due to it's support for enhanced VMs in Hyper-V. 
-This makes it easier to use from a Windows machine.
+applicable to most Linux environments. Ubuntu 18.04 was chosen here due to it's support for enhanced VMs in Hyper-V.
+This makes it easier to use from a Windows machine: full screen, copy / paste, etc ...
 
 ### Hyper-V
-When using Hyper-V to develop you will want to enable enhanced mode. This allows for the VM to be full screen, have 
-clipboard access and support additional devices. Ubuntu 18.04 is the first Linux OS supported in this mode. The 
-mileage with other distros may vary.
+Hyper-V has a builtin Ubuntu 18.04 image which supports enhanced mode. Here is a tutorial for creating 
+such an image:
 
-Enhanced mode support is still fairly new and does require a few manual steps. They are all covered in this 
-blog post:
+https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/quick-start/quick-create-virtual-machine
 
-https://blogs.technet.microsoft.com/virtualization/2018/02/28/sneak-peek-taking-a-spin-with-enhanced-linux-vms/
+When following this make sure to:
+1. Click Installation Source and uncheck "Windows Secure Boot"
+1. Complete the Ubuntu installation wizard. Full screen mode won't be available until this is done.
 
-Following the steps on that blog post will get you to a point where you can the features you are looking for. There are
- a couple of deviations from the instructions there:
-
-- There is no longer a config-user.sh script
-- cd into `ubuntu/18.04` instead of `ubuntu/16.04`
+Overall this takes about 5-10 minutes to complete. 
 
 ### Source Link
 Many of the repositories that need to be built use source link and it crashes on Ubuntu 18.04 due to dependency changes. 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -45,6 +49,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -270,6 +281,45 @@ class C
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InOverride()
+        {
+            await VerifyKeywordAsync(
+@"class C : Base
+{
+    public override void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
+        {
+            await VerifyKeywordAsync(
+@"class C : I
+{
+    public void I.M<T>() where T : $$
+    {
+    }
+}");
         }
     }
 }

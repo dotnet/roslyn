@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Immutable
@@ -15,16 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsOrInGenericType(toCheck As NamedTypeSymbol) As Boolean
-            ' TODO: Should we do a quick check for [Not IsDefinition()]?
-
-            While toCheck IsNot Nothing
-                If toCheck.Arity > 0 Then
-                    Return True
-                End If
-
-                toCheck = toCheck.ContainingType
-            End While
-            Return False
+            Return If(toCheck?.IsGenericType, False)
         End Function
 
         <Extension()>

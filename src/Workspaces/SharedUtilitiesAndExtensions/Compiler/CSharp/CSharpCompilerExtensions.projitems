@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions_Parsing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ILocalSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\LanguageVersionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.DeclarationFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolDisplayPartExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxKindExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.Parsers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DefaultOperationProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\AggregatedFormattingResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\CSharpFormatEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\CSharpStructuredTriviaFormatEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\FormattingResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\CSharpTriviaFormatter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\CSharpTriviaFormatter.DocumentationCommentExteriorCommentRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AnchorIndentationFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\ElasticTriviaFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\EndOfFileTokenFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\IndentBlockFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\IndentUserSettingsFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\NewLineUserSettingFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\QueryExpressionFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\SpacingFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\StructuredTriviaFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\SuppressFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\TokenBasedFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\WrappingFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\CSharpUnnecessaryImportsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\AbstractCSharpPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpPatternPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpExpressionPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\CSharpSelectedMembers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\CSharpSemanticFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpInferredMemberNameSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\CastSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpeculationAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseExplicitTypeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseImplicitTypeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeSyntaxComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesDirectiveComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesOrganizer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

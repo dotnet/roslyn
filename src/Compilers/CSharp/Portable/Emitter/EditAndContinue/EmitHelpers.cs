@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -22,16 +25,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
             var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
-            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            var runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
+
+            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
+            var updatedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             PEDeltaAssemblyBuilder moduleBeingBuilt;
             try
@@ -46,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     edits: edits,
                     isAddedSymbol: isAddedSymbol);
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException e)
             {
-                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+                // TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
+                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null, updatedMethods: updatedMethods.ToImmutableAndFree(), updatedTypes: updatedTypes.ToImmutableAndFree());
             }
 
             if (testData != null)
@@ -62,13 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
             var changes = moduleBeingBuilt.Changes;
 
-            EmitBaseline newBaseline = null;
+            EmitBaseline? newBaseline = null;
 
             if (compilation.Compile(
                 moduleBeingBuilt,
                 emittingPdb: true,
                 diagnostics: diagnostics,
-                filterOpt: changes.RequiresCompilation,
+                filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
                 // Map the definitions from the previous compilation to the current compilation.
@@ -85,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOptions.PdbFilePath,
@@ -94,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new EmitDifferenceResult(
                 success: newBaseline != null,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
-                baseline: newBaseline);
+                baseline: newBaseline,
+                updatedMethods: updatedMethods.ToImmutableAndFree(),
+                updatedTypes: updatedTypes.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -109,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             PEDeltaAssemblyBuilder moduleBeingBuilt)
         {
             var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            Debug.Assert(previousGeneration.Compilation != compilation);
+            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
 
             if (previousGeneration.Ordinal == 0)
             {
@@ -119,7 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
+            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();

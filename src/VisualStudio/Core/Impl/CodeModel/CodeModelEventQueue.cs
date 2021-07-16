@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -10,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly Queue<CodeModelEvent> _eventQueue;
 
         public CodeModelEventQueue(Queue<CodeModelEvent> eventQueue)
-        {
-            _eventQueue = eventQueue;
-        }
+            => _eventQueue = eventQueue;
 
         private void EnqueueEvent(CodeModelEvent @event)
         {
@@ -48,24 +50,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public void EnqueueAddEvent(SyntaxNode node, SyntaxNode parent)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Add));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Add));
 
         public void EnqueueRemoveEvent(SyntaxNode node, SyntaxNode parent)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Remove));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Remove));
 
         public void EnqueueChangeEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventType eventType)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, eventType));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, eventType));
 
         public void Discard()
-        {
-            _eventQueue.Dequeue();
-        }
+            => _eventQueue.Dequeue();
 
         public int Count
         {

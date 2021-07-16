@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct ResultProperties
+    internal readonly struct ResultProperties
     {
         public readonly DkmClrCompilationResultFlags Flags;
         public readonly DkmEvaluationResultCategory Category;
@@ -20,23 +22,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultStorageType storageType,
             DkmEvaluationResultTypeModifierFlags modifierFlags)
         {
-            this.Flags = flags;
-            this.Category = category;
-            this.AccessType = accessType;
-            this.StorageType = storageType;
-            this.ModifierFlags = modifierFlags;
+            Flags = flags;
+            Category = category;
+            AccessType = accessType;
+            StorageType = storageType;
+            ModifierFlags = modifierFlags;
         }
 
         /// <remarks>
         /// For statements and assignments, we are only interested in <see cref="DkmClrCompilationResultFlags"/>.
         /// </remarks>
         public ResultProperties(DkmClrCompilationResultFlags flags)
-            : this(
-                  flags,
-                  default(DkmEvaluationResultCategory),
-                  default(DkmEvaluationResultAccessType),
-                  default(DkmEvaluationResultStorageType),
-                  default(DkmEvaluationResultTypeModifierFlags))
+            : this(flags, category: default, accessType: default, storageType: default, modifierFlags: default)
         {
         }
     }

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-// Tests COM call into the CLR to compare identities
-#if NET46
+#nullable disable
 
 using System;
 using System.IO;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return result == FusionAssemblyIdentityComparer.AssemblyComparisonResult.EquivalentFullMatch;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_Errors()
         {
             var appConfig = Temp.CreateFile();
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<XmlException>(() => AssemblyPortabilityPolicy.LoadFromXml(stream));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_LeadingWhitespace()
         {
             var appConfig = Temp.CreateFile();
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<XmlException>(() => AssemblyPortabilityPolicy.LoadFromXml(stream));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_LinkedConfiguration()
         {
             var appConfig1 = Temp.CreateFile();
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig1.Path, platform: false, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_NoValues()
         {
             var appConfig = Temp.CreateFile();
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_Values_MissingNamespace()
         {
             var appConfig = Temp.CreateFile();
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_Values1()
         {
             var appConfig = Temp.CreateFile();
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: false, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_Values2()
         {
             var appConfig = Temp.CreateFile();
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_Values4()
         {
             var appConfig = Temp.CreateFile();
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_DuplicateSupportPortability1()
         {
             var appConfig = Temp.CreateFile();
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: false, nonPlatform: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_DuplicateSupportPortability2()
         {
             var appConfig = Temp.CreateFile();
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_UnknownAttributes2()
         {
             var appConfig = Temp.CreateFile();
@@ -343,7 +344,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_InterleavingElements()
         {
             var appConfig = Temp.CreateFile();
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void LoadFromFile_EmptyElement()
         {
             var appConfig = Temp.CreateFile();
@@ -380,7 +381,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Fusion_Dispose()
         {
             var appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(IntPtr.Zero, policy.ConfigCookie);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Fusion_TestEquals()
         {
             var appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
@@ -435,4 +436,3 @@ namespace Microsoft.CodeAnalysis.UnitTests
     }
 }
 
-#endif

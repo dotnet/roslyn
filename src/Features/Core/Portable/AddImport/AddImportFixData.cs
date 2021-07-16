@@ -1,17 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal class AddImportFixData
+    [DataContract]
+    internal sealed class AddImportFixData
     {
+        [DataMember(Order = 0)]
         public AddImportFixKind Kind { get; }
 
         /// <summary>
@@ -20,29 +25,34 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// May be empty for fixes that don't need to add an import and only do something like
         /// add a project/metadata reference.
         /// </summary>
-        public IList<TextChange> TextChanges { get; }
+        [DataMember(Order = 1)]
+        public readonly ImmutableArray<TextChange> TextChanges;
 
         /// <summary>
         /// String to display in the lightbulb menu.
         /// </summary>
-        public string Title { get; private set; }
+        [DataMember(Order = 2)]
+        public readonly string Title;
 
         /// <summary>
         /// Tags that control what glyph is displayed in the lightbulb menu.
         /// </summary>
-        public IList<string> Tags { get; private set; }
+        [DataMember(Order = 3)]
+        public readonly ImmutableArray<string> Tags;
 
         /// <summary>
         /// The priority this item should have in the lightbulb list.
         /// </summary>
-        public CodeActionPriority Priority { get; private set; }
+        [DataMember(Order = 4)]
+        public readonly CodeActionPriority Priority;
 
-        #region When adding P2P refrences.
+        #region When adding P2P references.
 
         /// <summary>
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
         /// </summary>
-        public ProjectId ProjectReferenceToAdd { get; private set; }
+        [DataMember(Order = 5)]
+        public readonly ProjectId ProjectReferenceToAdd;
 
         #endregion
 
@@ -53,84 +63,104 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// is the id for the <see cref="Project"/> we can find that <see cref="PortableExecutableReference"/>
         /// referenced from.
         /// </summary>
-        public ProjectId PortableExecutableReferenceProjectId { get; private set; }
+        [DataMember(Order = 6)]
+        public readonly ProjectId PortableExecutableReferenceProjectId;
 
         /// <summary>
         /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
         /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
         /// </summary>
-        public string PortableExecutableReferenceFilePathToAdd { get; private set; }
+        [DataMember(Order = 7)]
+        public readonly string PortableExecutableReferenceFilePathToAdd;
 
         #endregion
 
         #region When adding an assembly reference
 
-        public string AssemblyReferenceAssemblyName { get; private set; }
-        public string AssemblyReferenceFullyQualifiedTypeName { get; private set; }
+        [DataMember(Order = 8)]
+        public readonly string AssemblyReferenceAssemblyName;
+
+        [DataMember(Order = 9)]
+        public readonly string AssemblyReferenceFullyQualifiedTypeName;
 
         #endregion
 
         #region When adding a package reference
 
-        public string PackageSource { get; private set; }
-        public string PackageName { get; private set; }
-        public string PackageVersionOpt { get; private set; }
+        [DataMember(Order = 10)]
+        public readonly string PackageSource;
+
+        [DataMember(Order = 11)]
+        public readonly string PackageName;
+
+        [DataMember(Order = 12)]
+        public readonly string PackageVersionOpt;
 
         #endregion
 
-        private AddImportFixData(
+        // Must be public since it's used for deserialization.
+        public AddImportFixData(
             AddImportFixKind kind,
-            ImmutableArray<TextChange> textChanges)
+            ImmutableArray<TextChange> textChanges,
+            string title = null,
+            ImmutableArray<string> tags = default,
+            CodeActionPriority priority = default,
+            ProjectId projectReferenceToAdd = null,
+            ProjectId portableExecutableReferenceProjectId = null,
+            string portableExecutableReferenceFilePathToAdd = null,
+            string assemblyReferenceAssemblyName = null,
+            string assemblyReferenceFullyQualifiedTypeName = null,
+            string packageSource = null,
+            string packageName = null,
+            string packageVersionOpt = null)
         {
             Kind = kind;
             TextChanges = textChanges;
-            Tags = ImmutableArray<string>.Empty;
+            Title = title;
+            Tags = tags;
+            Priority = priority;
+            ProjectReferenceToAdd = projectReferenceToAdd;
+            PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
+            PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
+            AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+            AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+            PackageSource = packageSource;
+            PackageName = packageName;
+            PackageVersionOpt = packageVersionOpt;
         }
 
         public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
-        {
-            return new AddImportFixData(AddImportFixKind.ProjectSymbol, textChanges)
-            {
-                Title = title,
-                Tags = tags,
-                Priority = priority,
-                ProjectReferenceToAdd = projectReferenceToAdd
-            };
-        }
+            => new(AddImportFixKind.ProjectSymbol,
+                   textChanges,
+                   title: title,
+                   tags: tags,
+                   priority: priority,
+                   projectReferenceToAdd: projectReferenceToAdd);
 
         public static AddImportFixData CreateForMetadataSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
-        {
-            return new AddImportFixData(AddImportFixKind.MetadataSymbol, textChanges)
-            {
-                Title = title,
-                Tags = tags,
-                Priority = priority,
-                PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId,
-                PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd
-            };
-        }
+            => new(AddImportFixKind.MetadataSymbol,
+                   textChanges,
+                   title: title,
+                   tags: tags,
+                   priority: priority,
+                   portableExecutableReferenceProjectId: portableExecutableReferenceProjectId,
+                   portableExecutableReferenceFilePathToAdd: portableExecutableReferenceFilePathToAdd);
 
         public static AddImportFixData CreateForReferenceAssemblySymbol(ImmutableArray<TextChange> textChanges, string title, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
-        {
-            return new AddImportFixData(AddImportFixKind.ReferenceAssemblySymbol, textChanges)
-            {
-                Title = title,
-                Tags = WellKnownTagArrays.AddReference,
-                Priority = CodeActionPriority.Low,
-                AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName,
-                AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName
-            };
-        }
+            => new(AddImportFixKind.ReferenceAssemblySymbol,
+                   textChanges,
+                   title: title,
+                   tags: WellKnownTagArrays.AddReference,
+                   priority: CodeActionPriority.Low,
+                   assemblyReferenceAssemblyName: assemblyReferenceAssemblyName,
+                   assemblyReferenceFullyQualifiedTypeName: assemblyReferenceFullyQualifiedTypeName);
 
         public static AddImportFixData CreateForPackageSymbol(ImmutableArray<TextChange> textChanges, string packageSource, string packageName, string packageVersionOpt)
-        {
-            return new AddImportFixData(AddImportFixKind.PackageSymbol, textChanges)
-            {
-                PackageSource = packageSource,
-                Priority = CodeActionPriority.Low,
-                PackageName = packageName,
-                PackageVersionOpt = packageVersionOpt,
-            };
-        }
+            => new(AddImportFixKind.PackageSymbol,
+                   textChanges,
+                   packageSource: packageSource,
+                   priority: CodeActionPriority.Low,
+                   packageName: packageName,
+                   packageVersionOpt: packageVersionOpt);
     }
 }

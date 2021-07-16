@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 
@@ -15,20 +19,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>Anonymous type field location</summary>
         public readonly Location Location;
 
-        /// <summary>Anonymous type field type</summary>
-        public readonly TypeSymbol Type;
+        /// <summary>Anonymous type field type with annotations</summary>
+        public readonly TypeWithAnnotations TypeWithAnnotations;
 
-        public AnonymousTypeField(string name, Location location, TypeSymbol type)
+        /// <summary>Anonymous type field type</summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
+
+        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations)
         {
             this.Name = name;
             this.Location = location;
-            this.Type = type;
+            this.TypeWithAnnotations = typeWithAnnotations;
         }
 
         [Conditional("DEBUG")]
         internal void AssertIsGood()
         {
-            Debug.Assert(this.Name != null && this.Location != null && (object)this.Type != null);
+            Debug.Assert(this.Name != null && this.Location != null && this.TypeWithAnnotations.HasType);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -43,14 +45,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      arity As Integer,
                                                      options As LookupOptions,
                                                      originalBinder As Binder,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             Dim [alias] As AliasAndImportsClausePosition = Nothing
             If _importedAliases.TryGetValue(name, [alias]) Then
                 ' Got an alias. Return it without checking arity.
 
-                Dim res = CheckViability([alias].Alias, arity, options, Nothing, useSiteDiagnostics)
+                Dim res = CheckViability([alias].Alias, arity, options, Nothing, useSiteInfo)
                 If res.IsGoodOrAmbiguous AndAlso Not originalBinder.IsSemanticModelBinder Then
                     Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, [alias].ImportsClausePosition)
                 End If
@@ -65,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     options As LookupOptions,
                                                                     originalBinder As Binder)
             For Each [alias] In _importedAliases.Values
-                If originalBinder.CheckViability([alias].Alias.Target, -1, options, Nothing, useSiteDiagnostics:=Nothing).IsGoodOrAmbiguous Then
+                If originalBinder.CheckViability([alias].Alias.Target, -1, options, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded).IsGoodOrAmbiguous Then
                     nameSet.AddSymbol([alias].Alias, [alias].Alias.Name, 0)
                 End If
             Next

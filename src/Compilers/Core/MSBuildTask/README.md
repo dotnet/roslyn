@@ -6,7 +6,7 @@ This MSBuild tasks contains the core tasks and targets for compiling C# and VB p
 
 Debugging this code requires a bit of setup because it's not an independent component.  It relies on having other parts of the toolset deployed in the same directory.  Additionally the project being debugged needs to be modified to ensure this DLL is built instead of the one that ships along side MSBuild.  
 
-Set the startup project to Toolset.  This project properly delpoys all of the necessary components and hence provides a simple F5 experience.
+Set the startup project to Toolset.  This project properly deploys all of the necessary components and hence provides a simple F5 experience.
 
 Next modify the Debug settings for Toolset.  The startup program needs to be MSBuild.exe.  Set the "start external program" field to the full path of MSBuild:
 

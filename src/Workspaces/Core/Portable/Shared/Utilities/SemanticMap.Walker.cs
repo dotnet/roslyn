@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private readonly SemanticMap _map;
             private readonly CancellationToken _cancellationToken;
 
-            public Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken) :
-                base(SyntaxWalkerDepth.Token)
+            public Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
+                : base(SyntaxWalkerDepth.Token)
             {
                 _semanticModel = semanticModel;
                 _map = map;
@@ -43,10 +47,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 base.VisitToken(token);
             }
 
-            private bool IsNone(SymbolInfo info)
-            {
-                return info.Symbol == null && info.CandidateSymbols.Length == 0;
-            }
+            private static bool IsNone(SymbolInfo info)
+                => info.Symbol == null && info.CandidateSymbols.Length == 0;
         }
     }
 }

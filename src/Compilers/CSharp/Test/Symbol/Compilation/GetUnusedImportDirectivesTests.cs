@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -283,6 +287,35 @@ class C
                 // using System.Collections.Generic;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;")
                 );
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(3));
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System.Collections;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"),
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;")
+                );
+        }
+
+        [Fact]
+        public void NoHiddenDiagnosticsForWarningLevel0()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C 
+{
+    void M()
+    {
+        return;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(0));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]

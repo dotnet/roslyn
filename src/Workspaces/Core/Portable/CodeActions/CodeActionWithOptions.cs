@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>An implementation specific object instance that holds options for applying the code action.</returns>
-        public abstract object GetOptions(CancellationToken cancellationToken);
+        public abstract object? GetOptions(CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the <see cref="CodeActionOperation"/>'s for this <see cref="CodeAction"/> given the specified options.
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(object options, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
         {
             if (options == null)
             {
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
         }
 
         /// <summary>
@@ -59,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
-        }
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

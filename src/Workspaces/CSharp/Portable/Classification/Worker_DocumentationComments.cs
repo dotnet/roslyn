@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, string whitespaceClassificationType = null)
+        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList)
         {
             foreach (var t in triviaList)
             {
@@ -70,12 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         ClassifyExteriorTrivia(t);
                         break;
 
-                    case SyntaxKind.WhitespaceTrivia:
-                        if (whitespaceClassificationType != null)
-                        {
-                            AddClassification(t, whitespaceClassificationType);
-                        }
-
+                    case SyntaxKind.SkippedTokensTrivia:
+                        AddClassification(t, ClassificationTypeNames.XmlDocCommentText);
                         break;
                 }
             }
@@ -129,16 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void AddXmlClassification(SyntaxToken token, string classificationType)
         {
             if (token.HasLeadingTrivia)
-            {
-                ClassifyXmlTrivia(token.LeadingTrivia, classificationType);
-            }
+                ClassifyXmlTrivia(token.LeadingTrivia);
 
             AddClassification(token, classificationType);
 
             if (token.HasTrailingTrivia)
-            {
-                ClassifyXmlTrivia(token.TrailingTrivia, classificationType);
-            }
+                ClassifyXmlTrivia(token.TrailingTrivia);
         }
 
         private void ClassifyXmlTextTokens(SyntaxTokenList textTokens)
@@ -146,16 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var token in textTokens)
             {
                 if (token.HasLeadingTrivia)
-                {
-                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.LeadingTrivia);
 
                 ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
-                {
-                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.TrailingTrivia);
             }
         }
 
@@ -167,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
+                RoslynDebug.Assert(token.Parent is object);
                 switch (token.Parent.Kind())
                 {
                     case SyntaxKind.XmlText:
@@ -190,19 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlName(XmlNameSyntax node)
         {
-            string classificationType;
-            if (node.Parent is XmlAttributeSyntax)
+            var classificationType = node.Parent switch
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentAttributeName;
-            }
-            else if (node.Parent is XmlProcessingInstructionSyntax)
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentProcessingInstruction;
-            }
-            else
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentName;
-            }
+                XmlAttributeSyntax => ClassificationTypeNames.XmlDocCommentAttributeName,
+                XmlProcessingInstructionSyntax => ClassificationTypeNames.XmlDocCommentProcessingInstruction,
+                _ => ClassificationTypeNames.XmlDocCommentName,
+            };
 
             var prefix = node.Prefix;
             if (prefix != null)
@@ -282,9 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private void ClassifyXmlText(XmlTextSyntax node)
-        {
-            ClassifyXmlTextTokens(node.TextTokens);
-        }
+            => ClassifyXmlTextTokens(node.TextTokens);
 
         private void ClassifyXmlComment(XmlCommentSyntax node)
         {

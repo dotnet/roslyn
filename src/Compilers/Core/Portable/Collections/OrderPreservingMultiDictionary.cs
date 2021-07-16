@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -19,10 +21,12 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </remarks>
     internal sealed class OrderPreservingMultiDictionary<K, V> :
         IEnumerable<KeyValuePair<K, OrderPreservingMultiDictionary<K, V>.ValueSet>>
+        where K : notnull
+        where V : notnull
     {
         #region Pooling
 
-        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> _pool;
+        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>>? _pool;
 
         private OrderPreservingMultiDictionary(ObjectPool<OrderPreservingMultiDictionary<K, V>> pool)
         {
@@ -52,8 +56,9 @@ namespace Microsoft.CodeAnalysis.Collections
         // if someone needs to create a pool;
         public static ObjectPool<OrderPreservingMultiDictionary<K, V>> CreatePool()
         {
-            ObjectPool<OrderPreservingMultiDictionary<K, V>> pool = null;
-            pool = new ObjectPool<OrderPreservingMultiDictionary<K, V>>(() => new OrderPreservingMultiDictionary<K, V>(pool), 16); // Size is a guess.
+            var pool = new ObjectPool<OrderPreservingMultiDictionary<K, V>>(
+                pool => new OrderPreservingMultiDictionary<K, V>(pool),
+                16); // Size is a guess.
             return pool;
         }
 
@@ -68,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
         // An empty dictionary we keep around to simplify certain operations (like "Keys")
         // when we don't have an underlying dictionary of our own.
-        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new Dictionary<K, ValueSet>();
+        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new();
 
         // The underlying dictionary we store our data in.  null if we are empty.
-        private PooledDictionary<K, ValueSet> _dictionary;
+        private PooledDictionary<K, ValueSet>? _dictionary;
 
         public OrderPreservingMultiDictionary()
         {
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private void EnsureDictionary()
         {
-            _dictionary = _dictionary ?? PooledDictionary<K, ValueSet>.GetInstance();
+            _dictionary ??= PooledDictionary<K, ValueSet>.GetInstance();
         }
 
         public bool IsEmpty => _dictionary == null;
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void Add(K k, V v)
         {
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+            if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
             {
                 Debug.Assert(valueSet.Count >= 1);
                 // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
@@ -99,13 +104,25 @@ namespace Microsoft.CodeAnalysis.Collections
             else
             {
                 this.EnsureDictionary();
-                _dictionary[k] = new ValueSet(v);
+                _dictionary![k] = new ValueSet(v);
             }
+        }
+
+        public bool TryGetValue<TArg>(K key, Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+        {
+            if (_dictionary is not null && _dictionary.TryGetValue(key, out var valueSet))
+            {
+                Debug.Assert(valueSet.Count >= 1);
+                return valueSet.TryGetValue(predicate, arg, out value);
+            }
+
+            value = default;
+            return false;
         }
 
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
         {
-            return IsEmpty ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
+            return _dictionary is null ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
         }
 
         IEnumerator<KeyValuePair<K, ValueSet>> IEnumerable<KeyValuePair<K, ValueSet>>.GetEnumerator()
@@ -126,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+                if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
                 {
                     Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
@@ -138,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool Contains(K key, V value)
         {
-            return !this.IsEmpty &&
+            return _dictionary is object &&
                 _dictionary.TryGetValue(key, out var valueSet) &&
                 valueSet.Contains(value);
         }
@@ -148,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public Dictionary<K, ValueSet>.KeyCollection Keys
         {
-            get { return this.IsEmpty ? s_emptyDictionary.Keys : _dictionary.Keys; }
+            get { return _dictionary is null ? s_emptyDictionary.Keys : _dictionary.Keys; }
         }
 
         public struct ValueSet : IEnumerable<V>
@@ -198,6 +215,35 @@ namespace Microsoft.CodeAnalysis.Collections
                         return arrayBuilder[index];
                     }
                 }
+            }
+
+            public bool TryGetValue<TArg>(Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+            {
+                Debug.Assert(this.Count >= 1);
+                var arrayBuilder = _value as ArrayBuilder<V>;
+                if (arrayBuilder is not null)
+                {
+                    foreach (var v in arrayBuilder)
+                    {
+                        if (predicate(v, arg))
+                        {
+                            value = v;
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    var singleValue = (V)_value;
+                    if (predicate(singleValue, arg))
+                    {
+                        value = singleValue;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
             }
 
             internal bool Contains(V item)

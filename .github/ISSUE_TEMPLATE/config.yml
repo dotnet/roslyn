@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report issues related to CAxxxx rules
+    url: https://github.com/dotnet/roslyn-analyzers/issues/new/choose
+    about: Enhancements and bug reports to CAxxxx rules are reported to dotnet/roslyn-analyzers repository.
+  - name: Suggest language feature
+    url: https://github.com/dotnet/csharplang/issues/new/choose
+    about: Language feature suggestions are discussed in dotnet/csharplang repository first.
+    

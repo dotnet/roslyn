@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
@@ -33,19 +35,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
 
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim result = _propertyOrEvent.Type
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then
                         Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
-                        Dim info = Binder.GetUseSiteErrorForWellKnownType(tokenType)
-                        If info IsNot Nothing Then
-                            diagnostics.Add(info, _propertyOrEvent.Locations(0))
-                        End If
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(tokenType), _propertyOrEvent.Locations(0))
+
                         result = tokenType.Construct(result)
                     End If
 
-                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyType, result, diagnostics, CompilationStage.Declare)
+                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyType, result, diagnostics)
                     diagnostics.Free()
                 End If
 

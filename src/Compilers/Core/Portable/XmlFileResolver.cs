@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Roslyn.Utilities;
 
@@ -14,9 +17,9 @@ namespace Microsoft.CodeAnalysis
     {
         public static XmlFileResolver Default { get; } = new XmlFileResolver(baseDirectory: null);
 
-        private readonly string _baseDirectory;
+        private readonly string? _baseDirectory;
 
-        public XmlFileResolver(string baseDirectory)
+        public XmlFileResolver(string? baseDirectory)
         {
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)
             {
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             _baseDirectory = baseDirectory;
         }
 
-        public string BaseDirectory
+        public string? BaseDirectory
         {
             get { return _baseDirectory; }
         }
@@ -43,12 +46,12 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="baseFilePath"/> is relative <see cref="BaseDirectory"/> is used as the base path of <paramref name="baseFilePath"/>.
         /// </param>
         /// <returns>Normalized XML document file path or null if not found.</returns>
-        public override string ResolveReference(string path, string baseFilePath)
+        public override string? ResolveReference(string path, string? baseFilePath)
         {
             // Dev11: first look relative to the directory containing the file with the <include> element (baseFilepath)
             // and then look in the base directory (i.e. current working directory of the compiler).
 
-            string resolvedPath;
+            string? resolvedPath;
 
             if (baseFilePath != null)
             {
@@ -79,12 +82,12 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.OpenRead(resolvedPath);
         }
 
-        protected virtual bool FileExists(string resolvedPath)
+        protected virtual bool FileExists([NotNullWhen(true)] string? resolvedPath)
         {
             return File.Exists(resolvedPath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             // Explicitly check that we're not comparing against a derived type
             if (obj == null || GetType() != obj.GetType())

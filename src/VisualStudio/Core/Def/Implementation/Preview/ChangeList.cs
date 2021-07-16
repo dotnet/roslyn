@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -7,14 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
     {
-        public readonly static ChangeList Empty = new ChangeList(Array.Empty<AbstractChange>());
+        public static readonly ChangeList Empty = new(Array.Empty<AbstractChange>());
 
         internal AbstractChange[] Changes { get; }
 
         public ChangeList(AbstractChange[] changes)
-        {
-            this.Changes = changes;
-        }
+            => this.Changes = changes;
 
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
@@ -56,23 +58,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public int GetListChanges(ref uint pcChanges, VSTREELISTITEMCHANGE[] prgListChanges)
-        {
-            return VSConstants.E_FAIL;
-        }
+            => VSConstants.E_FAIL;
 
         public int GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
-        {
-            return Changes[index].GetText(out tto, out ppszText);
-        }
+            => Changes[index].GetText(out _, out ppszText);
 
         public int GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
-        {
-            return Changes[index].GetTipText(out eTipType, out ppszText);
-        }
+            => Changes[index].GetTipText(out _, out ppszText);
 
         public int LocateExpandedList(IVsLiteTreeList child, out uint iIndex)
         {
-            for (int i = 0; i < Changes.Length; i++)
+            for (var i = 0; i < Changes.Length; i++)
             {
                 if (Changes[i].GetChildren() == child)
                 {
@@ -86,14 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public int OnClose(VSTREECLOSEACTIONS[] ptca)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int OnRequestSource(uint index, object pIUnknownTextView)
-        {
-            return Changes[index].OnRequestSource(pIUnknownTextView);
-        }
+            => Changes[index].OnRequestSource(pIUnknownTextView);
 
         public int ToggleState(uint index, out uint ptscr)
         {

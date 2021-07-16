@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -16,9 +18,9 @@ namespace Microsoft.CodeAnalysis
     {
         // Simple value or ImmutableArray<TypedConstant>.
         // Null array is represented by a null reference.
-        private readonly object _value;
+        private readonly object? _value;
 
-        internal TypedConstantValue(object value)
+        internal TypedConstantValue(object? value)
         {
             Debug.Assert(value == null || value is string || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is System.IntPtr) && !(value is System.UIntPtr)) || value is ITypeSymbol);
             _value = value;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public object Object
+        public object? Object
         {
             get
             {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             return _value?.GetHashCode() ?? 0;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TypedConstantValue && Equals((TypedConstantValue)obj);
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
         };
 
+        public string CodeStyleMembersAutomationText => ServicesVSResources.Naming_rules;
+
         public ObservableCollection<NamingRuleViewModel> CodeStyleItems { get; set; }
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
         public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
@@ -43,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 };
 
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
-                viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
+                viewModel.SelectedStyle = viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
                 viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Severity == namingRule.EnforcementLevel);
-                
+
                 viewModels.Add(viewModel);
             }
 
@@ -281,9 +287,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             public string RemoveAutomationText => ServicesVSResources.Remove;
 
             public bool IsComplete()
-            {
-                return SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
-            }
+                => SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
+
+            // For screen readers
+            public override string ToString() => ServicesVSResources.Naming_Rule;
         }
     }
 }

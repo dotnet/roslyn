@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -21,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim temporaries As ArrayBuilder(Of SynthesizedLocal) = Nothing
             Dim assignmentTarget = node.Operand
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
             Dim copyArrayUtilityMethod As MethodSymbol = Nothing
             If node.Preserve AndAlso TryGetWellknownMember(copyArrayUtilityMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Utils__CopyArray, node.Syntax) Then
@@ -50,11 +52,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 '  add conversion
                 arrayValueAccess = New BoundDirectCast(node.Syntax, arrayValueAccess,
-                                                       Conversions.ClassifyDirectCastConversion(arrayValueAccess.Type, systemArray, useSiteDiagnostics),
+                                                       Conversions.ClassifyDirectCastConversion(arrayValueAccess.Type, systemArray, useSiteInfo),
                                                        systemArray, Nothing)
 
                 valueBeingAssigned = New BoundDirectCast(node.Syntax, valueBeingAssigned,
-                                                       Conversions.ClassifyDirectCastConversion(valueBeingAssigned.Type, systemArray, useSiteDiagnostics),
+                                                       Conversions.ClassifyDirectCastConversion(valueBeingAssigned.Type, systemArray, useSiteInfo),
                                                        systemArray, Nothing)
 
                 '  bind call to CopyArray
@@ -66,9 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             '  add conversion if needed
             valueBeingAssigned = New BoundDirectCast(node.Syntax, valueBeingAssigned,
-                                                     Conversions.ClassifyDirectCastConversion(valueBeingAssigned.Type, assignmentTarget.Type, useSiteDiagnostics),
+                                                     Conversions.ClassifyDirectCastConversion(valueBeingAssigned.Type, assignmentTarget.Type, useSiteInfo),
                                                      assignmentTarget.Type, Nothing)
-            _diagnostics.Add(node, useSiteDiagnostics)
+            _diagnostics.Add(node, useSiteInfo)
 
             '  adjust assignment target
             If assignmentTarget.Kind = BoundKind.PropertyAccess Then

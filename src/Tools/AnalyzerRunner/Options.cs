@@ -1,54 +1,121 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace AnalyzerRunner
 {
-    internal class Options
+    public sealed class Options
     {
         public readonly string AnalyzerPath;
         public readonly string SolutionPath;
         public readonly ImmutableHashSet<string> AnalyzerNames;
+        public readonly ImmutableHashSet<string> RefactoringNodes;
 
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
-        public readonly bool ShowStats;
+        public readonly bool ApplyChanges;
         public readonly bool UseAll;
         public readonly int Iterations;
-        public readonly bool TestDocuments;
-        public readonly Func<string, bool> TestDocumentMatch;
-        public readonly int TestDocumentIterations;
-        public readonly string LogFileName;
+
+        // Options specific to incremental analyzers
+        public readonly bool UsePersistentStorage;
+        public readonly ImmutableArray<string> IncrementalAnalyzerNames;
+        public readonly bool FullSolutionAnalysis;
+
+        // Options used by AnalyzerRunner CLI only
+        internal readonly bool ShowStats;
+        internal readonly bool ShowCompilerDiagnostics;
+        internal readonly bool TestDocuments;
+        internal readonly Func<string, bool> TestDocumentMatch;
+        internal readonly int TestDocumentIterations;
+        internal readonly string LogFileName;
+        internal readonly string ProfileRoot;
+
+        internal BackgroundAnalysisScope AnalysisScope
+            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
 
         public Options(
             string analyzerPath,
             string solutionPath,
             ImmutableHashSet<string> analyzerIds,
+            ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool applyChanges,
+            bool useAll,
+            int iterations,
+            bool usePersistentStorage,
+            bool fullSolutionAnalysis,
+            ImmutableArray<string> incrementalAnalyzerNames)
+            : this(analyzerPath,
+                  solutionPath,
+                  analyzerIds,
+                  refactoringNodes,
+                  runConcurrent,
+                  reportSuppressedDiagnostics,
+                  applyChanges,
+                  showStats: false,
+                  showCompilerDiagnostics: false,
+                  useAll,
+                  iterations,
+                  testDocuments: false,
+                  testDocumentMatch: _ => false,
+                  testDocumentIterations: 0,
+                  logFileName: null,
+                  profileRoot: null,
+                  usePersistentStorage,
+                  fullSolutionAnalysis,
+                  incrementalAnalyzerNames)
+        { }
+
+        internal Options(
+            string analyzerPath,
+            string solutionPath,
+            ImmutableHashSet<string> analyzerIds,
+            ImmutableHashSet<string> refactoringNodes,
+            bool runConcurrent,
+            bool reportSuppressedDiagnostics,
+            bool applyChanges,
             bool showStats,
+            bool showCompilerDiagnostics,
             bool useAll,
             int iterations,
             bool testDocuments,
             Func<string, bool> testDocumentMatch,
             int testDocumentIterations,
-            string logFileName)
+            string logFileName,
+            string profileRoot,
+            bool usePersistentStorage,
+            bool fullSolutionAnalysis,
+            ImmutableArray<string> incrementalAnalyzerNames)
         {
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
             AnalyzerNames = analyzerIds;
+            RefactoringNodes = refactoringNodes;
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            ApplyChanges = applyChanges;
             ShowStats = showStats;
+            ShowCompilerDiagnostics = showCompilerDiagnostics;
             UseAll = useAll;
             Iterations = iterations;
             TestDocuments = testDocuments;
             TestDocumentMatch = testDocumentMatch;
             TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
+            ProfileRoot = profileRoot;
+            UsePersistentStorage = usePersistentStorage;
+            FullSolutionAnalysis = fullSolutionAnalysis;
+            IncrementalAnalyzerNames = incrementalAnalyzerNames;
         }
 
         internal static Options Create(string[] args)
@@ -56,15 +123,22 @@ namespace AnalyzerRunner
             string analyzerPath = null;
             string solutionPath = null;
             var builder = ImmutableHashSet.CreateBuilder<string>();
+            var refactoringBuilder = ImmutableHashSet.CreateBuilder<string>();
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
+            bool applyChanges = false;
             bool showStats = false;
+            bool showCompilerDiagnostics = false;
             bool useAll = false;
             int iterations = 1;
             bool testDocuments = false;
             Func<string, bool> testDocumentMatch = _ => true;
             int testDocumentIterations = 10;
             string logFileName = null;
+            string profileRoot = null;
+            var usePersistentStorage = false;
+            var fullSolutionAnalysis = false;
+            var incrementalAnalyzerNames = ImmutableArray.CreateBuilder<string>();
 
             int i = 0;
             while (i < args.Length)
@@ -79,6 +153,9 @@ namespace AnalyzerRunner
                         break;
                     case "/stats":
                         showStats = true;
+                        break;
+                    case "/compilerStats":
+                        showCompilerDiagnostics = true;
                         break;
                     case "/concurrent":
                         runConcurrent = true;
@@ -100,11 +177,29 @@ namespace AnalyzerRunner
                     case "/suppressed":
                         reportSuppressedDiagnostics = true;
                         break;
+                    case "/apply":
+                        applyChanges = true;
+                        break;
                     case "/a":
                         builder.Add(ReadValue());
                         break;
+                    case "/refactor":
+                        refactoringBuilder.Add(ReadValue());
+                        break;
                     case "/log":
                         logFileName = ReadValue();
+                        break;
+                    case "/profileroot":
+                        profileRoot = ReadValue();
+                        break;
+                    case "/persist":
+                        usePersistentStorage = true;
+                        break;
+                    case "/fsa":
+                        fullSolutionAnalysis = true;
+                        break;
+                    case "/ia":
+                        incrementalAnalyzerNames.Add(ReadValue());
                         break;
                     default:
                         if (analyzerPath == null)
@@ -139,15 +234,22 @@ namespace AnalyzerRunner
                 analyzerPath: analyzerPath,
                 solutionPath: solutionPath,
                 analyzerIds: builder.ToImmutableHashSet(),
+                refactoringNodes: refactoringBuilder.ToImmutableHashSet(),
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                applyChanges: applyChanges,
                 showStats: showStats,
+                showCompilerDiagnostics: showCompilerDiagnostics,
                 useAll: useAll,
                 iterations: iterations,
                 testDocuments: testDocuments,
                 testDocumentMatch: testDocumentMatch,
                 testDocumentIterations: testDocumentIterations,
-                logFileName: logFileName);
+                logFileName: logFileName,
+                profileRoot: profileRoot,
+                usePersistentStorage: usePersistentStorage,
+                fullSolutionAnalysis: fullSolutionAnalysis,
+                incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -7,12 +9,12 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal class SyntaxListBuilder
     {
-        private ArrayElement<GreenNode>[] _nodes;
+        private ArrayElement<GreenNode?>[] _nodes;
         public int Count { get; private set; }
 
         public SyntaxListBuilder(int size)
         {
-            _nodes = new ArrayElement<GreenNode>[size];
+            _nodes = new ArrayElement<GreenNode?>[size];
         }
 
         public void Clear()
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 throw new ArgumentNullException();
             }
 
-            if (_nodes == null || Count >= _nodes.Length)
+            if (Count >= _nodes.Length)
             {
                 this.Grow(Count == 0 ? 8 : _nodes.Length * 2);
             }
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void AddRange(SyntaxNode[] items, int offset, int length)
         {
-            if (_nodes == null || Count + length > _nodes.Length)
+            if (Count + length > _nodes.Length)
             {
                 this.Grow(Count + length);
             }
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void AddRange(SyntaxList<SyntaxNode> list, int offset, int count)
         {
-            if (_nodes == null || this.Count + count > _nodes.Length)
+            if (this.Count + count > _nodes.Length)
             {
                 this.Grow(Count + count);
             }
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
-                _nodes[dst].Value = list.ItemInternal(i).Green;
+                _nodes[dst].Value = list.ItemInternal(i)!.Green;
                 dst++;
             }
 
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void AddRange(SyntaxNodeOrTokenList list, int offset, int count)
         {
-            if (_nodes == null || this.Count + count > _nodes.Length)
+            if (this.Count + count > _nodes.Length)
             {
                 this.Grow(Count + count);
             }
@@ -139,12 +141,13 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void AddRange(SyntaxTokenList list, int offset, int length)
         {
+            Debug.Assert(list.Node is object);
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
         }
 
         private void Grow(int size)
         {
-            var tmp = new ArrayElement<GreenNode>[size];
+            var tmp = new ArrayElement<GreenNode?>[size];
             Array.Copy(_nodes, tmp, _nodes.Length);
             _nodes = tmp;
         }
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             for (int i = 0; i < Count; i++)
             {
-                if (_nodes[i].Value.RawKind == kind)
+                if (_nodes[i].Value!.RawKind == kind)
                 {
                     return true;
                 }
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return false;
         }
 
-        internal GreenNode ToListNode()
+        internal GreenNode? ToListNode()
         {
             switch (this.Count)
             {
@@ -171,14 +174,14 @@ namespace Microsoft.CodeAnalysis.Syntax
                 case 1:
                     return _nodes[0].Value;
                 case 2:
-                    return InternalSyntax.SyntaxList.List(_nodes[0].Value, _nodes[1].Value);
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!);
                 case 3:
-                    return InternalSyntax.SyntaxList.List(_nodes[0].Value, _nodes[1].Value, _nodes[2].Value);
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!, _nodes[2].Value!);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
                     for (int i = 0; i < this.Count; i++)
                     {
-                        tmp[i].Value = _nodes[i].Value;
+                        tmp[i].Value = _nodes[i].Value!;
                     }
 
                     return InternalSyntax.SyntaxList.List(tmp);
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         internal void RemoveLast()
         {
             this.Count -= 1;
-            this._nodes[Count] = default(ArrayElement<GreenNode>);
+            this._nodes[Count] = default;
         }
     }
 }

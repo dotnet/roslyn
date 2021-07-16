@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Call] = &H4 ' Result is not needed and we are not going to assign to the member. Cannot be combined with [Get] or [Set]
     End Enum
 
-    Friend Partial Class BoundLateMemberAccess
+    Partial Friend Class BoundLateMemberAccess
         ''' <summary>
         ''' Updates property access kind. To clear the access kind,
         ''' 'newAccessKind' should be Unknown. Otherwise, the current

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// still be that case that we have one or more "best guesses" as to what symbol was
         /// intended. These best guesses are available via the CandidateSymbols property.
         /// </summary>
-        public ISymbol Symbol { get; }
+        public ISymbol? Symbol { get; }
 
         /// <summary>
         /// If the expression did not successfully resolve to a symbol, but there were one or more
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SymbolInfo(ISymbol symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
+        internal SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
             : this()
         {
             this.Symbol = symbol;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis
 
 #if DEBUG
             const NamespaceKind NamespaceKindNamespaceGroup = (NamespaceKind)0;
-            Debug.Assert((object)symbol == null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
+            Debug.Assert(symbol is null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
             foreach (var item in _candidateSymbols)
             {
                 Debug.Assert(item.Kind != SymbolKind.Namespace || ((INamespaceSymbol)item).NamespaceKind != NamespaceKindNamespaceGroup);
@@ -89,16 +91,21 @@ namespace Microsoft.CodeAnalysis
             this.CandidateReason = candidateReason;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SymbolInfo && Equals((SymbolInfo)obj);
         }
 
         public bool Equals(SymbolInfo other)
         {
-            return object.Equals(this.Symbol, other.Symbol)
-                && ((_candidateSymbols.IsDefault && other._candidateSymbols.IsDefault) || _candidateSymbols.SequenceEqual(other._candidateSymbols))
-                && this.CandidateReason == other.CandidateReason;
+            if (!object.Equals(this.Symbol, other.Symbol) ||
+                _candidateSymbols.IsDefault != other._candidateSymbols.IsDefault ||
+                this.CandidateReason != other.CandidateReason)
+            {
+                return false;
+            }
+
+            return _candidateSymbols.IsDefault || _candidateSymbols.SequenceEqual(other._candidateSymbols);
         }
 
         public override int GetHashCode()

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -10,28 +14,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     /// </summary>
     internal class DashboardAutomationPeer : UserControlAutomationPeer
     {
-        public DashboardAutomationPeer(UserControl owner) : base(owner)
-        {
-        }
+        private readonly string _identifier;
+
+        public DashboardAutomationPeer(UserControl owner, string identifier) : base(owner)
+            => _identifier = identifier;
 
         protected override bool HasKeyboardFocusCore()
-        {
-            return true;
-        }
+            => true;
 
         protected override bool IsKeyboardFocusableCore()
-        {
-            return true;
-        }
+            => true;
 
         protected override string GetNameCore()
-        {
-            return EditorFeaturesResources.An_inline_rename_session_is_active;
-        }
+            => string.Format(EditorFeaturesResources.An_inline_rename_session_is_active_for_identifier_0, _identifier);
 
         protected override AutomationControlType GetAutomationControlTypeCore()
-        {
-            return AutomationControlType.Pane;
-        }
+            => AutomationControlType.Custom;
     }
 }

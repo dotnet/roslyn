@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="XunitXml.TestLogger" Version="$(XunitXmlTestLoggerVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all test projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <!--
+      For .NET Core, app.config is not available. Languages which support module initializers may provide an
+      InstallTraceListener.* source file which gets added to the build for test projects to programmatically install the
+      trace listener. Together with app.config support, this means the trace listener is automatically set for:
+      
+      1. All C# test projects
+      2. All Visual Basic test projects running on .NET Framework
+    -->
+    <Compile Include="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)"
+             Condition="Exists('$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)')"/>
+  </ItemGroup>
+
+  <!--
+    Include settings file (xunit.runner.json) if specified.
+    Workaround for https://github.com/dotnet/arcade/issues/7080
+  -->
+  <ItemGroup>
+    <None Include="$(XUnitDesktopSettingsFile)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false"
+          Condition="'$(XUnitDesktopSettingsFile)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+
+    <None Include="$(XUnitCoreSettingsFile)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false"
+          Condition="'$(XUnitCoreSettingsFile)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+  </ItemGroup>
+
+  <!-- Add a default test app.config, if the project doesn't already have one-->
+  <Target Name="AddDefaultTestAppConfig">
+    <PropertyGroup>
+      <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+      <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(RepositoryEngineeringDir)config\test\Desktop\app.config</_DefaultAppConfigFile>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
+      <None Include="$(_DefaultAppConfigFile)" Condition="'$(_DefaultAppConfigFile)' != ''">
+        <Link>app.config</Link>
+      </None>
+    </ItemGroup>
+  </Target>
+</Project>

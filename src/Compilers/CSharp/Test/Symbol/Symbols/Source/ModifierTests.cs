@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -122,9 +126,9 @@ static void M12() { }
             Assert.True(m12.IsStatic);
 
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0628: 'M3()': new protected member declared in sealed class
+                // (4,16): warning CS0628: 'M3()': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M3").WithArguments("M3()"),
-                // (6,25): warning CS0628: 'M5()': new protected member declared in sealed class
+                // (6,25): warning CS0628: 'M5()': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M5").WithArguments("M5()"),
                 // (8,13): warning CS0626: Method, operator, or accessor 'M7()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M7").WithArguments("M7()")
@@ -149,10 +153,10 @@ struct S<T> where T : struct
             var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
             var typeParamType = structType.TypeParameters.Single();
 
-            var pointerType = new PointerTypeSymbol(typeParamType, customModifiers); // NOTE: We're constructing this manually, since it's illegal.
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.
+            var pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(typeParamType, customModifiers: customModifiers)); // NOTE: We're constructing this manually, since it's illegal.
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, TypeWithAnnotations.Create(typeParamType, customModifiers: customModifiers)); // This is legal, but we're already manually constructing types.
 
-            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create(new TypeWithModifiers(intType)));
+            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create(TypeWithAnnotations.Create(intType)));
 
             var substitutedPointerType = (PointerTypeSymbol)typeMap.SubstituteType(pointerType).AsTypeSymbolOnly();
             var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType).AsTypeSymbolOnly();
@@ -162,8 +166,8 @@ struct S<T> where T : struct
             Assert.Equal(intType, substitutedArrayType.ElementType);
 
             // The map preserved the custom modifiers.
-            Assert.Equal(customModifiers, substitutedPointerType.CustomModifiers);
-            Assert.Equal(customModifiers, substitutedArrayType.CustomModifiers);
+            Assert.Equal(customModifiers, substitutedPointerType.PointedAtTypeWithAnnotations.CustomModifiers);
+            Assert.Equal(customModifiers, substitutedArrayType.ElementTypeWithAnnotations.CustomModifiers);
         }
     }
 }

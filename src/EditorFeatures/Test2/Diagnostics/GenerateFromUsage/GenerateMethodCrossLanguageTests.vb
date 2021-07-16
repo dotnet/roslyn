@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -739,6 +741,7 @@ End Module]]>
             Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
+        <WpfFact>
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived() As Task
             Dim input =
         <Workspace>
@@ -748,7 +751,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$goo())
+        extensions.AddRange(list, $$goo())
     End Sub
 End Module
                 </Document>
@@ -815,7 +818,7 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(goo())
+        extensions.AddRange(list, goo())
     End Sub
 
     Private Function goo() As MyStruct(Of outer.inner.derived3)

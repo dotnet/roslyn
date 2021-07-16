@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -31,6 +37,12 @@ struct S
         public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpNavigationBar))
         {
+        }
+
+        public override async Task DisposeAsync()
+        {
+            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            await base.DisposeAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
@@ -62,17 +74,12 @@ struct S
             VerifyRightSelected("this[int index]");
 
             VisualStudio.Editor.ExpandTypeNavBar();
-            var expectedItems = new[]
-            {
-                "C",
-                "S",
-            };
 
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudio.Editor.Verify.CurrentLineText("struct $$S", assertCaretPosition: true, trimWhitespace: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]

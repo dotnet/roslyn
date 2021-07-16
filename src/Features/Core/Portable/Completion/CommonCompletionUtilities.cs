@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +27,13 @@ namespace Microsoft.CodeAnalysis.Completion
         public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
         {
-            int start = position;
+            return GetWordSpan(text, position, isWordStartCharacter, isWordCharacter, alwaysExtendEndSpan: false);
+        }
+
+        public static TextSpan GetWordSpan(SourceText text, int position,
+            Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
+        {
+            var start = position;
             while (start > 0 && isWordStartCharacter(text[start - 1]))
             {
                 start--;
@@ -35,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // text).  However, if they bring up completion in the "middle" of a word, then they will
             // "overwrite" the text. Useful for correcting misspellings or just replacing unwanted
             // code with new code.
-            int end = position;
-            if (start != position)
+            var end = position;
+            if (start != position || alwaysExtendEndSpan)
             {
                 while (end < text.Length && isWordCharacter(text[end]))
                 {
@@ -94,13 +104,12 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var symbol = symbols[0];
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
@@ -114,10 +123,10 @@ namespace Microsoft.CodeAnalysis.Completion
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
+                case SymbolKind.Property:
                 case SymbolKind.NamedType:
-                    if (symbols.Count > 1)
+                    if (overloadCount > 0)
                     {
-                        var overloadCount = symbols.Count - 1;
                         var isGeneric = symbol.GetArity() > 0;
 
                         textContentBuilder.AddSpace();
@@ -159,6 +168,16 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionDescription.Create(textContentBuilder.AsImmutable());
         }
 
+        public static Task<CompletionDescription> CreateDescriptionAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+        {
+            // Lets try to find the first non-obsolete symbol (overload) and fall-back
+            // to the first symbol if all are obsolete.
+            var symbol = symbols.FirstOrDefault(s => !s.IsObsolete()) ?? symbols[0];
+
+            return CreateDescriptionAsync(workspace, semanticModel, position, symbol, overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
+        }
+
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
         {
             var text = isGeneric
@@ -191,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // etc.
             characterPosition = characterPosition - value.Length + 1;
 
-            for (int i = 0; i < value.Length; i++, characterPosition++)
+            for (var i = 0; i < value.Length; i++, characterPosition++)
             {
                 if (characterPosition < 0 || characterPosition >= text.Length)
                 {

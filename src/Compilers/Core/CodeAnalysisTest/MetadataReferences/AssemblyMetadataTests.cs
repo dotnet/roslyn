@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -14,8 +18,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Ctor_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(ImmutableArray<byte>)));
-            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(IEnumerable<byte>)));
-            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(byte[])));
+
+            IEnumerable<byte> enumerableImage = null;
+            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(enumerableImage));
+
+            byte[] arrayImage = null;
+            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(arrayImage));
+
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.Create((ModuleMetadata)null));
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(default(ImmutableArray<ModuleMetadata>)));
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(ImmutableArray.Create<ModuleMetadata>()));

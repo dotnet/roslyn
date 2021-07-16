@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -277,10 +281,7 @@ namespace Test
     }
 }
 ";
-            // The version of mscorlib checked in to the test resources in v4_0_30316 does not have
-            // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
-
-            var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib);
+            var mscorlib17626 = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1", targetFramework: TargetFramework.Empty);
         }
 

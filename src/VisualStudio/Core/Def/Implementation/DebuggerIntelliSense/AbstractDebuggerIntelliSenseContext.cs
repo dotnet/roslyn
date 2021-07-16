@@ -1,23 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
@@ -25,8 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
     {
         private readonly IWpfTextView _textView;
         private readonly IContentType _contentType;
+        private readonly IContentType _originalContentType;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
-        protected readonly Microsoft.VisualStudio.TextManager.Interop.TextSpan CurrentStatementSpan;
+        protected readonly TextManager.Interop.TextSpan CurrentStatementSpan;
         private readonly IVsTextLines _debuggerTextLines;
         private IProjectionBuffer _projectionBuffer;
         private DebuggerTextView _debuggerTextView;
@@ -48,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             IVsTextView vsTextView,
             IVsTextLines vsDebuggerTextLines,
             ITextBuffer contextBuffer,
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
+            TextManager.Interop.TextSpan[] currentStatementSpan,
             IComponentModel componentModel,
             IServiceProvider serviceProvider,
             IContentType contentType)
@@ -58,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             this.ContextBuffer = contextBuffer;
             this.CurrentStatementSpan = currentStatementSpan[0];
             _contentType = contentType;
+            _originalContentType = _textView.TextBuffer.ContentType;
             this.ProjectionBufferFactoryService = componentModel.GetService<IProjectionBufferFactoryService>();
             _bufferGraphFactoryService = componentModel.GetService<IBufferGraphFactoryService>();
             _isImmediateWindow = IsImmediateWindow((IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell)), vsTextView);
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         protected bool InImmediateWindow { get { return _immediateWindowContext != null; } }
 
-        protected ITextBuffer ContextBuffer { get; private set; }
+        internal ITextBuffer ContextBuffer { get; private set; }
 
         public abstract bool CompletionStartsOnQuestionMark { get; }
 
@@ -118,16 +117,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         internal bool TryInitialize()
-        {
-            return this.TrySetContext(_isImmediateWindow);
-        }
+            => this.TrySetContext(_isImmediateWindow);
 
         private bool TrySetContext(
             bool isImmediateWindow)
         {
             // Get the workspace, and from there, the solution and document containing this buffer.
             // If there's an ExternalSource, we won't get a document. Give up in that case.
-            Document document = ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 _projectionBuffer = null;
@@ -143,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             var viewSnapshot = _textView.TextSnapshot;
             _immediateWindowContext = null;
             var debuggerMappedSpan = isImmediateWindow
-                ? CreateImmediateWindowProjectionMapping(document, out _immediateWindowContext)
+                ? CreateImmediateWindowProjectionMapping(out _immediateWindowContext)
                 : viewSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
@@ -200,7 +197,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return true;
         }
 
-        private ITrackingSpan CreateImmediateWindowProjectionMapping(Document document, out ImmediateWindowContext immediateWindowContext)
+        internal void SetContentType(bool install)
+        {
+            var contentType = install ? _contentType : _originalContentType;
+            _textView.TextBuffer.ChangeContentType(contentType, null);
+        }
+
+        private ITrackingSpan CreateImmediateWindowProjectionMapping(out ImmediateWindowContext immediateWindowContext)
         {
             var caretLine = _textView.Caret.ContainingTextViewLine.Extent;
             var currentLineIndex = _textView.TextSnapshot.GetLineNumberFromPosition(caretLine.Start.Position);
@@ -230,9 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void TextBuffer_PostChanged(object sender, EventArgs e)
-        {
-            SetupImmediateWindowProjectionBuffer();
-        }
+            => SetupImmediateWindowProjectionBuffer();
 
         /// <summary>
         /// If there's a ? mark, we want to skip the ? mark itself, and include the text that follows it
@@ -255,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         private int GetQuestionIndex(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -271,12 +272,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
         {
             Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out var windowEnum));
-            Marshal.ThrowExceptionForHR(textView.GetBuffer(out var buffer));
+            Marshal.ThrowExceptionForHR(textView.GetBuffer(out _));
 
-            IVsWindowFrame[] frame = new IVsWindowFrame[1];
+            var frame = new IVsWindowFrame[1];
             var immediateWindowGuid = Guid.Parse(ToolWindowGuids80.ImmediateWindow);
 
-            while (windowEnum.Next(1, frame, out var value) == VSConstants.S_OK)
+            while (windowEnum.Next(1, frame, out _) == VSConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(frame[0].GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out var toolWindowGuid));
                 if (toolWindowGuid == immediateWindowGuid)
@@ -301,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             // Unsubscribe from events
             _textView.TextBuffer.PostChanged -= TextBuffer_PostChanged;
-            _debuggerTextView.DisconnectFromIntellisenseControllers();
+            _debuggerTextView.Cleanup();
 
             // The buffer graph subscribes to events of its source buffers, we're no longer interested
             _projectionBuffer.DeleteSpans(0, _projectionBuffer.CurrentSnapshot.SpanCount);
