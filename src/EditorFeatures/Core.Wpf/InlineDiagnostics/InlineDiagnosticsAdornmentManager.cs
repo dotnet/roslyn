@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            /*var sourceContainer = TextView.TextBuffer.AsTextContainer();
+            var sourceContainer = TextView.TextBuffer.AsTextContainer();
             if (sourceContainer is null)
             {
                 AdornmentLayer.RemoveAllAdornments();
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             {
                 AdornmentLayer.RemoveAllAdornments();
                 return;
-            }*/
+            }
 
             var option = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
