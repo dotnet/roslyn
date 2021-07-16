@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
@@ -55,22 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
             };
 
-            var id = new Run(_diagnostic.Id);
-            Hyperlink? link = null;
+            var idRun = GetRunForId(out var hyperlink);
 
-            if (_diagnostic.HelpLink is null || _diagnostic.HelpLink.Length is 0)
+            if (hyperlink is null)
             {
-                block.Inlines.Add(id);
+                block.Inlines.Add(idRun);
             }
             else
             {
-                link = new Hyperlink(id)
-                {
-                    NavigateUri = new Uri(_diagnostic.HelpLink)
-                };
+                block.Inlines.Add(hyperlink);
+                hyperlink.RequestNavigate += HandleRequestNavigate;
 
-                link.RequestNavigate += HandleRequestNavigate;
-                block.Inlines.Add(link);
             }
 
             block.Inlines.Add(": " + _diagnostic.Message);
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 },
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(10, top: 0, 0, bottom: 1),
+                Margin = new Thickness(10, top: 0, right: 0, bottom: 1),
                 Padding = new Thickness(1)
             };
 
@@ -111,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             return new GraphicsResult(border, dispose:
                 () =>
                 {
-                    if (link is not null)
+                    if (hyperlink is not null)
                     {
-                        link.RequestNavigate -= HandleRequestNavigate;
+                        hyperlink.RequestNavigate -= HandleRequestNavigate;
                     }
 
                     view.ViewportWidthChanged -= ViewportWidthChangedHandler;
@@ -138,25 +134,42 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             void HandleRequestNavigate(object sender, RoutedEventArgs e)
             {
-                var uri = link.NavigateUri;
+                var uri = hyperlink.NavigateUri;
                 _ = _navigateToLinkService.TryNavigateToLinkAsync(uri, CancellationToken.None);
                 e.Handled = true;
+            }
+
+            Run GetRunForId(out Hyperlink? link)
+            {
+                var id = new Run(_diagnostic.Id);
+                link = null;
+
+                if (!string.IsNullOrEmpty(_diagnostic.HelpLink))
+                {
+                    link = new Hyperlink(id)
+                    {
+                        NavigateUri = new Uri(_diagnostic.HelpLink)
+                    };
+                }
+
+                return id;
             }
         }
 
         private ImageMoniker GetMoniker()
-            => _diagnostic.Severity switch
-            {
-                DiagnosticSeverity.Warning => KnownMonikers.StatusWarning,
-                _ => KnownMonikers.StatusError,
-            };
+        => _diagnostic.Severity switch
+        {
+            DiagnosticSeverity.Warning => KnownMonikers.StatusWarning,
+            _ => KnownMonikers.StatusError,
+        };
 
         public static string GetClassificationId(string error)
             => error switch
             {
                 EditAndContinueErrorTypeDefinition.Name => "inline diagnostics - Edit and Continue",
                 PredefinedErrorTypeNames.SyntaxError => "inline diagnostics - syntax error",
-                _ => "inline diagnostics - compiler warning"
+                PredefinedErrorTypeNames.Warning => "inline diagnostics - compiler warning",
+                _ => throw ExceptionUtilities.UnexpectedValue(error)
             };
 
         /// <summary>

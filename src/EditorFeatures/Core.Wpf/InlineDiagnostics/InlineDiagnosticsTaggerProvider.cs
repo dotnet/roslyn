@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService),
+                base.CreateEventSource(textViewOpt, subjectBuffer),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
         }
 

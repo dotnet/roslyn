@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IClassificationFormatMapService classificationFormatMapService,
-            IClassificationTypeRegistryService classificationTypeRegistryService
-            ) : base(threadingContext, tagAggregatorFactoryService, listenerProvider)
+            IClassificationTypeRegistryService classificationTypeRegistryService) 
+            : base(threadingContext, tagAggregatorFactoryService, listenerProvider)
         {
             _classificationFormatMapService = classificationFormatMapService;
             _classificationTypeRegistryService = classificationTypeRegistryService;
@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         protected override void CreateAdornmentManager(IWpfTextView textView)
         {
             // the manager keeps itself alive by listening to text view events.
-            _ = new InlineDiagnosticsAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
+            _ = new InlineDiagnosticsAdornmentManager(
+                ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener,
+                AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
         }
     }
 }
