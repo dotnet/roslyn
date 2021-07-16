@@ -86,18 +86,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            return FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects: null, cancellationToken);
-        }
-
         /// <inheritdoc cref="FindImplementedInterfaceMembersAsync"/>
         /// <remarks>
         /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
         /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
             // public

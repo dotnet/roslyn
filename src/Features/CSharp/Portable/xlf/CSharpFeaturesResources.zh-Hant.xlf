@@ -137,6 +137,11 @@
         <target state="translated">偵測到衝突。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_container_async">
+        <source>Make container 'async'</source>
+        <target state="new">Make container 'async'</target>
+        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
