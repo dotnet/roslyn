@@ -231,13 +231,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         private void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            var border = (Border)sender;
+            var hintUIElement = (FrameworkElement)sender;
             e.Handled = true;
 
             bool KeepOpen()
             {
-                var mousePoint = Mouse.GetPosition(border);
-                return !(mousePoint.X > border.ActualWidth || mousePoint.X < 0 || mousePoint.Y > border.ActualHeight || mousePoint.Y < 0);
+                var mousePoint = Mouse.GetPosition(hintUIElement);
+                return !(mousePoint.X > hintUIElement.ActualWidth || mousePoint.X < 0 || mousePoint.Y > hintUIElement.ActualHeight || mousePoint.Y < 0);
             }
 
             var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
