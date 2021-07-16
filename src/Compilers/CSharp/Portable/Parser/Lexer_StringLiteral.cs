@@ -185,15 +185,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // Reached the end of the source without finding the end-quote.  Give an error back at the
                     // starting point. And finish lexing this string.
-                    error = ErrorCode.ERR_UnterminatedStringLit;
+                    error ??= ErrorCode.ERR_UnterminatedStringLit;
                     break;
                 }
 
                 // If we hit a new line when it's not allowed.  Give an error at that new line, but keep on consuming
                 // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
                 // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
-                if (!allowNewlines && SyntaxFacts.IsNewLine(ch) && error == null)
-                    error = ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string;
+                if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
+                    error ??= ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string;
 
                 TextWindow.AdvanceChar();
                 _builder.Append(ch);
