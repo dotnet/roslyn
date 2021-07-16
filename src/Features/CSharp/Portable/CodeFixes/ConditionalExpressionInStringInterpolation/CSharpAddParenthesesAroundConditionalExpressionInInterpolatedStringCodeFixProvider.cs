@@ -87,19 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             if (parenthesizedExpression.Expression is ConditionalExpressionSyntax conditional &&
                 parenthesizedExpression.GetAncestor<InterpolatedStringExpressionSyntax>()?.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
             {
-                var closeParenPosition = GetCloseParenPosition(sourceText, conditional);
-                var textWithCloseParenthesis = sourceText.Replace(closeParenPosition, 0, ")");
-                return document.WithText(textWithCloseParenthesis);
-            }
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
-            var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
-            var newRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
-            return document.WithSyntaxRoot(newRoot);
-
-            static int GetCloseParenPosition(SourceText sourceText, ConditionalExpressionSyntax conditional)
-            {
                 // If they have something like:
                 //
                 // PreviousLineOfCode();
@@ -113,18 +100,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
                     ? conditional.WhenFalse.GetLastToken()
                     : conditional.ColonToken;
 
-                // Place the paren after any 
-                var endPosition = endToken.Span.End;
-                foreach (var trivia in endToken.TrailingTrivia)
-                {
-                    if (trivia.Kind() is SyntaxKind.EndOfLineTrivia or SyntaxKind.SingleLineCommentTrivia)
-                        break;
-
-                    endPosition = trivia.Span.End;
-                }
-
-                return endPosition;
+                var closeParenPosition = endToken.Span.End;
+                var textWithCloseParenthesis = sourceText.Replace(closeParenPosition, 0, ")");
+                return document.WithText(textWithCloseParenthesis);
             }
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
+            var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
+            var newRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
