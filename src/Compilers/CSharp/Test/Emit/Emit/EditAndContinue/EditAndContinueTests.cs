@@ -2102,7 +2102,7 @@ using System;
 
 class C
 {
-    [System.ComponentModel.Browsable(false)]
+    [System.Obsolete]
     static event EventHandler E;
 }");
 
