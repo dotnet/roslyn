@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            var sourceContainer = TextView.TextBuffer.AsTextContainer();
+            /*var sourceContainer = TextView.TextBuffer.AsTextContainer();
             if (sourceContainer is null)
             {
                 AdornmentLayer.RemoveAllAdornments();
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             {
                 AdornmentLayer.RemoveAllAdornments();
                 return;
-            }
+            }*/
 
             var option = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
@@ -78,6 +78,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
                 UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
             }
+        }
+
+        private bool TryTextView_ViewportWidthChanged()
+        {
+            var sourceContainer = TextView.TextBuffer.AsTextContainer();
+            if (sourceContainer is null)
+            {
+                return false;
+            }
+
+            if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
+            {
+                return false;
+            }
+
+            var document = sourceContainer.GetOpenDocumentInCurrentContext();
+            if (document is null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
