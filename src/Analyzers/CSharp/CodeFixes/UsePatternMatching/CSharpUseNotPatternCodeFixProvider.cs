@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             editor.ReplaceNode(
                 notExpression,
                 updatedPattern.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
-                            .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
+                              .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
