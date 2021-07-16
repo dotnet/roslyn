@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly Guid EncId;
 
         /// <summary>
-        /// The latest generation number of each symbol added via <see cref="SemanticEditKind.InsertExisting"/> edit.
+        /// The latest generation number of each symbol added via <see cref="SemanticEditKind.Replace"/> edit.
         /// </summary>
         internal readonly IReadOnlyDictionary<Cci.IDefinition, int> GenerationOrdinals;
 
