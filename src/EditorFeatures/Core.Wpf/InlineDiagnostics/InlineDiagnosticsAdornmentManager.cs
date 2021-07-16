@@ -52,29 +52,45 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            var sourceContainer = TextView.TextBuffer.AsTextContainer();
-            if (sourceContainer is null)
+            if (!TryTextView_ViewportWidthChanged(out var workspace, out var document))
             {
+                AdornmentLayer.RemoveAllAdornments();
                 return;
             }
 
-            if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
-            {
-                return;
-            }
-
-            var document = sourceContainer.GetOpenDocumentInCurrentContext();
-            if (document is null)
-            {
-                return;
-            }
-
-            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            // At this point we know workspace and document are not null because TryTextView_ViewportWidthChanged would
+            // return false.
+            var option = workspace!.Options.GetOption(InlineDiagnosticsOptions.Location, document!.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
                 UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
             }
+        }
+
+        private bool TryTextView_ViewportWidthChanged(out Workspace? outWorkspace, out Document? outDocument)
+        {
+            var sourceContainer = TextView.TextBuffer.AsTextContainer();
+            outWorkspace = null;
+            outDocument = null;
+            if (sourceContainer is null)
+            {
+                return false;
+            }
+
+            if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
+            {
+                return false;
+            }
+
+            outWorkspace = workspace;
+            outDocument = sourceContainer.GetOpenDocumentInCurrentContext();
+            if (outDocument is null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -130,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     {
                         map.Add(lineNum, tagMappingSpan);
                     }
+
                     // Draw the first instance of an error, if what is stored in the map at a specific line is
                     // not an error, then replace it. Otherwise, just get the first warning on the line.
                     else if (value is not null && value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
