@@ -60,6 +60,7 @@ namespace Analyzer.Utilities
                     RuleLevel.IdeHidden_BulkConfigurable => (DiagnosticSeverity.Hidden, true),
                     RuleLevel.Disabled => (DiagnosticSeverity.Warning, false),
                     RuleLevel.CandidateForRemoval => (DiagnosticSeverity.Warning, false),
+                    RuleLevel.BuildError => (DiagnosticSeverity.Error, true),
                     _ => throw new System.NotImplementedException(),
                 };
             }
