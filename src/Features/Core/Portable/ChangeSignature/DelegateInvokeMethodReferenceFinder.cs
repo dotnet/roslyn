@@ -33,17 +33,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
+            IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            using var _ = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(out var result);
 
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
-                result.Add(beginInvoke);
+                result.Add((beginInvoke, cascadeDirection));
 
             // All method group references
             foreach (var project in solution.Projects)
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
                     var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbol, document, cancellationToken).ConfigureAwait(false);
-                    result.AddRange(cascaded);
+                    result.AddRange(cascaded.SelectAsArray(s => (s, cascadeDirection)));
                 }
             }
 
