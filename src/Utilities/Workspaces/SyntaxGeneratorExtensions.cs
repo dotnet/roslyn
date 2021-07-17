@@ -73,27 +73,10 @@ namespace Analyzer.Utilities
         /// <returns>A <see cref="SyntaxNode"/> representing the type reference expression.</returns>
         public static SyntaxNode TypeExpressionForStaticMemberAccess(this SyntaxGenerator generator, INamedTypeSymbol typeSymbol)
         {
-            var typeExpression = generator.TypeExpression(typeSymbol);
-            return generator.TypeExpressionForStaticMemberAccessCore(typeExpression);
-        }
-
-        /// <summary>
-        /// Creates a reference to a named type suitable for use in accessing a static member of the type.
-        /// </summary>
-        /// <param name="generator">The <see cref="SyntaxGenerator"/> used to create the type reference.</param>
-        /// <param name="specialType">The special type to reference.</param>
-        /// <returns>A <see cref="SyntaxNode"/> representing the type reference expression.</returns>
-        public static SyntaxNode TypeExpressionForStaticMemberAccess(this SyntaxGenerator generator, SpecialType specialType)
-        {
-            var typeExpression = generator.TypeExpression(specialType);
-            return generator.TypeExpressionForStaticMemberAccessCore(typeExpression);
-        }
-
-        private static SyntaxNode TypeExpressionForStaticMemberAccessCore(this SyntaxGenerator generator, SyntaxNode typeExpression)
-        {
             var qualifiedNameSyntaxKind = generator.QualifiedName(generator.IdentifierName("ignored"), generator.IdentifierName("ignored")).RawKind;
             var memberAccessExpressionSyntaxKind = generator.MemberAccessExpression(generator.IdentifierName("ignored"), "ignored").RawKind;
 
+            var typeExpression = generator.TypeExpression(typeSymbol);
             return QualifiedNameToMemberAccess(qualifiedNameSyntaxKind, memberAccessExpressionSyntaxKind, typeExpression, generator);
 
             // Local function
