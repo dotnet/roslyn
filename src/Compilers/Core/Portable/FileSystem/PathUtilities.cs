@@ -93,6 +93,11 @@ namespace Roslyn.Utilities
             return FileNameUtilities.GetExtension(path);
         }
 
+        public static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
+
         public static string ChangeExtension(string path, string? extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);

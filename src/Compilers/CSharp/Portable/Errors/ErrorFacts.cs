@@ -476,6 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                     return 1;
                 default:
                     return 0;

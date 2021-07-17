@@ -110,11 +110,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si aggiunge '{0}' in un'interfaccia, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiunge un parametro posizionale a un record, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Se si aggiunge un metodo con identificatore di interfaccia esplicita, la sessione di debug non potrà continuare.</target>
@@ -139,6 +134,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Le condizioni di alternanza non consentono l'acquisizione e non possono essere denominate</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
@@ -235,6 +235,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si modifica '{0}' in '{1}', la sessione di debug non potrà continuare perché modifica la forma della macchina a stati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">Se si modifica la visibilità di {0}, la sessione di debug non potrà continuare.</target>
@@ -318,11 +333,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Crea e assegna rimanenti come proprietà</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">Se si elimina un parametro posizionale da un record, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -3014,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 Se l'identificatore di formato "g" viene usato senza altri identificatori di formato personalizzati, viene interpretato come l'identificatore di formato di data e ora standard "g".</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">variabile di intervallo</target>
@@ -3174,11 +3189,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
         <target state="translated">Se si aggiorna la clausola Implements di un elemento '{0}', la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Se si modifica il vincolo da '{0}' a '{1}', la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">Se si aggiorna la varianza di '{0}', la sessione di debug non potrà continuare.</target>
@@ -3222,11 +3232,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">Se si aggiorna il tipo di una funzione di accesso a proprietà/eventi, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiorna il tipo di un metodo (Sub/Function), la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3297,16 +3302,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">Se si elimina '{0}' in prossimità di un'istruzione attiva, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiunge un corpo del metodo, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Se si elimina un corpo del metodo, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3841,6 +3836,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Per i valori DateTimeOffset, l'identificatore di formato "K" è equivalente all'identificatore di formato "zzz" e genera una stringa di risultato che contiene la diffenza dall'ora UTC del valore DateTimeOffset.
 
 Se l'identificatore di formato "K" viene usato senza altri identificatori di formato personalizzati, viene interpretato come l'identificatore di formato di data e ora standard e viene generato un evento FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

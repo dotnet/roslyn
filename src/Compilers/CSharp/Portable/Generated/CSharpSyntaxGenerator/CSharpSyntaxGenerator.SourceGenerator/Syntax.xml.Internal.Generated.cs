@@ -19505,7 +19505,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get; }
     }
 
-    internal sealed partial class NamespaceDeclarationSyntax : MemberDeclarationSyntax
+    internal abstract partial class BaseNamespaceDeclarationSyntax : MemberDeclarationSyntax
+    {
+        internal BaseNamespaceDeclarationSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+        }
+
+        internal BaseNamespaceDeclarationSyntax(SyntaxKind kind)
+          : base(kind)
+        {
+        }
+
+        protected BaseNamespaceDeclarationSyntax(ObjectReader reader)
+          : base(reader)
+        {
+        }
+
+        public abstract SyntaxToken NamespaceKeyword { get; }
+
+        public abstract NameSyntax Name { get; }
+
+        public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs { get; }
+
+        public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings { get; }
+
+        public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get; }
+    }
+
+    internal sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
     {
         internal readonly GreenNode? attributeLists;
         internal readonly GreenNode? modifiers;
@@ -19653,12 +19681,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
-        public SyntaxToken NamespaceKeyword => this.namespaceKeyword;
-        public NameSyntax Name => this.name;
+        public override SyntaxToken NamespaceKeyword => this.namespaceKeyword;
+        public override NameSyntax Name => this.name;
         public SyntaxToken OpenBraceToken => this.openBraceToken;
-        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
-        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
-        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
         public SyntaxToken CloseBraceToken => this.closeBraceToken;
         /// <summary>Gets the optional semicolon token.</summary>
         public SyntaxToken? SemicolonToken => this.semicolonToken;
@@ -19779,6 +19807,244 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static NamespaceDeclarationSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(NamespaceDeclarationSyntax), r => new NamespaceDeclarationSyntax(r));
+        }
+    }
+
+    internal sealed partial class FileScopedNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
+    {
+        internal readonly GreenNode? attributeLists;
+        internal readonly GreenNode? modifiers;
+        internal readonly SyntaxToken namespaceKeyword;
+        internal readonly NameSyntax name;
+        internal readonly SyntaxToken semicolonToken;
+        internal readonly GreenNode? externs;
+        internal readonly GreenNode? usings;
+        internal readonly GreenNode? members;
+
+        internal FileScopedNamespaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, GreenNode? externs, GreenNode? usings, GreenNode? members, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+        }
+
+        internal FileScopedNamespaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, GreenNode? externs, GreenNode? usings, GreenNode? members, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+        }
+
+        internal FileScopedNamespaceDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, GreenNode? externs, GreenNode? usings, GreenNode? members)
+          : base(kind)
+        {
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+        }
+
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+        public override SyntaxToken NamespaceKeyword => this.namespaceKeyword;
+        public override NameSyntax Name => this.name;
+        public SyntaxToken SemicolonToken => this.semicolonToken;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                1 => this.modifiers,
+                2 => this.namespaceKeyword,
+                3 => this.name,
+                4 => this.semicolonToken,
+                5 => this.externs,
+                6 => this.usings,
+                7 => this.members,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FileScopedNamespaceDeclarationSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFileScopedNamespaceDeclaration(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFileScopedNamespaceDeclaration(this);
+
+        public FileScopedNamespaceDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || namespaceKeyword != this.NamespaceKeyword || name != this.Name || semicolonToken != this.SemicolonToken || externs != this.Externs || usings != this.Usings || members != this.Members)
+            {
+                var newNode = SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, semicolonToken, externs, usings, members);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new FileScopedNamespaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.namespaceKeyword, this.name, this.semicolonToken, this.externs, this.usings, this.members, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new FileScopedNamespaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.namespaceKeyword, this.name, this.semicolonToken, this.externs, this.usings, this.members, GetDiagnostics(), annotations);
+
+        internal FileScopedNamespaceDeclarationSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 8;
+            var attributeLists = (GreenNode?)reader.ReadValue();
+            if (attributeLists != null)
+            {
+                AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
+            {
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            var namespaceKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            var name = (NameSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(name);
+            this.name = name;
+            var semicolonToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+            var externs = (GreenNode?)reader.ReadValue();
+            if (externs != null)
+            {
+                AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            var usings = (GreenNode?)reader.ReadValue();
+            if (usings != null)
+            {
+                AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            var members = (GreenNode?)reader.ReadValue();
+            if (members != null)
+            {
+                AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.attributeLists);
+            writer.WriteValue(this.modifiers);
+            writer.WriteValue(this.namespaceKeyword);
+            writer.WriteValue(this.name);
+            writer.WriteValue(this.semicolonToken);
+            writer.WriteValue(this.externs);
+            writer.WriteValue(this.usings);
+            writer.WriteValue(this.members);
+        }
+
+        static FileScopedNamespaceDeclarationSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(FileScopedNamespaceDeclarationSyntax), r => new FileScopedNamespaceDeclarationSyntax(r));
         }
     }
 
@@ -33760,6 +34026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
@@ -33998,6 +34265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
         public virtual void VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
         public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
@@ -34529,6 +34797,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+
+        public override CSharpSyntaxNode VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.SemicolonToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members));
 
         public override CSharpSyntaxNode VisitAttributeList(AttributeListSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBracketToken), (AttributeTargetSpecifierSyntax)Visit(node.Target), VisitList(node.Attributes), (SyntaxToken)Visit(node.CloseBracketToken));
@@ -37918,6 +38189,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             return new NamespaceDeclarationSyntax(SyntaxKind.NamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, openBraceToken, externs.Node, usings.Node, members.Node, closeBraceToken, semicolonToken, this.context);
+        }
+
+        public FileScopedNamespaceDeclarationSyntax FileScopedNamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members)
+        {
+#if DEBUG
+            if (namespaceKeyword == null) throw new ArgumentNullException(nameof(namespaceKeyword));
+            if (namespaceKeyword.Kind != SyntaxKind.NamespaceKeyword) throw new ArgumentException(nameof(namespaceKeyword));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
+            if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+#endif
+
+            return new FileScopedNamespaceDeclarationSyntax(SyntaxKind.FileScopedNamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, semicolonToken, externs.Node, usings.Node, members.Node, this.context);
         }
 
         public AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
@@ -42880,6 +43164,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new NamespaceDeclarationSyntax(SyntaxKind.NamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, openBraceToken, externs.Node, usings.Node, members.Node, closeBraceToken, semicolonToken);
         }
 
+        public static FileScopedNamespaceDeclarationSyntax FileScopedNamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members)
+        {
+#if DEBUG
+            if (namespaceKeyword == null) throw new ArgumentNullException(nameof(namespaceKeyword));
+            if (namespaceKeyword.Kind != SyntaxKind.NamespaceKeyword) throw new ArgumentException(nameof(namespaceKeyword));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
+            if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+#endif
+
+            return new FileScopedNamespaceDeclarationSyntax(SyntaxKind.FileScopedNamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, semicolonToken, externs.Node, usings.Node, members.Node);
+        }
+
         public static AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
         {
 #if DEBUG
@@ -44866,6 +45163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(ExternAliasDirectiveSyntax),
                 typeof(UsingDirectiveSyntax),
                 typeof(NamespaceDeclarationSyntax),
+                typeof(FileScopedNamespaceDeclarationSyntax),
                 typeof(AttributeListSyntax),
                 typeof(AttributeTargetSpecifierSyntax),
                 typeof(AttributeSyntax),

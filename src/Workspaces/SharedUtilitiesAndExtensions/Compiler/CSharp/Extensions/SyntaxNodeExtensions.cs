@@ -958,6 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.Modifiers;
                 case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
                 case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
@@ -971,6 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.WithModifiers(modifiers);
                 case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
                 case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
@@ -1046,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case CompilationUnitSyntax compilation:
                     return compilation.Members;
-                case NamespaceDeclarationSyntax @namespace:
+                case BaseNamespaceDeclarationSyntax @namespace:
                     return @namespace.Members;
                 case TypeDeclarationSyntax type:
                     return type.Members;

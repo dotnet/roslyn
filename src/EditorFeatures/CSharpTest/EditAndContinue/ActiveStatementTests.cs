@@ -1496,8 +1496,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.property_getter));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -1867,7 +1866,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -1917,7 +1916,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -10483,7 +10483,9 @@ class C
                 });
         }
 
-        [Fact, WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [Fact]
+        [WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [WorkItem(54758, "https://github.com/dotnet/roslyn/issues/54758")]
         public void InsertDeleteMethod_Active()
         {
             // Moving active method declaration in a file with active statements.
@@ -10506,7 +10508,8 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });
         }
 
@@ -11032,6 +11035,85 @@ class C
                 new[] { edits },
                 TargetFramework.NetCoreApp,
                 new[] { DocumentResults(diagnostics: new[] { expectedDiagnostic }) });
+        }
+
+        #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements_UpdateAroundActiveStatement_LocalFunction()
+        {
+            var src1 = @"
+using System;
+
+<AS:0>Console.WriteLine(1);</AS:0>
+void M() { Console.WriteLine(2); }
+";
+            var src2 = @"
+using System;
+
+<AS:0>Console.WriteLine(1);</AS:0>
+void M() { Console.WriteLine(3); }
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void TopLevelStatements_UpdateAroundActiveStatement_OutVar()
+        {
+            var src1 = @"
+using System;
+
+<AS:0>Console.WriteLine(1);</AS:0>
+M();
+";
+            var src2 = @"
+using System;
+
+<AS:0>Console.WriteLine(1);</AS:0>
+M(out var x);
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void TopLevelStatements_Inner()
+        {
+            var src1 = @"
+using System;
+
+<AS:1>Goo(1);</AS:1>
+
+static void Goo(int a)
+{
+    <AS:0>Console.WriteLine(a);</AS:0>
+}
+";
+            var src2 = @"
+using System;
+
+while (true)
+{
+    <AS:1>Goo(2);</AS:1>
+}
+
+static void Goo(int a)
+{
+    <AS:0>Console.WriteLine(a);</AS:0>
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2);"));
         }
 
         #endregion

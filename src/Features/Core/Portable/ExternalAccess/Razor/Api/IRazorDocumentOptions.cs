@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 {
     internal interface IRazorDocumentOptions
     {
