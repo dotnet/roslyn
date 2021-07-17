@@ -287,6 +287,14 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Get parameters which type is the given special type
+        /// </summary>
+        public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, SpecialType specialType)
+        {
+            return parameters.Where(p => p.Type.SpecialType == specialType));
+        }
+
+        /// <summary>
         /// Check whether given overloads has any overload whose parameters has the given type as its parameter type.
         /// </summary>
         public static bool HasOverloadWithParameterOfType(this IEnumerable<IMethodSymbol> overloads, IMethodSymbol self, INamedTypeSymbol type, CancellationToken cancellationToken)

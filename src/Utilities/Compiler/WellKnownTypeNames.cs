@@ -53,13 +53,13 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxNodeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext";
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
-        public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
         public const string MicrosoftCodeAnalysisLocalizableResourceString = "Microsoft.CodeAnalysis.LocalizableResourceString";
+        public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
+        public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions";
-        public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
@@ -100,7 +100,6 @@ namespace Analyzer.Utilities
         public const string SystemBoolean = "System.Boolean";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemByte = "System.Byte";
-        public const string SystemChar = "System.Char";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
         public const string SystemCollectionsConcurrentConcurrentBag1 = "System.Collections.Concurrent.ConcurrentBag`1";
@@ -136,10 +135,10 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsImmutableImmutableList1 = "System.Collections.Immutable.ImmutableList`1";
         public const string SystemCollectionsImmutableImmutableSortedDictionary2 = "System.Collections.Immutable.ImmutableSortedDictionary`2";
         public const string SystemCollectionsImmutableImmutableSortedSet1 = "System.Collections.Immutable.ImmutableSortedSet`1";
-        public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
         public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
         public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
+        public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
         public const string SystemComponentModelComponent = "System.ComponentModel.Component";
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";
         public const string SystemComponentModelCompositionImportingConstructorAttribute = "System.ComponentModel.Composition.ImportingConstructorAttribute";
@@ -168,8 +167,8 @@ namespace Analyzer.Utilities
         public const string SystemDateTime = "System.DateTime";
         public const string SystemDateTimeOffset = "System.DateTimeOffset";
         public const string SystemDecimal = "System.Decimal";
-        public const string SystemDiagnosticsCodeAnalysisNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullAttribute";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
+        public const string SystemDiagnosticsCodeAnalysisNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
         public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
@@ -338,10 +337,10 @@ namespace Analyzer.Utilities
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
-        public const string SystemThreadingTasksTaskCompletionSource1 = "System.Threading.Tasks.TaskCompletionSource`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource";
+        public const string SystemThreadingTasksTaskCompletionSource1 = "System.Threading.Tasks.TaskCompletionSource`1";
         public const string SystemThreadingTasksTaskContinuationOptions = "System.Threading.Tasks.TaskContinuationOptions";
         public const string SystemThreadingTasksTaskCreationOptions = "System.Threading.Tasks.TaskCreationOptions";
         public const string SystemThreadingTasksTaskFactory = "System.Threading.Tasks.TaskFactory";
