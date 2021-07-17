@@ -291,7 +291,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, SpecialType specialType)
         {
-            return parameters.Where(p => p.Type.SpecialType == specialType));
+            return parameters.Where(p => p.Type.SpecialType == specialType);
         }
 
         /// <summary>
