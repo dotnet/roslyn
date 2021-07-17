@@ -783,7 +783,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
                 {
-                    FatalError.ReportAndCatch(new InvalidOperationException("Caret position changed during application of rename"));
+                    try
+                    {
+                        throw new InvalidOperationException("Caret position changed during application of rename");
+                    }
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                        // Unreachable code due to ReportAndCatch
+                        Contract.ThrowIfTrue(true);
+                    }
                 }
             }
         }
