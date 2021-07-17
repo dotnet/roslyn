@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public async Task FindReferencesAsync(CancellationToken cancellationToken)
         {
-            await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+            await using var _ = (await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
             if (_searchKind != SearchKind.None)
             {

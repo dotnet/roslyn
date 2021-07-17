@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                await using var _ = (await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
                 // For the starting symbol, always cascade up and down the inheritance hierarchy.
                 var symbols = await DetermineAllSymbolsAsync(
