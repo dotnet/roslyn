@@ -922,7 +922,8 @@ public class Derived : Base
             var testText = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 
 public class Base
 {
@@ -942,7 +943,8 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 
 public class Base
 {
@@ -1085,7 +1087,8 @@ public class Derived : Base
             var testText = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 using System.Threading.Tasks;
 
 public class Base
@@ -1098,7 +1101,8 @@ public class Base
     }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 using System.Threading.Tasks;
 
 public class Derived : Base
@@ -1115,7 +1119,8 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -1133,7 +1138,8 @@ public class Base
     }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 using System.Threading.Tasks;
 
 public class Derived : Base
@@ -1153,7 +1159,8 @@ public class Derived : Base
             var testText = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 using System.Threading.Tasks;
 
 public class Base
@@ -1161,7 +1168,8 @@ public class Base
     public Uri Endpoint{ get; set; }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 
 public class Derived : Base
 {
@@ -1177,7 +1185,8 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -1190,7 +1199,8 @@ public class Base
     }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 
 public class Derived : Base
 {
@@ -1428,14 +1438,16 @@ public class Derived : Base
             var testText = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 
 public class Base
 {
     public Uri Endpoint{ get; set; }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 using System.Threading.Tasks;
 
 public class Derived : Base
@@ -1452,7 +1464,8 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 using System.Linq;
 
 public class Base
@@ -1464,7 +1477,8 @@ public class Base
     }
 }
         </Document>
-        <Document FilePath = ""File2.cs"">using System.Linq;
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 using System.Threading.Tasks;
 
 public class Derived : Base
@@ -1845,7 +1859,8 @@ namespace TestNs4
             var testText = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 
 public class Base
 {
@@ -1870,7 +1885,8 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System;
+        <Document FilePath = ""File1.cs"">
+using System;
 
 using Enumer = System.Linq.Enumerable;
 using Sys = System;
