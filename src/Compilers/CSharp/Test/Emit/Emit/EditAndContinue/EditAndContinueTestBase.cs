@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
+        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider)
+            => new(kind, symbolProvider);
+
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {
             return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
