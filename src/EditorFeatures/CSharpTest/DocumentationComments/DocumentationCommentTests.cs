@@ -166,6 +166,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
         public void TypingCharacter_Method_WithExceptions()
         {
             var code =
@@ -193,6 +194,37 @@ class C
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
         return 0;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
     }
 }";
 
