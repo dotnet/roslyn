@@ -100,6 +100,7 @@ namespace Analyzer.Utilities
         public const string SystemBoolean = "System.Boolean";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemByte = "System.Byte";
+        public const string SystemChar = "System.Char";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
         public const string SystemCollectionsConcurrentConcurrentBag1 = "System.Collections.Concurrent.ConcurrentBag`1";
