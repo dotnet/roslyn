@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 {
     internal static class OmniSharpDocumentationCommentsSnippetService
     {
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
+        public static async Task<OmniSharpDocumentationCommentSnippet?> GetDocumentationCommentSnippetOnCharacterTypedAsync(
             Document document,
             SyntaxTree syntaxTree,
             SourceText text,
@@ -22,10 +23,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken));
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, model, cancellationToken));
         }
 
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
+        public static async Task<OmniSharpDocumentationCommentSnippet?> GetDocumentationCommentSnippetOnCommandInvokeAsync(
             Document document,
             SyntaxTree syntaxTree,
             SourceText text,
@@ -34,10 +36,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken));
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return Translate(service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, model, cancellationToken));
         }
 
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
+        public static async Task<OmniSharpDocumentationCommentSnippet?> GetDocumentationCommentSnippetOnEnterTypedAsync(
             Document document,
             SyntaxTree syntaxTree,
             SourceText text,
@@ -46,7 +49,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken));
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, model, cancellationToken));
         }
 
         public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(

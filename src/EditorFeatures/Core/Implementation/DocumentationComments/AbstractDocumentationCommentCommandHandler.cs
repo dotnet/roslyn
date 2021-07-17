@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-        private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
-            => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
+        private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, model, cancellationToken);
 
-        private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
-            => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
+        private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, model, cancellationToken);
 
-        private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
-            => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
+        private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, model, cancellationToken);
 
         private static void ApplySnippet(DocumentationCommentSnippet snippet, ITextBuffer subjectBuffer, ITextView textView)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
-            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentOptionSet, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
+            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentOptionSet, SemanticModel, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -92,8 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
-            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, documentOptions, cancellationToken);
+            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, documentOptions, semanticModel, cancellationToken);
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         protected abstract bool HasDocumentationComment(TMemberNode member);
         protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
         protected abstract bool IsMemberDeclaration(TMemberNode member);
-        protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member);
+        protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, SemanticModel model, OptionSet options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract SyntaxToken GetTokenToLeft(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             DocumentOptionSet options,
+            SemanticModel model,
             CancellationToken cancellationToken)
         {
             if (!options.GetOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration))
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            var lines = GetDocumentationCommentLines(token, text, options, model, out var indentText, cancellationToken);
             if (lines == null)
             {
                 return null;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, comments, offset);
         }
 
-        private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, DocumentOptionSet options, out string? indentText)
+        private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, DocumentOptionSet options, SemanticModel model, out string? indentText, CancellationToken cancellationToken)
         {
             indentText = null;
             var documentationComment = token.GetAncestor<TDocumentationComment>();
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentStubLines(targetMember);
+            var lines = GetDocumentationCommentStubLines(targetMember, model, options, cancellationToken);
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
-        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
             // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             if (options.GetOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration))
             {
-                var result = GenerateDocumentationCommentAfterEnter(syntaxTree, text, position, options, cancellationToken);
+                var result = GenerateDocumentationCommentAfterEnter(syntaxTree, text, position, options, model, cancellationToken);
                 if (result != null)
                 {
                     return result;
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, cancellationToken);
         }
 
-        private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
-            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            var lines = GetDocumentationCommentLines(token, text, options, model, out var indentText, cancellationToken);
             if (lines == null)
             {
                 return null;
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, newText, offset);
         }
 
-        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
             var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
             if (targetMember == null)
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var line = text.Lines.GetLineFromPosition(startPosition);
             Debug.Assert(!line.IsEmptyOrWhitespace());
 
-            var lines = GetDocumentationCommentStubLines(targetMember);
+            var lines = GetDocumentationCommentStubLines(targetMember, model, options, cancellationToken);
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);

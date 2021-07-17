@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
+                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    request, document, service, documentOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, service, documentOptions, model, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document document,
             IDocumentationCommentSnippetService service,
             DocumentOptionSet documentOptions,
+            SemanticModel model,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -104,8 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, model, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, model, cancellationToken);
 
             if (result == null)
             {

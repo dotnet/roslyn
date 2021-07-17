@@ -211,6 +211,7 @@ class C
     public C(int goo)
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
     }
 }";
 
@@ -222,9 +223,11 @@ class C
     /// </summary>
     /// <param name=""goo""></param>
     /// <exception cref=""Exception""></exception>
+    /// <exception cref=""System.NullReferenceException""></exception>
     public C(int goo)
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
     }
 }";
 

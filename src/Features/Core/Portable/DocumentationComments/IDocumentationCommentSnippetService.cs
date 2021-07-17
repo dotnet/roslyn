@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             DocumentOptionSet options,
+            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             DocumentOptionSet options,
+            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             DocumentOptionSet options,
+            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(

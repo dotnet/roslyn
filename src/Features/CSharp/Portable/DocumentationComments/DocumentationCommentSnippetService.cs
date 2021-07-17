@@ -8,9 +8,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
             => true;
 
-        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
+        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, SemanticModel model, OptionSet options, CancellationToken cancellationToken)
         {
             var list = new List<string>
             {
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                     list.Add("/// <returns></returns>");
                 }
 
-                foreach (var exceptionType in GetExceptions(member))
+                foreach (var exceptionType in GetExceptions(member, model, options, cancellationToken))
                 {
                     list.Add(@$"/// <exception cref=""{exceptionType}""></exception>");
                 }
@@ -136,23 +139,70 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             return list;
         }
 
-        private static IEnumerable<string> GetExceptions(SyntaxNode member)
+        private static IEnumerable<string> GetExceptions(SyntaxNode member, SemanticModel model, OptionSet options, CancellationToken cancellationToken)
         {
-            var statements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
-            foreach (var statement in statements)
+            var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
+            var hasUsingSystem = model.GetUsingNamespacesInScope(member).Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == "System");
+            foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
             {
-                var expression = statement switch
+                var expression = throwExpressionOrStatement switch
                 {
                     ThrowExpressionSyntax throwExpression => throwExpression.Expression,
                     ThrowStatementSyntax throwStatement => throwStatement.Expression,
                     _ => throw ExceptionUtilities.Unreachable
                 };
 
-                if (expression is ObjectCreationExpressionSyntax { Type: TypeSyntax type })
+                if (expression.IsKind(SyntaxKind.NullLiteralExpression))
                 {
-                    yield return type.ToString();
+                    // `throw null;` throws NullReferenceException at runtime.
+                    if (hasUsingSystem)
+                    {
+                        yield return nameof(NullReferenceException);
+                    }
+                    else
+                    {
+                        yield return $"{nameof(System)}.{nameof(NullReferenceException)}";
+                    }
+                }
+                else if (expression is not null)
+                {
+                    var type = model.GetTypeInfo(expression, cancellationToken).Type;
+                    if (type is not null && !IsExceptionCaughtAndNotRethrown(throwExpressionOrStatement, type, model, cancellationToken))
+                    {
+                        var nameSyntax = type.GenerateTypeSyntax();
+                        yield return nameSyntax.ToString().Replace('<', '{').Replace('>', '}');
+                    }
                 }
             }
+        }
+
+        private static bool IsExceptionCaughtAndNotRethrown(SyntaxNode throwExpressionOrStatement, ITypeSymbol exceptionType, SemanticModel model, CancellationToken cancellationToken)
+        {
+            var tryStatement = throwExpressionOrStatement.FirstAncestorOrSelfUntil<TryStatementSyntax>(n => n is CatchClauseSyntax or LocalFunctionStatementSyntax or MemberDeclarationSyntax);
+            if (tryStatement is null || tryStatement.Catches.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var catchClause in tryStatement.Catches)
+            {
+                if (catchClause.Filter is not null)
+                {
+                    // It's possible that exception isn't caught.
+                    continue;
+                }
+
+                if (model.GetOperation(catchClause, cancellationToken) is ICatchClauseOperation catchClauseOperation)
+                {
+                    if (exceptionType.InheritsFromOrEquals(catchClauseOperation.ExceptionType))
+                    {
+                        // TODO: Check not rethrown.
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected override SyntaxToken GetTokenToRight(

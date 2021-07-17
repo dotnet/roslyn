@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
@@ -126,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return member.IsMemberDeclaration()
         End Function
 
-        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax) As List(Of String)
+        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, model As SemanticModel, options As OptionSet, cancellationToken As CancellationToken) As List(Of String)
             Dim list = New List(Of String) From {
                 "''' <summary>",
                 "''' ",
@@ -150,6 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             If SupportsDocumentationCommentReturnsClause(member) Then
                 list.Add("''' <returns></returns>")
             End If
+
+            ' TODO: Add `<exception>`s
 
             Return list
         End Function
