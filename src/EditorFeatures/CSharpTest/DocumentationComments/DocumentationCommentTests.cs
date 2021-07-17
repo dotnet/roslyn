@@ -166,6 +166,40 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Method_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""goo""></param>
+    /// <returns></returns>
+    /// <exception cref=""Exception""></exception>
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Method_WithVerbatimParams()
         {
             var code =

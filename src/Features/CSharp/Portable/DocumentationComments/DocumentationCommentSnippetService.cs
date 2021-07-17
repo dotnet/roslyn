@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
@@ -122,9 +123,33 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 {
                     list.Add("/// <returns></returns>");
                 }
+
+                foreach (var exceptionType in GetExceptions(member))
+                {
+                    list.Add(@$"/// <exception cref=""{exceptionType}""></exception>");
+                }
             }
 
             return list;
+        }
+
+        private static IEnumerable<string> GetExceptions(SyntaxNode member)
+        {
+            var statements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
+            foreach (var statement in statements)
+            {
+                var expression = statement switch
+                {
+                    ThrowExpressionSyntax throwExpression => throwExpression.Expression,
+                    ThrowStatementSyntax throwStatement => throwStatement.Expression,
+                    _ => throw ExceptionUtilities.Unreachable
+                };
+
+                if (expression is ObjectCreationExpressionSyntax { Type: TypeSyntax type })
+                {
+                    yield return type.ToString();
+                }
+            }
         }
 
         protected override SyntaxToken GetTokenToRight(
