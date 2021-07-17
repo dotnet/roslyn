@@ -364,18 +364,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
+        private async Task<(VisualStudioInProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
             TestWorkspace workspace,
             IDiagnosticService diagnosticService,
             int expectedNumberOfCallbacks,
             params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var languageServer = await CreateLanguageServerAsync(serverStream, serverStream, workspace, diagnosticService).ConfigureAwait(false);
+            var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
 
             // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
-            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback);
+            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback)
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
 
             // The json rpc messages won't necessarily come back in order by default.
             // So use a synchronization context to preserve the original ordering.
@@ -392,24 +395,31 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static async Task<InProcLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
+            static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+                var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
 
-                var languageServer = await InProcLanguageServer.CreateAsync(
-                    languageClient: new TestLanguageClient(),
-                    inputStream,
-                    outputStream,
-                    dispatcherFactory.CreateRequestDispatcher(),
-                    workspace,
-                    mockDiagnosticService,
-                    listenerProvider,
+                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))
+                {
+                    ExceptionStrategy = ExceptionProcessing.ISerializable,
+                };
+
+                var languageServer = new VisualStudioInProcLanguageServer(
+                    dispatcherFactory,
+                    jsonRpc,
+                    capabilitiesProvider,
                     lspWorkspaceRegistrationService,
-                    asyncServiceProvider: null,
+                    listenerProvider,
+                    NoOpLspLogger.Instance,
+                    mockDiagnosticService,
                     clientName: null,
-                    CancellationToken.None).ConfigureAwait(false);
+                    userVisibleServerName: string.Empty,
+                    telemetryServerTypeName: string.Empty);
+
+                jsonRpc.StartListening();
                 return languageServer;
             }
         }
@@ -596,8 +606,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public override string Name => nameof(LspDiagnosticsTests);
 
-            protected internal override LSP.VSServerCapabilities GetCapabilities() => new();
-
+            public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }
     }
 }

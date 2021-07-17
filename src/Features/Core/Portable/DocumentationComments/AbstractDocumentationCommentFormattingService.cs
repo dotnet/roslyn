@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -102,10 +103,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             public void AppendString(string s)
             {
                 EmitPendingChars();
-
-                Builder.Add(new TaggedText(TextTags.Text, s, Style, NavigationTarget.target, NavigationTarget.hint));
+                Builder.Add(new TaggedText(TextTags.Text, NormalizeLineEndings(s), Style, NavigationTarget.target, NavigationTarget.hint));
 
                 _anyNonWhitespaceSinceLastPara = true;
+
+                // XText.Value returns a string with `\n` as the line endings, causing
+                // the end result to have mixed line-endings. So normalize everything to `\r\n`.
+                // https://www.w3.org/TR/xml/#sec-line-ends
+                static string NormalizeLineEndings(string input) => input.Replace("\n", "\r\n");
             }
 
             public void AppendParts(IEnumerable<TaggedText> parts)
@@ -305,8 +310,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)
         {
-            if (node.NodeType == XmlNodeType.Text)
+            if (node.NodeType is XmlNodeType.Text or XmlNodeType.CDATA)
             {
+                // cast is safe since XCData inherits XText
                 AppendTextFromTextNode(state, (XText)node);
             }
 
@@ -321,9 +327,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var needPopStyle = false;
             (string target, string hint)? navigationTarget = null;
 
-            if (name == DocumentationCommentXmlNames.SeeElementName ||
-                name == DocumentationCommentXmlNames.SeeAlsoElementName ||
-                name == "a")
+            if (name is DocumentationCommentXmlNames.SeeElementName or
+                DocumentationCommentXmlNames.SeeAlsoElementName or
+                "a")
             {
                 if (element.IsEmpty || element.FirstNode == null)
                 {
@@ -343,8 +349,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     }
                 }
             }
-            else if (name == DocumentationCommentXmlNames.ParameterReferenceElementName ||
-                     name == DocumentationCommentXmlNames.TypeParameterReferenceElementName)
+            else if (name is DocumentationCommentXmlNames.ParameterReferenceElementName or
+                     DocumentationCommentXmlNames.TypeParameterReferenceElementName)
             {
                 var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
@@ -354,19 +360,22 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 return;
             }
-            else if (name == DocumentationCommentXmlNames.CElementName
-                || name == DocumentationCommentXmlNames.CodeElementName
-                || name == "tt")
+            else if (name is DocumentationCommentXmlNames.CElementName or "tt")
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Code);
             }
-            else if (name == "em" || name == "i")
+            else if (name is DocumentationCommentXmlNames.CodeElementName)
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
+            }
+            else if (name is "em" or "i")
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Emphasis);
             }
-            else if (name == "strong" || name == "b" || name == DocumentationCommentXmlNames.TermElementName)
+            else if (name is "strong" or "b" or DocumentationCommentXmlNames.TermElementName)
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Strong);
@@ -394,8 +403,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 state.NextListItem();
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName
-                || name == DocumentationCommentXmlNames.CodeElementName)
+            if (name is DocumentationCommentXmlNames.ParaElementName
+                or DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -409,8 +418,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 AppendTextFromNode(state, childNode, compilation);
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName
-                || name == DocumentationCommentXmlNames.CodeElementName)
+            if (name is DocumentationCommentXmlNames.ParaElementName
+                or DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -550,6 +559,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private static void AppendTextFromTextNode(FormatterState state, XText element)
         {
             var rawText = element.Value;
+            if ((state.Style & TaggedTextStyle.PreserveWhitespace) == TaggedTextStyle.PreserveWhitespace)
+            {
+                // Don't normalize code from middle. Only trim leading/trailing new lines.
+                state.AppendString(rawText.Trim('\n'));
+                return;
+            }
+
             var builder = new StringBuilder(rawText.Length);
 
             // Normalize the whitespace.

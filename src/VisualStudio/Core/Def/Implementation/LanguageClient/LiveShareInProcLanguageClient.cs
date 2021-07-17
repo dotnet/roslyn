@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspEditorEnabled = experimentationService.IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 };
             }
 
-            return _defaultCapabilitiesProvider.GetCapabilities();
+            return _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
         }
     }
 }

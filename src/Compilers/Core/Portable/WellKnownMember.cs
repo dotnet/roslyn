@@ -508,8 +508,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
 
         System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendChar,
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
+
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
         Count
 

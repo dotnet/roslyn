@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(
                 syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                syntax.IsKind(SyntaxKind.RecordDeclaration));
+                syntax.IsKind(SyntaxKind.RecordDeclaration) ||
+                syntax.IsKind(SyntaxKind.RecordStructDeclaration));
         }
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)

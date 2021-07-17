@@ -22,20 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     {
         internal static IReadOnlyCollection<object> BuildInteractiveTextElements(
             ImmutableArray<TaggedText> taggedTexts,
-            Document document,
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IntellisenseQuickInfoBuilderContext? context)
         {
             var index = 0;
-            return BuildInteractiveTextElements(taggedTexts, ref index, document, threadingContext, streamingPresenter);
+            return BuildInteractiveTextElements(taggedTexts, ref index, context);
         }
 
         private static IReadOnlyCollection<object> BuildInteractiveTextElements(
             ImmutableArray<TaggedText> taggedTexts,
             ref int index,
-            Document document,
-            IThreadingContext? threadingContext,
-            Lazy<IStreamingFindUsagesPresenter>? streamingPresenter)
+            IntellisenseQuickInfoBuilderContext? context)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -49,6 +45,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             while (index < taggedTexts.Length)
             {
                 var part = taggedTexts[index];
+
+                // These tags can be ignored - they are for markdown formatting only.
+                if (part.Tag is TextTags.CodeBlockStart or TextTags.CodeBlockEnd)
+                {
+                    index++;
+                    continue;
+                }
+
                 if (part.Tag == TextTags.ContainerStart)
                 {
                     if (currentRuns.Count > 0)
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                     index++;
-                    var nestedElements = BuildInteractiveTextElements(taggedTexts, ref index, document, threadingContext, streamingPresenter);
+                    var nestedElements = BuildInteractiveTextElements(taggedTexts, ref index, context);
                     if (nestedElements.Count <= 1)
                     {
                         currentParagraph.Add(new ContainerElement(
@@ -128,8 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     // This is tagged text getting added to the current line we are building.
                     var style = GetClassifiedTextRunStyle(part.Style);
-                    if (part.NavigationTarget is object && streamingPresenter != null && threadingContext != null)
+                    if (part.NavigationTarget is object &&
+                        context?.ThreadingContext is ThreadingContext threadingContext &&
+                        context.StreamingPresenter is Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
                     {
+                        var document = context.Document;
                         if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
                         {
                             var target = new QuickInfoHyperLink(document.Project.Solution.Workspace, absoluteUri);

@@ -4268,24 +4268,50 @@ class C
         }
 
         [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task TestInRecord(string record)
+        {
+            await TestInRegularAndScript1Async($@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}}",
+$@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => {{|Rename:GetField|}}();
+
+    private int GetField()
+    {{
+        return this.field;
+    }}
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestInRecord()
+        public async Task TestInRecordStruct()
         {
             await TestInRegularAndScript1Async(@"
-record Program
+record struct Program
 {
     int field;
 
     public int this[int i] => [|this.field|];
 }",
 @"
-record Program
+record struct Program
 {
     int field;
 
     public int this[int i] => {|Rename:GetField|}();
 
-    private int GetField()
+    private readonly int GetField()
     {
         return this.field;
     }

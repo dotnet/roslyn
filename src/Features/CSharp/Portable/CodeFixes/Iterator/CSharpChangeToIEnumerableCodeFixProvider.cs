@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Document newDocument)
-                : base(title, c => Task.FromResult(newDocument))
+                : base(title, c => Task.FromResult(newDocument), title)
             {
             }
         }

@@ -4,33 +4,35 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = Dictionary<Document, HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)>>;
+    using DocumentMap = Dictionary<Document, HashSet<ISymbol>>;
 
     internal partial class FindReferencesSearchEngine
     {
         private async Task ProcessProjectAsync(
             Project project,
-            DocumentMap documentMap)
+            DocumentMap documentMap,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, cancellationToken))
             {
                 if (project.SupportsCompilation)
                 {
                     // make sure we hold onto compilation while we search documents belong to this project
-                    var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                    var documentTasks = new List<Task>();
+                    using var _ = ArrayBuilder<Task>.GetInstance(out var documentTasks);
                     foreach (var (document, documentQueue) in documentMap)
                     {
                         if (document.Project == project)
-                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
 
                     await Task.WhenAll(documentTasks).ConfigureAwait(false);

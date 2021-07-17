@@ -72,7 +72,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.CodeLens" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
@@ -147,7 +149,6 @@
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LogHub" Version="$(MicrosoftVisualStudioLogHubVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
@@ -170,6 +171,7 @@
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
 
     <!-- By default build assets that define embedded interop types do not flow. Set PrivateAssets to none to make them flow. -->
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />

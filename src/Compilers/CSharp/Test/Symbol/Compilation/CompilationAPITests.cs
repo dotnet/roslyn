@@ -2060,14 +2060,14 @@ public class TestClass
         [Fact]
         public void ReferenceManagerReuse_WithSyntaxTrees()
         {
-            var ta = Parse("class C { }");
+            var ta = Parse("class C { }", options: TestOptions.Regular10);
 
             var tb = Parse(@"
 class C { }", options: TestOptions.Script);
 
             var tc = Parse(@"
 #r ""bar""  // error: #r in regular code
-class D { }");
+class D { }", options: TestOptions.Regular10);
 
             var tr = Parse(@"
 #r ""goo""

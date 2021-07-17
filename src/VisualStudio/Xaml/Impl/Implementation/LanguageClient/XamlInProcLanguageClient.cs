@@ -46,10 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
+        /// When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
         /// </summary>
         public override string Name => "XAML Language Server Client (Experimental)";
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);

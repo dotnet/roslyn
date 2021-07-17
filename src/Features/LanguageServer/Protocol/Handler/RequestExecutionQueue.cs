@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
+                _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,

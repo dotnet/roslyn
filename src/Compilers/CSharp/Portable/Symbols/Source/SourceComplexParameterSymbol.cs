@@ -5,12 +5,13 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -49,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
-            Debug.Assert(!(owner is LambdaSymbol)); // therefore we're not dealing with discard parameters
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
@@ -73,15 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder ParameterBinderOpt => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
+        private Binder ParameterBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.ParameterBinder;
 
-        internal override SyntaxReference SyntaxReference => _syntaxRef;
+        internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
-        internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
+        private ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
-        public sealed override bool IsDiscard => false;
+        public override bool IsDiscard => false;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue ExplicitDefaultConstantValue
         {
             get
             {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue DefaultValueFromAttributes
         {
             get
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsIDispatchConstant
+        internal sealed override bool IsIDispatchConstant
             => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
 
         internal override bool IsIUnknownConstant
@@ -123,13 +123,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool HasCallerMemberNameAttribute
             => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        internal override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
+        internal sealed override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
 
-        internal override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
+        internal sealed override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
 
-        internal override bool IsCallerMemberName => !HasCallerLineNumberAttribute
+        internal sealed override bool IsCallerMemberName => !HasCallerLineNumberAttribute
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            => (GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments).NullToEmpty();
+
+        internal override bool HasInterpolatedStringHandlerArgumentError
+            => GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments.IsDefault ?? false;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -643,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
+            Debug.Assert(AttributeDescription.InterpolatedStringHandlerArgumentAttribute.Signatures.Length == 2);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultParameterValueAttribute))
@@ -747,6 +754,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
                 ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+            }
+            else if (attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) is (0 or 1) and var index)
+            {
+                DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, diagnostics, index);
             }
         }
 
@@ -1049,6 +1060,142 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
         }
+
+#nullable enable
+        private void DecodeInterpolatedStringHandlerArgumentAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, BindingDiagnosticBag diagnostics, int attributeIndex)
+        {
+            Debug.Assert(attributeIndex is 0 or 1);
+            Debug.Assert(arguments.Attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) && arguments.Attribute.CommonConstructorArguments.Length == 1);
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+
+            var errorLocation = arguments.AttributeSyntaxOpt.Location;
+
+            if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true } handlerType)
+            {
+                // '{0}' is not an interpolated string handler type.
+                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
+                setInterpolatedStringHandlerAttributeError(ref arguments);
+                return;
+            }
+
+            TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
+
+            ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
+
+            ImmutableArray<int> parameterOrdinals;
+            ArrayBuilder<ParameterSymbol?> parameters;
+            if (attributeIndex == 0)
+            {
+                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
+                {
+                    // If an error needs to be reported, it will already have been reported by another step.
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    return;
+                }
+
+                parameterOrdinals = ImmutableArray.Create(ordinal);
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
+                parameters.Add(parameter);
+            }
+            else if (attributeIndex == 1)
+            {
+                bool hadError = false;
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
+                var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
+                foreach (var nestedArgument in constructorArgument.Values)
+                {
+                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    {
+                        parameters.Add(parameter);
+                        ordinalsBuilder.Add(ordinal);
+                    }
+                    else
+                    {
+                        hadError = true;
+                    }
+                }
+
+                if (hadError)
+                {
+                    parameters.Free();
+                    ordinalsBuilder.Free();
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    return;
+                }
+
+                parameterOrdinals = ordinalsBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
+            parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
+
+            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            {
+                Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+                if (constant.IsNull)
+                {
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location);
+                    return null;
+                }
+
+                if (constant.TypeInternal is not { SpecialType: SpecialType.System_String })
+                {
+                    // There has already been an error reported. Just return null.
+                    return null;
+                }
+
+                var name = constant.DecodeValue<string>(SpecialType.System_String);
+                Debug.Assert(name != null);
+                if (name == "")
+                {
+                    // Name refers to the "this" instance parameter.
+                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor })
+                    {
+                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
+                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
+                }
+
+                var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
+                if (parameter is null)
+                {
+                    // '{0}' is not a valid parameter name from '{1}'.
+                    diagnostics.Add(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, name, ContainingSymbol);
+                    return null;
+                }
+
+                if ((object)parameter == this)
+                {
+                    // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
+                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, errorLocation);
+                    return null;
+                }
+
+                if (parameter.Ordinal > Ordinal)
+                {
+                    // Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions.
+                    // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
+                    // string handler parameter after all arguments involved.
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this);
+                }
+
+                return (parameter.Ordinal, parameter);
+            }
+
+            static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().InterpolatedStringHandlerArguments = default;
+            }
+        }
+#nullable disable
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {

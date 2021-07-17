@@ -386,6 +386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     return;
                 }
+
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
                     await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);

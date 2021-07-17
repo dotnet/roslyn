@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,18 +23,33 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal partial class AbstractAsynchronousTaggerProvider<TTag>
     {
+        /// <summary>
+        /// <para>The <see cref="TagSource"/> is the core part of our asynchronous
+        /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>s,
+        /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
+        /// 
+        /// <para>The <see cref="TagSource"/> is the type that actually owns the
+        /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+        /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> to build
+        /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
+        /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
+        /// <see cref="CachedTagTrees"/></para>
+        /// 
+        /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
+        /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
+        /// subject buffers at once) have their own providers and tag source derivations.</para>
+        /// </summary>
         private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
-            #region Fields that can be accessed from either thread
-
             /// <summary>
-            /// The async worker we defer to handle foreground/background thread management for this
-            /// tagger. Note: some operations we perform on this must be uncancellable.  Specifically,
-            /// once we've updated our internal state we need to *ensure* that the UI eventually gets in
-            /// sync with it. As such, we allow cancellation of our tasks *until* we update our state.
-            /// From that point on, we must proceed and execute the tasks.
+            /// If we get more than this many differences, then we just issue it as a single change
+            /// notification.  The number has been completely made up without any data to support it.
+            /// 
+            /// Internal for testing purposes.
             /// </summary>
-            private readonly AsynchronousSerialWorkQueue _workQueue;
+            private const int CoalesceDifferenceCount = 10;
+
+            #region Fields that can be accessed from either thread
 
             private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
@@ -46,9 +59,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly IAsynchronousOperationListener _asyncListener;
 
             /// <summary>
-            /// foreground notification service
+            /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
-            private readonly IForegroundNotificationService _notificationService;
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
+
+            /// <summary>
+            /// Work queue that collects normal priority requests to call TagsChanged with.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
+
+            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
 
             #endregion
 
@@ -67,54 +87,65 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-            private object _state_doNotAccessDirecty;
-            private bool _upToDate_doNotAccessDirectly = false;
-
-            #endregion
-
-            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+            private object? _state_doNotAccessDirecty;
 
             /// <summary>
-            /// A cancellation source we use for the initial tagging computation.  We only cancel
-            /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
-            /// set of tags for our view/buffer.
+            /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
+            /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
+            /// then we'll want to synchronously block then and only then for tags.
             /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
+            private bool _firstTagsRequest = true;
 
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            #endregion
 
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
-                IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService)
+                IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
             {
+                this.AssertIsForeground();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
-                {
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
-                }
 
                 _subjectBuffer = subjectBuffer;
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
-                _notificationService = notificationService;
+
+                _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                    TaggerDelay.NearImmediate.ComputeTimeDelay(),
+                    ProcessTagsChangedAsync,
+                    equalityComparer: null,
+                    asyncListener,
+                    _tagSourceState.Target.DisposalToken);
+
+                if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
+                {
+                    // if the tagger wants "added tags" to be reported "NearImmediate"ly, then just reuse
+                    // the "high pri" queue as that already reports things at that cadence.
+                    _normalPriTagsChangedQueue = _highPriTagsChangedQueue;
+                }
+                else
+                {
+                    _normalPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                        _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
+                        ProcessTagsChangedAsync,
+                        equalityComparer: null,
+                        asyncListener,
+                        _tagSourceState.Target.DisposalToken);
+                }
 
                 DebugRecordInitialStackTrace();
 
-                _workQueue = new AsynchronousSerialWorkQueue(ThreadingContext, asyncListener);
-                this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-
                 _eventSource = CreateEventSource();
-
                 Connect();
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                ComputeInitialTags();
+                EnqueueWork(initialTags: true);
 
                 return;
 
@@ -147,15 +178,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
+                _tagSourceState.Dispose();
 
-                // Stop computing any initial tags if we've been asked for them.
-                _initialComputationCancellationTokenSource.Cancel();
-                _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
 
@@ -166,7 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 void Disconnect()
                 {
                     this.AssertIsForeground();
-                    _workQueue.CancelCurrentWork(remainCancelled: true);
 
                     // Tell the interaction object to stop issuing events.
                     _eventSource.Disconnect();
@@ -183,18 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     _eventSource.Changed -= OnEventSourceChanged;
                 }
-            }
-
-            private void ComputeInitialTags()
-            {
-                // Note: we always kick this off to the new UI pump instead of computing tags right
-                // on this thread.  The reason for that is that we may be getting created at a time
-                // when the view itself is initializing.  As such the view is not in a state where
-                // we want code touching it.
-                RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true),
-                    delay: 0,
-                    cancellationToken: GetCancellationToken(initialTags: true));
             }
 
             private ITaggerEventSource CreateEventSource()
@@ -247,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private object State
+            private object? State
             {
                 get
                 {
@@ -262,24 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private bool UpToDate
-            {
-                get
-                {
-                    this.AssertIsForeground();
-                    return _upToDate_doNotAccessDirectly;
-                }
-
-                set
-                {
-                    this.AssertIsForeground();
-                    _upToDate_doNotAccessDirectly = value;
-                }
-            }
-
-            public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
-
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
                 this.AssertIsForeground();
@@ -289,19 +282,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return;
                 }
 
-                RaiseTagsChanged(SpecializedCollections.SingletonCollection(
+                OnTagsChangedForBuffer(SpecializedCollections.SingletonCollection(
                     new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
                     initialTags: false);
             }
-
-            private void RaiseTagsChanged(
-                ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection, bool initialTags)
-            {
-                TagsChangedForBuffer?.Invoke(collection, initialTags);
-            }
-
-            private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : default;
         }
     }
 }

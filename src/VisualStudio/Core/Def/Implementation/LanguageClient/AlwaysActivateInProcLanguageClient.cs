@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -21,12 +20,13 @@ using VSShell = Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Language client responsible for handling C# / VB LSP requests in any scenario (both local and codespaces).
+    /// Language client responsible for handling C# / VB / F# LSP requests in any scenario (both local and codespaces).
     /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
     /// It is always activated whenever roslyn is activated.
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.FSharpContentType)]
     [Export(typeof(ILanguageClient))]
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -48,9 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => "C#/Visual Basic Language Server Client";
+        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var serverCapabilities = new VSServerCapabilities();
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
             if (isLspEditorEnabled)
             {
-                serverCapabilities = _defaultCapabilitiesProvider.GetCapabilities();
+                serverCapabilities = (VSServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
             }
             else
             {

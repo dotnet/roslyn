@@ -4,6 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,17 +14,28 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.RpcContracts.Logging;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract class AbstractInProcLanguageClient : ILanguageClient
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
+        /// <summary>
+        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
+        /// server is restarted that we can have a new logstream for the new server.
+        /// </summary>
+        private static int s_logHubSessionId;
+
         private readonly string? _diagnosticsClientName;
         private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -39,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private InProcLanguageServer? _languageServer;
+        private LanguageServerTarget? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -92,11 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _threadingContext = threadingContext;
         }
 
-        /// <summary>
-        /// Can be overridden by subclasses to control what capabilities this language client has.
-        /// </summary>
-        protected internal abstract VSServerCapabilities GetCapabilities();
-
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
@@ -122,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
             // since that's the primary offending persister that needs to be addressed.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _ = GetCapabilities();
+            _ = GetCapabilities(new VSClientCapabilities { SupportsVisualStudioExtensions = true });
 
             if (_languageServer is not null)
             {
@@ -132,14 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = await InProcLanguageServer.CreateAsync(
+
+            _languageServer = (LanguageServerTarget)await CreateAsync(
                 this,
                 serverStream,
                 serverStream,
-                _requestDispatcherFactory.CreateRequestDispatcher(),
-                Workspace,
-                _diagnosticService,
-                _listenerProvider,
                 _lspWorkspaceRegistrationService,
                 _asyncServiceProvider,
                 _diagnosticsClientName,
@@ -176,5 +182,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
             return Task.CompletedTask;
         }
+
+        internal static async Task<ILanguageServerTarget> CreateAsync(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
+            Stream outputStream,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string? clientName,
+            CancellationToken cancellationToken)
+        {
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
+
+            var serverTypeName = languageClient.GetType().Name;
+
+            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            var server = languageClient.Create(
+                jsonRpc,
+                languageClient,
+                lspWorkspaceRegistrationService,
+                logger ?? NoOpLspLogger.Instance);
+
+            jsonRpc.StartListening();
+            return server;
+        }
+
+        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string serverTypeName,
+            string? clientName,
+            JsonRpc jsonRpc,
+            CancellationToken cancellationToken)
+        {
+            if (asyncServiceProvider == null)
+                return null;
+
+            var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
+            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget).FullName));
+
+            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
+            var service = serviceContainer.GetFullAccessServiceBroker();
+
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
+            var logOptions = new RpcContracts.Logging.LoggerOptions(new LoggingLevelSettings(SourceLevels.ActivityTracing | SourceLevels.Information));
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, logOptions, cancellationToken).ConfigureAwait(false);
+
+            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
+            // with our callers and the operations they are performing.
+            jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
+
+            return new LogHubLspLogger(configuration, traceSource);
+        }
+
+        public ILanguageServerTarget Create(
+            JsonRpc jsonRpc,
+            ICapabilitiesProvider capabilitiesProvider,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            ILspLogger logger)
+        {
+            return new VisualStudioInProcLanguageServer(
+                _requestDispatcherFactory,
+                jsonRpc,
+                capabilitiesProvider,
+                workspaceRegistrationService,
+                _listenerProvider,
+                logger,
+                _diagnosticService,
+                clientName: _diagnosticsClientName,
+                userVisibleServerName: this.Name,
+                telemetryServerTypeName: this.GetType().Name);
+        }
+
+        public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
     }
 }
