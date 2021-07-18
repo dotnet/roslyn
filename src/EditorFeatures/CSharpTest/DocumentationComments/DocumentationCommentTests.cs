@@ -212,6 +212,7 @@ class C
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
         throw null;
+        throw null;
     }
 }";
 
@@ -227,6 +228,66 @@ class C
     public C(int goo)
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions_Caught()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    //$$
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected = @"
+using System;
+
+class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""NullReferenceException""></exception>
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
         throw null;
     }
 }";

@@ -8,12 +8,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -26,6 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 
         protected override bool AddIndent => true;
         protected override string ExteriorTriviaText => "///";
+
+        private static readonly SymbolDisplayFormat s_format =
+            new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -142,7 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         private static IEnumerable<string> GetExceptions(SyntaxNode member, SemanticModel model, OptionSet options, CancellationToken cancellationToken)
         {
             var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
-            var hasUsingSystem = model.GetUsingNamespacesInScope(member).Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == "System");
+            var namespacesInScope = model.GetUsingNamespacesInScope(member);
+            var hasUsingSystem = namespacesInScope.Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == "System");
+            using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
+
             foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
             {
                 var expression = throwExpressionOrStatement switch
@@ -155,13 +167,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 if (expression.IsKind(SyntaxKind.NullLiteralExpression))
                 {
                     // `throw null;` throws NullReferenceException at runtime.
-                    if (hasUsingSystem)
+                    var exception = hasUsingSystem ? nameof(NullReferenceException) : $"{nameof(System)}.{nameof(NullReferenceException)}";
+                    if (seenExceptionTypes.Add(exception))
                     {
-                        yield return nameof(NullReferenceException);
-                    }
-                    else
-                    {
-                        yield return $"{nameof(System)}.{nameof(NullReferenceException)}";
+                        yield return exception;
                     }
                 }
                 else if (expression is not null)
@@ -169,8 +178,18 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                     var type = model.GetTypeInfo(expression, cancellationToken).Type;
                     if (type is not null && !IsExceptionCaughtAndNotRethrown(throwExpressionOrStatement, type, model, cancellationToken))
                     {
-                        var nameSyntax = type.GenerateTypeSyntax();
-                        yield return nameSyntax.ToString().Replace('<', '{').Replace('>', '}');
+                        var exception = type.ToDisplayString();
+                        if (seenExceptionTypes.Add(exception))
+                        {
+                            if (namespacesInScope.Contains(n => n.ToDisplayString() == type.ContainingNamespace.ToString()))
+                            {
+                                yield return type.ToDisplayString(s_format).Replace('<', '{').Replace('>', '}');
+                            }
+                            else
+                            {
+                                yield return exception.Replace('<', '{').Replace('>', '}');
+                            }
+                        }
                     }
                 }
             }
@@ -196,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 {
                     if (exceptionType.InheritsFromOrEquals(catchClauseOperation.ExceptionType))
                     {
-                        // TODO: Check not rethrown.
-                        return true;
+                        var isRethrown = catchClause.DescendantNodes().Any(n => n is ThrowStatementSyntax { Expression: null });
+                        return !isRethrown;
                     }
                 }
             }
