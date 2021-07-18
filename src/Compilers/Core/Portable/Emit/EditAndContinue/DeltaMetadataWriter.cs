@@ -656,13 +656,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private void EmitParametersFromDelta(IMethodDefinition methodDef, MethodDefinitionHandle handle)
         {
-            if (_previousGeneration.FirstParamRowMap.TryGetValue(handle, out var firstRowId))
+            var ok = _previousGeneration.FirstParamRowMap.TryGetValue(handle, out var firstRowId);
+            Debug.Assert(ok);
+
+            foreach (var paramDef in GetParametersToEmit(methodDef))
             {
-                foreach (var paramDef in GetParametersToEmit(methodDef))
-                {
-                    _parameterDefs.Add(paramDef, firstRowId++);
-                    _parameterDefList.Add(paramDef, methodDef);
-                }
+                _parameterDefs.Add(paramDef, firstRowId++);
+                _parameterDefList.Add(paramDef, methodDef);
             }
         }
 
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 else
                 {
-                    // For paramteres on new methods we emit AddParameter rows for the method too
+                    // For parameters on new methods we emit AddParameter rows for the method too
                     _paramEncMapRows.Add(parameterFirstId + i);
                     metadata.AddEncLogEntry(
                         entity: MetadataTokens.MethodDefinitionHandle(_methodDefs[methodDef]),
@@ -1591,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 get
                 {
                     // Because we sometimes re-emit parameters and track their original row numbers
-                    // we don't want to cound the rows in added for those parameters when working out
+                    // we don't want to count the rows in added for those parameters when working out
                     // the next row Id to use.
                     return base.NextRowId - _addedInPreviousGenerations;
                 }
