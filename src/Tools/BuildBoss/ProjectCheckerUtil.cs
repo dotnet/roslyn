@@ -128,12 +128,12 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var allowedPackageVersons = GetAllowedPackageReferenceVersions(packageRef).ToList();
+                var allowedPackageVersions = GetAllowedPackageReferenceVersions(packageRef).ToList();
 
-                if (!allowedPackageVersons.Contains(packageRef.Version))
+                if (!allowedPackageVersions.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersons));
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
                     allGood = false;
                 }
             }
