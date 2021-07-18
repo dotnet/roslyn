@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (interfaceMember.Kind == SymbolKind.Method &&
                             (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
                         {
-                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers.RequiredVersion();
+                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers.RequiredVersion();
                             LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
                             if (requiredVersion > availableVersion)
                             {
