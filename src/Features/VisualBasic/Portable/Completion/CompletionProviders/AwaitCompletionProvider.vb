@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(AwaitCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After = NameOf(KeywordCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
     <[Shared]>
     Friend NotInheritable Class AwaitCompletionProvider
         Inherits AbstractAwaitCompletionProvider
