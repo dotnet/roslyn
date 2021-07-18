@@ -902,23 +902,23 @@ public class C
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
             CSharpCompilation comp1 = CreateCompilation(Parse(source1), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image1 = comp1.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
             Compilation comp2 = CreateCompilation(Parse(source2), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image2 = comp2.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             if (expectMatch)
             {
-                AssertEx.Equal(image1, image2, message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
+                AssertEx.Equal(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
             }
             else
             {
-                AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
+                AssertEx.NotEqual(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
             }
 
-            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
-            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image1);
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image2);
 
             if (!includePrivateMembers)
             {
