@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -64,46 +65,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!styleOption.Value)
                 return;
 
-            // Look for the form: !(x is Y y) and !(x is const)
-            if (node is PrefixUnaryExpressionSyntax
+            // Look for the form: !(...)
+            if (node is not PrefixUnaryExpressionSyntax
                 {
-                    Operand: ParenthesizedExpressionSyntax
-                    {
-                        Expression: IsPatternExpressionSyntax
-                        {
-                            Pattern: DeclarationPatternSyntax or ConstantPatternSyntax
-                        } isPattern,
-                    },
+                    Operand: ParenthesizedExpressionSyntax parenthesizedExpression
                 } notExpression)
             {
-                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    isPattern.IsKeyword.GetLocation(),
-                    styleOption.Notification.Severity,
-                    ImmutableArray.Create(notExpression.GetLocation()),
-                    properties: null));
                 return;
             }
 
-            // Look for the form: !(x is Y)
-            if (node is PrefixUnaryExpressionSyntax
-                {
-                    Operand: ParenthesizedExpressionSyntax
-                    {
-                        Expression: BinaryExpressionSyntax
-                        {
-                            Right: TypeSyntax
-                        } isExpression,
-                    },
-                } notIsExpression && isExpression.IsKind(SyntaxKind.IsExpression))
+            var isKeywordLocation = parenthesizedExpression.Expression switch
             {
-                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    isExpression.OperatorToken.GetLocation(),
-                    styleOption.Notification.Severity,
-                    ImmutableArray.Create(notIsExpression.GetLocation()),
-                    properties: null));
-            }
+                // Look for the form: !(x is Y y) and !(x is const)
+                IsPatternExpressionSyntax { Pattern: DeclarationPatternSyntax or ConstantPatternSyntax } isPattern => isPattern.IsKeyword.GetLocation(),
+
+                // Look for the form: !(x is Y)
+                BinaryExpressionSyntax(SyntaxKind.IsExpression) { Right: TypeSyntax } isExpression => isExpression.OperatorToken.GetLocation(),
+
+                _ => null
+            };
+
+            if (isKeywordLocation is null)
+                return;
+
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                isKeywordLocation,
+                styleOption.Notification.Severity,
+                ImmutableArray.Create(notExpression.GetLocation()),
+                properties: null));
         }
     }
 }
