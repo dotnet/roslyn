@@ -71,8 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 IsPatternExpressionSyntax isPattern => isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern)),
                 BinaryExpressionSyntax { Right: TypeSyntax type } binaryIsExpression
-                    => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type)))
+                    => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type))),
+                _ => null
             };
+
+            if (updatedPattern is null)
+                return;
 
             editor.ReplaceNode(
                 notExpression,
