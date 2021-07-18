@@ -168,6 +168,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
+        Friend Overrides Function IsAwaitKeywordContext() As Boolean
+            If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
+                For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
+                    If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
+                                        SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
+
+                        Return True
+                    End If
+
+                    If node.IsKind(SyntaxKind.FinallyBlock, SyntaxKind.SyncLockBlock, SyntaxKind.CatchBlock) Then
+                        Return False
+                    End If
+                Next
+
+                Return True
+            End If
+
+            Return False
+        End Function
+
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
