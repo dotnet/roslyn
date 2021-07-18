@@ -229,6 +229,7 @@ class C
     {
         if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
         throw null;
+        throw null;
     }
 }";
 
