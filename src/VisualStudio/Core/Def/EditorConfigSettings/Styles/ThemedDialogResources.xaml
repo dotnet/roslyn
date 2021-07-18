@@ -23,7 +23,7 @@
     <!-- Custom tab theme -->
     <styles:FontSizeConverter Scale="122" x:Key="Font122PercentSizeConverter" />
     <Style x:Key="ControlsFocusVisualStyle" TargetType="{x:Type Control}">
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.PageBrushKey}}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
@@ -37,9 +37,9 @@
         </Setter>
     </Style>
     <Style TargetType="TabItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.PageBackgroundBrushKey}}" />
         <Setter Property="FontSize" Value="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl},Converter={StaticResource Font122PercentSizeConverter}}"/>
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.PageBrushKey}}" />
         <Setter Property="Padding" Value="20,0,20,0" />
         <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
         <Setter Property="Template">
@@ -68,14 +68,14 @@
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
                             </MultiDataTrigger.Conditions>
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey }}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="true"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Visibility" TargetName="_underline" Value="Visible" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey }}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey}}" />
                         </MultiDataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
