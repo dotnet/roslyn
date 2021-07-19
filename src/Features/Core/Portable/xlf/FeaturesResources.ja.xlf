@@ -235,14 +235,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
         <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
@@ -3024,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 他のカスタム書式指定子が使用されていない場合、"g" は標準の日時書式指定子として解釈されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">範囲変数</target>
@@ -3184,11 +3189,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">'{0}' の Implements 句を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">制約を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">'{0}' の変性を更新すると、デバッグ セッションは続行されません。</target>
@@ -3232,11 +3232,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">プロパティ/イベント アクセサーの種類を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">メソッドの種類 (Sub/Function) を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3307,16 +3302,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">アクティブ ステートメントの前後の '{0}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッド本体を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッド本体を削除すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3851,6 +3836,11 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
 "K" 書式指定子を DateTimeOffset 値で使用した場合、この指定子は "zzz" 書式指定子と同じになり、書式設定後の文字列には、DateTimeOffset 値の UTC を基準としたオフセットが含まれます。
 
 他のカスタム書式指定子が使用されていない場合、"K" は標準の日時書式指定子として解釈され、FormatException をスローします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

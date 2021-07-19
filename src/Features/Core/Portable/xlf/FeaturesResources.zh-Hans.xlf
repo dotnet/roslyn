@@ -235,14 +235,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将“{0}”更改为“{1}”会阻止调试会话继续执行，因为它会更改状态机的形状。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
         <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
@@ -3024,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 如果使用 "g" 格式说明符而没有其他自定义格式说明符，则该说明符将被解释为 "g" 标准日期和时间格式说明符。</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">范围变量</target>
@@ -3184,11 +3189,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">更新“{0}”的 Implements 子句将阻止调试会话继续。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">将约束从“{0}”更改为“{1}” 将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">更新“{0}”的变型将阻止调试会话继续。</target>
@@ -3232,11 +3232,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">更新一个属性/事件访问器的种类将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">更新方法 (Sub/Function) 的种类将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3307,16 +3302,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">删除活动语句周围的“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">添加方法主体将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">删除方法主体将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3851,6 +3836,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 对于 DateTimeOffset 值，"K" 格式说明符等效于 "zzz" 格式说明符，并生成一个包含来自 UTC 的 DateTimeOffset 值偏移量的结果字符串。
 
 如果使用 "K" 格式说明符而没有其他自定义格式说明符，则该说明符将被解释为标准日期和时间格式说明符，并引发 FormatException。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
