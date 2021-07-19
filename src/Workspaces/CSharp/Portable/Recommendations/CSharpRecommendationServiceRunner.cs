@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // is a type-only context, we'll show all symbols anyway.
                 return GetSymbolsForExpressionOrStatementContext();
             }
-            else if (_context.IsTypeContext || _context.IsNamespaceContext || _context.IsLocalFunctionDeclarationContext)
+            else if (_context.IsTypeContext || _context.IsNamespaceContext)
             {
                 return GetSymbolsForTypeOrNamespaceContext();
             }
