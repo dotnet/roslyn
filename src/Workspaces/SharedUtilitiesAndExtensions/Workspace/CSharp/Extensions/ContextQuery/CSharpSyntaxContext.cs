@@ -409,5 +409,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
+
+        /// <summary>
+        /// Determines whether await should be suggested in a given position.
+        /// </summary>
+        internal bool IsAwaitKeywordContext(int position)
+        {
+            if (IsGlobalStatementContext)
+            {
+                return true;
+            }
+
+            if (IsAnyExpressionContext || IsStatementContext)
+            {
+                foreach (var node in LeftToken.GetAncestors<SyntaxNode>())
+                {
+                    if (node.IsAnyLambdaOrAnonymousMethod())
+                    {
+                        return true;
+                    }
+
+                    if (node.IsKind(SyntaxKind.QueryExpression))
+                    {
+                        return false;
+                    }
+
+                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement))
+                    {
+                        if (lockStatement.Statement != null &&
+                            !lockStatement.Statement.IsMissing &&
+                            lockStatement.Statement.Span.Contains(position))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }

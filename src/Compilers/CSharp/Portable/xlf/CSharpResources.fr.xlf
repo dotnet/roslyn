@@ -502,6 +502,16 @@
         <target state="translated">L'événement de type champ '{0}' ne peut pas être 'readonly'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">L'instruction foreach ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'extension ou d'instance publique pour '{1}'. Vouliez-vous dire 'await foreach' plutôt que 'foreach' ?</target>
@@ -782,6 +792,11 @@
         <target state="translated">Impossible d'utiliser l'attribut [EnumeratorCancellation] sur plusieurs paramètres</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
         <target state="translated">Seule une déclaration partielle d'un seul enregistrement peut avoir une liste de paramètres</target>
@@ -805,6 +820,11 @@
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">Aucun constructeur de copie accessible n'a été trouvé dans le type de base '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
+        <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
+        <target state="new">Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1185,6 +1205,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -3777,8 +3802,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Un espace de noms ne peut pas contenir directement des membres tels que des champs ou des méthodes</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Un espace de noms ne peut pas contenir directement des membres tels que des champs ou des méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

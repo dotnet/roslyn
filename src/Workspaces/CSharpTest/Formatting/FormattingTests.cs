@@ -10099,5 +10099,21 @@ record  struct  R(int X);
     }
 }", changedOptionSet: optionSet);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FileScopedNamespace()
+        {
+            await AssertFormatAsync(
+                expected: @"
+namespace NS;
+
+class C { }
+",
+                code: @"
+namespace NS;
+
+    class C { }
+");
+        }
     }
 }

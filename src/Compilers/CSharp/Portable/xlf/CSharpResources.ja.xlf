@@ -502,6 +502,16 @@
         <target state="translated">フィールドに類似したイベント '{0}' を 'readonly' にすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">'{0}' は '{1}' のパブリック インスタンスまたは拡張機能の定義を含んでいないため、型 '{0}' の変数に対して foreach ステートメントを使用することはできません。'foreach' ではなく 'await foreach' ですか?</target>
@@ -782,6 +792,11 @@
         <target state="translated">属性 [EnumeratorCancellation] を複数のパラメーターで使用することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
         <target state="translated">1 つのレコードの部分宣言のみがパラメーター リストを持つことができます</target>
@@ -805,6 +820,11 @@
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">基本型 '{0}' にアクセス可能なコピー コンストラクターが見つかりませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
+        <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
+        <target state="new">Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1185,6 +1205,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -3777,8 +3802,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">名前空間にフィールドやメソッドのようなメンバーを直接含めることはできません</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">名前空間にフィールドやメソッドのようなメンバーを直接含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
