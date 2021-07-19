@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorDriverOptions
     {
-        public static GeneratorDriverOptions Default = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None);
-
         public readonly IncrementalGeneratorOutputKind DisabledOutputs;
 
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
