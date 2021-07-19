@@ -44,5 +44,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             CompilationAssemblies = compilationAssemblies;
             Dependencies = dependencies;
         }
+
+        public ReferenceInfo WithItemSpecification(string itemSpecification)
+            => new(ReferenceType, itemSpecification, TreatAsUsed, CompilationAssemblies, Dependencies);
     }
 }

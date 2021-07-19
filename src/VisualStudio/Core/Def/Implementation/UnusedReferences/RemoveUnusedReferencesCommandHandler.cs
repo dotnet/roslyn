@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -186,10 +186,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var projectAssetsReaderService = solution.Workspace.Services.GetRequiredService<IProjectAssetsReaderService>();
-                var references = projectAssetsReaderService.ReadReferences(projectReferences, projectAssetsFile);
-
-                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
+                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
+                return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
