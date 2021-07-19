@@ -14,14 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-            {
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.AsyncKeyword,
-                SyntaxKind.UnsafeKeyword,
-            };
-
         public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
@@ -59,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsDestructorTypeContext;
         public readonly bool IsLeftSideOfImportAliasDirective;
         public readonly bool IsFunctionPointerTypeArgumentContext;
-        public readonly bool IsLocalFunctionDeclarationContext;
 
         private CSharpSyntaxContext(
             Workspace? workspace,
@@ -116,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isRightSideOfNumericType,
             bool isInArgumentList,
             bool isFunctionPointerTypeArgumentContext,
-            bool isLocalFunctionDeclarationContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -158,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsDestructorTypeContext = isDestructorTypeContext;
             this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
             this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
-            this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -223,8 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
 
-            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
-
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -280,7 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
-                isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
                 cancellationToken: cancellationToken);
         }
 
