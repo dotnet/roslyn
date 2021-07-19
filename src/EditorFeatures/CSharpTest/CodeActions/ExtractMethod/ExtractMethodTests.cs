@@ -4349,14 +4349,5 @@ interface TestInterface
     }
 }");
         }
-
-        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestMethodInRootNamespace()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-bool TestMethod() => [|false|];
-}");
-        }
     }
 }
