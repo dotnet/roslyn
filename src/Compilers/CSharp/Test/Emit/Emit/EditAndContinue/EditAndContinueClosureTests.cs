@@ -4431,5 +4431,54 @@ public class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
+
+        [Fact]
+        public void TopLevelStatement_Closure()
+        {
+            var source0 = MarkedSource(@"
+<N:0>
+using System;
+
+Func<string> x = <N:1>() => args[0]</N:1>;
+Console.WriteLine(x());
+</N:0>
+");
+            var source1 = MarkedSource(@"
+<N:0>
+using System;
+
+Func<string> x = <N:1>() => args[1]</N:1>;
+Console.WriteLine(x());
+</N:0>
+");
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugExe);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var f1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "<Program>$.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
+                "<Program>$: {<>c__DisplayClass0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
     }
 }

@@ -431,6 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;

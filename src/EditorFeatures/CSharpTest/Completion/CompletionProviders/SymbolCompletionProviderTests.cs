@@ -8088,6 +8088,40 @@ class A
             await VerifyItemIsAbsentAsync(markup, "value");
         }
 
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConditionalAccessNullableIsUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt?.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Day");
+            await VerifyItemIsAbsentAsync(markup, "Value");
+        }
+
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableIsNotUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Value");
+            await VerifyItemIsAbsentAsync(markup, "Day");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterConditionalIndexing()
         {
@@ -11311,6 +11345,39 @@ class C
         (var x, $$) = (0, 0);
     }
 }", "y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(53930, "https://github.com/dotnet/roslyn/issues/53930")]
+        public async Task TestTypeParameterConstraintedToInterfaceWithStatics()
+        {
+            var source = @"
+interface I1
+{
+    static void M0();
+    static abstract void M1();
+    abstract static int P1 { get; set; }
+    abstract static event System.Action E1;
+}
+
+interface I2
+{
+    static abstract void M2();
+}
+
+class Test
+{
+    void M<T>(T x) where T : I1, I2
+    {
+        T.$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(source, "M0");
+            await VerifyItemExistsAsync(source, "M1");
+            await VerifyItemExistsAsync(source, "M2");
+            await VerifyItemExistsAsync(source, "P1");
+            await VerifyItemExistsAsync(source, "E1");
         }
     }
 }
