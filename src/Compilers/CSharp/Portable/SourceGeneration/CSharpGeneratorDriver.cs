@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // 3.11 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static CSharpGeneratorDriver Create(IEnumerable<ISourceGenerator> generators, IEnumerable<AdditionalText>? additionalTexts, CSharpParseOptions? parseOptions, AnalyzerConfigOptionsProvider? optionsProvider)
-            => Create(generators, additionalTexts, parseOptions, optionsProvider);
+            => Create(generators, additionalTexts, parseOptions, optionsProvider, driverOptions: default);
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
             => CSharpSyntaxTree.ParseTextLazy(input.Text, (CSharpParseOptions)_state.ParseOptions, fileName);

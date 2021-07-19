@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' 3.11 BACK COMPAT OVERLOAD -- DO NOT TOUCH
         <EditorBrowsable(EditorBrowsableState.Never)>
         Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText), parseOptions As VisualBasicParseOptions, analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider) As VisualBasicGeneratorDriver
-            Return Create(generators, additionalTexts, parseOptions, analyzerConfigOptionsProvider)
+            Return Create(generators, additionalTexts, parseOptions, analyzerConfigOptionsProvider, driverOptions:=Nothing)
         End Function
 
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
