@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 IsPatternExpressionSyntax isPattern => isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern)),
                 BinaryExpressionSyntax { Right: TypeSyntax type } binaryIsExpression
                     => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type))),
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.UnexpectedValue(oldExpression)
             };
 
             editor.ReplaceNode(

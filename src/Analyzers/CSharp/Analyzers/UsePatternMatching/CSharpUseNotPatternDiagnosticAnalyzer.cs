@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
 
             // Look for the form: !(...)
-            if (node is not PrefixUnaryExpressionSyntax
+            if (node is not PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
                 {
                     Operand: ParenthesizedExpressionSyntax parenthesizedExpression
                 } notExpression)
