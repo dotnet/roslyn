@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Protected Overrides Function ShouldMakeContainerAsync(token As SyntaxToken) As Boolean
             Dim declaration = GetAsyncSupportingDeclaration(token)
-            Return declaration Is Not Nothing AndAlso Not declaration.GetModifiers().Any(SyntaxKind.AsyncKeyword)
+            Return declaration IsNot Nothing AndAlso Not declaration.GetModifiers().Any(SyntaxKind.AsyncKeyword)
         End Function
 
         Private Protected Overrides Function GetCompletionItem(token As SyntaxToken) As CompletionItem
