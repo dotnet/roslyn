@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             {
                 block.Inlines.Add(hyperlink);
                 hyperlink.RequestNavigate += HandleRequestNavigate;
-
             }
 
             block.Inlines.Add(": " + _diagnostic.Message);

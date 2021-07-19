@@ -62,9 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 !diagnostic.IsSuppressed;
         }
 
-        /// <summary>
-        /// Creates the InlineDiagnosticsTag with the error distinction
-        /// </summary>
         protected override InlineDiagnosticsTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));

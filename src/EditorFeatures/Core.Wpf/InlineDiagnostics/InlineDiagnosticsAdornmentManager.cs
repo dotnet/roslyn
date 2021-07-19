@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -58,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            // At this point we know workspace and document are not null because TryTextView_ViewportWidthChanged would
-            // return false.
-            var option = workspace!.Options.GetOption(InlineDiagnosticsOptions.Location, document!.Project.Language);
+            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
@@ -68,29 +67,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
         }
 
-        private bool TryTextView_ViewportWidthChanged(out Workspace? outWorkspace, out Document? outDocument)
+        private bool TryTextView_ViewportWidthChanged(
+            [NotNullWhen(true)] out Workspace? workspace,
+            [NotNullWhen(true)] out Document? document)
         {
             var sourceContainer = TextView.TextBuffer.AsTextContainer();
-            outWorkspace = null;
-            outDocument = null;
+            workspace = null;
+            document = null;
             if (sourceContainer is null)
             {
                 return false;
             }
 
-            if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
+            if (!Workspace.TryGetWorkspace(sourceContainer, out workspace))
             {
                 return false;
             }
 
-            outWorkspace = workspace;
-            outDocument = sourceContainer.GetOpenDocumentInCurrentContext();
-            if (outDocument is null)
-            {
-                return false;
-            }
-
-            return true;
+            document = sourceContainer.GetOpenDocumentInCurrentContext();
+            return document != null;
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -118,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
-        private void GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
+        private void AddSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
             Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> map)
         {
             var viewLines = TextView.TextViewLines;
@@ -139,18 +134,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
 
                     // mappedPoint is known to not be null here because it is checked in the ShouldDrawTag method call.
-                    var lineNum = mappedPoint!.Value.GetContainingLine().LineNumber;
+                    var lineNum = mappedPoint.GetContainingLine().LineNumber;
 
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(lineNum, out var value))
                     {
                         map.Add(lineNum, tagMappingSpan);
                     }
-
-                    // Draw the first instance of an error, if what is stored in the map at a specific line is
-                    // not an error, then replace it. Otherwise, just get the first warning on the line.
-                    else if (value is not null && value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
+                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
                     {
+                        // Draw the first instance of an error, if what is stored in the map at a specific line is
+                        // not an error, then replace it. Otherwise, just get the first warning on the line.
                         map[lineNum] = tagMappingSpan;
                     }
                 }
@@ -172,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             var viewLines = TextView.TextViewLines;
             using var _ = PooledDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
-            GetSpansOnEachLine(changedSpanCollection, map);
+            AddSpansOnEachLine(changedSpanCollection, map);
             foreach (var (lineNum, tagMappingSpan) in map)
             {
                 // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
@@ -202,6 +196,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
                 var visualElement = graphicsResult.VisualElement;
+
+                // Only place the diagnostics if the diagnostic would not intersect with the editor window
+                if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
+                {
+                    continue;
+                }
+
                 Canvas.SetLeft(visualElement,
                     tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
                     tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
@@ -209,16 +210,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                 Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
 
-                // Only place the diagnostics if the diagnostic would not intersect with the editor window
-                if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
-                {
-                    AdornmentLayer.AddAdornment(
-                        behavior: AdornmentPositioningBehavior.TextRelative,
-                        visualSpan: span,
-                        tag: tag,
-                        adornment: visualElement,
-                        removedCallback: delegate { graphicsResult.Dispose(); });
-                }
+                AdornmentLayer.AddAdornment(
+                    behavior: AdornmentPositioningBehavior.TextRelative,
+                    visualSpan: span,
+                    tag: tag,
+                    adornment: visualElement,
+                    removedCallback: delegate { graphicsResult.Dispose(); });
             }
         }
     }
