@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly DefinitionIndex<IFieldDefinition> _fieldDefs;
         private readonly DefinitionIndex<IMethodDefinition> _methodDefs;
         private readonly DefinitionIndex<IPropertyDefinition> _propertyDefs;
-        private readonly ParameterDefinitionIndex _parameterDefs;
+        private readonly DefinitionIndex<IParameterDefinition> _parameterDefs;
         private readonly Dictionary<IParameterDefinition, IMethodDefinition> _parameterDefList;
         private readonly GenericParameterIndex _genericParameters;
         private readonly EventOrPropertyMapIndex _eventMap;
@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // original metadata
         private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
 
+        private readonly Dictionary<IParameterDefinition, int> _existingParameterDefs;
         private readonly Dictionary<MethodDefinitionHandle, int> _firstParamRowMap;
         private readonly List<int> _paramEncMapRows;
 
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
             _methodDefs = new DefinitionIndex<IMethodDefinition>(this.TryGetExistingMethodDefIndex, sizes[(int)TableIndex.MethodDef]);
             _propertyDefs = new DefinitionIndex<IPropertyDefinition>(this.TryGetExistingPropertyDefIndex, sizes[(int)TableIndex.Property]);
-            _parameterDefs = new ParameterDefinitionIndex(sizes[(int)TableIndex.Param]);
+            _parameterDefs = new DefinitionIndex<IParameterDefinition>(this.TryGetExistingParameterDefIndex, sizes[(int)TableIndex.Param]);
             _parameterDefList = new Dictionary<IParameterDefinition, IMethodDefinition>(Cci.SymbolEquivalentEqualityComparer.Instance);
             _genericParameters = new GenericParameterIndex(sizes[(int)TableIndex.GenericParam]);
             _eventMap = new EventOrPropertyMapIndex(this.TryGetExistingEventMapIndex, sizes[(int)TableIndex.EventMap]);
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _firstParamRowMap = new Dictionary<MethodDefinitionHandle, int>();
             _paramEncMapRows = new List<int>();
+            _existingParameterDefs = new Dictionary<IParameterDefinition, int>(ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -645,7 +647,8 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var param in parameters)
             {
                 var paramDef = paramDefinitions[i];
-                _parameterDefs.Add(paramDef, MetadataTokens.GetRowNumber(param));
+                _parameterDefs.AddUpdated(paramDef);
+                _existingParameterDefs.Add(paramDef, MetadataTokens.GetRowNumber(param));
                 _parameterDefList.Add(paramDef, methodDef);
                 i++;
             }
@@ -658,7 +661,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var paramDef in GetParametersToEmit(methodDef))
             {
-                _parameterDefs.Add(paramDef, firstRowId++);
+                _parameterDefs.AddUpdated(paramDef);
+                _existingParameterDefs.Add(paramDef, firstRowId++);
                 _parameterDefList.Add(paramDef, methodDef);
             }
         }
@@ -1502,6 +1506,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return false;
         }
 
+        private bool TryGetExistingParameterDefIndex(IParameterDefinition item, out int index)
+        {
+            return _existingParameterDefs.TryGetValue(item, out index);
+        }
+
         private bool TryGetExistingEventMapIndex(int item, out int index)
         {
             if (_previousGeneration.EventMapAdded.TryGetValue(item, out index))
@@ -1548,51 +1557,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
             index = 0;
             return false;
-        }
-
-        private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
-        {
-            private int _addedInPreviousGenerations;
-
-            public ParameterDefinitionIndex(int lastRowId)
-                : base(lastRowId, ReferenceEqualityComparer.Instance)
-            {
-            }
-
-            public override bool TryGetValue(IParameterDefinition item, out int index)
-            {
-                return this.added.TryGetValue(item, out index);
-            }
-
-            public void Add(IParameterDefinition item)
-            {
-                AddInternal(item, this.NextRowId);
-            }
-
-            public void Add(IParameterDefinition item, int index)
-            {
-                _addedInPreviousGenerations++;
-                AddInternal(item, index);
-            }
-
-            private void AddInternal(IParameterDefinition item, int index)
-            {
-                Debug.Assert(!this.IsFrozen);
-
-                this.added.Add(item, index);
-                this.rows.Add(item);
-            }
-
-            public override int NextRowId
-            {
-                get
-                {
-                    // Because we sometimes re-emit parameters and track their original row numbers
-                    // we don't want to count the rows in added for those parameters when working out
-                    // the next row Id to use.
-                    return base.NextRowId - _addedInPreviousGenerations;
-                }
-            }
         }
 
         private sealed class GenericParameterIndex : DefinitionIndexBase<IGenericParameter>
