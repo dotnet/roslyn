@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -39,6 +40,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
+            {
+                return;
+            }
+
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var workspace = document.Project.Solution.Workspace;
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(workspace, semanticModel, position, cancellationToken);
