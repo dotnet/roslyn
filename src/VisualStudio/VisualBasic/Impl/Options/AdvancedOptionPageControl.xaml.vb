@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
@@ -50,13 +51,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
-                             ' If the option has Not been set by the user, check if the option to remove unused references
-                             ' Is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                             If experimentationService Is Nothing Then
-                                 Return False
-                             End If
-
-                             Return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences)
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences), False)
                          End Function)
 
             ' Import directives
@@ -66,13 +62,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic)
             BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic,
                          Function()
-                             ' If the option has Not been set by the user, check if the option to enable imports on paste
-                             ' Is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                             If experimentationService Is Nothing Then
-                                 Return False
-                             End If
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled), False)
+                         End Function)
 
-                             Return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled)
+            ' Quick Actions
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
+                         Function()
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions), False)
                          End Function)
 
             ' Highlighting
@@ -111,8 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace,
                          Function()
-                             ' If the option has not been set by the user, check if the option Is enabled from experimentation.
-                             ' If so, default to that. Otherwise default to disabled
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
                              Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace), False)
                          End Function)
 
@@ -148,8 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
-                             ' If the option has not been set by the user, check if the option Is enabled from experimentation.
-                             ' If so, default to that. Otherwise default to disabled
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
                              Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin), False)
                          End Function)
         End Sub
