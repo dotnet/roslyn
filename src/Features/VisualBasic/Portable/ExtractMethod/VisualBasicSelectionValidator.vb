@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Public Sub New(document As SemanticDocument,
                        textSpan As TextSpan,
+                       localFunction As Boolean,
                        options As OptionSet)
-            MyBase.New(document, textSpan, options)
+            MyBase.New(document, textSpan, localFunction, options)
         End Sub
 
         Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of SelectionResult)
@@ -496,7 +497,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
             Dim commonRootContainer = commonRoot.FirstAncestorOrSelf(Of SyntaxNode)(Function(node) TypeOf node Is TypeBlockSyntax)
 
-            If commonRootContainer Is Nothing Then
+            If Not LocalFunction And commonRootContainer Is Nothing Then
                 Return New SelectionInfo With
                     {
                         .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),

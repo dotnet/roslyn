@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var options = originalOptions.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
+            var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction: false, options);
 
             var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
             if (!succeed && selectedCode.Status.FailedWithNoBestEffortSuggestion())
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var options = await document.GetOptionsAsync(CancellationToken.None);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), options);
+            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false, options);
             var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             foreach (var node in iterator)
             {
-                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, originalOptions);
+                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, localFunction: false, originalOptions);
                 var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
                 // check the obvious case

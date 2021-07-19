@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         where TExtractor : MethodExtractor
         where TResult : SelectionResult
     {
-        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options);
+        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction, OptionSet options);
         protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, bool localFunction);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var validator = CreateSelectionValidator(semanticDocument, textSpan, options);
+            var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction, options);
 
             var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
             if (!selectionResult.ContainsValidContext)

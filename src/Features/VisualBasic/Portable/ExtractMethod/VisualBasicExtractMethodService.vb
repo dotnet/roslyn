@@ -20,8 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Protected Overrides Function CreateSelectionValidator(document As SemanticDocument,
                                                               textSpan As TextSpan,
+                                                              localFunction As Boolean,
                                                               options As OptionSet) As VisualBasicSelectionValidator
-            Return New VisualBasicSelectionValidator(document, textSpan, options)
+            Return New VisualBasicSelectionValidator(document, textSpan, localFunction, options)
         End Function
 
         Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, localFunction As Boolean) As VisualBasicMethodExtractor
