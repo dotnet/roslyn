@@ -127,6 +127,11 @@
         <target state="translated">TODO 주석 검색</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="new">Unused reference analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
         <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
         <target state="translated">일시적 오류로 인해 기능 '{0}'을(를) 현재 사용할 수 없습니다. 나중에 다시 시도하세요. '{1}'</target>
