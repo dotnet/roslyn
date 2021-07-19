@@ -16,13 +16,13 @@
 [$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
 "Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
 "Value"=dword:00000000
-"Title"="Enable experimental C#/VB editor (requires restart)"
+"Title"="C#/VB LSP editor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
 [$RootKey$\FeatureFlags\Roslyn\LSP\Completion]
 "Description"="Enables the LSP-powered C#/VB completion experience to operate with prototype behavior. Note this currently will not affect local C#/VB scenarios except for C# in Razor."
-"Value"=dword:00000000
-"Title"="Enable experimental C#/VB LSP completion experience"
+"Value"=dword:00000001
+"Title"="C#/VB LSP completion experience"
 "PreviewPaneChannels"="IntPreview,int.main"
 
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag

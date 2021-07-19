@@ -1462,7 +1462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Extern;
 
         private static readonly DeclarationModifiers s_lambdaModifiers =
-            DeclarationModifiers.Async;
+            DeclarationModifiers.Async |
+            DeclarationModifiers.Static;
 
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
@@ -1573,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
                 LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
                 AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
-                LambdaExpressionSyntax lambda => lambda.WithModifiers(modifiers),
+                AnonymousFunctionExpressionSyntax anonymous => anonymous.WithModifiers(modifiers),
                 _ => declaration,
             };
 

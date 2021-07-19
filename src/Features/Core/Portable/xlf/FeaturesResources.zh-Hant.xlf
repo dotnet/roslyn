@@ -3304,16 +3304,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">刪除現用陳述式前後的 '{0}'，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">加入方法主體，會造成偵錯工作階段無法繼續。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">刪除方法主體，會造成偵錯工作階段無法繼續。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">更新作用中陳述式前後的 async 或 iterator 修飾元，會造成偵錯工作階段無法繼續。</target>

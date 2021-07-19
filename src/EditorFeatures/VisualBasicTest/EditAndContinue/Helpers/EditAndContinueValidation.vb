@@ -28,25 +28,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of SourceLineUpdate),
-                                   expectedNodeUpdates As IEnumerable(Of String),
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            Assert.NotEmpty(expectedLineEdits)
+                                   lineEdits As SourceLineUpdate(),
+                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
+                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
+            Assert.NotEmpty(lineEdits)
 
             VerifyLineEdits(
                 editScript,
-                {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, expectedLineEdits.ToImmutableArray())},
-                expectedNodeUpdates,
-                expectedDiagnostics)
+                {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, lineEdits.ToImmutableArray())},
+                semanticEdits,
+                diagnostics)
         End Sub
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of SequencePointUpdates),
-                                   expectedNodeUpdates As IEnumerable(Of String),
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
+                                   lineEdits As SequencePointUpdates(),
+                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
+                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
             Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            validator.VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
+            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics)
         End Sub
 
         <Extension>
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    Optional capabilities As EditAndContinueCapabilities? = Nothing)
             VerifySemantics(
                 {editScript},
-                {New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)},
+                {New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)},
                 targetFrameworks,
                 capabilities)
         End Sub

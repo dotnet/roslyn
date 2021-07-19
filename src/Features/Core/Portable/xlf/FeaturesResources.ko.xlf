@@ -3304,16 +3304,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">활성 문 주위에서 '{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">활성 문 주위의 async 또는 iterator 한정자를 업데이트하면 디버그 세션이 계속되지 않습니다.</target>
