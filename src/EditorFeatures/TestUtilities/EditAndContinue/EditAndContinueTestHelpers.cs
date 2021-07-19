@@ -81,48 +81,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal void VerifyLineEdits(
             EditScript<SyntaxNode> editScript,
-            IEnumerable<SequencePointUpdates> expectedLineEdits,
-            IEnumerable<string> expectedNodeUpdates,
-            RudeEditDiagnosticDescription[] expectedDiagnostics)
+            SequencePointUpdates[] expectedLineEdits,
+            SemanticEditDescription[]? expectedSemanticEdits,
+            RudeEditDiagnosticDescription[]? expectedDiagnostics)
         {
-            var newText = SourceText.From(editScript.Match.NewRoot.SyntaxTree.ToString());
-
-            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
-            var editMap = BuildEditMap(editScript);
-
-            var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new ArrayBuilder<SequencePointUpdates>();
-
-            Analyzer.GetTestAccessor().AnalyzeTrivia(
-                editScript.Match,
-                editMap,
-                triviaEdits,
-                actualLineEdits,
-                diagnostics,
-                default);
-
-            VerifyDiagnostics(expectedDiagnostics, diagnostics, newText);
-
-            // check files are matching:
-            AssertEx.Equal(
-                expectedLineEdits.Select(e => e.FileName),
-                actualLineEdits.Select(e => e.FileName),
-                itemSeparator: ",\r\n");
-
-            // check lines are matching:
-            _ = expectedLineEdits.Zip(actualLineEdits, (expected, actual) =>
-            {
-                AssertEx.Equal(
-                    expected.LineUpdates,
-                    actual.LineUpdates,
-                    itemSeparator: ",\r\n",
-                    itemInspector: s => $"new({s.OldLine}, {s.NewLine})");
-
-                return true;
-            }).ToArray();
-
-            var actualNodeUpdates = triviaEdits.Select(e => e.NewNode.ToString().ToLines().First());
-            AssertEx.Equal(expectedNodeUpdates, actualNodeUpdates, itemSeparator: ",\r\n");
+            VerifySemantics(
+                new[] { editScript },
+                TargetFramework.NetStandard20,
+                new[] { new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics) },
+                capabilities: Net5RuntimeCapabilities);
         }
 
         internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
@@ -204,6 +171,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         newTree,
                         result.ActiveStatements,
                         result.ExceptionRegions);
+                }
+
+                if (!result.RudeEditErrors.IsEmpty)
+                {
+                    Assert.True(result.LineEdits.IsDefault);
+                    Assert.True(expectedResult.LineEdits.IsDefaultOrEmpty);
+                }
+                else if (!expectedResult.LineEdits.IsDefault)
+                {
+                    // check files of line edits:
+                    AssertEx.Equal(
+                        expectedResult.LineEdits.Select(e => e.FileName),
+                        result.LineEdits.Select(e => e.FileName),
+                        itemSeparator: ",\r\n",
+                        message: "File names of line edits differ in " + assertMessagePrefix);
+
+                    // check lines of line edits:
+                    _ = expectedResult.LineEdits.Zip(result.LineEdits, (expected, actual) =>
+                    {
+                        AssertEx.Equal(
+                            expected.LineUpdates,
+                            actual.LineUpdates,
+                            itemSeparator: ",\r\n",
+                            itemInspector: s => $"new({s.OldLine}, {s.NewLine})",
+                            message: "Line deltas differ in " + assertMessagePrefix);
+
+                        return true;
+                    }).ToArray();
                 }
             }
 

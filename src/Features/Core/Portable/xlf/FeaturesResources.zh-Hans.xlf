@@ -3304,16 +3304,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">删除活动语句周围的“{0}”将阻止调试会话继续。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">添加方法主体将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">删除方法主体将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">更新当前语句的 async 或 iterator 修饰符可以阻止调试会话继续。</target>

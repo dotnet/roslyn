@@ -507,12 +507,6 @@
   <data name="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Deleting '{0}' around an active statement will prevent the debug session from continuing.</value>
   </data>
-  <data name="Adding_a_method_body_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a method body will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting a method body will prevent the debug session from continuing.</value>
-  </data>
   <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
