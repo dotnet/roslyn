@@ -760,6 +760,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var expectedSkipAnalyzersValue = !analyzersEnabled || expectedImplicitlySkippedAnalyzers ? "true" : "";
             var actualSkipAnalyzersValue = instance.GetPropertyValue("_SkipAnalyzers");
             Assert.Equal(expectedSkipAnalyzersValue, actualSkipAnalyzersValue);
+
+            var expectedFeaturesValue = expectedImplicitlySkippedAnalyzers ? "run-nullable-analysis=never;" : "";
+            var actualFeaturesValue = instance.GetPropertyValue("Features");
+            Assert.Equal(expectedFeaturesValue, actualFeaturesValue);
             return;
 
             static string getPropertyGroup(string propertyName, bool? propertyValue)
