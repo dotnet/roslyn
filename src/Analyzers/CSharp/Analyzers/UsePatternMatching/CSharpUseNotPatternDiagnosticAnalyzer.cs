@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (node is not PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
                 {
                     Operand: ParenthesizedExpressionSyntax parenthesizedExpression
-                } notExpression)
+                })
             {
                 return;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Descriptor,
                 isKeywordLocation,
                 styleOption.Notification.Severity,
-                ImmutableArray.Create(notExpression.GetLocation()),
+                ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }
     }
