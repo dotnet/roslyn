@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
             FeatureOnOffOptions.ShowInheritanceMargin,
             FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
             FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
