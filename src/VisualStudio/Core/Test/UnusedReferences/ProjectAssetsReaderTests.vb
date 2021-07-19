@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnusedReferences
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets
+Imports Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
     Public Class ProjectAssetsReaderTests
@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
             Dim references = ImmutableArray.Create(myPackage)
             Dim projectAssets = TestProjectAssetsFile.Create(version, TargetFramework, references)
 
-            Dim realizedReferences = ProjectAssetsReader.ReadReferences(references, projectAssets)
+            Dim realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets)
 
             Assert.Empty(realizedReferences)
         End Sub
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
             Dim references = ImmutableArray.Create(myPackage)
             Dim projectAssets = TestProjectAssetsFile.Create(Version3, TargetFramework, references)
 
-            Dim realizedReferences = ProjectAssetsReader.ReadReferences(references, projectAssets)
+            Dim realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets)
 
             Dim realizedReference = Assert.Single(realizedReferences)
             Assert.Equal(myPackage.ItemSpecification, realizedReference.ItemSpecification)
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
 
             Dim differentReference = ImmutableArray.Create(ProjectReference("MyProject.csproj"))
 
-            Dim realizedReferences = ProjectAssetsReader.ReadReferences(differentReference, projectAssets)
+            Dim realizedReferences = ProjectAssetsReader.EnhanceReferences(differentReference, projectAssets)
 
             Assert.Empty(realizedReferences)
         End Sub
@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
             Dim references = ImmutableArray.Create(ProjectReference(mylibraryPath))
             Dim projectAssets = TestProjectAssetsFile.Create(Version3, TargetFramework, references)
 
-            Dim realizedReferences = ProjectAssetsReader.ReadReferences(references, projectAssets)
+            Dim realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets)
 
             Dim realizedReference = Assert.Single(realizedReferences)
             Assert.Equal(mylibraryPath, realizedReference.ItemSpecification)
