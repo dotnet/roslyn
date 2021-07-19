@@ -135,5 +135,24 @@ Namespace NS
     End Class
 End Namespace")
         End Function
+
+        <WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
+        Public Async Function TestMethod_PartialClass() As Task
+            Await TestInRegularAndScriptAsync("
+Partial Public Class [|Foo|]
+    Public MustOverride Sub M()
+End Class
+
+Partial Public Class Foo
+End Class",
+"
+Partial Public MustInherit Class Foo
+    Public MustOverride Sub M()
+End Class
+
+Partial Public Class Foo
+End Class")
+        End Function
     End Class
 End Namespace
