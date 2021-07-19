@@ -287,7 +287,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Get parameters which type is the given special type
+        /// Gets the parameters whose type is equal to the given special type.
         /// </summary>
         public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, SpecialType specialType)
         {
