@@ -154,19 +154,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_OptimizeForSolutionSize_Large
-        {
-            get { return CSharpVSResources.Large; }
-        }
+            => CSharpVSResources.Large;
 
         public static string Option_OptimizeForSolutionSize_Regular
-        {
-            get { return CSharpVSResources.Regular; }
-        }
+            => CSharpVSResources.Regular;
 
         public static string Option_OptimizeForSolutionSize_Small
-        {
-            get { return CSharpVSResources.Small; }
-        }
+            => CSharpVSResources.Small;
+
+        public static string Option_Quick_Actions
+            => ServicesVSResources.Quick_Actions;
+
+        public static string Option_Compute_Quick_Actions_asynchronously_experimental
+            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
 
         public static string Option_Outlining
             => ServicesVSResources.Outlining;

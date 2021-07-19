@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);
-
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
