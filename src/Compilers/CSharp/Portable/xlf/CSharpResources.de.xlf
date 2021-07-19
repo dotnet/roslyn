@@ -142,6 +142,11 @@
         <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadDynamicAttrTypeArg">
+        <source>An attribute type argument cannot be the dynamic type</source>
+        <target state="new">An attribute type argument cannot be the dynamic type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Eine Sammlung des dynamic-Typs kann in einem asynchronen foreach nicht verwendet werden.</target>
@@ -170,6 +175,11 @@
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
         <target state="translated">Die init-Zugriffsmethode ist für statische Member ungültig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableAttrTypeArg">
+        <source>An attribute type argument cannot be a nullable reference type</source>
+        <target state="new">An attribute type argument cannot be a nullable reference type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -534,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
+        <target state="needs-review-translation">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">

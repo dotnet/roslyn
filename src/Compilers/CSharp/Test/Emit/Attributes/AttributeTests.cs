@@ -9938,7 +9938,7 @@ class Program
 
         [Fact]
         [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
-        public void GenericAttribute_Dynamic_01()
+        public void GenericAttribute_Dynamic()
         {
             var source = @"
 using System;
@@ -9950,15 +9950,18 @@ class Attr1 : Attribute
 
 class Attr2<T> : Attribute { }
 
-[Attr1(typeof(dynamic))]
-[Attr2<dynamic>]
+[Attr1(typeof(dynamic))] // 1
+[Attr2<dynamic>] // 2
 class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,8): error CS1962: The typeof operator cannot be used on the dynamic type
-                // [Attr1(typeof(dynamic))]
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(11, 8));
+                // [Attr1(typeof(dynamic))] // 1
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(11, 8),
+                // (12,2): error CS8959: An attribute type argument cannot be the dynamic type
+                // [Attr2<dynamic>] // 2
+                Diagnostic(ErrorCode.ERR_BadDynamicAttrTypeArg, "Attr2<dynamic>").WithLocation(12, 2));
 
             var cClass = comp.GetMember<NamedTypeSymbol>("C");
             var attrs = cClass.GetAttributes();
@@ -9967,33 +9970,21 @@ class C { }
                 GetAttributeStrings(attrs));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
-        public void GenericAttribute_Dynamic_02()
+        [Fact]
+        public void GenericAttributeFunctionPointer()
         {
             var source = @"
 using System;
-
-var attr = Attribute.GetCustomAttribute(typeof(C), typeof(Attr<object>));
-Console.Write(attr);
-
 class Attr<T> : Attribute { }
 
-[Attr<dynamic>]
+[Attr<delegate*<int, void>>] // 1
 class C { }
 ";
-            var verifier = CompileAndVerify(source, symbolValidator: validate, expectedOutput: "Attr`1[System.Object]");
-            verifier.VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var attrs = cClass.GetAttributes();
-                Assert.Equal(
-                    new[] { "Attr<System.Object>" },
-                    GetAttributeStrings(attrs)
-                );
-            }
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                // [Attr<delegate*<int, void>>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(5, 7));
         }
 
         #endregion
