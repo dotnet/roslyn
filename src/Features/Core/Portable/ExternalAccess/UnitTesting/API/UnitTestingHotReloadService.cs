@@ -72,7 +72,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(
+                solution,
+                new DebuggerService(capabilities),
+                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureAllMatchingDocuments: true,
+                reportDiagnostics: false,
+                cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }

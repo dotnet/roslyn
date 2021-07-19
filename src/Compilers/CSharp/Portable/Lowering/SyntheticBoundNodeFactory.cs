@@ -1039,6 +1039,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StringLiteral(ConstantValue.Create(stringValue));
         }
 
+        public BoundLiteral CharLiteral(ConstantValue charConst)
+        {
+            Debug.Assert(charConst.IsChar || charConst.IsDefaultValue);
+            return new BoundLiteral(Syntax, charConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Char)) { WasCompilerGenerated = true };
+        }
+
+        public BoundLiteral CharLiteral(Char charValue)
+        {
+            return CharLiteral(ConstantValue.Create(charValue));
+        }
+
         public BoundArrayLength ArrayLength(BoundExpression array)
         {
             Debug.Assert(array.Type is { TypeKind: TypeKind.Array });

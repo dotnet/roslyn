@@ -96,8 +96,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.InsertGenericMethod, nameof(FeaturesResources.Adding_a_generic_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.Move, nameof(FeaturesResources.Moving_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.Delete, nameof(FeaturesResources.Deleting_0_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.MethodBodyAdd, nameof(FeaturesResources.Adding_a_method_body_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.MethodBodyDelete, nameof(FeaturesResources.Deleting_a_method_body_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericMethodUpdate, nameof(FeaturesResources.Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericMethodTriviaUpdate, nameof(FeaturesResources.Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericTypeUpdate, nameof(FeaturesResources.Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing));

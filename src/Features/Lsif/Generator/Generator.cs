@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -64,13 +65,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation, _idFactory);
 
+            // Disable navigation hints in quick info as computing them both takes too long, and they're never
+            // even emitted in the final lsif hover information.
+            var workspace = languageServices.WorkspaceServices.Workspace;
+            workspace.SetOptions(workspace.Options.WithChangedOption(
+                QuickInfoOptions.IncludeNavigationHintsInQuickInfo, false));
+
             Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
             {
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
                 // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                 // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
-                // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
+                // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
                 // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
                 // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                 // is preserved.
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 var text = semanticModel.SyntaxTree.GetText();
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
-                // TODO: when we move to .NET Core, is there a way to reduce allocatios here?
+                // TODO: when we move to .NET Core, is there a way to reduce allocations here?
                 contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
             }
 
