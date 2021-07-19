@@ -101,7 +101,6 @@ override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVis
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation? operation, TArgument argument) -> object?
 static Microsoft.CodeAnalysis.FileLinePositionSpan.operator !=(Microsoft.CodeAnalysis.FileLinePositionSpan left, Microsoft.CodeAnalysis.FileLinePositionSpan right) -> bool
 static Microsoft.CodeAnalysis.FileLinePositionSpan.operator ==(Microsoft.CodeAnalysis.FileLinePositionSpan left, Microsoft.CodeAnalysis.FileLinePositionSpan right) -> bool
-static Microsoft.CodeAnalysis.GeneratorDriverOptions.Default -> Microsoft.CodeAnalysis.GeneratorDriverOptions
 static Microsoft.CodeAnalysis.GeneratorExtensions.AsSourceGenerator(this Microsoft.CodeAnalysis.IIncrementalGenerator! incrementalGenerator) -> Microsoft.CodeAnalysis.ISourceGenerator!
 static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.ISourceGenerator! generator) -> System.Type!
 static Microsoft.CodeAnalysis.LineMapping.operator !=(Microsoft.CodeAnalysis.LineMapping left, Microsoft.CodeAnalysis.LineMapping right) -> bool
