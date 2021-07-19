@@ -92,6 +92,11 @@
         <target state="translated">Hacer "{0}" heredable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_container_Async">
+        <source>Make container 'Async'</source>
+        <target state="new">Make container 'Async'</target>
+        <note>{Locked="Async"} "Async" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_ReadOnly_when_possible">
         <source>Make private field ReadOnly when possible</source>
         <target state="translated">Hacer que el campo privado sea ReadOnly cuando sea posible</target>

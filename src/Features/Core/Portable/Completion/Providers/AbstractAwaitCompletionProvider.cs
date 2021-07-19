@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-            return CompletionChange.Create(CodeAnalysis.Completion.Utilities.Collapse(newText, builder.ToImmutableArray()));
+            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableArray()));
         }
     }
 }

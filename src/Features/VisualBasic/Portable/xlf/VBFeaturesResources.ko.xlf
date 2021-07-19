@@ -92,6 +92,11 @@
         <target state="translated">'{0}'을(를) 상속 가능으로 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_container_Async">
+        <source>Make container 'Async'</source>
+        <target state="new">Make container 'Async'</target>
+        <note>{Locked="Async"} "Async" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_ReadOnly_when_possible">
         <source>Make private field ReadOnly when possible</source>
         <target state="translated">가능한 경우 프라이빗 필드를 ReadOnly로 만들기</target>

@@ -1269,4 +1269,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Shared_constructor" xml:space="preserve">
     <value>Shared constructor</value>
   </data>
+  <data name="Make_container_Async" xml:space="preserve">
+    <value>Make container 'Async'</value>
+    <comment>{Locked="Async"} "Async" is a VB keyword and should not be localized.</comment>
+  </data>
 </root>
