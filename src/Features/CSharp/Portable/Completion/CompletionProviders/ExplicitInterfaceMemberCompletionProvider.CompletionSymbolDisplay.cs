@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static string ToDisplayString(IPropertySymbol symbol)
             {
-                var pooledBuilder = PooledStringBuilder.GetInstance();
+                using var _ = PooledStringBuilder.GetInstance(out var pooledBuilder);
                 var builder = pooledBuilder.Builder;
 
                 if (symbol.IsIndexer)
@@ -42,18 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (symbol.Parameters.Length > 0)
                 {
                     builder.Append('[');
-
                     AddParameters(symbol.Parameters, builder);
-
                     builder.Append(']');
                 }
 
-                return pooledBuilder.ToStringAndFree();
+                return pooledBuilder.ToString();
             }
 
             private static string ToDisplayString(IMethodSymbol symbol)
             {
-                var pooledBuilder = PooledStringBuilder.GetInstance();
+                using var _ = PooledStringBuilder.GetInstance(out var pooledBuilder);
                 var builder = pooledBuilder.Builder;
                 switch (symbol.MethodKind)
                 {
@@ -62,25 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         break;
                     case MethodKind.UserDefinedOperator:
                     case MethodKind.BuiltinOperator:
-                        {
-                            builder.Append("operator ");
-                            builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
-                        }
+                        builder.Append("operator ");
+                        builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
                         break;
                     case MethodKind.Conversion:
-                        {
-
-                            builder.Append("operator ");
-                            AddType(symbol.ReturnType, builder);
-                            break;
-                        }
+                        builder.Append("operator ");
+                        AddType(symbol.ReturnType, builder);
+                        break;
                 }
 
                 AddTypeArguments(symbol, builder);
                 builder.Append('(');
                 AddParameters(symbol.Parameters, builder);
                 builder.Append(')');
-                return pooledBuilder.ToStringAndFree();
+                return pooledBuilder.ToString();
             }
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
