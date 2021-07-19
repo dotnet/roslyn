@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] PropertyItems { get; set; }
 
-        [Required]
         public ITaskItem FileName { get; set; }
 
         public GenerateMSBuildEditorConfig()
@@ -107,26 +106,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             ConfigFileContents = builder.ToString();
-            return WriteMSBuildEditorConfig();
+            return string.IsNullOrEmpty(FileName.ItemSpec) ? true : WriteMSBuildEditorConfig();
         }
 
         public bool WriteMSBuildEditorConfig()
         {
             try
             {
-                if (File.Exists(FileName.ItemSpec))
+                var targetFileName = FileName.ItemSpec;
+                if (File.Exists(targetFileName))
                 {
-                    string existingContents = File.ReadAllText(FileName.ItemSpec);
-                    if (existingContents.Length == ConfigFileContents.Length)
+                    string existingContents = File.ReadAllText(targetFileName);
+                    if (existingContents.Equals(ConfigFileContents))
                     {
-                        if (existingContents.Equals(ConfigFileContents))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
                 var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                File.WriteAllText(FileName.ItemSpec, ConfigFileContents, encoding);
+                File.WriteAllText(targetFileName, ConfigFileContents, encoding);
                 return true;
             }
             catch (IOException ex)

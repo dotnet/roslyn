@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,10 +23,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void GlobalPropertyIsGeneratedIfEmpty()
         {
-            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
-            {
-                FileName = GetTestFilePath()
-            };
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig();
             configTask.Execute();
 
             var result = configTask.ConfigFileContents;
@@ -41,8 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 },
-                FileName = GetTestFilePath()
+                PropertyItems = new[] { property1, property2 }
             };
             configTask.Execute();
 
@@ -61,8 +58,7 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1 }
             };
             configTask.Execute();
 
@@ -84,8 +80,7 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2, item3 }
             };
             configTask.Execute();
 
@@ -114,8 +109,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2, item3 }
             };
             configTask.Execute();
 
@@ -142,8 +136,7 @@ build_metadata.Compile.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2 }
             };
             configTask.Execute();
 
@@ -164,8 +157,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1 }
             };
             configTask.Execute();
 
@@ -187,8 +179,7 @@ build_metadata.Compile.ToRetrieve =
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2, item3 }
             };
             configTask.Execute();
 
@@ -214,8 +205,7 @@ build_metadata.Compile.ToRetrieve =
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3, item4 },
-                PropertyItems = new[] { property1, property2 },
-                FileName = GetTestFilePath()
+                PropertyItems = new[] { property1, property2 }
             };
             configTask.Execute();
 
@@ -246,8 +236,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2, item3 }
             };
             configTask.Execute();
             var result = configTask.ConfigFileContents;
@@ -281,8 +270,7 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1, item2 }
             };
             configTask.Execute();
 
@@ -325,8 +313,7 @@ values
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 },
-                FileName = GetTestFilePath()
+                PropertyItems = new[] { property1, property2 }
             };
             configTask.Execute();
 
@@ -354,8 +341,7 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 },
-                FileName = GetTestFilePath()
+                MetadataItems = new[] { item1 }
             };
             configTask.Execute();
 
@@ -368,11 +354,28 @@ build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
 
-        private static ITaskItem GetTestFilePath([CallerMemberName] string callerName = "")
+        [Fact]
+        public void ConfigFileCanBeWrittenToDisk()
         {
-            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)?.Replace('\\', '/') ?? string.Empty;
-            string path = $"{executingLocation}/{callerName}.GenerateMSBuildEditorConfig.editorconfig";
-            return new TaskItem(path);
+            ITaskItem property1 = MSBuildUtil.CreateTaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
+            ITaskItem property2 = MSBuildUtil.CreateTaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
+
+            var fileName = Path.Combine(TempRoot.Root, "ConfigFileCanBeWrittenToDisk.GenerateMSBuildEditorConfig.editorconfig");
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                PropertyItems = new[] { property1, property2 },
+                FileName = new TaskItem(fileName)
+            };
+            configTask.Execute();
+
+            var expectedContents = @"is_global = true
+build_property.Property1 = abc123
+build_property.Property2 = def456
+";
+
+            Assert.True(File.Exists(fileName));
+            Assert.Equal(expectedContents, File.ReadAllText(fileName));
         }
     }
 }
