@@ -80,7 +80,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 
             var reference = BuildReference(projectAssets, referenceName, referenceInfo.TreatAsUsed, targetLibraryKeys, builtReferences);
 
-            // Always return an enhanced reference with its original ItemSpecification. 
+            // Since the reference being enhanced was provided by the Project System we should always return an
+            // enhanced reference with its original ItemSpecification. The project assets file typically works with
+            // full paths, however project reference typically are relative. This ensures that when changes are
+            // persisted back by the Project System, it will match the specification it is expecting.
             return reference?.WithItemSpecification(referenceInfo.ItemSpecification);
         }
 
@@ -146,16 +149,20 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 }
             }
 
-            if (referenceType == ReferenceType.Unknown
-                || (referenceType == ReferenceType.Package && itemSpecification == ".NETStandard.Library"))
+            if (referenceType == ReferenceType.Unknown)
             {
                 return null;
             }
-
-            ReferenceInfo? reference;
-            if (builtReferences.TryGetValue(itemSpecification, out reference))
+            
+            if (referenceType == ReferenceType.Package && itemSpecification == ".NETStandard.Library")
             {
-                return reference;
+                // This depenedency is large and not useful in determining whether the parent reference has been used.
+                return null;
+            }
+
+            if (builtReferences.TryGetValue(itemSpecification, out var builtReference))
+            {
+                return builtReference;
             }
 
             var dependencies = dependencyNames
@@ -163,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 .WhereNotNull()
                 .ToImmutableArray();
 
-            reference = new ReferenceInfo(referenceType, itemSpecification, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
+            var reference = new ReferenceInfo(referenceType, itemSpecification, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
 
             builtReferences.Add(reference.ItemSpecification, reference);
 
