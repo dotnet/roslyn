@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeUsageInfo attributeUsageInfo = attributeType.GetAttributeUsageInfo();
 
             // Given attribute can't be specified more than once if AllowMultiple is false.
-            if (!uniqueAttributeTypes.Add(attributeType) && !attributeUsageInfo.AllowMultiple)
+            if (!uniqueAttributeTypes.Add(attributeType.OriginalDefinition) && !attributeUsageInfo.AllowMultiple)
             {
                 diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.GetErrorDisplayName());
                 return false;
