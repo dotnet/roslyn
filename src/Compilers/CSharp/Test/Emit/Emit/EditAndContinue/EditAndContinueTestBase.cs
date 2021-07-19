@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         private static bool IsDefinition(HandleKind kind)
-            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference);
+            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
 
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
