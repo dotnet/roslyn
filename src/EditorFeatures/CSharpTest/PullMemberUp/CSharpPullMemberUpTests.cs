@@ -894,9 +894,52 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
 using System;
 
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
 public class Base
 {
     public Uri Endpoint { get; set; }
@@ -998,8 +1041,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -1056,8 +1098,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System.Linq;
+        <Document FilePath = ""File1.cs"">using System.Linq;
 
 public class Base
 {
@@ -1139,6 +1180,74 @@ public class Base
 }
         </Document>
         <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnnecessaryFirstUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Threading.Tasks;
+
+public class Base
+{
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -1403,8 +1512,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 using System.Linq;
 
 public class Base
@@ -1610,8 +1718,7 @@ namespace A_TestNs2
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 using A_TestNs2;
 
 namespace TestNs1
@@ -1797,7 +1904,8 @@ namespace TestNs4
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using TestNs3;
+        <Document FilePath = ""File1.cs"">
+using TestNs3;
 using TestNs4;
 
 namespace TestNs1
@@ -1887,7 +1995,6 @@ public class Derived : Base
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
 using System;
-
 using Enumer = System.Linq.Enumerable;
 using Sys = System;
 
@@ -2147,8 +2254,7 @@ namespace X.Y
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using X.Y;
+        <Document FilePath = ""File1.cs"">using X.Y;
 
 namespace A.B
 {
@@ -2337,7 +2443,6 @@ namespace TestNs1
 {
     // comment 2
     using System;
-    // comment 4
     using System.Linq;
 
     // comment 3 
@@ -2534,8 +2639,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -2588,8 +2692,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -2644,8 +2747,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -2706,8 +2808,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -2763,8 +2864,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System;
+        <Document FilePath = ""File1.cs"">using System;
 
 public class Base
 {
@@ -2810,8 +2910,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System.Linq;
+        <Document FilePath = ""File1.cs"">using System.Linq;
 
 public class Base
 {
