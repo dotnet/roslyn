@@ -283,11 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-
             // Parts were added to the array from right to left, but lexical order is left to right.
             partsArrayBuilder.ReverseContents();
 
-            // Case 3. Delegate to standard binding
+            // Case 3. Bind as handler.
             var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
                 binaryOperator.Syntax,
                 partsArrayBuilder.ToImmutableAndFree(),
@@ -297,10 +296,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 additionalConstructorArguments: default,
                 additionalConstructorRefKinds: default);
 
-            Debug.Assert(appendCalls.Length == stack.Count + 1);
-
             // Now that the parts have been bound, reconstruct the binary operators.
-            var @string = GetSpecialType(SpecialType.System_String, diagnostics, binaryOperator.Syntax);
+            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(stack, appendCalls, data, binaryOperator.Syntax, diagnostics);
+            stack.Free();
+            return true;
+        }
+
+        private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(ArrayBuilder<BoundBinaryOperator> stack, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(appendCalls.Length == stack.Count + 1);
+            var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
             var signature = new BinaryOperatorSignature(BinaryOperatorKind.StringConcatenation, @string, @string, @string);
 
             var bottomOperator = stack.Pop();
@@ -311,8 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = createBinaryOperator(stack.Pop(), result, rightIndex: i);
             }
 
-            convertedBinaryOperator = result.Update(BoundBinaryOperator.UncommonData.WithInterpolatedStringHandlerData(data));
-            return true;
+            return result.Update(BoundBinaryOperator.UncommonData.WithInterpolatedStringHandlerData(data));
 
             BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, int rightIndex)
                 => new BoundBinaryOperator(
@@ -341,6 +345,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression BindUnconvertedInterpolatedExpressionToHandlerType(
+            BoundExpression unconvertedExpression,
+            NamedTypeSymbol interpolatedStringHandlerType,
+            BindingDiagnosticBag diagnostics,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments = default,
+            ImmutableArray<RefKind> additionalConstructorRefKinds = default)
+            => unconvertedExpression switch
+            {
+                BoundUnconvertedInterpolatedString interpolatedString => BindUnconvertedInterpolatedStringToHandlerType(
+                    interpolatedString,
+                    interpolatedStringHandlerType,
+                    diagnostics,
+                    isHandlerConversion: true,
+                    additionalConstructorArguments,
+                    additionalConstructorRefKinds),
+                BoundBinaryOperator binary => BindUnconvertedBinaryOperatorToInterpolatedStringHandlerType(binary, interpolatedStringHandlerType, diagnostics, additionalConstructorArguments, additionalConstructorRefKinds),
+                _ => throw ExceptionUtilities.UnexpectedValue(unconvertedExpression.Kind)
+            };
+
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToHandlerType(
             BoundUnconvertedInterpolatedString unconvertedInterpolatedString,
             NamedTypeSymbol interpolatedStringHandlerType,
@@ -366,6 +389,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unconvertedInterpolatedString.ConstantValue,
                 unconvertedInterpolatedString.Type,
                 unconvertedInterpolatedString.HasErrors);
+        }
+
+        private BoundBinaryOperator BindUnconvertedBinaryOperatorToInterpolatedStringHandlerType(
+            BoundBinaryOperator binaryOperator,
+            NamedTypeSymbol interpolatedStringHandlerType,
+            BindingDiagnosticBag diagnostics,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments,
+            ImmutableArray<RefKind> additionalConstructorRefKinds)
+        {
+            Debug.Assert(binaryOperator.IsUnconvertedInterpolatedStringAddition);
+
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
+
+            BoundBinaryOperator? current = binaryOperator;
+
+            while (current != null)
+            {
+                stack.Push(current);
+                partsArrayBuilder.Add(((BoundUnconvertedInterpolatedString)current.Right).Parts);
+
+                if (current.Left is BoundBinaryOperator next)
+                {
+                    current = next;
+                }
+                else
+                {
+                    partsArrayBuilder.Add(((BoundUnconvertedInterpolatedString)current.Left).Parts);
+                    current = null;
+                }
+            }
+
+            // Parts are added in right to left order, but lexical is left to right.
+            partsArrayBuilder.ReverseContents();
+
+            Debug.Assert(partsArrayBuilder.Count == stack.Count + 1);
+            Debug.Assert(partsArrayBuilder.Count >= 2);
+
+            var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
+                binaryOperator.Syntax,
+                partsArrayBuilder.ToImmutableAndFree(),
+                interpolatedStringHandlerType,
+                diagnostics,
+                isHandlerConversion: true,
+                additionalConstructorArguments,
+                additionalConstructorRefKinds);
+
+            var result = UpdateBinaryOperatorWithInterpolatedContents(stack, appendCalls, data, binaryOperator.Syntax, diagnostics);
+            stack.Free();
+            return result;
         }
 
         private (ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, InterpolatedStringHandlerData Data) BindUnconvertedInterpolatedPartsToHandlerType(
@@ -730,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(
-            BoundUnconvertedInterpolatedString unconvertedString,
+            BoundExpression unconvertedString,
             ArrayBuilder<BoundExpression> arguments,
             ImmutableArray<ParameterSymbol> parameters,
             ref MemberAnalysisResult memberAnalysisResult,
@@ -740,6 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint receiverEscapeScope,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
             Debug.Assert(interpolatedStringConversion.IsInterpolatedStringHandler);
             var interpolatedStringParameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, interpolatedStringArgNum);
@@ -914,11 +988,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsBuilder.Add(refKind);
             }
 
-            var interpolatedString = BindUnconvertedInterpolatedStringToHandlerType(
+            var interpolatedString = BindUnconvertedInterpolatedExpressionToHandlerType(
                 unconvertedString,
                 (NamedTypeSymbol)interpolatedStringParameter.Type,
                 diagnostics,
-                isHandlerConversion: true,
                 additionalConstructorArguments: argumentPlaceholdersBuilder.ToImmutableAndFree(),
                 additionalConstructorRefKinds: argumentRefKindsBuilder.ToImmutableAndFree());
 

@@ -2253,6 +2253,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!node.OperatorKind.IsUserDefined());
                 VisitBinaryLogicalOperatorChildren(node);
             }
+            else if (node.InterpolatedStringHandlerData is { } data)
+            {
+                VisitBinaryInterpolatedStringAddition(node);
+            }
             else
             {
                 VisitBinaryOperatorChildren(node);
@@ -2404,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
-            while (binary != null && !binary.OperatorKind.IsLogical());
+            while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
 
             VisitBinaryOperatorChildren(stack);
             stack.Free();
@@ -2509,7 +2513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
                 }
-                // `a && b(out x) == true`
+                // `a && b(out x) == trueValue`
                 else if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
                 {
                     var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
@@ -2536,6 +2540,83 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+        }
+
+        protected void VisitBinaryInterpolatedStringAddition(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.InterpolatedStringHandlerData.HasValue);
+            var stack = ArrayBuilder<BoundInterpolatedString>.GetInstance();
+            var data = node.InterpolatedStringHandlerData.GetValueOrDefault();
+
+            while (PushBinaryOperatorInterpolatedStringChildren(node, stack) is { } next)
+            {
+                node = next;
+            }
+
+            Debug.Assert(stack.Count >= 2);
+
+            VisitRvalue(data.Construction);
+
+            bool visitedFirst = false;
+            bool hasTrailingHandlerValidityParameter = data.HasTrailingHandlerValidityParameter;
+            TLocalState shortCircuitState = State.Clone();
+
+            while (stack.TryPop(out var currentString))
+            {
+                visitedFirst |= VisitInterpolatedStringComponentOfBinaryOperator(currentString, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
+            }
+
+            if (data.UsesBoolReturns || hasTrailingHandlerValidityParameter)
+            {
+                Join(ref State, ref shortCircuitState);
+            }
+        }
+
+        protected virtual BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
+        {
+            stack.Push((BoundInterpolatedString)node.Right);
+            switch (node.Left)
+            {
+                case BoundBinaryOperator next:
+                    return next;
+                case BoundInterpolatedString @string:
+                    stack.Push(@string);
+                    return null;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Left.Kind);
+            }
+        }
+
+        protected virtual bool VisitInterpolatedStringComponentOfBinaryOperator(BoundInterpolatedString node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState shortCircuitState)
+        {
+            if (node.Parts.IsEmpty)
+            {
+                return false;
+            }
+
+            ReadOnlySpan<BoundExpression> parts;
+
+            if (firstPartIsConditional)
+            {
+                parts = node.Parts.AsSpan();
+            }
+            else
+            {
+                VisitRvalue(node.Parts[0]);
+                shortCircuitState = State.Clone();
+                parts = node.Parts.AsSpan()[1..];
+            }
+
+            foreach (var part in parts)
+            {
+                VisitRvalue(part);
+                if (usesBoolReturns)
+                {
+                    Join(ref shortCircuitState, ref State);
+                }
+            }
+
+            return true;
         }
 #nullable disable
 

@@ -334,9 +334,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var arg in arguments)
                 {
-                    if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: BoundInterpolatedString @string })
+                    if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: var operand })
                     {
-                        Debug.Assert(((BoundObjectCreationExpression)@string.InterpolationData!.Value.Construction).Arguments.All(
+                        var data = operand switch
+                        {
+                            BoundInterpolatedString { InterpolationData: { } d } => d,
+                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                            _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+                        };
+                        Debug.Assert(((BoundObjectCreationExpression)data.Construction).Arguments.All(
                             a => a is BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter }
                                       or not BoundInterpolatedStringArgumentPlaceholder));
                     }

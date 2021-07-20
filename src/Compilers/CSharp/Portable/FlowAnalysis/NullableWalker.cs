@@ -4024,6 +4024,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override bool VisitInterpolatedStringComponentOfBinaryOperator(BoundInterpolatedString node, bool usesBoolReturns, bool firstPartIsUnconditional, ref LocalState shortCircuitState)
+        {
+            var result = base.VisitInterpolatedStringComponentOfBinaryOperator(node, usesBoolReturns, firstPartIsUnconditional, ref shortCircuitState);
+            SetNotNullResult(node);
+            return result;
+        }
+
+        protected override BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
+        {
+            var result = base.PushBinaryOperatorInterpolatedStringChildren(node, stack);
+            SetNotNullResult(node);
+            return result;
+        }
+
         /// <summary>
         /// If we learn that the operand is non-null, we can infer that certain
         /// sub-expressions were also non-null.

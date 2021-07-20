@@ -113,27 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
             {
-                Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
-                var parts = ArrayBuilder<BoundExpression>.GetInstance();
-                BoundBinaryOperator? current = node;
-                while (true)
-                {
-                    parts.AddRange(((BoundInterpolatedString)current.Right).Parts);
-
-                    if (current.Left is BoundBinaryOperator next)
-                    {
-                        current = next;
-                    }
-                    else
-                    {
-                        parts.AddRange(((BoundInterpolatedString)current.Left).Parts);
-                        break;
-                    }
-                }
-
-                parts.ReverseContents();
-
-                return LowerPartsToString(data, parts.ToImmutableAndFree(), node.Syntax, node.Type);
+                Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
+                ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type);
             }
 
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
@@ -145,6 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
+                // The regular visit mechanism will handle this.
+                if (current.InterpolatedStringHandlerData is not null)
+                {
+                    Debug.Assert(stack.Count >= 1);
+                    break;
+                }
+
                 stack.Push(current);
             }
 
@@ -159,6 +148,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stack.Free();
             return loweredLeft;
+        }
+
+        private static ImmutableArray<BoundExpression> CollectBinaryOperatorInterpolatedStringParts(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+            Debug.Assert(node.InterpolatedStringHandlerData is not null);
+            var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            while (true)
+            {
+                partsBuilder.AddRange(((BoundInterpolatedString)node.Right).Parts);
+
+                if (node.Left is BoundBinaryOperator next)
+                {
+                    node = next;
+                }
+                else
+                {
+                    partsBuilder.AddRange(((BoundInterpolatedString)node.Left).Parts);
+                    break;
+                }
+            }
+
+            partsBuilder.ReverseContents();
+
+            ImmutableArray<BoundExpression> parts = partsBuilder.ToImmutableAndFree();
+            return parts;
         }
 
         private BoundExpression MakeBinaryOperator(
