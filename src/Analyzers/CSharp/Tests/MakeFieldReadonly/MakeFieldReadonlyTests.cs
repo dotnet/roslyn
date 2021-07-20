@@ -235,7 +235,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        this.E = x => _goo = 0;
+        this.E = x => this._goo = 0;
     }
 
     public Action<int> E;
@@ -251,7 +251,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        this.E += (_, __) => _goo = 0;
+        this.E += (_, __) => this._goo = 0;
     }
 
     public event EventHandler E;
@@ -267,7 +267,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        this.E += (_, __) => { _goo = 0; }
+        this.E += (_, __) => { this._goo = 0; }
     }
 
     public event EventHandler E;
@@ -283,7 +283,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        this.E = delegate { _goo = 0; };
+        this.E = delegate { this._goo = 0; };
     }
 
     public Action<int> E;
@@ -299,7 +299,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        void LocalFunction() => _goo = 0;
+        void LocalFunction() => this._goo = 0;
     }
 }");
         }
@@ -313,7 +313,7 @@ $@"class MyClass
     private int [|_goo|];
     public MyClass()
     {
-        void LocalFunction() { _goo = 0; }
+        void LocalFunction() { this._goo = 0; }
     }
 }");
         }
@@ -356,7 +356,7 @@ $@"class MyClass
     private int [|_goo|];
     MyClass()
     {
-        _goo = 0;
+        this._goo = 0;
     }
 }",
 @"class MyClass
@@ -364,7 +364,7 @@ $@"class MyClass
     private readonly int _goo;
     MyClass()
     {
-        _goo = 0;
+        this._goo = 0;
     }
 }");
         }
@@ -1459,7 +1459,7 @@ class MyClass
     private int [|_goo|];
     MyClass()
     {
-        (_goo) = 0;
+        (this._goo) = 0;
     }
 }",
 @"class MyClass
@@ -1467,7 +1467,7 @@ class MyClass
     private readonly int _goo;
     MyClass()
     {
-        (_goo) = 0;
+        (this._goo) = 0;
     }
 }");
         }
