@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
             }
-            else if (destination is NamespaceDeclarationSyntax namespaceDeclaration)
+            else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
             }
