@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);
         public const string InfoBar = nameof(InfoBar);
+        public const string InlineDiagnostics = nameof(InlineDiagnostics);
         public const string InheritanceMargin = nameof(InheritanceMargin);
         public const string InlineParameterNameHints = nameof(InlineParameterNameHints);
         public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
