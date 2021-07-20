@@ -691,6 +691,393 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithMemberNameAttributes2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
+                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWitLineNumberAttributes()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithLineNumberAttributes2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWitLineNumberAttributes3()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithLineNumberAttributes4()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentNonOptionalParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentNonOptionalParameter2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithOverride()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+abstract class Base
+{
+    const string p = nameof(p);
+    public abstract void Log_RemoveAttributeInOverride(int p, [CallerArgumentExpression(p)] string arg =""default"");
+    public abstract void Log_AddAttributeInOverride(int p, string arg =""default"");
+}
+
+class Derived : Base
+{
+    const string p = nameof(p);
+    public override void Log_AddAttributeInOverride(int p, [CallerArgumentExpression(p)] string arg = ""default"")
+        => Console.WriteLine(arg);
+
+    public override void Log_RemoveAttributeInOverride(int p, string arg = ""default"")
+        => Console.WriteLine(arg);
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var derived = new Derived();
+        derived.Log_AddAttributeInOverride(5 + 4);
+        derived.Log_RemoveAttributeInOverride(5 + 5);
+
+        ((Base)derived).Log_AddAttributeInOverride(5 + 4);
+        ((Base)derived).Log_RemoveAttributeInOverride(5 + 5);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: @"5 + 4
+default
+default
+5 + 5").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithUserDefinedConversionFromString()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    public C(string s) => S = s;
+    public string S { get; }
+    public static implicit operator C(string s) => new C(s);
+}
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
+    {
+        Console.WriteLine(arg.S);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (19,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'C'
+                //     static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "C").WithLocation(19, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithExtensionGetEnumerator()
+        {
+            string source = @"
+using System;
+using System.Collections;
+using System.Runtime.CompilerServices;
+
+public static class Extensions
+{
+    public static IEnumerator GetEnumerator(this IEnumerator enumerator, [CallerArgumentExpression(""enumerator"")] string s = ""default"")
+    {
+        Console.WriteLine(s);
+        return enumerator;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new [] { """", """" }.GetEnumerator();
+
+        foreach (var y in x)
+        {
+        }
+    }
+}
+
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "x").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithExtensionDeconstruct()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Extensions
+{
+    public static void Deconstruct(this Person p, out string firstName, out string lastName, [CallerArgumentExpression(""firstName"")] string s = ""default"")
+    {
+        firstName = p.FirstName;
+        lastName = p.LastName;
+        Console.WriteLine(s);
+    }
+}
+
+public class Person
+{
+    public Person(string firstName, string lastName)
+        => (FirstName, LastName) = (firstName, lastName);
+
+    public string FirstName { get; }
+    public string LastName { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var p = new Person(""myFirstName"", ""myLastName"");
+        var (first, last) = p;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (30,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'first'.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "first").WithArguments("first").WithLocation(30, 14),
+                // (30,21): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'last'.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "last").WithArguments("last").WithLocation(30, 21),
+                // (30,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(30, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithOptionalTargetParameter()
         {
             string source = @"

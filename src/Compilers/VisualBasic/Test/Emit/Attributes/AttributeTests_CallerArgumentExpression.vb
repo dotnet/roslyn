@@ -462,6 +462,280 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithMemberNameAttributes2()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerMemberName> Optional arg As String = ""<default>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="Main").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithFilePathAttributes()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerFilePath> Optional arg As String = ""<default>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(Parse(source, "C:\\Program.cs", options:=TestOptions.Regular16_9), targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="C:\\Program.cs").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithFilePathAttributes2()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerFilePath> Optional arg As String = ""<default>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(Parse(source, "C:\\Program.cs", options:=TestOptions.RegularLatest), targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="C:\\Program.cs").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithLineNumberAttributes()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerLineNumber> Optional arg As String = ""<default>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithLineNumberAttributes2()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerLineNumber> Optional arg As String = ""<default>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithLineNumberAttributes3()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerLineNumber> Optional arg As Integer = 0)
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithLineNumberAttributes4()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> <CallerLineNumber> Optional arg As Integer = 0)
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentNonOptionalParameter()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> arg As String)
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter 'arg' of 'Public Sub Log(p As Integer, arg As String)'.
+        Log(0+ 0)
+        ~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentNonOptionalParameter2()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(0+ 0)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> arg As String)
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter 'arg' of 'Public Sub Log(p As Integer, arg As String)'.
+        Log(0+ 0)
+        ~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithOverride()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+MustInherit Class Base
+    Const p As String = NameOf(p)
+    Public MustOverride Sub Log_RemoveAttributeInOverride(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""default"")
+    Public MustOverride Sub Log_AddAttributeInOverride(p As Integer, Optional arg As String = ""default"")
+End Class
+
+Class Derived : Inherits Base
+
+    Const p As String = NameOf(p)
+    Public Overrides Sub Log_AddAttributeInOverride(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""default"")
+        Console.WriteLine(arg)
+    End Sub
+
+    Public Overrides Sub Log_RemoveAttributeInOverride(p As Integer, Optional arg As String = ""default"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+
+Class Program
+    Public Shared Sub Main()
+        Dim derived = New Derived()
+        derived.Log_AddAttributeInOverride(5 + 4)
+        derived.Log_RemoveAttributeInOverride(5 + 5)
+
+        DirectCast(derived, Base).Log_AddAttributeInOverride(5 + 4)
+        DirectCast(derived, Base).Log_RemoveAttributeInOverride(5 + 5)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="5 + 4
+default
+default
+5 + 5").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentWithUserDefinedConversionFromString()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class C
+    Public Sub New(s As String)
+        Prop = s
+    End Sub
+
+    Public ReadOnly Property Prop As String
+
+    Public Shared Widening Operator CType(s As String) As C
+        Return New C(s)
+    End Operator
+
+End Class
+
+Class Program
+    Public Shared Sub Main()
+        Log(0)
+    End Sub
+    Const p As String = NameOf(p)
+    Shared Sub Log(p As Integer, <CallerArgumentExpression(p)> Optional arg As C = Nothing)
+        Console.WriteLine(arg Is Nothing)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="True").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpressionWithOptionalTargetParameter()
             Dim source = "
 Imports System
