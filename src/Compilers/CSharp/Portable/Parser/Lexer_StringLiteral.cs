@@ -396,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 _lexer.TextWindow.AdvanceChar(); // }
                             }
-                            else if (UnrecoverableError == null)
+                            else
                             {
-                                UnrecoverableError = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
+                                UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
                             }
                             continue;
                         case '{':
@@ -422,8 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 else
                                 {
                                     closeBraceMissing = true;
-                                    if (UnrecoverableError == null)
-                                        UnrecoverableError = _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
+                                    UnrecoverableError ??= _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
                                 }
 
                                 interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition, closeBraceMissing));
@@ -434,10 +433,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 goto default;
 
                             var escapeStart = _lexer.TextWindow.Position;
-                            char c2;
-                            char ch = _lexer.ScanEscapeSequence(out c2);
-                            if ((ch == '{' || ch == '}') && UnrecoverableError == null)
-                                UnrecoverableError = _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                            char ch = _lexer.ScanEscapeSequence(out _);
+                            if (ch == '{' || ch == '}')
+                                UnrecoverableError ??= _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
 
                             continue;
                         default:
@@ -459,10 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // normal string & char constants can have escapes
                         var pos = _lexer.TextWindow.Position;
-                        char c2;
-                        ch = _lexer.ScanEscapeSequence(out c2);
-                        if ((ch == '{' || ch == '}') && UnrecoverableError == null)
-                            UnrecoverableError = _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                        ch = _lexer.ScanEscapeSequence(out _);
+                        if (ch == '{' || ch == '}')
+                            UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
                     }
                     else if (ch == '"')
                     {
@@ -485,9 +482,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             _lexer.TextWindow.AdvanceChar(); // {
                         }
-                        else if (UnrecoverableError == null)
+                        else
                         {
-                            UnrecoverableError = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
+                            UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
                         }
                     }
                     else if (ch == '}')
@@ -539,9 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         case '#':
                             // preprocessor directives not allowed.
-                            if (UnrecoverableError == null)
-                                UnrecoverableError = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-
+                            UnrecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
@@ -585,9 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (ch == endingChar)
                                 return;
 
-                            if (UnrecoverableError == null)
-                                UnrecoverableError = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-
+                            UnrecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
                             goto default;
                         case '"' when RecoveringFromRunawayLexing():
                             // When recovering from mismatched delimiters, we consume the next
