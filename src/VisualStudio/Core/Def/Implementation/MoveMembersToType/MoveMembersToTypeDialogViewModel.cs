@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
@@ -28,6 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
         private bool _canSubmit = true;
         public bool CanSubmit { get => _canSubmit; private set => SetProperty(ref _canSubmit, value); }
+
+        public NewTypeDestinationSelectionViewModel DestinationViewModel { get; }
+        public MemberSelectionViewModel _memberSelectionViewModel { get; }
 
         public MoveMembersToTypeDialogViewModel(
             IUIThreadOperationExecutor uiThreadOperationExecutor,

@@ -4,20 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
-    xmlns:Imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" xmlns:Imaging1="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
-    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
-    xmlns:CommonControls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls" xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
     x:Uid="MoveMembersToTypeDialog"
     x:Name="dialog"
     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.MoveMembersToTypeDialog"
     x:ClassModifier="internal"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
-    Height="598"
+    Height="498"
     Width="500"
-    MinHeight="598"
+    MinHeight="498"
     MinWidth="510"
     HasDialogFrame="True"
     ShowInTaskbar="False"
@@ -49,29 +45,20 @@
     <Grid Margin="0,10,0,10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="20*"/>
-            <RowDefinition Height="40*"/>
+            <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <vs:SearchTextBox
-            MinHeight="30"
-            MinWidth="250"
-            Margin="0,10,0,0"
-            Grid.Row="0"
-            Text="{Binding DestinationType, UpdateSourceTrigger=PropertyChanged}"
-        />
-        <GroupBox
-            x:Uid="MemberSelectionLabel"
-            Header="{Binding ElementName=dialog, Path=SelectMembers}"
-            MinHeight="200"
-            MinWidth="250"
-            Grid.Row="3">
+        <controls:NewTypeDestinationSelection Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
 
-            <ContentControl Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
+        <GroupBox x:Uid="MemberSelectionGroupBox"
+                  x:Name="MemberSelectionGroupBox"
+                  Margin="0, 9, 0, 0"
+                  Grid.Row="1"
+                  Header="{Binding ElementName=dialog, Path=SelectMembers}">
+            <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>
         <StackPanel
-            Grid.Row="4"
+            Grid.Row="2"
             Margin="0, 5, 8, 0"
             HorizontalAlignment="Right"
             Orientation="Horizontal">

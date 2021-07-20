@@ -18,20 +18,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
     /// </summary>
     internal partial class MoveMembersToTypeDialog : DialogWindow
     {
-        private readonly MoveMembersToTypeDialogViewModel _viewModel;
-
         public string MoveMembersToTypeDialogTitle => "Test";
         public string NamespaceLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
 
-        MemberSelection MemberSelectionControl { get; }
+        public MoveMembersToTypeDialogViewModel ViewModel { get; }
+        public MemberSelection MemberSelectionControl { get; }
 
         internal MoveMembersToTypeDialog(MoveMembersToTypeDialogViewModel viewModel)
             : base()
         {
-            _viewModel = viewModel;
+            ViewModel = viewModel;
 
             // Set focus to first tab control when the window is loaded
             Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
@@ -47,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.CanSubmit)
+            if (ViewModel.CanSubmit)
             {
                 DialogResult = true;
             }
