@@ -368,8 +368,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 ' TODO: Workaround for https//github.com/dotnet/roslyn/issues/54939.
                 ' We should fail if the container can't be mapped.
-                ' Currently this only occurs when determining reloadable type name for a type added to a New namespace,
-                ' which Is a rude edit.
+                ' Currently this only occurs when determining reloadable type name for a type added to a new namespace,
+                ' which is a rude edit.
                 ' Debug.Assert(otherContainer IsNot Nothing)
                 If otherContainer Is Nothing Then
                     Return Nothing

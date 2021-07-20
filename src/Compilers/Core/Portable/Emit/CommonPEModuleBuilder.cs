@@ -475,6 +475,28 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(TestData == null);
             TestData = methods;
         }
+
+        public int GetTypeDefinitionGeneration(Cci.INamedTypeDefinition typeDef)
+        {
+            if (PreviousGeneration != null)
+            {
+                var symbolChanges = EncSymbolChanges!;
+                if (symbolChanges.IsReplaced(typeDef))
+                {
+                    // Type emitted with Replace semantics in this delta, it's name should have the current generation ordinal suffix.
+                    return CurrentGenerationOrdinal;
+                }
+
+                var previousTypeDef = symbolChanges.DefinitionMap.MapDefinition(typeDef);
+                if (previousTypeDef != null && PreviousGeneration.GenerationOrdinals.TryGetValue(previousTypeDef, out int lastEmittedOrdinal))
+                {
+                    // Type previously emitted with Replace semantics is now updated in-place. Use the ordinal used to emit the last version of the type.
+                    return lastEmittedOrdinal;
+                }
+            }
+
+            return 0;
+        }
     }
 
     /// <summary>
@@ -624,7 +646,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
-                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
+                // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
