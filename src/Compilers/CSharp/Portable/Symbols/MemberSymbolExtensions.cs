@@ -396,9 +396,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // parameterless constructor is a synthesized default constructor that is not emitted.
 
             return methodSymbol.IsConstructor()
-                && !(methodSymbol.HasThisConstructorInitializer(out var initializerSyntax) && !Binder.IsDefaultValueTypeConstructor(methodSymbol.ContainingType, initializerSyntax))
+                && !(methodSymbol.HasThisConstructorInitializer(out var initializerSyntax) && !methodSymbol.ContainingType.IsDefaultValueTypeConstructor(initializerSyntax))
                 && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
                 && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
+        }
+
+        internal static bool IsDefaultValueTypeConstructor(this NamedTypeSymbol type, ConstructorInitializerSyntax initializerSyntax)
+        {
+            if (initializerSyntax.ArgumentList.Arguments.Count > 0)
+            {
+                return false;
+            }
+            var constructor = type.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
+            return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
         }
 
         /// <summary>

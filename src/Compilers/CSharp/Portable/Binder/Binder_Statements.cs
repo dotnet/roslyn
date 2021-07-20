@@ -3412,15 +3412,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool skipInitializer = false;
-            if (includesFieldInitializers
+            // The `: this()` initializer is ignored when it is a default value type constructor
+            // and we need to include field initializers into the constructor.
+            bool skipInitializer = includesFieldInitializers
                 && thisInitializer
-                && IsDefaultValueTypeConstructor(ContainingType, initializer))
-            {
-                // The `: this()` initializer is ignored when it is a default value type constructor
-                // and we need to include field initializers into the constructor.
-                skipInitializer = true;
-            }
+                && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
@@ -3433,16 +3429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
-        }
-
-        internal static bool IsDefaultValueTypeConstructor(NamedTypeSymbol type, ConstructorInitializerSyntax initializerSyntax)
-        {
-            if (initializerSyntax.ArgumentList.Arguments.Count > 0)
-            {
-                return false;
-            }
-            var constructor = type.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
-            return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
         }
 
         internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)
