@@ -813,7 +813,7 @@ class Z
 
     public Program(int field{|Navigation:)|}
     {
-        this._field = field;
+        _field = field;
     }
 }",
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));

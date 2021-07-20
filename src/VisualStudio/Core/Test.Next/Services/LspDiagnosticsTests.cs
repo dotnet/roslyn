@@ -512,7 +512,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 this.ProcessQueueAsync().Forget();
             }
 
-            public override void Post(SendOrPostCallback d, object? state) => this._queue.Enqueue((d, state));
+            public override void Post(SendOrPostCallback d, object? state) => _queue.Enqueue((d, state));
 
             public override void Send(SendOrPostCallback d, object? state) => throw new NotSupportedException();
 
@@ -522,7 +522,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             /// Causes this <see cref="SynchronizationContext"/> to reject all future posted work and
             /// releases the queue processor when it is empty.
             /// </summary>
-            public void Dispose() => this._queue.Complete();
+            public void Dispose() => _queue.Complete();
 
             /// <summary>
             /// Executes queued work on the thread-pool, one at a time.
@@ -530,9 +530,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             /// </summary>
             private async Task ProcessQueueAsync()
             {
-                while (!this._queue.IsCompleted)
+                while (!_queue.IsCompleted)
                 {
-                    var work = await this._queue.DequeueAsync().ConfigureAwait(false);
+                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
                     work.Item1(work.Item2);
                 }
             }

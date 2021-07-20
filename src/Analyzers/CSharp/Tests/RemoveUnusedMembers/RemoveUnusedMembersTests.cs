@@ -862,7 +862,7 @@ class MyClass
             var code = @"class MyClass
 {
     private int _goo;
-    public int M() => this._goo;
+    public int M() => _goo;
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
