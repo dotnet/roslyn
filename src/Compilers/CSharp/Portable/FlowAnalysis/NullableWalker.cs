@@ -3832,7 +3832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // At this point, State.Reachable may be false for
             // invalid code such as `s + throw new Exception()`.
 
-            var method = binary.MethodOpt;
+            var method = binary.Method;
 
             if (binary.OperatorKind.IsUserDefined() &&
                 method?.ParameterCount == 2)
@@ -3853,7 +3853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameters = method.Parameters;
                 visitOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
                 visitOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
-                SetUpdatedSymbol(binary, binary.MethodOpt!, method);
+                SetUpdatedSymbol(binary, binary.Method!, method);
 
                 void visitOperandConversion(
                     BoundExpression expr,
@@ -9289,7 +9289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node switch
             {
-                BoundBinaryOperator binary => InferResultNullability(binary.OperatorKind, binary.MethodOpt, binary.Type, leftType, rightType),
+                BoundBinaryOperator binary => InferResultNullability(binary.OperatorKind, binary.Method, binary.Type, leftType, rightType),
                 BoundUserDefinedConditionalLogicalOperator userDefined => InferResultNullability(userDefined),
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
