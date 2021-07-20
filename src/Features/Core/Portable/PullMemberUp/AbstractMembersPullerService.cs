@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
                     sourceImports.AddRange(GetImports(syntax)
                         .Select(import => import
-                            .WithLeadingTrivia(originalMemberEditor.Generator.ElasticCarriageReturnLineFeed)
+                            .WithoutLeadingTrivia()
                             .WithTrailingTrivia(originalMemberEditor.Generator.ElasticCarriageReturnLineFeed)
                             .WithAdditionalAnnotations(s_annotation)));
 

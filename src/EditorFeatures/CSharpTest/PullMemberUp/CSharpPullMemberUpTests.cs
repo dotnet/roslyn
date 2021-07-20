@@ -1201,6 +1201,7 @@ public class Derived : Base
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
+
 using System.Threading.Tasks;
 
 public class Base
@@ -1230,8 +1231,7 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using System.Linq;
+        <Document FilePath = ""File1.cs"">using System.Linq;
 using System.Threading.Tasks;
 
 public class Base
@@ -1904,8 +1904,7 @@ namespace TestNs4
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">
-using TestNs3;
+        <Document FilePath = ""File1.cs"">using TestNs3;
 using TestNs4;
 
 namespace TestNs1
