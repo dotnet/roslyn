@@ -25,33 +25,15 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax, TCompilationUnitSyntax, TNamespaceDeclarationSyntax> : IMembersPullerService
-        where TUsingOrAliasSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode
-        where TNamespaceDeclarationSyntax : SyntaxNode
+    internal static class MembersPuller
     {
-        /// <summary>
-        /// Gets all the imports/aliases in scope of the compilation unit <paramref name="node"/>.
-        /// </summary>
-        protected abstract SyntaxList<TUsingOrAliasSyntax> GetCompilationImports(TCompilationUnitSyntax node);
-
-        /// <summary>
-        /// Gets all the imports/aliases in scope of the namespace declared at <paramref name="node"/>.
-        /// </summary>
-        protected abstract SyntaxList<TUsingOrAliasSyntax> GetNamespaceImports(TNamespaceDeclarationSyntax node);
-
-        /// <summary>
-        /// Name used for our removable import annotation <see cref="s_annotation"/>
-        /// </summary>
-        private const string AnnotationKind = "PullMemberRemovableImport";
-
         /// <summary>
         /// Annotation used to mark imports that we move over, so that we can remove these imports if they are unnecessary
         /// (and so we don't remove any other unnecessary imports)
         /// </summary>
-        private static readonly SyntaxAnnotation s_annotation = new(AnnotationKind);
+        private static readonly SyntaxAnnotation s_annotation = new("PullMemberRemovableImport");
 
-        public CodeAction TryComputeCodeAction(
+        public static CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
             INamedTypeSymbol destination)
@@ -70,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 title);
         }
 
-        public Task<Solution> PullMembersUpAsync(
+        public static Task<Solution> PullMembersUpAsync(
             Document document,
             PullMembersUpOptions pullMembersUpOptions,
             CancellationToken cancellationToken)
@@ -256,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private async Task<Solution> PullMembersIntoClassAsync(
+        private static async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
             Solution solution,
@@ -287,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
-            using var _ = PooledHashSet<TUsingOrAliasSyntax>.GetInstance(out var sourceImports);
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
                 cancellationToken).ConfigureAwait(false);
@@ -304,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 if (!resultNamespace.IsGlobalNamespace)
                 {
                     sourceImports.Add(
-                        (TUsingOrAliasSyntax)destinationEditor.Generator.NamespaceImportDeclaration(
+                        destinationEditor.Generator.NamespaceImportDeclaration(
                             resultNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
                         .WithAdditionalAnnotations(s_annotation));
                 }
@@ -315,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    sourceImports.AddRange(GetImports(syntax)
+                    sourceImports.AddRange(GetImports(syntax, syntaxFacts)
                         .Select(import => import
                             .WithoutLeadingTrivia()
                             .WithTrailingTrivia(originalMemberEditor.Generator.ElasticCarriageReturnLineFeed)
@@ -362,9 +344,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
-                node => node.HasAnnotations(AnnotationKind),
-                cancellationToken)
-                .ConfigureAwait(false);
+                node => node.HasAnnotation(s_annotation),
+                cancellationToken).ConfigureAwait(false);
 
             // Format whitespace trivia within the import statements we pull up
             destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -411,17 +392,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Get all import statements in scope for this syntax by traversing up the tree and searching in containing namespaces and compilation units.
         /// </summary>
-        /// <param name="node">The node to start traversing up from</param>
+        /// <param name="start">The node to start traversing up from</param>
         /// <returns>All the import/using directives found along the traversal</returns>
-        private ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node)
+        private static ImmutableArray<SyntaxNode> GetImports(SyntaxNode start, ISyntaxFactsService syntaxFacts)
         {
-            return node.AncestorsAndSelf()
-                .Where(node => node is TCompilationUnitSyntax || node is TNamespaceDeclarationSyntax)
-                .SelectMany(node => node switch
+            return start.AncestorsAndSelf()
+                .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsNamespaceDeclaration(node))
+                .SelectMany(node =>
                 {
-                    TCompilationUnitSyntax c => GetCompilationImports(c),
-                    TNamespaceDeclarationSyntax n => GetNamespaceImports(n),
-                    _ => throw ExceptionUtilities.UnexpectedValue(node)
+                    if (node is ICompilationUnitSyntax)
+                    {
+                        return syntaxFacts.GetImportsOfCompilationUnit(node);
+                    }
+                    else
+                    {
+                        // node is namespace declaration
+                        return syntaxFacts.GetImportsOfNamespaceDeclaration(node);
+                    }
                 })
                 .ToImmutableArray();
         }

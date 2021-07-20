@@ -209,9 +209,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());
             var updatedOriginalDocument = solution.GetRequiredDocument(_document.Id);
 
-            var membersPuller = updatedOriginalDocument.GetRequiredLanguageService<IMembersPullerService>();
-
-            return await membersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
+            return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, SyntaxAnnotation typeAnnotation, CancellationToken cancellationToken)

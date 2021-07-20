@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             {
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {
-                    var membersPuller = _document.Project.LanguageServices.GetRequiredService<IMembersPullerService>();
-                    var changedSolution = await membersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
+                    var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
                     return new[] { new ApplyChangesOperation(changedSolution) };
                 }
                 else
