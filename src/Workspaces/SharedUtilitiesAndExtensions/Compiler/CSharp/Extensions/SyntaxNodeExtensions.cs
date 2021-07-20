@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<UsingDirectiveSyntax> GetEnclosingUsingDirectives(this SyntaxNode node)
         {
             return node.GetAncestorOrThis<CompilationUnitSyntax>()!.Usings
-                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                       .Concat(node.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>()
                                    .Reverse()
                                    .SelectMany(n => n.Usings));
         }
