@@ -14,14 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-            {
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.AsyncKeyword,
-                SyntaxKind.UnsafeKeyword,
-            };
-
         public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
@@ -223,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
 
-            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
+            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
 
             return new CSharpSyntaxContext(
                 workspace: workspace,
