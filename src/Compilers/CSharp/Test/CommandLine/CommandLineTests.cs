@@ -11470,7 +11470,7 @@ System.NotImplementedException: 28
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
@@ -11508,8 +11508,7 @@ class C
             Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-            var suppressionMessage = string.Format(CultureHelpers.EnglishCulture,
-                CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix, "l"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
@@ -11521,7 +11520,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerSyntaxWarning()
         {
             // warning CS1522: Empty switch block
@@ -11549,8 +11548,7 @@ class C
             var suppressor = new DiagnosticSuppressorForId("CS1522");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-            var suppressionMessage = string.Format(CultureHelpers.EnglishCulture,
-                CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
@@ -11583,7 +11581,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerSemanticWarning()
         {
             string source = @"
@@ -11605,8 +11603,7 @@ class C
             var suppressor = new DiagnosticSuppressorForId("CS0169");
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-            var suppressionMessage = string.Format(CultureHelpers.EnglishCulture,
-                CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_UnreferencedField, "C.f"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
@@ -11688,7 +11685,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"
@@ -11709,8 +11706,7 @@ class C { }";
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
 
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
-            var suppressionMessage = string.Format(CultureHelpers.EnglishCulture,
-                CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 analyzer.Descriptor.MessageFormat,
                 suppressor.SuppressionDescriptor.Id,
