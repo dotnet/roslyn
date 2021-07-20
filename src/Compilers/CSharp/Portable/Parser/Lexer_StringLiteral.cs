@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Normal string & char constants can have escapes. Strings in directives cannot.
                 if (ch == '\\' && !inDirective)
                 {
-                    char c2;
-                    ch = this.ScanEscapeSequence(out c2);
+                    ch = this.ScanEscapeSequence(out var c2);
                     _builder.Append(ch);
                     if (c2 != SlidingTextWindow.InvalidCharacter)
                         _builder.Append(c2);
@@ -213,8 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
             SyntaxDiagnosticInfo? error = null;
-            bool closeQuoteMissing;
-            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out closeQuoteMissing);
+            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out _);
             this.AddError(error);
         }
 
@@ -551,8 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     this._isVerbatim = isVerbatimSubstring;
                                     this._allowNewlines &= _isVerbatim;
-                                    bool closeQuoteMissing;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
                                 }
                                 finally
                                 {
@@ -622,8 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     this._isVerbatim = true;
                                     this._allowNewlines = true;
-                                    bool closeQuoteMissing;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
                                 }
                                 finally
                                 {
