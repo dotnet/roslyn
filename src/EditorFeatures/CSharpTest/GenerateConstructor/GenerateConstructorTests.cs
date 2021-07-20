@@ -3301,7 +3301,7 @@ class D
 
     public D(int _)
     {
-        _ = _;
+        this._ = _;
     }
 }");
         }

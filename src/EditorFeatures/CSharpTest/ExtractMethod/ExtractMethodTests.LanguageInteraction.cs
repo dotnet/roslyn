@@ -1851,7 +1851,7 @@ public class Test<T>
 {
     protected class Node
     {
-        internal Node(T item) { _item = item; }
+        internal Node(T item) { this._item = item; }
         internal T _item;
     }
     protected Node _current = null;
@@ -1873,7 +1873,7 @@ public class Test<T>
 {
     protected class Node
     {
-        internal Node(T item) { _item = item; }
+        internal Node(T item) { this._item = item; }
         internal T _item;
     }
     protected Node _current = null;

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 
     public C(int someInt)
     {
-        _someInt = someInt;
+        this._someInt = someInt;
     }
 }";
             await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText,
