@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ch = this.ScanEscapeSequence(out c2);
                     _builder.Append(ch);
                     if (c2 != SlidingTextWindow.InvalidCharacter)
-                    {
                         _builder.Append(c2);
-                    }
                 }
                 else if (ch == quoteCharacter)
                 {
@@ -59,9 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
-                {
                     this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
-                }
 
                 if (_builder.Length > 0)
                 {
@@ -427,9 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     closeBraceMissing = true;
                                     if (UnrecoverableError == null)
-                                    {
                                         UnrecoverableError = _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
-                                    }
                                 }
 
                                 interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition, closeBraceMissing));
@@ -437,17 +431,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             continue;
                         case '\\':
                             if (_isVerbatim)
-                            {
                                 goto default;
-                            }
 
                             var escapeStart = _lexer.TextWindow.Position;
                             char c2;
                             char ch = _lexer.ScanEscapeSequence(out c2);
                             if ((ch == '{' || ch == '}') && UnrecoverableError == null)
-                            {
                                 UnrecoverableError = _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
-                            }
 
                             continue;
                         default:
@@ -472,9 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         char c2;
                         ch = _lexer.ScanEscapeSequence(out c2);
                         if ((ch == '{' || ch == '}') && UnrecoverableError == null)
-                        {
                             UnrecoverableError = _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
-                        }
                     }
                     else if (ch == '"')
                     {
@@ -552,9 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case '#':
                             // preprocessor directives not allowed.
                             if (UnrecoverableError == null)
-                            {
                                 UnrecoverableError = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-                            }
 
                             _lexer.TextWindow.AdvanceChar();
                             continue;
@@ -597,14 +583,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case ')':
                         case ']':
                             if (ch == endingChar)
-                            {
                                 return;
-                            }
 
                             if (UnrecoverableError == null)
-                            {
                                 UnrecoverableError = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-                            }
 
                             goto default;
                         case '"' when RecoveringFromRunawayLexing():
@@ -729,9 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string);
 
                     if (IsAtEnd(allowNewline: true))
-                    {
                         return; // let the caller complain about the unterminated quote
-                    }
 
                     _lexer.TextWindow.AdvanceChar();
                     if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
