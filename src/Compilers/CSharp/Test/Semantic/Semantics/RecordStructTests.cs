@@ -1097,26 +1097,45 @@ var s1 = new S1();
 var s2 = new S2(null);
 var s2b = new S2();
 var s3 = new S3();
-System.Console.Write((s1.field, s2.field, s2b.field is null, s3.field));
+var s4 = new S4(new object());
+var s5 = new S5();
+var s6 = new S6(""s6.other"");
+
+System.Console.Write((s1.field, s2.field, s2b.field is null, s3.field, s4.field, s5.field, s6.field, s6.other));
 
 record struct S1
 {
-    public string field = ""hello"";
+    public string field = ""s1"";
     public S1() { }
 }
 record struct S2
 {
-    public string field = ""hello"";
+    public string field = ""s2"";
     public S2(object o) { }
 }
 record struct S3()
 {
-    public string field = ""hello"";
+    public string field = ""s3"";
+}
+record struct S4
+{
+    public string field = ""s4"";
+    public S4(object o) : this() { }
+}
+record struct S5()
+{
+    public string field = ""s5"";
+    public S5(object o) : this() { }
+}
+record struct S6(string other)
+{
+    public string field = ""s6.field"";
+    public S6() : this(""ignored"") { }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "(hello, hello, True, hello)");
+            CompileAndVerify(comp, expectedOutput: "(s1, s2, True, s3, s4, s5, s6.field, s6.other)");
         }
 
         [Fact]
