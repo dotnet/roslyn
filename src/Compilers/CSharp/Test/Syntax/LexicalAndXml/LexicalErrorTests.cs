@@ -448,7 +448,7 @@ class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string1()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string1()
         {
             var test = @"
 public class Test
@@ -464,7 +464,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string2()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string2()
         {
             var test = @"
 public class Test
@@ -480,11 +480,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,28): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @" "
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 28));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string3()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string3()
         {
             var test = @"
 public class Test
@@ -500,11 +500,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string4()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string4()
         {
             var test = @"
 public class Test
@@ -521,11 +521,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multiline verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string5()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string5()
         {
             var test = @"
 public class Test
@@ -541,11 +541,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string6()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string6()
         {
             var test = @"
 public class Test
@@ -562,11 +562,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string7()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string7()
         {
             var test = @"
 public class Test
@@ -584,11 +584,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,23): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string8()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string8()
         {
             var test = @"
 public class Test
@@ -605,11 +605,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string9()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string9()
         {
             var test = @"
 public class Test
@@ -626,11 +626,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,24): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { @"
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 24));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string10()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string10()
         {
             var test = @"
 public class Test
@@ -647,11 +647,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,30): error CS9000: Multi-line verbatim string literal is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { $@" { @"
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, @"@""").WithLocation(6, 30));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string11()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string11()
         {
             var test = @"
 public class Test
@@ -670,7 +670,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string12()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string12()
         {
             var test = @"
 public class Test
@@ -704,7 +704,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string13()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string13()
         {
             var test = @"
 public class Test
@@ -739,7 +739,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string14()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string14()
         {
             var test = @"
 public class Test
@@ -755,7 +755,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string15()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string15()
         {
             var test = @"
 public class Test
@@ -769,13 +769,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,37): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,37): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /* comment */
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string16()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string16()
         {
             var test = @"
 public class Test
@@ -790,16 +790,16 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,26): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,26): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /*
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26),
                 // (8,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 29));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string17()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string17()
         {
             var test = @"
 public class Test
@@ -815,7 +815,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string18()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string18()
         {
             var test = @"
 public class Test
@@ -831,11 +831,11 @@ public class Test
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (6,37): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /* comment */
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string19()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string19()
         {
             var test = @"
 public class Test
@@ -854,11 +854,11 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
                 // (6,37): error CS9001: Newline is not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /* comment */
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string20()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string20()
         {
             var test = @"
 public class Test
@@ -872,13 +872,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,39): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,39): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /* comment */ 0
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 39));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 39));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string21()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string21()
         {
             var test = @"
 public class Test
@@ -892,13 +892,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,37): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,37): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /* comment */
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 37));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string22()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string22()
         {
             var test = @"
 public class Test
@@ -917,13 +917,13 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x { /*
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23),
-                // (6,26): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,26): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /*
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string23()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string23()
         {
             var test = @"
 public class Test
@@ -939,13 +939,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,26): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,26): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /*
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string24()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string24()
         {
             var test = @"
 public class Test
@@ -961,13 +961,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,26): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,26): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /*
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string25()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string25()
         {
             var test = @"
 public class Test
@@ -984,13 +984,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,26): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,26): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x { /*
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 26));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string26()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string26()
         {
             var test = @"
 public class Test
@@ -1004,16 +1004,16 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string27()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string27()
         {
             var test = @"
 public class Test
@@ -1027,13 +1027,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string28()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string28()
         {
             var test = @"
 public class Test
@@ -1049,16 +1049,16 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string29()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string29()
         {
             var test = @"
 public class Test
@@ -1074,13 +1074,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string30()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string30()
         {
             var test = @"
 public class Test
@@ -1097,13 +1097,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string31()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string31()
         {
             var test = @"
 public class Test
@@ -1120,16 +1120,16 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //       string s = $"x {
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23),
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string32()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string32()
         {
             var test = @"
 public class Test
@@ -1146,13 +1146,13 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-            // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+            // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
             //       string s = $"x {
-            Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+            Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
-        public void CS9000ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string33()
+        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string33()
         {
             var test = @"
 public class Test
@@ -1170,9 +1170,9 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-            // (6,23): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+            // (6,23): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
             //       string s = $"x {
-            Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
+            Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 23));
         }
 
         [Fact]
