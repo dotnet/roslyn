@@ -464,7 +464,7 @@ namespace BoundTreeGenerator
                         {
                             if (IsPropertyOverrides(field))
                             {
-                                WriteLine("_{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
+                                WriteLine("this._{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
                             }
                             else
                             {
@@ -591,7 +591,7 @@ namespace BoundTreeGenerator
                         {
                             if (IsPropertyOverrides(field))
                             {
-                                WriteLine("_{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
+                                WriteLine("this._{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
                             }
                             else
                             {
