@@ -2,16 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -224,13 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            SyntaxDiagnosticInfo error = null;
+            SyntaxDiagnosticInfo? error = null;
             bool closeQuoteMissing;
             ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out closeQuoteMissing);
             this.AddError(error);
         }
 
-        internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo error, out bool closeQuoteMissing)
+        internal void ScanInterpolatedStringLiteralTop(
+            ArrayBuilder<Interpolation>? interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo? error, out bool closeQuoteMissing)
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
             subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
@@ -303,18 +296,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// things worse.  The second (<see cref="RecoverableError"/>), still indicates that the user code is wrong,
             /// however we don't need to stop processing.
             /// </summary>
-            public SyntaxDiagnosticInfo UnrecoverableError;
+            public SyntaxDiagnosticInfo? UnrecoverableError;
 
             /// <inheritdoc cref="UnrecoverableError"/>
-            public SyntaxDiagnosticInfo RecoverableError;
+            public SyntaxDiagnosticInfo? RecoverableError;
 
             public InterpolatedStringScanner(
                 Lexer lexer,
                 bool isVerbatim)
             {
-                this._lexer = lexer;
-                this._isVerbatim = isVerbatim;
-                this._allowNewlines = isVerbatim;
+                _lexer = lexer;
+                _isVerbatim = isVerbatim;
+                _allowNewlines = isVerbatim;
             }
 
             private bool IsAtEnd()
@@ -330,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info, out bool closeQuoteMissing)
+            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, ref TokenInfo info, out bool closeQuoteMissing)
             {
                 if (_isVerbatim)
                 {
@@ -372,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.InterpolatedStringToken;
             }
 
-            private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation> interpolations)
+            private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation>? interpolations)
             {
                 while (true)
                 {
@@ -569,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (_lexer.TextWindow.PeekChar(1) == '"' || _lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 bool isVerbatimSubstring = _lexer.TextWindow.PeekChar(1) == '@';
-                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = this._isVerbatim;
                                 bool wasAllowNewlines = this._allowNewlines;
@@ -646,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 _lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
-                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = this._isVerbatim;
                                 bool wasAllowNewlines = this._allowNewlines;
