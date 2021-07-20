@@ -115,6 +115,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     view.LayoutChanged -= View_LayoutChanged;
                 });
 
+            // The tag listens to the width changing to allow the diagnostic UI to move with
+            // the window as it gets moved.
+            // The InlineDiagnosticsAdornmentManager listens to the viewport width
+            // changing to deal with diagnostics intersecting with the text in the editor.
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {
                 if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)

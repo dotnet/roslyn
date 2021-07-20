@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     {
                         map.Add(lineNum, tagMappingSpan);
                     }
-                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
+                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
                     {
                         // Draw the first instance of an error, if what is stored in the map at a specific line is
                         // not an error, then replace it. Otherwise, just get the first warning on the line.
