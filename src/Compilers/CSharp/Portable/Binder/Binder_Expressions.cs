@@ -1289,8 +1289,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = typeofBinder.BindType(typeSyntax, diagnostics, out alias);
             TypeSymbol type = typeWithAnnotations.Type;
 
-            bool hasError = CheckDisallowedAttributeDependentType(node, typeWithAnnotations, isTypeof: true, diagnostics);
-            if (!hasError && this.InAttributeArgument && type.ContainsFunctionPointer())
+            bool hasError = false;
+
+            // NB: Dev10 has an error for typeof(dynamic), but allows typeof(dynamic[]),
+            // typeof(C<dynamic>), etc.
+            if (type.IsDynamic())
+            {
+                diagnostics.Add(ErrorCode.ERR_BadDynamicTypeof, node.Location);
+                hasError = true;
+            }
+            else if (typeWithAnnotations.NullableAnnotation.IsAnnotated() && type.IsReferenceType)
+            {
+                // error: cannot take the `typeof` a nullable reference type.
+                diagnostics.Add(ErrorCode.ERR_BadNullableTypeof, node.Location);
+                hasError = true;
+            }
+            else if (this.InAttributeArgument && type.ContainsFunctionPointer())
             {
                 // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error and properly supporting function
                 // pointers in attribute types. Until then, we don't know how serialize them, so error instead of crashing
@@ -1299,29 +1313,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
+            if (!hasError)
+            {
+                CheckDisallowedAttributeDependentType(typeWithAnnotations, isError: false, node.Location, diagnostics);
+            }
+
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
 
         /// <summary>Called when an "attribute-dependent" type such as 'dynamic', 'string?', etc. is not permitted.</summary>
-        private bool CheckDisallowedAttributeDependentType(SyntaxNode node, TypeWithAnnotations typeArgument, bool isTypeof, BindingDiagnosticBag diagnostics)
+        private void CheckDisallowedAttributeDependentType(TypeWithAnnotations typeArgument, bool isError, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
-            // NB: Dev10 has an error for typeof(dynamic), but allows typeof(dynamic[]),
-            // typeof(C<dynamic>), etc.
-            var type = typeArgument.Type;
-            if (type.IsDynamic())
+            var diagnosticId = isError ? ErrorCode.ERR_AttrDependentTypeNotAllowed : ErrorCode.WRN_AttrDependentTypeNotAllowed;
+            typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
             {
-                diagnostics.Add(isTypeof ? ErrorCode.ERR_BadDynamicTypeof : ErrorCode.ERR_BadDynamicAttrTypeArg, node.Location);
-                return true;
-            }
-            else if (typeArgument.NullableAnnotation.IsAnnotated() && type.IsReferenceType)
-            {
-                // error: cannot take the `typeof` a nullable reference type.
-                diagnostics.Add(isTypeof ? ErrorCode.ERR_BadNullableTypeof : ErrorCode.ERR_BadNullableAttrTypeArg, node.Location);
-                return true;
-            }
+                var (topLevelType, diagnosticId, errorLocation, diagnostics) = arg;
+                var type = typeWithAnnotations.Type;
+                if (type.IsDynamic()
+                    || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && type.IsReferenceType)
+                    || type.IsNativeIntegerType
+                    || (type.IsTupleType && !type.TupleElementNames.IsDefault))
+                {
+                    diagnostics.Add(diagnosticId, errorLocation, topLevelType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    return true;
+                }
 
-            return false;
+                return false;
+            }, typePredicate: null, arg: (typeArgument, diagnosticId, errorLocation, diagnostics));
         }
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)

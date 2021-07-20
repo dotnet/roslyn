@@ -77,6 +77,11 @@
         <target state="translated">Vlastnost jenom pro inicializaci nebo indexer {0} se dá přiřadit jenom k inicializátoru objektu, pomocí klíčového slova this nebo base v konstruktoru instance nebo k přístupovému objektu init.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
         <source>'{0}': an attribute type argument cannot use type parameters</source>
         <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
@@ -142,11 +147,6 @@
         <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicAttrTypeArg">
-        <source>An attribute type argument cannot be the dynamic type</source>
-        <target state="new">An attribute type argument cannot be the dynamic type</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">V asynchronním příkazu foreach nejde použít kolekce dynamického typu.</target>
@@ -175,11 +175,6 @@
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
         <target state="translated">Přístupový objekt init není platný pro statické členy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadNullableAttrTypeArg">
-        <source>An attribute type argument cannot be a nullable reference type</source>
-        <target state="new">An attribute type argument cannot be a nullable reference type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -1305,6 +1300,11 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

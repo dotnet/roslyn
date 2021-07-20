@@ -77,6 +77,11 @@
         <target state="translated">只有物件初始設定式中，或執行個體建構函式中 'this' 或 'base' 上僅供初始化的屬性或索引子 '{0}' 或 'init' 存取子可以指派。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
         <source>'{0}': an attribute type argument cannot use type parameters</source>
         <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
@@ -142,11 +147,6 @@
         <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicAttrTypeArg">
-        <source>An attribute type argument cannot be the dynamic type</source>
-        <target state="new">An attribute type argument cannot be the dynamic type</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">無法在非同步 foreach 中使用動態類型的集合</target>
@@ -175,11 +175,6 @@
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
         <target state="translated">靜態成員上的 'Init' 存取子無效</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadNullableAttrTypeArg">
-        <source>An attribute type argument cannot be a nullable reference type</source>
-        <target state="new">An attribute type argument cannot be a nullable reference type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -1305,6 +1300,11 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

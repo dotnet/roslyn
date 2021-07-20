@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            CheckDisallowedAttributeDependentType(node, typeArgument, isTypeof: false, diagnostics);
+                            CheckDisallowedAttributeDependentType(typeArgument, isError: true, node.Location, diagnostics);
                         }
                     }
                 }

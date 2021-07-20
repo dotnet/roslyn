@@ -9938,36 +9938,42 @@ class Program
 
         [Fact]
         [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
-        public void GenericAttribute_Dynamic()
+        public void GenericAttribute_AttributeDependentTypes()
         {
             var source = @"
+#nullable enable
+
 using System;
+using System.Collections.Generic;
 
-class Attr1 : Attribute
-{
-    public Attr1(Type t) { }
-}
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class Attr<T> : Attribute { }
 
-class Attr2<T> : Attribute { }
-
-[Attr1(typeof(dynamic))] // 1
-[Attr2<dynamic>] // 2
+[Attr<List<dynamic>>] // 1
+[Attr<nint>] // 2
+[Attr<List<nint>>] // 3
+[Attr<List<string?>>] // 4
+[Attr<(int a, int b)>] // 5
+[Attr<ValueTuple<int, int>>] // ok
 class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,8): error CS1962: The typeof operator cannot be used on the dynamic type
-                // [Attr1(typeof(dynamic))] // 1
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(11, 8),
-                // (12,2): error CS8959: An attribute type argument cannot be the dynamic type
-                // [Attr2<dynamic>] // 2
-                Diagnostic(ErrorCode.ERR_BadDynamicAttrTypeArg, "Attr2<dynamic>").WithLocation(12, 2));
-
-            var cClass = comp.GetMember<NamedTypeSymbol>("C");
-            var attrs = cClass.GetAttributes();
-            Assert.Equal(
-                new[] { "Attr1(typeof(dynamic))", "Attr2<dynamic>" },
-                GetAttributeStrings(attrs));
+                // (10,2): error CS8960: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // [Attr<List<dynamic>>] // 1
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("List<dynamic>").WithLocation(10, 2),
+                // (11,2): error CS8960: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
+                // [Attr<nint>] // 2
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<nint>").WithArguments("nint").WithLocation(11, 2),
+                // (12,2): error CS8960: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
+                // [Attr<List<nint>>] // 3
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("List<nint>").WithLocation(12, 2),
+                // (13,2): error CS8960: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
+                // [Attr<List<string?>>] // 4
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("List<string?>").WithLocation(13, 2),
+                // (14,2): error CS8960: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
+                // [Attr<(int a, int b)>] // 5
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, int b)>").WithArguments("(int a, int b)").WithLocation(14, 2));
         }
 
         [Fact]
