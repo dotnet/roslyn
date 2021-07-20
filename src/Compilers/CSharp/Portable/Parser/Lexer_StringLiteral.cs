@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = TextWindow.GetText(true);
+            info.Text = TextWindow.GetText(intern: true);
             if (quoteCharacter == '\'')
             {
                 info.Kind = SyntaxKind.CharacterLiteralToken;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             info.Kind = SyntaxKind.StringLiteralToken;
-            info.Text = TextWindow.GetText(false);
+            info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
 
             return error;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
             SyntaxDiagnosticInfo? error = null;
-            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out _);
+            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, ref error, out _);
             this.AddError(error);
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 error = subScanner.UnrecoverableError ?? subScanner.RecoverableError;
             }
 
-            info.Text = TextWindow.GetText(false);
+            info.Text = TextWindow.GetText(intern: false);
         }
 
         internal struct Interpolation
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 char ch = _lexer.TextWindow.PeekChar();
                 return
-                    !allowNewline && SyntaxFacts.IsNewLine(ch) ||
+                    (!allowNewline && SyntaxFacts.IsNewLine(ch)) ||
                     (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
             }
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(IsAtEnd());
                     if (UnrecoverableError == null)
                     {
-                        int position = IsAtEnd(true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
+                        int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
                         UnrecoverableError = _lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
                     }
 
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 int openBracePosition = _lexer.TextWindow.Position;
                                 _lexer.TextWindow.AdvanceChar();
                                 int colonPosition = 0;
-                                ScanInterpolatedStringLiteralHoleBalancedText('}', true, ref colonPosition);
+                                ScanInterpolatedStringLiteralHoleBalancedText('}', isHole: true, ref colonPosition);
                                 int closeBracePosition = _lexer.TextWindow.Position;
                                 bool closeBraceMissing = false;
                                 if (_lexer.TextWindow.PeekChar() == '}')
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(start == _lexer.TextWindow.PeekChar());
                 _lexer.TextWindow.AdvanceChar();
                 int colon = 0;
-                ScanInterpolatedStringLiteralHoleBalancedText(end, false, ref colon);
+                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, ref colon);
                 if (_lexer.TextWindow.PeekChar() == end)
                 {
                     _lexer.TextWindow.AdvanceChar();
