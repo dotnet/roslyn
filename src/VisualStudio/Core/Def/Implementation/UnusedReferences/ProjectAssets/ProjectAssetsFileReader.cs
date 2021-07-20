@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
-            var projectAssetsFileContents = await IOUtilities.PerformIOAsync(() =>
+            var projectAssetsFileContents = await IOUtilities.PerformIOAsync(async () =>
             {
                 using var fileStream = File.OpenRead(projectAssetsFilePath);
                 using var reader = new StreamReader(fileStream);
-                return reader.ReadToEndAsync();
+                return await reader.ReadToEndAsync().ConfigureAwait(false);
             }).ConfigureAwait(false);
 
             if (projectAssetsFileContents is null)
