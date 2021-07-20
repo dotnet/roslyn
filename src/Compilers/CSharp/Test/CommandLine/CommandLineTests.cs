@@ -9748,6 +9748,7 @@ public class Program
                                            int expectedErrorCount = 0,
                                            int? expectedExitCode = null,
                                            bool errorlog = false,
+                                           bool skipAnalyzers = false,
                                            IEnumerable<ISourceGenerator> generators = null,
                                            params DiagnosticAnalyzer[] analyzers)
         {
@@ -9763,6 +9764,11 @@ public class Program
             if (errorlog)
             {
                 args = args.Append("/errorlog:errorlog");
+            }
+
+            if (skipAnalyzers)
+            {
+                args = args.Append("/skipAnalyzers");
             }
 
             if (additionalFlags != null)
@@ -11520,8 +11526,8 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
-        public void TestSuppression_CompilerSyntaxWarning()
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxWarning(bool skipAnalyzers)
         {
             // warning CS1522: Empty switch block
             // NOTE: Empty switch block warning is reported by the C# language parser
@@ -11540,7 +11546,7 @@ class C
             srcFile.WriteAllText(source);
 
             // Verify that compiler warning CS1522 is reported.
-            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("warning CS1522", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS1522 is suppressed with diagnostic suppressor
@@ -11555,14 +11561,14 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor, errorlog: true);
+                analyzers: suppressor, errorlog: true, skipAnalyzers: skipAnalyzers);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
             Assert.Contains($"info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS1522 is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false);
+                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("error CS1522", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror
@@ -11571,6 +11577,7 @@ class C
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
+                skipAnalyzers: skipAnalyzers,
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
@@ -11581,8 +11588,8 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
-        public void TestSuppression_CompilerSemanticWarning()
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSemanticWarning(bool skipAnalyzers)
         {
             string source = @"
 class C
@@ -11595,7 +11602,7 @@ class C
             srcFile.WriteAllText(source);
 
             // Verify that compiler warning CS0169 is reported.
-            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("warning CS0169", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS0169 is suppressed with diagnostic suppressor
@@ -11610,14 +11617,14 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor, errorlog: true);
+                analyzers: suppressor, errorlog: true, skipAnalyzers: skipAnalyzers);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS0169 is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false);
+                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("error CS0169", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS0169 is suppressed with diagnostic suppressor even with /warnaserror
@@ -11626,6 +11633,7 @@ class C
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
+                skipAnalyzers: skipAnalyzers,
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS0169", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);

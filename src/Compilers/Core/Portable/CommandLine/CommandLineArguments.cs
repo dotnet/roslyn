@@ -524,12 +524,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // All analyzer references are registered now, we can start loading them:
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
+
+            // All analyzer references are registered now, we can start loading them.
             foreach (var resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                if (!skipAnalyzers)
-                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
