@@ -12527,7 +12527,8 @@ class C
             // 'WarningDiagnosticAnalyzer' generates a warning for each named type.
             // We expect two warnings for this test: type "C" defined in source and the source generator defined type.
             // Additionally, we also have an analyzer that generates "warning CS8032: An instance of analyzer cannot be created"
-            var expectedWarningCount = expectedAnalyzerExecution ? 3 : 0;
+            // CS8032 is generated with includeCurrentAssemblyAsAnalyzerReference even when we are skipping analyzers as we will instantiate all analyzers, just not execute them.
+            var expectedWarningCount = expectedAnalyzerExecution ? 3 : (includeCurrentAssemblyAsAnalyzerReference ? 1 : 0);
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
                 expectedWarningCount: expectedWarningCount,
@@ -12541,6 +12542,10 @@ class C
             if (expectedAnalyzerExecution)
             {
                 Assert.Contains("warning Warning01", output, StringComparison.Ordinal);
+                Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
+            }
+            else if (includeCurrentAssemblyAsAnalyzerReference)
+            {
                 Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             }
             else
