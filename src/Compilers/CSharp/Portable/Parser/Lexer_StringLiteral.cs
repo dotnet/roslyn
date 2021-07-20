@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
                 // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
                 if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
-                    error ??= ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string;
+                    error ??= ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string;
 
                 TextWindow.AdvanceChar();
                 _builder.Append(ch);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // of the interpolated string that comes on the following lines.
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
-                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string);
+                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string);
 
                     if (IsAtEnd(allowNewline: true))
                     {
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // of the interpolated string that comes on the following lines.
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
-                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string);
+                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string);
 
                     if (IsAtEnd(allowNewline: true))
                         return; // let the caller complain about the unterminated quote

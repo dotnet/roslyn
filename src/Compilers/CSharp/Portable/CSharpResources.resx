@@ -6794,7 +6794,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
-  <data name="ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string" xml:space="preserve">
-    <value>Newline is not allowed inside a non-verbatim interpolated string</value>
+  <data name="ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string" xml:space="preserve">
+    <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
   </data>
 </root>

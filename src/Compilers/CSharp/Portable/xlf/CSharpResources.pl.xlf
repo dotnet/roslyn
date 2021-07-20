@@ -807,9 +807,9 @@
         <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string">
-        <source>Newline is not allowed inside a non-verbatim interpolated string</source>
-        <target state="new">Newline is not allowed inside a non-verbatim interpolated string</target>
+      <trans-unit id="ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string">
+        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
