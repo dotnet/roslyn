@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => ((CompilationUnitSyntax)compilationUnit).Members;
 
         public SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Usings;
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Usings;
 
         public SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Usings;

@@ -398,18 +398,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             return start.AncestorsAndSelf()
                 .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsNamespaceDeclaration(node))
-                .SelectMany(node =>
-                {
-                    if (node is ICompilationUnitSyntax)
-                    {
-                        return syntaxFacts.GetImportsOfCompilationUnit(node);
-                    }
-                    else
-                    {
-                        // node is namespace declaration
-                        return syntaxFacts.GetImportsOfNamespaceDeclaration(node);
-                    }
-                })
+                .SelectMany(node => node is ICompilationUnitSyntax
+                    ? syntaxFacts.GetImportsOfCompilationUnit(node)
+                    : syntaxFacts.GetImportsOfNamespaceDeclaration(node))
                 .ToImmutableArray();
         }
 

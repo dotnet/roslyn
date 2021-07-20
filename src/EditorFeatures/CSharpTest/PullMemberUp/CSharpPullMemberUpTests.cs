@@ -2283,6 +2283,62 @@ namespace X.Y
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithFileNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B;
+
+class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y;
+class Derived : A.B.Base
+{
+    public Other Get[||]Other() => null;
+}
+
+class Other
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using X.Y;
+
+namespace A.B;
+
+class Base
+{
+    public Other GetOther() => null;
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y;
+class Derived : A.B.Base
+{
+}
+
+class Other
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
         {
             var testText = @"
