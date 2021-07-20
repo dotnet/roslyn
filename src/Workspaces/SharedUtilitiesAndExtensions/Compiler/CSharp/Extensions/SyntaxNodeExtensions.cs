@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
         {
             return node.GetAncestorOrThis<CompilationUnitSyntax>()!.Externs
-                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                       .Concat(node.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>()
                                    .Reverse()
                                    .SelectMany(n => n.Externs));
         }
@@ -543,17 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        public static NamespaceDeclarationSyntax? GetInnermostNamespaceDeclarationWithUsings(this SyntaxNode contextNode)
+        public static BaseNamespaceDeclarationSyntax? GetInnermostNamespaceDeclarationWithUsings(this SyntaxNode contextNode)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
             if (usingDirectiveAncestor == null)
             {
-                return contextNode.GetAncestorsOrThis<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
+                return contextNode.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
             }
             else
             {
                 // We are inside a using directive. In this case, we should find and return the first 'parent' namespace with usings.
-                var containingNamespace = usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>();
+                var containingNamespace = usingDirectiveAncestor.GetAncestor<BaseNamespaceDeclarationSyntax>();
                 if (containingNamespace == null)
                 {
                     // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    return containingNamespace.GetAncestors<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
+                    return containingNamespace.GetAncestors<BaseNamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
                 }
             }
         }
