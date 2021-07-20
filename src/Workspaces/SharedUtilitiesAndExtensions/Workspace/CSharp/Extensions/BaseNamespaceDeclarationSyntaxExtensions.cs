@@ -8,18 +8,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class NamespaceDeclarationSyntaxExtensions
+    internal static class BaseNamespaceDeclarationSyntaxExtensions
     {
-        public static NamespaceDeclarationSyntax AddUsingDirectives(
-            this NamespaceDeclarationSyntax namespaceDeclaration,
+        public static TNamespaceDeclarationSyntax AddUsingDirectives<TNamespaceDeclarationSyntax>(
+            this TNamespaceDeclarationSyntax namespaceDeclaration,
             IList<UsingDirectiveSyntax> usingDirectives,
             bool placeSystemNamespaceFirst,
-            params SyntaxAnnotation[] annotations)
+            params SyntaxAnnotation[] annotations) where TNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
         {
             if (usingDirectives.Count == 0)
-            {
                 return namespaceDeclaration;
-            }
 
             var newUsings = new List<UsingDirectiveSyntax>();
             newUsings.AddRange(namespaceDeclaration.Usings);
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
 
             var newNamespace = namespaceDeclaration.WithUsings(newUsings.ToSyntaxList());
-            return newNamespace;
+            return (TNamespaceDeclarationSyntax)newNamespace;
         }
     }
 }

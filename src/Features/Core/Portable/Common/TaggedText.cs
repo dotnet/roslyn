@@ -87,38 +87,28 @@ namespace Microsoft.CodeAnalysis
 
     internal static class TaggedTextExtensions
     {
-        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, Func<ISymbol, string> getNavigationHint = null)
-            => displayParts.ToTaggedText(TaggedTextStyle.None, getNavigationHint);
+        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
+            => displayParts.ToTaggedText(TaggedTextStyle.None, getNavigationHint, includeNavigationHints);
 
         public static ImmutableArray<TaggedText> ToTaggedText(
-            this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null)
+            this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
         {
             if (displayParts == null)
                 return ImmutableArray<TaggedText>.Empty;
 
-            getNavigationHint ??= GetNavigationHint;
+            getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
                     SymbolDisplayPartKindTags.GetTag(d.Kind),
                     d.ToString(),
                     style,
-                    GetNavigationTarget(d.Symbol),
-                    getNavigationHint(d.Symbol)));
-
-            static string GetNavigationTarget(ISymbol symbol)
-            {
-                if (symbol is null)
-                {
-                    return null;
-                }
-
-                return SymbolKey.CreateString(symbol);
-            }
+                    includeNavigationHints ? GetNavigationTarget(d.Symbol) : null,
+                    includeNavigationHints ? getNavigationHint(d.Symbol) : null));
         }
 
-        private static string GetNavigationHint(ISymbol symbol)
-            => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        private static string GetNavigationTarget(ISymbol symbol)
+            => symbol is null ? null : SymbolKey.CreateString(symbol);
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
