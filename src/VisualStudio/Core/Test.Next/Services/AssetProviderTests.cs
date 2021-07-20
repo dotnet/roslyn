@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private async Task TestAssetAsync(object data)
         {
             var sessionId = 0;
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
 
             using var workspace = TestWorkspace.CreateCSharp(file: @"");
 

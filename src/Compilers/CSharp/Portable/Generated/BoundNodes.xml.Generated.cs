@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBinaryOperator : BoundBinaryOperatorBase
     {
-        public BoundBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+        public BoundBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundBinaryOperator.UncommonData? data, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.BinaryOperator, syntax, left, right, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1403,34 +1403,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.OperatorKind = operatorKind;
-            this.ConstantValueOpt = constantValueOpt;
-            this.MethodOpt = methodOpt;
-            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
+            this.Data = data;
             this._ResultKind = resultKind;
-            this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
         }
 
 
         public BinaryOperatorKind OperatorKind { get; }
 
-        public ConstantValue? ConstantValueOpt { get; }
-
-        public MethodSymbol? MethodOpt { get; }
-
-        public TypeSymbol? ConstrainedToTypeOpt { get; }
+        public BoundBinaryOperator.UncommonData? Data { get; }
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind; } }
-
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBinaryOperator(this);
 
-        public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type)
+        public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, BoundBinaryOperator.UncommonData? data, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
         {
-            if (operatorKind != this.OperatorKind || constantValueOpt != this.ConstantValueOpt || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operatorKind != this.OperatorKind || data != this.Data || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBinaryOperator(this.Syntax, operatorKind, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt, left, right, type, this.HasErrors);
+                var result = new BoundBinaryOperator(this.Syntax, operatorKind, data, resultKind, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10126,9 +10117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, constrainedToTypeOpt, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, left, right, type);
+            return node.Update(node.OperatorKind, node.Data, node.ResultKind, left, right, type);
         }
         public override BoundNode? VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
@@ -13866,11 +13856,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitBinaryOperator(BoundBinaryOperator node, object? arg) => new TreeDumperNode("binaryOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operatorKind", node.OperatorKind, null),
-            new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
-            new TreeDumperNode("methodOpt", node.MethodOpt, null),
-            new TreeDumperNode("constrainedToTypeOpt", node.ConstrainedToTypeOpt, null),
+            new TreeDumperNode("data", node.Data, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
-            new TreeDumperNode("originalUserDefinedOperatorsOpt", node.OriginalUserDefinedOperatorsOpt, null),
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("type", node.Type, null),

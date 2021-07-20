@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums, Checksum frozenSourceGeneratedDocumentIdentity, Checksum frozenSourceGeneratedDocumentText)
+        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ChecksumCollection projectChecksums, ChecksumCollection analyzerReferenceChecksums, Checksum frozenSourceGeneratedDocumentIdentity, Checksum frozenSourceGeneratedDocumentText)
             : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
         {
         }
 
-        public SolutionStateChecksums(object[] children) : base(WellKnownSynchronizationKind.SolutionStateChecksums, children)
+        public SolutionStateChecksums(object[] children) : base(children)
         {
         }
 
         public Checksum Attributes => (Checksum)Children[0];
         public Checksum Options => (Checksum)Children[1];
-        public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
-        public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[3];
+        public ChecksumCollection Projects => (ChecksumCollection)Children[2];
+        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[3];
         public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[4];
         public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[5];
 
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Serialization
             Checksum infoChecksum,
             Checksum compilationOptionsChecksum,
             Checksum parseOptionsChecksum,
-            DocumentChecksumCollection documentChecksums,
-            ProjectReferenceChecksumCollection projectReferenceChecksums,
-            MetadataReferenceChecksumCollection metadataReferenceChecksums,
-            AnalyzerReferenceChecksumCollection analyzerReferenceChecksums,
-            TextDocumentChecksumCollection additionalDocumentChecksums,
-            AnalyzerConfigDocumentChecksumCollection analyzerConfigDocumentChecksumCollection)
+            ChecksumCollection documentChecksums,
+            ChecksumCollection projectReferenceChecksums,
+            ChecksumCollection metadataReferenceChecksums,
+            ChecksumCollection analyzerReferenceChecksums,
+            ChecksumCollection additionalDocumentChecksums,
+            ChecksumCollection analyzerConfigDocumentChecksumCollection)
             : this(
                 (object)infoChecksum,
                 compilationOptionsChecksum,
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public ProjectStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.ProjectStateChecksums, children)
+        public ProjectStateChecksums(params object[] children) : base(children)
         {
         }
 
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum CompilationOptions => (Checksum)Children[1];
         public Checksum ParseOptions => (Checksum)Children[2];
 
-        public DocumentChecksumCollection Documents => (DocumentChecksumCollection)Children[3];
+        public ChecksumCollection Documents => (ChecksumCollection)Children[3];
 
-        public ProjectReferenceChecksumCollection ProjectReferences => (ProjectReferenceChecksumCollection)Children[4];
-        public MetadataReferenceChecksumCollection MetadataReferences => (MetadataReferenceChecksumCollection)Children[5];
-        public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[6];
+        public ChecksumCollection ProjectReferences => (ChecksumCollection)Children[4];
+        public ChecksumCollection MetadataReferences => (ChecksumCollection)Children[5];
+        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[6];
 
-        public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
-        public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
+        public ChecksumCollection AdditionalDocuments => (ChecksumCollection)Children[7];
+        public ChecksumCollection AnalyzerConfigDocuments => (ChecksumCollection)Children[8];
 
         public async Task FindAsync(
             ProjectState state,
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public DocumentStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.DocumentStateChecksums, children)
+        public DocumentStateChecksums(params object[] children) : base(children)
         {
         }
 
