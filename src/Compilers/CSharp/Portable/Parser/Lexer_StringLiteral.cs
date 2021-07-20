@@ -603,8 +603,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // outer interpolated string properly.
                                 var discarded = default(TokenInfo);
                                 var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
-                                if (errorCode != null)
-                                    RecoverableError ??= _lexer.MakeError(nestedStringPosition, width: 2, errorCode.Value);
+                                if (errorCode is ErrorCode code)
+                                    RecoverableError ??= _lexer.MakeError(nestedStringPosition, width: 2, code);
 
                                 continue;
                             }
