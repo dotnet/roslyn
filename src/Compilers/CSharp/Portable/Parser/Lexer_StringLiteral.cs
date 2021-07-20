@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '"')
                     {
-                        // Doubled quote -- skip & put the single quote in the string and keep goign.
+                        // Doubled quote -- skip & put the single quote in the string and keep going.
                         TextWindow.AdvanceChar();
                         _builder.Append(ch);
                         continue;
