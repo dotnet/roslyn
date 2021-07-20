@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
             var myPackage = PackageReference("MyPackage.dll");
             var references = ImmutableArray.Create(myPackage);
             var projectAssets = TestProjectAssetsFile.Create(version, TargetFramework, references);
-            var realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets);
+            var realizedReferences = ProjectAssetsReader.AddDependencyHierarchies(references, projectAssets);
             Assert.Empty(realizedReferences);
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
             var myPackage = PackageReference("MyPackage.dll");
             var references = ImmutableArray.Create(myPackage);
             var projectAssets = TestProjectAssetsFile.Create(Version3, TargetFramework, references);
-            var realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets);
+            var realizedReferences = ProjectAssetsReader.AddDependencyHierarchies(references, projectAssets);
             var realizedReference = Assert.Single(realizedReferences);
             Assert.Equal(myPackage.ItemSpecification, realizedReference.ItemSpecification);
         }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
             var references = ImmutableArray.Create(PackageReference("MyPackage.dll"));
             var projectAssets = TestProjectAssetsFile.Create(Version3, TargetFramework, references);
             var differentReference = ImmutableArray.Create(ProjectReference("MyProject.csproj"));
-            var realizedReferences = ProjectAssetsReader.EnhanceReferences(differentReference, projectAssets);
+            var realizedReferences = ProjectAssetsReader.AddDependencyHierarchies(differentReference, projectAssets);
             Assert.Empty(realizedReferences);
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
             const string mylibraryPath = @".\Library\MyLibrary.csproj";
             var references = ImmutableArray.Create(ProjectReference(mylibraryPath));
             var projectAssets = TestProjectAssetsFile.Create(Version3, TargetFramework, references);
-            var realizedReferences = ProjectAssetsReader.EnhanceReferences(references, projectAssets);
+            var realizedReferences = ProjectAssetsReader.AddDependencyHierarchies(references, projectAssets);
             var realizedReference = Assert.Single(realizedReferences);
             Assert.Equal(mylibraryPath, realizedReference.ItemSpecification);
         }

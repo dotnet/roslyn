@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 {
     // This class will read the dependency heirarchy from the project.assets.json file. The format of this file
     // is subject to change and in the future this information will be provided by an API.  See https://github.com/dotnet/roslyn/issues/50054
-    internal static class ProjectAssetsReader
+    internal static partial class ProjectAssetsReader
     {
         // NuGet will include entries to keep empty folders from being removed. These entries can be ignored.
         private const string NuGetEmptyFileName = "_._";
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
         /// <summary>
         /// Enhances references with the assemblies they bring into the compilation and their dependency hierarchy.
         /// </summary>
-        public static ImmutableArray<ReferenceInfo> EnhanceReferences(
+        public static ImmutableArray<ReferenceInfo> AddDependencyHierarchies(
             ImmutableArray<ReferenceInfo> projectReferences,
             ProjectAssetsFile projectAssets)
         {
@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
+            // We keep a list of references that were automatically added by SDKs or other sources so that we can ignore them
+            // since they can't be removed even if they were unused.
             var autoReferences = projectAssets.Project?.Frameworks?.Values
                 .Where(framework => framework.Dependencies != null)
                 .SelectMany(framework => framework.Dependencies!.Keys.Where(key => framework.Dependencies[key].AutoReferenced))
@@ -49,6 +51,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 .ToImmutableHashSet();
             autoReferences ??= ImmutableHashSet<string>.Empty;
 
+            // Targets contain a hashmap of Libraries keyed by `{LibraryName}/{LibraryVersion}` we need to split these keys
+            // and create a mapping of LibraryName to the complete library key.
             var targetLibraryKeys = projectAssets.Targets
                 .ToImmutableDictionary(t => t.Key, t => t.Value.ToImmutableDictionary(l => l.Key.Split('/')[0], l => l.Key));
 
@@ -104,15 +108,15 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
             RoslynDebug.AssertNotNull(projectAssets.Targets);
             RoslynDebug.AssertNotNull(projectAssets.Libraries);
 
-            foreach (var libraryKeysKvp in targetLibraryKeys)
+            foreach (var (targetName, libraryKeys) in targetLibraryKeys)
             {
-                if (!libraryKeysKvp.Value.TryGetValue(referenceName, out var key) ||
+                if (!libraryKeys.TryGetValue(referenceName, out var key) ||
                     !projectAssets.Libraries.TryGetValue(key, out var library))
                 {
                     continue;
                 }
 
-                var target = projectAssets.Targets[libraryKeysKvp.Key];
+                var target = projectAssets.Targets[targetName];
                 var targetLibrary = target[key];
 
                 referenceType = targetLibrary.Type switch
@@ -138,9 +142,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 
                 if (targetLibrary.Compile != null)
                 {
-                    foreach (var kvp in targetLibrary.Compile)
+                    foreach (var assemblyPath in targetLibrary.Compile.Keys)
                     {
-                        var assemblyPath = kvp.Key;
                         if (!assemblyPath.EndsWith(NuGetEmptyFileName))
                         {
                             compilationAssemblies.Add(Path.GetFullPath(Path.Combine(packagesPath, library.Path ?? "", assemblyPath)));
@@ -153,10 +156,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
             {
                 return null;
             }
-            
+
             if (referenceType == ReferenceType.Package && itemSpecification == ".NETStandard.Library")
             {
-                // This depenedency is large and not useful in determining whether the parent reference has been used.
+                // Referencing .NETStandard.Library brings along references to a number of common .NET libraries
+                // for which the .NET SDK already brings into the compilation. This makes it very easy for
+                // the parent reference to be considered transitively used.
                 return null;
             }
 
