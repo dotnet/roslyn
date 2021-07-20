@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-            Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), options)
+            Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), localFunction:=False, options)
 
             Dim selectedCode = Await validator.GetValidSelectionAsync(CancellationToken.None)
             If Not succeeded And selectedCode.Status.Failed() Then
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Dim originalOptions = Await document.GetOptionsAsync()
 
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-                Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), originalOptions)
+                Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), localFunction:=False, originalOptions)
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                 If expectedFail Then
@@ -167,7 +167,7 @@ End Class</text>
 
                 For Each node In iterator
                     Try
-                        Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, originalOptions)
+                        Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, localFunction:=False, originalOptions)
                         Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                         ' check the obvious case
