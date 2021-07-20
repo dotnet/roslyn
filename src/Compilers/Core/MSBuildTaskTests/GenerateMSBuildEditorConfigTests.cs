@@ -375,6 +375,7 @@ build_property.Property2 = def456
 ";
 
             Assert.True(File.Exists(fileName));
+            Assert.True(configTask.WriteMSBuildEditorConfig());
             Assert.Equal(expectedContents, File.ReadAllText(fileName));
         }
     }

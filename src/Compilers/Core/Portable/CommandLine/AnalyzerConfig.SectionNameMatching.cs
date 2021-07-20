@@ -125,10 +125,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     sb.Append(lexer.EatCurrentCharacter());
                 }
-                else
-                {
-                    sb.Append(lexer.CurrentCharacter);
-                }
             }
             escapedSectionName = sb.ToString();
             return true;

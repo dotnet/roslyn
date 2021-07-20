@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return string.IsNullOrEmpty(FileName.ItemSpec) ? true : WriteMSBuildEditorConfig();
         }
 
-        public bool WriteMSBuildEditorConfig()
+        private static bool WriteMSBuildEditorConfig()
         {
             try
             {
