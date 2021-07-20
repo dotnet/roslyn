@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
@@ -39,11 +38,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             HashSet<string> usedAssemblyFilePaths = new();
             HashSet<string> usedProjectFileNames = new();
 
-            var getCompilationTasks = projects.Select(project => project.GetCompilationAsync(cancellationToken));
-            var compilations = await Task.WhenAll(getCompilationTasks).ConfigureAwait(false);
-
-            foreach (var compilation in compilations)
+            foreach (var project in projects)
             {
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 if (compilation is null)
                 {
                     continue;
@@ -269,7 +266,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<(bool Success, Solution UpdatedSolution)> UpdateReferencesAsync(
+        public static async Task<Solution> UpdateReferencesAsync(
             Solution solution,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
@@ -277,18 +274,17 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
             var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
-            var success = await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
+            await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
 
-            return (success, solution.Workspace.CurrentSolution);
+            return solution.Workspace.CurrentSolution;
         }
 
-        internal static async Task<bool> ApplyReferenceUpdatesAsync(
+        internal static async Task ApplyReferenceUpdatesAsync(
             IReferenceCleanupService referenceCleanupService,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var completeSuccess = true;
 
             foreach (var referenceUpdate in referenceUpdates)
             {
@@ -309,22 +305,11 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                try
-                {
-                    var success = await referenceCleanupService.TryUpdateReferenceAsync(
-                        projectFilePath,
-                        referenceUpdate,
-                        cancellationToken).ConfigureAwait(true);
-
-                    completeSuccess = completeSuccess && success;
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                    completeSuccess = false;
-                }
+                await referenceCleanupService.TryUpdateReferenceAsync(
+                    projectFilePath,
+                    referenceUpdate,
+                    cancellationToken).ConfigureAwait(true);
             }
-
-            return completeSuccess;
         }
     }
 }
