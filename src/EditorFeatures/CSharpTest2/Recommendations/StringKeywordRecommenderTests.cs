@@ -174,6 +174,14 @@ $$");
 @"ref readonly $$ int Function();"));
         }
 
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+static $$"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterRefExpression()
         {
