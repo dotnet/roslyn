@@ -18159,6 +18159,7 @@ x = typeof(nint); // 2
 x = typeof(List<nint>); // 3
 x = typeof(List<string?>); // 4
 x = typeof((int a, int b)); // 5
+x = typeof((int a, string? b)); // 6
 x = typeof(ValueTuple<int, int>); // ok
 ";
             CreateCompilation(source).VerifyDiagnostics(
@@ -18176,7 +18177,10 @@ x = typeof(ValueTuple<int, int>); // ok
                 Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<string?>)").WithArguments("List<string?>").WithLocation(10, 5),
                 // (11,5): warning CS8959: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // x = typeof((int a, int b)); // 5
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, int b))").WithArguments("(int a, int b)").WithLocation(11, 5));
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, int b))").WithArguments("(int a, int b)").WithLocation(11, 5),
+                // (12,5): warning CS8959: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof((int a, string? b)); // 6
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, string? b))").WithArguments("(int a, string? b)").WithLocation(12, 5));
 
             CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
         }
