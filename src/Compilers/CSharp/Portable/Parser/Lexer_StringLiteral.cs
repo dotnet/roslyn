@@ -543,18 +543,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 bool isVerbatimSubstring = _lexer.TextWindow.PeekChar(1) == '@';
                                 var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
-                                bool wasVerbatim = this._isVerbatim;
-                                bool wasAllowNewlines = this._allowNewlines;
+                                bool wasVerbatim = _isVerbatim;
+                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
-                                    this._isVerbatim = isVerbatimSubstring;
-                                    this._allowNewlines &= _isVerbatim;
+                                    _isVerbatim = isVerbatimSubstring;
+                                    _allowNewlines &= _isVerbatim;
                                     ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
                                 }
                                 finally
                                 {
-                                    this._isVerbatim = wasVerbatim;
-                                    this._allowNewlines = wasAllowNewlines;
+                                    _isVerbatim = wasVerbatim;
+                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -613,18 +613,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 _lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
                                 var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
-                                bool wasVerbatim = this._isVerbatim;
-                                bool wasAllowNewlines = this._allowNewlines;
+                                bool wasVerbatim = _isVerbatim;
+                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
-                                    this._isVerbatim = true;
-                                    this._allowNewlines = true;
+                                    _isVerbatim = true;
+                                    _allowNewlines = true;
                                     ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
                                 }
                                 finally
                                 {
-                                    this._isVerbatim = wasVerbatim;
-                                    this._allowNewlines = wasAllowNewlines;
+                                    _isVerbatim = wasVerbatim;
+                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
