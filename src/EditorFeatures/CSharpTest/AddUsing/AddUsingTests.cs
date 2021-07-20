@@ -52,6 +52,67 @@ class Class
 
         [Theory]
         [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Outer(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+using System.Collections;
+
+namespace N;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Inner(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+using System;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+namespace N;
+
+using System;
+using System.Collections;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
         [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
         public async Task TestAddImportWithCaseChange(TestHost testHost)
         {
