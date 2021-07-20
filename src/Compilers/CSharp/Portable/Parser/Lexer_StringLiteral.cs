@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private bool _allowNewlines;
 
             /// <summary>
-            /// There are two types of errors we can encounter when trying to scan out an interpolated string (and it's
+            /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
             /// interpolations).  The first are true syntax errors where we do not know what it is going on and have no
             /// good strategy to get back on track.  This happens when we see things in the interpolation we truly do
             /// not know what to do with, or when we find we've gotten into an unbalanced state with the bracket pairs
