@@ -288,7 +288,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatic()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static $$");
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"static $$");
             await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
         }
 
