@@ -3304,16 +3304,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Etkin bir deyimin etrafından '{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Bir yöntem gövdesi ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Bir yöntem gövdesi silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">Etkin bir deyimin etrafındaki async ya da iterator değiştiricisini güncelleştirmek hata ayıklama oturumunun devam etmesini önler.</target>

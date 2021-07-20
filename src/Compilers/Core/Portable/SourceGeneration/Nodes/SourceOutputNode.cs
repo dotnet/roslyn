@@ -19,13 +19,18 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Action<SourceProductionContext, TInput> _action;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action)
+        private readonly IncrementalGeneratorOutputKind _outputKind;
+
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind)
         {
             _source = source;
             _action = action;
+
+            Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
+            _outputKind = outputKind;
         }
 
-        public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.Source;
+        public IncrementalGeneratorOutputKind Kind => _outputKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
