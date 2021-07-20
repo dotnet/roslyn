@@ -131,17 +131,17 @@ class C
 
     public void SetS(string s)
     {
-        _s = s;
+        this._s = s;
     }
 
-    public string GetS() => _s;
+    public string GetS() => this._s;
 }";
             using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
             // field _s 
-            //  |> _s = s [Code.cs:7]
+            //  |> this._s = s [Code.cs:7]
             //  |> string _s = "" [Code.cs:3]
             //
             await ValidateItemsAsync(
