@@ -765,8 +765,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (TextWindow.PeekChar(1) == '"')
                     {
                         var errorCode = this.ScanVerbatimStringLiteral(ref info, allowNewlines: true);
-                        if (errorCode != null)
-                            this.AddError(errorCode.Value);
+                        if (errorCode is ErrorCode code)
+                            this.AddError(code);
                     }
                     else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
                     {
