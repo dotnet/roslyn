@@ -35,6 +35,12 @@
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.$(Version).nupkg"/>
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.Common.$(Version).nupkg"/>
         <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Workspaces.Common.$(Version).nupkg"/>
+
+        <!-- Visual Basic is needed by Caravela.Try -->
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(Version).nupkg"/>
+        
         
     </ItemGroup>
     <Target Name="Build">
