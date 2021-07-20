@@ -1,8 +1,7 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,22 +23,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<SerializableReferenceInfo>> GetUnusedReferencesAsync(PinnedSolutionInfo solutionInfo, string projectFilePath, string projectAssetsFilePath, ImmutableArray<SerializableReferenceInfo> projectReferenceInfos, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(PinnedSolutionInfo solutionInfo, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                if (solution is null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                var projectReferences = projectReferenceInfos.SelectAsArray(info => info.Rehydrate());
 
                 var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
 
-                var unusedReferences = await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
-                return unusedReferences.SelectAsArray(SerializableReferenceInfo.Dehydrate);
+                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

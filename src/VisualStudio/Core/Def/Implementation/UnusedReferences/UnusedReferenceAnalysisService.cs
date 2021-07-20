@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var projectReferenceInfos = projectReferences.SelectAsArray(SerializableReferenceInfo.Dehydrate);
-                var result = await client.TryInvokeAsync<IRemoteUnusedReferenceAnalysisService, ImmutableArray<SerializableReferenceInfo>>(
+                var result = await client.TryInvokeAsync<IRemoteUnusedReferenceAnalysisService, ImmutableArray<ReferenceInfo>>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.GetUnusedReferencesAsync(solutionInfo, projectFilePath, projectAssetsFilePath, projectReferenceInfos, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetUnusedReferencesAsync(solutionInfo, projectFilePath, projectAssetsFilePath, projectReferences, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     return ImmutableArray<ReferenceInfo>.Empty;
                 }
 
-                return result.Value.SelectAsArray(info => info.Rehydrate());
+                return result.Value;
             }
 
             var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);

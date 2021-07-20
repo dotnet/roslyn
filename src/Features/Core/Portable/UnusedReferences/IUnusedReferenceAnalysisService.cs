@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
     internal interface IRemoteUnusedReferenceAnalysisService
     {
-        ValueTask<ImmutableArray<SerializableReferenceInfo>> GetUnusedReferencesAsync(
+        ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             PinnedSolutionInfo solutionInfo,
             string projectFilePath,
             string projectAssetsFilePath,
-            ImmutableArray<SerializableReferenceInfo> projectReferences,
+            ImmutableArray<ReferenceInfo> projectReferences,
             CancellationToken cancellationToken);
     }
 }
