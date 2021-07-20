@@ -45,12 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
-            if (!(declaration is NamespaceDeclarationSyntax))
-            {
+            if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
-            }
 
-            var members = Insert(destination.Members, (NamespaceDeclarationSyntax)declaration, options, availableIndices);
+            var members = Insert(destination.Members, namespaceDeclaration, options, availableIndices);
             return destination.WithMembers(members);
         }
 
@@ -114,10 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)
-            => declaration.Kind() switch
+            => declaration switch
             {
-                SyntaxKind.CompilationUnit => ((CompilationUnitSyntax)declaration).WithMembers(default),
-                SyntaxKind.NamespaceDeclaration => ((NamespaceDeclarationSyntax)declaration).WithMembers(default),
+                CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers(default),
+                BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.WithMembers(default),
                 _ => declaration,
             };
 
