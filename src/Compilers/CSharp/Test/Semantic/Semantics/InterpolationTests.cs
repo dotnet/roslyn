@@ -363,9 +363,9 @@ class Program
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(   // (6,31): error CS1010: Newline in constant
                                                                          //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (6,35): error CS9000: Newline is not allowed inside a non-verbatim interpolated string
+                // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_Newline_is_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 35),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
