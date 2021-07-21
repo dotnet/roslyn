@@ -191,6 +191,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return stackPanel;
         }
 
+        public static void UpdateColor(TextFormattingRunProperties format, UIElement uiElement)
+        {
+            var stackPanel = (StackPanel)uiElement;
+            var dockPanel = (DockPanel)stackPanel.Children[0];
+            var border = (Border)dockPanel.Children[0];
+            var block = (TextBlock)border.Child;
+            block.FontFamily = format.Typeface.FontFamily;
+            block.FontSize = 0.75 * format.FontRenderingEmSize;
+            block.Foreground = format.ForegroundBrush;
+            border.Background = format.BackgroundBrush;
+            var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
+            dockPanel.Height = dockPanelHeight;
+            stackPanel.Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize));
+        }
+
         private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
         {
             using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
