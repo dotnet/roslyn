@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind is SymbolKind.Property)
                 {
                     var property = (PropertySymbol)m;
-                    return !property.IsIndexer && !property.IsOverride && property.GetMethod is not null;
+                    return IsPrintableProperty(property);
                 }
 
                 return false;
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var property = (PropertySymbol)m;
 
-                    if (property.IsIndexer || property.IsOverride)
+                    if (!IsPrintableProperty(property))
                     {
                         return false;
                     }
@@ -297,6 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return false;
             }
+        }
+
+        private static bool IsPrintableProperty(PropertySymbol property)
+        {
+            return !property.IsIndexer && !property.IsOverride && property.GetMethod is not null;
         }
     }
 }
