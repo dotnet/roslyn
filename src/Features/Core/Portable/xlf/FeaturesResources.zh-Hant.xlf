@@ -2105,6 +2105,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">更新使用中陳述式前後的 '{0}'，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</source>
+        <target state="new">Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
         <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
         <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
