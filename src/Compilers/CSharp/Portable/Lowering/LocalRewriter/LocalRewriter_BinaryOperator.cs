@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundBinaryOperator original = stack.Pop();
                 BoundExpression loweredRight = VisitExpression(original.Right);
-                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.MethodOpt, original.ConstrainedToTypeOpt,
+                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.Method, original.ConstrainedToType,
                     applyParentUnaryOperator: (stack.Count == 0) ? applyParentUnaryOperator : null);
             }
 
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return (oldNode != null) ?
-                oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ConstrainedToTypeOpt, oldNode.ResultKind, loweredLeft, loweredRight, type) :
+                oldNode.Update(operatorKind, oldNode.ConstantValue, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type) :
                 new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
             {
-                return oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ConstrainedToTypeOpt, oldNode.ResultKind, loweredLeft, loweredRight, type);
+                return oldNode.Update(operatorKind, oldNode.ConstantValue, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type);
             }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, member);

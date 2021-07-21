@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitBaseReference((BoundBaseReference)node);
                 case BoundKind.BinaryOperator:
                     var binOp = (BoundBinaryOperator)node;
-                    return VisitBinaryOperator(binOp.OperatorKind, binOp.MethodOpt, binOp.Type, binOp.Left, binOp.Right);
+                    return VisitBinaryOperator(binOp.OperatorKind, binOp.Method, binOp.Type, binOp.Left, binOp.Right);
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var userDefCondLogOp = (BoundUserDefinedConditionalLogicalOperator)node;
                     return VisitBinaryOperator(userDefCondLogOp.OperatorKind, userDefCondLogOp.LogicalOperator, userDefCondLogOp.Type, userDefCondLogOp.Left, userDefCondLogOp.Right);
