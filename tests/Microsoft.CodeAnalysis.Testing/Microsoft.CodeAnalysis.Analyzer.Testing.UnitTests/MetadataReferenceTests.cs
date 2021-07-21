@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("netcoreapp3.1")]
 #if !(NETCOREAPP1_1 || NET46)
         [InlineData("net5.0")]
+        [InlineData("net6.0")]
 #endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
@@ -500,6 +501,7 @@ class TestClass {
                 "netcoreapp3.0" => ReferenceAssemblies.NetCore.NetCoreApp30,
                 "netcoreapp3.1" => ReferenceAssemblies.NetCore.NetCoreApp31,
                 "net5.0" => ReferenceAssemblies.Net.Net50,
+                "net6.0" => ReferenceAssemblies.Net.Net60,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,

@@ -865,7 +865,26 @@ namespace Microsoft.CodeAnalysis.Testing
                         Path.Combine("ref", "net5.0"));
                 });
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
+                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net6.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "6.0.0-preview.6.21352.12"),
+                        Path.Combine("ref", "net6.0"));
+                });
+
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
+
+            public static ReferenceAssemblies Net60 => _lazyNet60.Value;
         }
 
         public static class NetStandard
