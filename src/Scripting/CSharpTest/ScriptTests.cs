@@ -1047,6 +1047,7 @@ return reply;
 
             Assert.True(exceptionThrown);
         }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);
