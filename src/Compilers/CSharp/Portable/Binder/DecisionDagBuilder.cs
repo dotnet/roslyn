@@ -1190,18 +1190,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
                                     var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                    if (!lengthValues.IsEmpty)
+                                    if (lengthValues.IsEmpty)
                                     {
-                                        int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                        {
-                                            break;
-                                        }
-                                        if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                                        {
-                                            trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
-                                            break;
-                                        }
+                                        return;
+                                    }
+
+                                    int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                    if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                    {
+                                        break;
+                                    }
+                                    if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                    {
+                                        trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                        break;
                                     }
                                 }
                             }
