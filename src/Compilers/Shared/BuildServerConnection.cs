@@ -131,14 +131,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string pipeName,
             string clientDirectory,
             ICompilerServerLogger logger,
-            CancellationToken cancellationToken) =>
-            RunServerBuildRequestAsync(
-                buildRequest,
-                pipeName,
-                timeoutOverride: null,
-                tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger),
-                logger,
-                cancellationToken);
+            CancellationToken cancellationToken)
+                => RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    timeoutOverride: null,
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger),
+                    logger,
+                    cancellationToken);
 
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
