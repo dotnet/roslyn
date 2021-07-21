@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
 
             Assert.Empty(results);
+
+            Assert.True(false);
         }
 
         [Fact]
