@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
@@ -78,6 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             return debuggingSession;
         }
 
+        private Solution GetCurrentCompileTimeSolution()
+            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
+
         public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
@@ -87,8 +91,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                var solution = _proxy.Workspace.CurrentSolution;
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var solution = GetCurrentCompileTimeSolution();
+                var openedDocumentIds = _proxy.Workspace.GetOpenDocumentIds().ToImmutableArray();
+
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(
+                    solution,
+                    _debuggerService,
+                    captureMatchingDocuments: openedDocumentIds,
+                    captureAllMatchingDocuments: false,
+                    reportDiagnostics: true,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -107,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                var solution = _proxy.Workspace.CurrentSolution;
+                var solution = GetCurrentCompileTimeSolution();
                 var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
                 var updates = moduleUpdates.Updates.SelectAsArray(

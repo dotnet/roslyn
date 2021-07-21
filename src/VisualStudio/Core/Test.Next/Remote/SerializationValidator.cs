@@ -106,16 +106,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return workspace.AddSolution(solutionInfo);
         }
 
-        public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ProjectChecksumCollection collection)
+        public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
             => new ChecksumObjectCollection<ProjectStateChecksums>(this, collection);
 
-        public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(DocumentChecksumCollection collection)
-            => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
-
-        public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(TextDocumentChecksumCollection collection)
-            => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
-
-        public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(AnalyzerConfigDocumentChecksumCollection collection)
+        public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
             => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
 
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)

@@ -949,15 +949,26 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LocalFunctionOperation(symbol, body, ignoredBody, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
+        private IOperation CreateBoundConversionOperation(BoundConversion boundConversion, bool forceOperandImplicitLiteral = false)
         {
-            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
+            Debug.Assert(!forceOperandImplicitLiteral || boundConversion.Operand is BoundLiteral);
+            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode || forceOperandImplicitLiteral;
             BoundExpression boundOperand = boundConversion.Operand;
+
+            if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+            {
+                // https://github.com/dotnet/roslyn/issues/54505 Support interpolation handlers in conversions
+                Debug.Assert(!forceOperandImplicitLiteral);
+                Debug.Assert(boundOperand is BoundInterpolatedString);
+                var interpolatedString = Create(boundOperand);
+                return new NoneOperation(ImmutableArray.Create(interpolatedString), _semanticModel, boundConversion.Syntax, boundConversion.GetPublicTypeSymbol(), boundConversion.ConstantValue, isImplicit);
+            }
+
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol? type = boundConversion.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundConversion.ConstantValue;
+                Debug.Assert(!forceOperandImplicitLiteral);
 
                 if (boundConversion.Type is FunctionPointerTypeSymbol)
                 {
@@ -990,6 +1001,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     Debug.Assert(boundOperand.Kind == BoundKind.BadExpression ||
                                  ((boundOperand as BoundLambda)?.Body.Statements.SingleOrDefault() as BoundReturnStatement)?.
                                      ExpressionOpt?.Kind == BoundKind.BadExpression);
+                    Debug.Assert(!forceOperandImplicitLiteral);
                     return Create(boundOperand);
                 }
 
@@ -1002,6 +1014,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         // Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                         // in Binder.CreateTupleLiteralConversion
+                        Debug.Assert(!forceOperandImplicitLiteral);
                         return Create(boundOperand);
                     }
                     else
@@ -1046,7 +1059,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    IOperation operand = Create(correctedConversionNode.Operand);
+                    IOperation operand = forceOperandImplicitLiteral
+                        ? CreateBoundLiteralOperation((BoundLiteral)correctedConversionNode.Operand, @implicit: true)
+                        : Create(correctedConversionNode.Operand);
                     return new ConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
@@ -1315,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IBinaryOperation createBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
             {
                 BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-                IMethodSymbol? operatorMethod = boundBinaryOperator.MethodOpt.GetPublicSymbol();
+                IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
                 IMethodSymbol? unaryOperatorMethod = null;
 
                 // For dynamic logical operator MethodOpt is actually the unary true/false operator
@@ -1973,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
         {
-            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts);
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, boundInterpolatedString.InterpolationData);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValue;
@@ -1981,21 +1996,132 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts)
+        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts, InterpolatedStringHandlerData? data)
         {
-            var builder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(parts.Length);
-            foreach (var part in parts)
+            return data is { PositionInfo: var positionInfo } ? createHandlerInterpolatedStringContent(positionInfo) : createNonHandlerInterpolatedStringContent();
+
+            ImmutableArray<IInterpolatedStringContentOperation> createNonHandlerInterpolatedStringContent()
             {
-                if (part.Kind == BoundKind.StringInsert)
+                var builder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(parts.Length);
+                foreach (var part in parts)
                 {
-                    builder.Add((IInterpolatedStringContentOperation)Create(part));
+                    if (part.Kind == BoundKind.StringInsert)
+                    {
+                        builder.Add((IInterpolatedStringContentOperation)Create(part));
+                    }
+                    else
+                    {
+                        builder.Add(CreateBoundInterpolatedStringTextOperation((BoundLiteral)part));
+                    }
                 }
-                else
+
+                return builder.ToImmutableAndFree();
+            }
+
+            ImmutableArray<IInterpolatedStringContentOperation> createHandlerInterpolatedStringContent(ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo)
+            {
+                // For interpolated string handlers, we want to deconstruct the `AppendLiteral`/`AppendFormatted` calls into
+                // their relevant components.
+                // https://github.com/dotnet/roslyn/issues/54505 we need to handle interpolated strings used as handler conversions.
+
+                Debug.Assert(parts.Length == positionInfo.Length);
+                var builder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(parts.Length);
+
+                for (int i = 0; i < parts.Length; i++)
                 {
-                    builder.Add(CreateBoundInterpolatedStringTextOperation((BoundLiteral)part));
+                    var part = parts[i];
+                    var currentPosition = positionInfo[i];
+
+                    BoundExpression value;
+                    BoundExpression? alignment;
+                    BoundExpression? format;
+
+                    switch (part)
+                    {
+                        case BoundCall call:
+                            (value, alignment, format) = getCallInfo(call.Arguments, call.ArgumentNamesOpt, currentPosition);
+                            break;
+
+                        case BoundDynamicInvocation dynamicInvocation:
+                            (value, alignment, format) = getCallInfo(dynamicInvocation.Arguments, dynamicInvocation.ArgumentNamesOpt, currentPosition);
+                            break;
+
+                        case BoundBadExpression bad:
+                            Debug.Assert(bad.ChildBoundNodes.Length ==
+                                2 + // initial value + receiver is added to the end
+                                (currentPosition.HasAlignment ? 1 : 0) +
+                                (currentPosition.HasFormat ? 1 : 0));
+
+                            value = bad.ChildBoundNodes[0];
+                            if (currentPosition.IsLiteral)
+                            {
+                                alignment = format = null;
+                            }
+                            else
+                            {
+                                alignment = currentPosition.HasAlignment ? bad.ChildBoundNodes[1] : null;
+                                format = currentPosition.HasFormat ? bad.ChildBoundNodes[^2] : null;
+                            }
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(part.Kind);
+                    }
+
+                    // We are intentionally not checking the part for implicitness here. The part is a generated AppendLiteral or AppendFormatted call,
+                    // and will always be marked as CompilerGenerated. However, our existing behavior for non-builder interpolated strings does not mark
+                    // the BoundLiteral or BoundStringInsert components as compiler generated. This generates a non-implicit IInterpolatedStringTextOperation
+                    // with an implicit literal underneath, and a non-implicit IInterpolationOperation with non-implicit underlying components.
+                    bool isImplicit = false;
+                    if (currentPosition.IsLiteral)
+                    {
+                        Debug.Assert(alignment is null);
+                        Debug.Assert(format is null);
+                        IOperation valueOperation = value switch
+                        {
+                            BoundLiteral l => CreateBoundLiteralOperation(l, @implicit: true),
+                            BoundConversion { Operand: BoundLiteral } c => CreateBoundConversionOperation(c, forceOperandImplicitLiteral: true),
+                            _ => throw ExceptionUtilities.UnexpectedValue(value.Kind),
+                        };
+
+                        Debug.Assert(valueOperation.IsImplicit);
+
+                        builder.Add(new InterpolatedStringTextOperation(valueOperation, _semanticModel, part.Syntax, isImplicit));
+                    }
+                    else
+                    {
+                        IOperation valueOperation = Create(value);
+                        IOperation? alignmentOperation = Create(alignment);
+                        IOperation? formatOperation = Create(format);
+
+                        Debug.Assert(valueOperation.Syntax != part.Syntax);
+
+                        builder.Add(new InterpolationOperation(valueOperation, alignmentOperation, formatOperation, _semanticModel, part.Syntax, isImplicit));
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+
+                static (BoundExpression Value, BoundExpression? Alignment, BoundExpression? Format) getCallInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, (bool IsLiteral, bool HasAlignment, bool HasFormat) currentPosition)
+                {
+                    BoundExpression value = arguments[0];
+
+                    if (currentPosition.IsLiteral || argumentNamesOpt.IsDefault)
+                    {
+                        // There was no alignment/format component, as binding will qualify those parameters by name
+                        return (value, null, null);
+                    }
+                    else
+                    {
+                        var alignmentIndex = argumentNamesOpt.IndexOf("alignment");
+                        BoundExpression? alignment = alignmentIndex == -1 ? null : arguments[alignmentIndex];
+                        var formatIndex = argumentNamesOpt.IndexOf("format");
+                        BoundExpression? format = formatIndex == -1 ? null : arguments[formatIndex];
+
+                        return (value, alignment, format);
+                    }
                 }
             }
-            return builder.ToImmutableAndFree();
         }
 
         private IInterpolationOperation CreateBoundInterpolationOperation(BoundStringInsert boundStringInsert)

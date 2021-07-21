@@ -38,6 +38,18 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
 
+        // For the EncLog table we need to know which things we're emitting custom attributes for so we can
+        // correctly map the attributes to row numbers of existing attributes for that target
+        private readonly Dictionary<EntityHandle, int> _customAttributeParentCounts;
+
+        // For the EncMap table we need to keep a list of exactly which rows in the CustomAttributes table are updated
+        // since we spread these out amongst existing rows, it's not just a contiguous set
+        private readonly List<int> _customAttributeEncMapRows;
+
+        // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
+        // original metadata
+        private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
+
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
@@ -90,6 +102,10 @@ namespace Microsoft.CodeAnalysis.Emit
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
 
+            _customAttributeParentCounts = new Dictionary<EntityHandle, int>();
+            _customAttributeEncMapRows = new List<int>();
+            _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
+
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this), lastRowId: sizes[(int)TableIndex.MemberRef]);
@@ -137,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return ImmutableArray.Create(sizes);
         }
 
-        internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
+        internal EmitBaseline GetDelta(Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
@@ -156,21 +172,35 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetAllSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
-            return baseline.With(
+            var currentGenerationOrdinal = _previousGeneration.Ordinal + 1;
+
+            var addedTypes = _typeDefs.GetAdded();
+            var generationOrdinals = CreateDictionary(_previousGeneration.GenerationOrdinals, SymbolEquivalentEqualityComparer.Instance);
+            foreach (var (addedType, _) in addedTypes)
+            {
+                if (_changes.IsReplaced(addedType))
+                {
+                    generationOrdinals[addedType] = currentGenerationOrdinal;
+                }
+            }
+
+            return _previousGeneration.With(
                 compilation,
                 module,
-                baseline.Ordinal + 1,
+                currentGenerationOrdinal,
                 encId,
-                typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                generationOrdinals,
+                typesAdded: AddRange(_previousGeneration.TypesAdded, addedTypes, comparer: SymbolEquivalentEqualityComparer.Instance),
+                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
                 eventMapAdded: AddRange(_previousGeneration.EventMapAdded, _eventMap.GetAdded()),
                 propertyMapAdded: AddRange(_previousGeneration.PropertyMapAdded, _propertyMap.GetAdded()),
                 methodImplsAdded: AddRange(_previousGeneration.MethodImplsAdded, _methodImpls.GetAdded()),
+                customAttributesAdded: AddRange(_previousGeneration.CustomAttributesAdded, _customAttributesAdded),
                 tableEntriesAdded: ImmutableArray.Create(tableSizes),
                 // Blob stream is concatenated aligned.
                 blobStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.Blob) + _previousGeneration.BlobStreamLengthAdded,
@@ -182,12 +212,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
-                addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
-                debugInformationProvider: baseline.DebugInformationProvider,
-                localSignatureProvider: baseline.LocalSignatureProvider);
+                addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
+                debugInformationProvider: _previousGeneration.DebugInformationProvider,
+                localSignatureProvider: _previousGeneration.LocalSignatureProvider);
         }
 
-        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false, IEqualityComparer<K>? comparer = null)
+        private static Dictionary<K, V> CreateDictionary<K, V>(IReadOnlyDictionary<K, V> dictionary, IEqualityComparer<K>? comparer)
+            where K : notnull
+        {
+            var result = new Dictionary<K, V>(comparer);
+            foreach (var pair in dictionary)
+            {
+                result.Add(pair.Key, pair.Value);
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
             if (previous.Count == 0)
@@ -200,15 +242,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return previous;
             }
 
-            var result = new Dictionary<K, V>(comparer);
-            foreach (var pair in previous)
-            {
-                result.Add(pair.Key, pair.Value);
-            }
-
+            var result = CreateDictionary(previous, comparer);
             foreach (var pair in current)
             {
-                Debug.Assert(replace || !previous.ContainsKey(pair.Key));
+                // Use the latest symbol.
                 result[pair.Key] = pair.Value;
             }
 
@@ -692,6 +729,17 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
         }
 
+        protected override int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
+        {
+            // The base class will write out the actual metadata for us
+            var numAttributesEmitted = base.AddCustomAttributesToTable(parentHandle, attributes);
+
+            // We need to keep track of all of the things attributes could be associated with in this delta, in order to populate the EncLog and Map tables
+            _customAttributeParentCounts.Add(parentHandle, numAttributesEmitted);
+
+            return numAttributesEmitted;
+        }
+
         protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed
@@ -720,7 +768,7 @@ namespace Microsoft.CodeAnalysis.Emit
             PopulateEncLogTableParameters();
 
             PopulateEncLogTableRows(TableIndex.Constant, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(TableIndex.CustomAttribute, previousSizes, deltaSizes);
+            PopulateEncLogTableCustomAttributes();
             PopulateEncLogTableRows(TableIndex.DeclSecurity, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.ClassLayout, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.FieldLayout, previousSizes, deltaSizes);
@@ -802,6 +850,118 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        /// <summary>
+        /// CustomAttributes point to their target via the Parent column so we cannot simply output new rows
+        /// in the delta or we would end up with duplicates, but we also don't want to do complex logic to determine
+        /// which attributes have changes, so we just emit them all.
+        /// This means our logic for emitting CustomAttributes is to update any existing rows, either from the original
+        /// compilation or subsequent deltas, and only add more if we need to. The EncLog table is the thing that tells
+        /// the runtime which row a CustomAttributes row is (ie, new or existing)
+        /// </summary>
+        private void PopulateEncLogTableCustomAttributes()
+        {
+            // List of attributes that need to be emitted to delete a previously emitted attribute
+            var deletedAttributeRows = new List<(int parentRowId, HandleKind kind)>();
+            var customAttributesAdded = new Dictionary<EntityHandle, ArrayBuilder<int>>();
+
+            // The data in _previousGeneration.CustomAttributesAdded is not nicely sorted, or even necessarily contiguous
+            // so we need to map each target onto the rows its attributes occupy so we know which rows to update
+            var lastRowId = _previousGeneration.OriginalMetadata.MetadataReader.GetTableRowCount(TableIndex.CustomAttribute);
+            if (_previousGeneration.CustomAttributesAdded.Count > 0)
+            {
+                lastRowId = _previousGeneration.CustomAttributesAdded.SelectMany(s => s.Value).Max();
+            }
+
+            // Iterate through the parents we emitted custom attributes for, in parent order
+            foreach (var (parent, count) in _customAttributeParentCounts.OrderBy(kvp => CodedIndex.HasCustomAttribute(kvp.Key)))
+            {
+                int index = 0;
+
+                // First we try to update any existing attributes.
+                // GetCustomAttributes does a binary search, so is fast. We presume that the number of rows in the original metadata
+                // greatly outnumbers the amount of parents emitted in this delta so even with repeated searches this is still
+                // quicker than iterating the entire original table, even once.
+                var existingCustomAttributes = _previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(parent);
+                foreach (var attributeHandle in existingCustomAttributes)
+                {
+                    int rowId = MetadataTokens.GetRowNumber(attributeHandle);
+                    AddLogEntryOrDelete(rowId, parent, add: index < count);
+                    index++;
+                }
+
+                // If we emitted any attributes for this parent in previous deltas then we either need to update
+                // them next, or delete them if necessary
+                if (_previousGeneration.CustomAttributesAdded.TryGetValue(parent, out var rowIds))
+                {
+                    foreach (var rowId in rowIds)
+                    {
+                        TrackCustomAttributeAdded(rowId, parent);
+                        AddLogEntryOrDelete(rowId, parent, add: index < count);
+                        index++;
+                    }
+                }
+
+                // Finally if there are still attributes for this parent left, they are additions new to this delta
+                for (int i = index; i < count; i++)
+                {
+                    lastRowId++;
+                    TrackCustomAttributeAdded(lastRowId, parent);
+                    AddEncLogEntry(lastRowId);
+                }
+            }
+
+            // Save the attributes we've emitted, and the ones from previous deltas, for use in the next generation
+            foreach (var (parent, rowIds) in customAttributesAdded)
+            {
+                _customAttributesAdded.Add(parent, rowIds.ToImmutableAndFree());
+            }
+
+            // Add attributes and log entries for everything we've deleted
+            foreach (var row in deletedAttributeRows)
+            {
+                // now emit a "delete" row with a parent that is for the 0 row of the same table as the existing one
+                if (!MetadataTokens.TryGetTableIndex(row.kind, out var tableIndex))
+                {
+                    throw new InvalidOperationException("Trying to delete a custom attribute for a parent kind that doesn't have a matching table index.");
+                }
+                metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), MetadataTokens.EntityHandle(TableIndex.MemberRef, 0), value: default);
+
+                AddEncLogEntry(row.parentRowId);
+            }
+
+            void AddEncLogEntry(int rowId)
+            {
+                _customAttributeEncMapRows.Add(rowId);
+                metadata.AddEncLogEntry(
+                    entity: MetadataTokens.CustomAttributeHandle(rowId),
+                    code: EditAndContinueOperation.Default);
+            }
+
+            void AddLogEntryOrDelete(int rowId, EntityHandle parent, bool add)
+            {
+                if (add)
+                {
+                    // Update this row
+                    AddEncLogEntry(rowId);
+                }
+                else
+                {
+                    // Delete this row
+                    deletedAttributeRows.Add((rowId, parent.Kind));
+                }
+            }
+
+            void TrackCustomAttributeAdded(int nextRowId, EntityHandle parent)
+            {
+                if (!customAttributesAdded.TryGetValue(parent, out var existing))
+                {
+                    existing = ArrayBuilder<int>.GetInstance();
+                    customAttributesAdded.Add(parent, existing);
+                }
+                existing.Add(nextRowId);
+            }
+        }
+
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
             where T : class, IDefinition
         {
@@ -854,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             AddReferencedTokens(tokens, TableIndex.Param, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.Constant, previousSizes, deltaSizes);
-            AddReferencedTokens(tokens, TableIndex.CustomAttribute, previousSizes, deltaSizes);
+            AddRowNumberTokens(tokens, _customAttributeEncMapRows, TableIndex.CustomAttribute);
             AddReferencedTokens(tokens, TableIndex.DeclSecurity, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.ClassLayout, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.FieldLayout, previousSizes, deltaSizes);
@@ -978,6 +1138,14 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var member in index.GetRows())
             {
                 tokens.Add(MetadataTokens.Handle(tableIndex, index[member]));
+            }
+        }
+
+        private static void AddRowNumberTokens(ArrayBuilder<EntityHandle> tokens, IEnumerable<int> rowNumbers, TableIndex tableIndex)
+        {
+            foreach (var row in rowNumbers)
+            {
+                tokens.Add(MetadataTokens.Handle(tableIndex, row));
             }
         }
 

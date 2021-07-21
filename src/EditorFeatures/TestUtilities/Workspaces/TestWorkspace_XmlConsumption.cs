@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (GetLanguage(workspace, projectElement) == LanguageNames.VisualBasic)
             {
-                // For VB tests, root namespace value must be defined in compilation options element, 
+                // For VB tests, root namespace value must be defined in compilation options element,
                 // it can't use the property in project element to avoid confusion.
                 Assert.Null(rootNamespaceAttribute);
 
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <summary>
-        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using 
+        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
         private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement projectElement, XElement referencedSource)
@@ -966,8 +966,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // objects that are no longer in use. There are no public APIs available to directly dispose of these
                 // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
                 var content = File.ReadAllBytes(reference.Value);
-                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
-                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
+                references.Add(MetadataReference.CreateFromImage(content, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))

@@ -79,7 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var openedDocumentIds = _proxy.Workspace.GetOpenDocumentIds().ToImmutableArray();
+
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(
+                    solution,
+                    _debuggerService,
+                    captureMatchingDocuments: openedDocumentIds,
+                    captureAllMatchingDocuments: false,
+                    reportDiagnostics: true,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -186,9 +194,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
+                var debuggingSession = _debuggingSession;
+                if (debuggingSession == null)
+                {
+                    return false;
+                }
+
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await GetDebuggingSession().HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await debuggingSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

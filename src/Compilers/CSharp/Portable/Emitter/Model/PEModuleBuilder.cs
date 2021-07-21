@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool IgnoreAccessibility => false;
 
         /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta => false;
-
-        /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
         internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
@@ -542,9 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
 
+                // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter()));
+                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))

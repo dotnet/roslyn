@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.BaseTypeOrInterfaceUpdate, nameof(FeaturesResources.Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.TypeKindUpdate, nameof(FeaturesResources.Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.AccessorKindUpdate, nameof(FeaturesResources.Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.MethodKindUpdate, nameof(FeaturesResources.Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.DeclareAliasUpdate, nameof(FeaturesResources.Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.DeclareLibraryUpdate, nameof(FeaturesResources.Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.FieldKindUpdate, nameof(FeaturesResources.Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing));
@@ -97,8 +96,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.InsertGenericMethod, nameof(FeaturesResources.Adding_a_generic_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.Move, nameof(FeaturesResources.Moving_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.Delete, nameof(FeaturesResources.Deleting_0_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.MethodBodyAdd, nameof(FeaturesResources.Adding_a_method_body_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.MethodBodyDelete, nameof(FeaturesResources.Deleting_a_method_body_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericMethodUpdate, nameof(FeaturesResources.Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericMethodTriviaUpdate, nameof(FeaturesResources.Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.GenericTypeUpdate, nameof(FeaturesResources.Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing));
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.StackAllocUpdate, nameof(FeaturesResources.Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ExperimentalFeaturesEnabled, nameof(FeaturesResources.Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.AwaitStatementUpdate, nameof(FeaturesResources.Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ChangingVisibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingAccessibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.CapturingVariable, nameof(FeaturesResources.Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.NotCapturingVariable, nameof(FeaturesResources.Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.DeletingCapturedVariable, nameof(FeaturesResources.Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing));
@@ -142,23 +139,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MemberBodyTooBig, nameof(FeaturesResources.Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements));
             AddRudeEdit(RudeEditKind.SourceFileTooBig, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big));
             AddRudeEdit(RudeEditKind.InsertIntoGenericType, nameof(FeaturesResources.Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing));
-
             AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.AddRecordPositionalParameter, nameof(FeaturesResources.Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.DeleteRecordPositionalParameter, nameof(FeaturesResources.Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
-
             AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Edit_and_continue_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.MakeMethodAsync, nameof(FeaturesResources.Making_a_method_async_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, nameof(FeaturesResources.Updating_reloadable_type_marked_by_0_attribute_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.ChangingParameterTypes, nameof(FeaturesResources.Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingTypeParameters, nameof(FeaturesResources.Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingConstraints, nameof(FeaturesResources.Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangeImplicitMainReturnType, FeaturesResources.An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing);
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ImplementsClauseUpdate, nameof(FeaturesResources.Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ConstraintKindUpdate, nameof(FeaturesResources.Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertHandlesClause, nameof(FeaturesResources.Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.UpdateStaticLocal, nameof(FeaturesResources.Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing));
 

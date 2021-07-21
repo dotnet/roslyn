@@ -64,11 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
         public sealed override ValueTask DisposeAsync()
         {
-            if (this._cacheService is IAsyncDisposable asyncDisposable)
+            if (_cacheService is IAsyncDisposable asyncDisposable)
             {
                 return asyncDisposable.DisposeAsync();
             }
-            else if (this._cacheService is IDisposable disposable)
+            else if (_cacheService is IDisposable disposable)
             {
                 disposable.Dispose();
                 return ValueTaskFactory.CompletedTask;
