@@ -18,7 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
+            DeclarationModifiers result = DeclarationModifiers.Public
+                | DeclarationModifiers.Override;
+
+            if (ContainingType.IsRecordStruct && CanBeReadOnly())
+            {
+                result |= DeclarationModifiers.ReadOnly;
+            }
+
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
@@ -28,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.MethodChecks(diagnostics);
             VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
         }
+
+        protected virtual bool CanBeReadOnly() => false;
 
         protected abstract SpecialMember OverriddenSpecialMember { get; }
 

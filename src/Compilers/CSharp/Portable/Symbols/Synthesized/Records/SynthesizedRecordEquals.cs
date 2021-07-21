@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            DeclarationModifiers result = DeclarationModifiers.Public | (ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual);
+            DeclarationModifiers result = DeclarationModifiers.Public
+                | (ContainingType.IsRecordStruct ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None)
+                | (ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual);
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }

@@ -30,9 +30,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            const DeclarationModifiers result = DeclarationModifiers.Public;
+            var result = DeclarationModifiers.Public;
+
+            if (ContainingType.IsRecordStruct && !_positionalMembers.Any(m => hasNonReadOnlyGetter(m)))
+            {
+                result |= DeclarationModifiers.ReadOnly;
+            }
+
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
+
+            static bool hasNonReadOnlyGetter(Symbol m)
+            {
+                if (m.Kind is SymbolKind.Property)
+                {
+                    var property = (PropertySymbol)m;
+                    var getterMethod = property.GetMethod;
+                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
+                }
+
+                return false;
+            }
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)

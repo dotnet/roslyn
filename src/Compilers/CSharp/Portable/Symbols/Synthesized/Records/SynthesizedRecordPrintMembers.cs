@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result |= ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
             }
 
+            if (ContainingType.IsRecordStruct && IsAllPrintablePropertyGettersReadOnly(ContainingType)) 
+            {
+                result |= DeclarationModifiers.ReadOnly;
+            }
+
             Debug.Assert((result & ~allowedModifiers) == 0);
 #if DEBUG
             Debug.Assert(modifiersAreValid(result));
@@ -268,6 +273,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (reportAnError)
             {
                 diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseMethod, overriding.Locations[0], overriding, baseType);
+            }
+        }
+
+        internal static bool IsAllPrintablePropertyGettersReadOnly(NamedTypeSymbol containingType)
+        {
+            return !containingType.GetMembers().Any(m => hasNonReadOnlyGetter(m));
+
+            static bool hasNonReadOnlyGetter(Symbol m)
+            {
+                if (m.Kind is SymbolKind.Property)
+                {
+                    var property = (PropertySymbol)m;
+
+                    if (property.IsIndexer || property.IsOverride)
+                    {
+                        return false;
+                    }
+
+                    var getterMethod = property.GetMethod;
+                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
+                }
+
+                return false;
             }
         }
     }
