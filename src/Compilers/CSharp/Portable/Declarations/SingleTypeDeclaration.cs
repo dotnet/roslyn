@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
             /// </summary>
             HasReturnWithExpression = 1 << 8,
+
+            IsSimpleProgram = 1 << 9,
         }
 
         internal SingleTypeDeclaration(
@@ -164,6 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.IsIterator) != 0;
+            }
+        }
+
+        public bool IsSimpleProgram
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
 

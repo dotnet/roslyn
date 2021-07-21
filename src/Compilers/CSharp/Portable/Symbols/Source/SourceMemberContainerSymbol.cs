@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly NamespaceOrTypeSymbol _containingSymbol;
         protected readonly MergedTypeDeclaration declaration;
 
+        // The entry point symbol (resulting from top-level statements) is needed to construct non-type members because
+        // it contributes to their binders, so we have to compute it first.
+        // The value changes from "uninitialized" to "real value". The transition from "uninitialized" can only happen once.
+        private SimpleProgramEntryPointInfo? _lazySimpleProgramEntryPoint = SimpleProgramEntryPointInfo.UninitializedSentinel;
+
         // To compute explicitly declared members, binding must be limited (to avoid race conditions where binder cache captures symbols that aren't part of the final set)
         // The value changes from "uninitialized" to "real value" to null. The transition from "uninitialized" can only happen once.
         private DeclaredMembersAndInitializers? _lazyDeclaredMembersAndInitializers = DeclaredMembersAndInitializers.UninitializedSentinel;
@@ -2572,6 +2577,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected sealed class SimpleProgramEntryPointInfo
+        {
+            public readonly ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> SimpleProgramEntryPoints;
+
+            public static readonly SimpleProgramEntryPointInfo UninitializedSentinel = new SimpleProgramEntryPointInfo();
+
+            private SimpleProgramEntryPointInfo()
+            {
+            }
+
+            public SimpleProgramEntryPointInfo(ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> simpleProgramEntryPoints)
+            {
+                Debug.Assert(simpleProgramEntryPoints.All(ep => ep is not null));
+                this.SimpleProgramEntryPoints = simpleProgramEntryPoints;
+            }
+        }
+
         protected sealed class DeclaredMembersAndInitializers
         {
             public readonly ImmutableArray<Symbol> NonTypeMembers;
@@ -2813,7 +2835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
+        protected MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             var declaredMembersAndInitializers = getDeclaredMembersAndInitializers();
             if (declaredMembersAndInitializers is null)
@@ -2911,8 +2933,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> GetSimpleProgramEntryPoints()
+        {
+            if (this.ContainingType is not null || this.Name != WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)
+            {
+                return ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+            }
+
+            SimpleProgramEntryPointInfo? simpleProgramEntryPointInfo = _lazySimpleProgramEntryPoint;
+            if (simpleProgramEntryPointInfo != SimpleProgramEntryPointInfo.UninitializedSentinel)
+            {
+                return simpleProgramEntryPointInfo?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+            }
+
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            simpleProgramEntryPointInfo = buildSimpleProgramEntryPoint(diagnostics);
+
+            var alreadyKnown = Interlocked.CompareExchange(ref _lazySimpleProgramEntryPoint, simpleProgramEntryPointInfo, SimpleProgramEntryPointInfo.UninitializedSentinel);
+            if (alreadyKnown != SimpleProgramEntryPointInfo.UninitializedSentinel)
+            {
+                diagnostics.Free();
+                return alreadyKnown?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+            }
+
+            AddDeclarationDiagnostics(diagnostics);
+            diagnostics.Free();
+
+            return simpleProgramEntryPointInfo?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+
+            SimpleProgramEntryPointInfo? buildSimpleProgramEntryPoint(BindingDiagnosticBag diagnostics)
+            {
+                bool reportAnError = false;
+                ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
+
+                foreach (var singleDecl in declaration.Declarations)
+                {
+                    builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+                    if (singleDecl.IsSimpleProgram)
+                    {
+                        if (reportAnError)
+                        {
+                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
+                        }
+                        else
+                        {
+                            reportAnError = true;
+                        }
+
+                        builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
+                    }
+                }
+
+                if (builder is null)
+                {
+                    return null;
+                }
+
+                return new SimpleProgramEntryPointInfo(builder.ToImmutableAndFree());
+            }
+        }
+
         private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
+            if (TypeKind is TypeKind.Class)
+            {
+                AddSynthesizedSimpleProgramEntryPointIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+            }
+
             switch (TypeKind)
             {
                 case TypeKind.Struct:
@@ -3452,6 +3539,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
                     MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
+            }
+        }
+
+        private void AddSynthesizedSimpleProgramEntryPointIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
+        {
+            var simpleProgramEntryPoints = GetSimpleProgramEntryPoints();
+            foreach (var member in simpleProgramEntryPoints)
+            {
+                builder.AddNonTypeMember(member, declaredMembersAndInitializers);
             }
         }
 

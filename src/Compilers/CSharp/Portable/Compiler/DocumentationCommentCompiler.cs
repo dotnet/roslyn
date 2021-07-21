@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol.IsImplicitlyDeclared ||
                 symbol.IsAccessor() ||
                 symbol is SynthesizedSimpleProgramEntryPointSymbol ||
-                symbol is SimpleProgramNamedTypeSymbol ||
+                //symbol is SimpleProgramNamedTypeSymbol || // TODO2
                 symbol is SynthesizedRecordPropertySymbol;
         }
 
