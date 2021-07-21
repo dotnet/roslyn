@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         string DocumentationCommentCharacter { get; }
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
@@ -25,7 +24,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
-            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
-            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,

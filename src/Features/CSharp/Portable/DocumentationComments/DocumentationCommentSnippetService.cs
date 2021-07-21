@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         {
             var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
             var namespacesInScope = model.GetUsingNamespacesInScope(member);
-            var hasUsingSystem = namespacesInScope.Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == "System");
+            // We generate <exception cref="System.NullReferenceException"> if there is no 'using System;', and generate
+            // <exception cref="NullReferenceException"> if there is a 'using System;'
+            var hasUsingSystem = namespacesInScope.Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == nameof(System));
             using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
 
             foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)

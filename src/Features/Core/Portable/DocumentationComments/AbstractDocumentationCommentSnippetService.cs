@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         protected abstract bool AddIndent { get; }
 
         public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // Only generate if the position is immediately after '///', 
             // and that is the only documentation comment on the target member.
 
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
+            var token = model.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
             if (position != token.SpanStart)
             {
                 return null;
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
-        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
             // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
@@ -190,20 +189,20 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             if (options.GetOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration))
             {
-                var result = GenerateDocumentationCommentAfterEnter(syntaxTree, text, position, options, model, cancellationToken);
+                var result = GenerateDocumentationCommentAfterEnter(text, position, options, model, cancellationToken);
                 if (result != null)
                 {
                     return result;
                 }
             }
 
-            return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, cancellationToken);
+            return GenerateExteriorTriviaAfterEnter(model.SyntaxTree, text, position, options, cancellationToken);
         }
 
-        private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+        private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
-            var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
+            var token = GetTokenToLeft(model.SyntaxTree, position, cancellationToken);
             if (!IsDocCommentNewLine(token))
             {
                 return null;
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             // Shave off final line break or add trailing indent if necessary
-            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            var trivia = model.SyntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
             if (IsEndOfLineTrivia(trivia))
             {
                 newText = newText.Substring(0, newText.Length - newLine.Length);
@@ -242,9 +241,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, newText, offset);
         }
 
-        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SourceText text, int position, DocumentOptionSet options, SemanticModel model, CancellationToken cancellationToken)
         {
-            var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
+            var targetMember = GetTargetMember(model.SyntaxTree, text, position, cancellationToken);
             if (targetMember == null)
             {
                 return null;

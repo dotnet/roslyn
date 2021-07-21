@@ -99,15 +99,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, model, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, model, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(sourceText, position, documentOptions, model, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(sourceText, position, documentOptions, model, cancellationToken);
 
             if (result == null)
             {
