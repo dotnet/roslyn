@@ -479,10 +479,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
+                            var syntaxNode = (EqualsValueClauseSyntax)declarator.Initializer;
 
                             var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var executableBinder = new ExecutableCodeBinder((EqualsValueClauseSyntax)declarator.Initializer, this, initializerBinder);
-                            var initializerOpt = executableBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
+                            var executableBinder = new ExecutableCodeBinder(syntaxNode, this, initializerBinder);
+                            var initializerOpt = executableBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, syntaxNode, declarator);
 
                             if (initializerOpt != null)
                             {
