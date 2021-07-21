@@ -2236,6 +2236,31 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("void")]
+        [InlineData("string")]
+        [InlineData("String")]
+        [InlineData("(int, int)")]
+        [InlineData("async void")]
+        [InlineData("async System.Threading.Tasks.Task")]
+        [InlineData("int Function")]
+        public async Task NotAfterReturnTypeInLocalFunction(string returnType)
+        {
+            var markup = @$"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        static {returnType} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefInMemberContext_TypeOnly()
