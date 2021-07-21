@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIndexerAccess? indexerAccess = null;
             PropertySymbol? indexerSymbol = null;
             PropertySymbol? lengthProperty = null;
+            TypeSymbol narrowedType = inputType.StrippedType();
             if (inputType.IsErrorType())
             {
                 hasErrors = true;
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthProperty = (PropertySymbol?)((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, diagnostics, syntax: node))?.AssociatedSymbol;
                 hasErrors |= lengthProperty is null;
             }
-            else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics))
+            else if (TryPerformPatternIndexerLookup(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics))
             {
                 if (patternSymbol is PropertySymbol indexer)
                 {
@@ -314,7 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
 
-            TypeSymbol narrowedType = inputType.StrippedType();
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
                 node.Patterns, inputType: narrowedType, elementType: elementType,
                 permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
