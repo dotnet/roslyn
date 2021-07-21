@@ -394,12 +394,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             DocumentOptionSet optionSet, Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
-            var stringType = compilation.GetSpecialType(SpecialType.System_String);
-
             // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
             var condition = (TExpressionSyntax)generator.InvocationExpression(
                                 generator.MemberAccessExpression(
-                                    generator.TypeExpression(stringType),
+                                    generator.TypeExpression(SpecialType.System_String),
                                     generator.IdentifierName(methodName)),
                                 generator.Argument(generator.IdentifierName(parameter.Name)));
             var throwStatement = (TStatementSyntax)generator.ThrowStatement(CreateArgumentException(compilation, generator, parameter, methodName));
