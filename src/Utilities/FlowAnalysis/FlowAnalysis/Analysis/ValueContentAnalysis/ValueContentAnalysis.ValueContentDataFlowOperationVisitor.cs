@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     }
                     else
                     {
-                        return (GetNullAbstractValue(operation)) switch
+                        return GetNullAbstractValue(operation) switch
                         {
                             PointsToAnalysis.NullAbstractValue.Invalid => ValueContentAbstractValue.InvalidState,
 

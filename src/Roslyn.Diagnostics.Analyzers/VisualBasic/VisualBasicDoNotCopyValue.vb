@@ -15,6 +15,10 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
             Return New VisualBasicNonCopyableWalker(context, cache)
         End Function
 
+        Protected Overrides Function CreateSymbolWalker(context As SymbolAnalysisContext, cache As NonCopyableTypesCache) As NonCopyableSymbolWalker
+            Return New VisualBasicNonCopyableSymbolWalker(context, cache)
+        End Function
+
         Private NotInheritable Class VisualBasicNonCopyableWalker
             Inherits NonCopyableWalker
 
@@ -26,6 +30,14 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 ' Not supported (yet)
                 Return False
             End Function
+        End Class
+
+        Private NotInheritable Class VisualBasicNonCopyableSymbolWalker
+            Inherits NonCopyableSymbolWalker
+
+            Public Sub New(context As SymbolAnalysisContext, cache As NonCopyableTypesCache)
+                MyBase.New(context, cache)
+            End Sub
         End Class
     End Class
 End Namespace

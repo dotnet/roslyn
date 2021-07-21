@@ -41,6 +41,12 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableNoUnboxingMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoUnboxingMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableNoUnboxingDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoUnboxingDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
+        private static readonly LocalizableString s_localizableNoFieldOfCopyableTypeMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoFieldOfCopyableTypeMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableNoFieldOfCopyableTypeDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoFieldOfCopyableTypeDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+
+        private static readonly LocalizableString s_localizableNoAutoPropertyMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoAutoPropertyMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableNoAutoPropertyDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoAutoPropertyDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+
         internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
@@ -118,9 +124,33 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, UnsupportedUseRule, NoBoxingRule, NoUnboxingRule);
+        internal static DiagnosticDescriptor NoFieldOfCopyableTypeRule = new(
+            RoslynDiagnosticIds.DoNotCopyValueRuleId,
+            s_localizableTitle,
+            s_localizableNoFieldOfCopyableTypeMessage,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableNoFieldOfCopyableTypeDescription,
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static DiagnosticDescriptor NoAutoPropertyRule = new(
+            RoslynDiagnosticIds.DoNotCopyValueRuleId,
+            s_localizableTitle,
+            s_localizableNoAutoPropertyMessage,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableNoAutoPropertyDescription,
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, UnsupportedUseRule, NoBoxingRule, NoUnboxingRule, NoFieldOfCopyableTypeRule, NoAutoPropertyRule);
 
         protected abstract NonCopyableWalker CreateWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache);
+
+        protected abstract NonCopyableSymbolWalker CreateSymbolWalker(SymbolAnalysisContext context, NonCopyableTypesCache cache);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -131,6 +161,30 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var cache = new NonCopyableTypesCache(context.Compilation);
                 context.RegisterOperationBlockAction(context => AnalyzeOperationBlock(context, cache));
+                context.RegisterSymbolAction(
+                    context => AnalyzeSymbol(context, cache),
+                    //SymbolKind.Alias,
+                    //SymbolKind.ArrayType,
+                    //SymbolKind.Assembly,
+                    //SymbolKind.Discard,
+                    //SymbolKind.DynamicType,
+                    //SymbolKind.ErrorType,
+                    SymbolKind.Event,
+                    SymbolKind.Field,
+                    //SymbolKind.FunctionPointerType,
+                    //SymbolKind.Label,
+                    //SymbolKind.Local,
+                    SymbolKind.Method,
+                    SymbolKind.NamedType,
+                    SymbolKind.Namespace,
+                    //SymbolKind.NetModule,
+                    SymbolKind.Parameter,
+                    //SymbolKind.PointerType,
+                    //SymbolKind.Preprocessing,
+                    SymbolKind.Property
+                    //SymbolKind.RangeVariable,
+                    //SymbolKind.TypeParameter
+                    );
             });
         }
 
@@ -141,6 +195,12 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 walker.Visit(operation);
             }
+        }
+
+        private void AnalyzeSymbol(SymbolAnalysisContext context, NonCopyableTypesCache cache)
+        {
+            var walker = CreateSymbolWalker(context, cache);
+            walker.Visit(context.Symbol);
         }
 
         private static VisitReleaser<T> TryAddForVisit<T>(HashSet<T> set, T? value, out bool added)
@@ -175,6 +235,142 @@ namespace Roslyn.Diagnostics.Analyzers
             public void Dispose()
             {
                 _set?.Remove(_value);
+            }
+        }
+
+        protected abstract class NonCopyableSymbolWalker : SymbolVisitor
+        {
+            private readonly SymbolAnalysisContext _context;
+            //private readonly HashSet<ISymbol> _handledSymbols = new();
+
+            protected NonCopyableSymbolWalker(SymbolAnalysisContext context, NonCopyableTypesCache cache)
+            {
+                _context = context;
+                Cache = cache;
+            }
+
+            protected NonCopyableTypesCache Cache { get; }
+
+            public sealed override void Visit(ISymbol? symbol)
+            {
+                base.Visit(symbol);
+            }
+
+            public override void DefaultVisit(ISymbol symbol)
+            {
+                base.DefaultVisit(symbol);
+            }
+
+            public override void VisitAlias(IAliasSymbol symbol)
+            {
+                base.VisitAlias(symbol);
+            }
+
+            public override void VisitArrayType(IArrayTypeSymbol symbol)
+            {
+                base.VisitArrayType(symbol);
+            }
+
+            public override void VisitAssembly(IAssemblySymbol symbol)
+            {
+                base.VisitAssembly(symbol);
+            }
+
+            public override void VisitDiscard(IDiscardSymbol symbol)
+            {
+                base.VisitDiscard(symbol);
+            }
+
+            public override void VisitDynamicType(IDynamicTypeSymbol symbol)
+            {
+                base.VisitDynamicType(symbol);
+            }
+
+            public override void VisitEvent(IEventSymbol symbol)
+            {
+                base.VisitEvent(symbol);
+            }
+
+            public override void VisitField(IFieldSymbol symbol)
+            {
+                // Fields of copyable value types must be copyable. Copying a value type makes a shallow copy of the
+                // fields, which implicitly copies any value type fields.
+                if (Cache.IsNonCopyableType(symbol.Type)
+                    && !Cache.IsNonCopyableType(symbol.ContainingType)
+                    && symbol.ContainingType.IsValueType)
+                {
+                    _context.ReportDiagnostic(symbol.CreateDiagnostic(NoFieldOfCopyableTypeRule, symbol.Type, symbol));
+                }
+
+                base.VisitField(symbol);
+            }
+
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                base.VisitFunctionPointerType(symbol);
+            }
+
+            public override void VisitLabel(ILabelSymbol symbol)
+            {
+                base.VisitLabel(symbol);
+            }
+
+            public override void VisitLocal(ILocalSymbol symbol)
+            {
+                base.VisitLocal(symbol);
+            }
+
+            public override void VisitMethod(IMethodSymbol symbol)
+            {
+                base.VisitMethod(symbol);
+            }
+
+            public override void VisitModule(IModuleSymbol symbol)
+            {
+                base.VisitModule(symbol);
+            }
+
+            public override void VisitNamedType(INamedTypeSymbol symbol)
+            {
+                base.VisitNamedType(symbol);
+            }
+
+            public override void VisitNamespace(INamespaceSymbol symbol)
+            {
+                base.VisitNamespace(symbol);
+            }
+
+            public override void VisitParameter(IParameterSymbol symbol)
+            {
+                base.VisitParameter(symbol);
+            }
+
+            public override void VisitPointerType(IPointerTypeSymbol symbol)
+            {
+                base.VisitPointerType(symbol);
+            }
+
+            public override void VisitProperty(IPropertySymbol symbol)
+            {
+                // Auto-properties cannot have non-copyable types. The getter always returns the backing field by value,
+                // which requires making a copy.
+                if (symbol.IsAutoProperty()
+                    && Cache.IsNonCopyableType(symbol.Type))
+                {
+                    _context.ReportDiagnostic(symbol.CreateDiagnostic(NoAutoPropertyRule, symbol.Type, symbol));
+                }
+
+                base.VisitProperty(symbol);
+            }
+
+            public override void VisitRangeVariable(IRangeVariableSymbol symbol)
+            {
+                base.VisitRangeVariable(symbol);
+            }
+
+            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+            {
+                base.VisitTypeParameter(symbol);
             }
         }
 

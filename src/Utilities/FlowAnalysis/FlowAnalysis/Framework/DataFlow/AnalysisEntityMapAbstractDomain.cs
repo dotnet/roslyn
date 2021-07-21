@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 #endif
         }
 
+#pragma warning disable CA1725 // Parameter names should match base declaration
         public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
+#pragma warning restore CA1725 // Parameter names should match base declaration
         {
             AssertValidAnalysisData(map1);
             AssertValidAnalysisData(map2);

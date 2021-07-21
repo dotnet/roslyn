@@ -2,6 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Text.Analyzers</NuspecPackageId>
@@ -9,6 +11,7 @@
     <Summary>Text Analyzers</Summary>
     <ReleaseNotes>Text Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
     
     <ContainsPortedFxCopRules>true</ContainsPortedFxCopRules>
   </PropertyGroup>

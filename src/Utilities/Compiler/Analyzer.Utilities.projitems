@@ -41,6 +41,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeMetricsAnalysisContext.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\nuget\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
@@ -55,17 +57,26 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MethodKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VersionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingDeclarationOperationWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingOperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationKindEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationWrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildPropertyOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SyntaxTreeCategorizedAnalyzerConfigOptions.cs" />
@@ -104,11 +115,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\CompilationCategorizedAnalyzerConfigOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RoslynHashCode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />

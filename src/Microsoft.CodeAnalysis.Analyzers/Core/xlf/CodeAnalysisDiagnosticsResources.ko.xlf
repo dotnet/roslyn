@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
-        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">분석기 패키지에 대해 릴리스 추적을 사용하도록 설정하면 각 분석기 릴리스와 함께 제공 및/또는 변경되는 분석기 진단을 추적하고 문서화하는 데 도움이 됩니다. 자세한 내용은 https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md를 참조하세요.</target>
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">분석기 패키지에 대해 릴리스 추적을 사용하도록 설정하면 각 분석기 릴리스와 함께 제공 및/또는 변경되는 분석기 진단을 추적하고 문서화하는 데 도움이 됩니다. 자세한 내용은 https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
@@ -255,6 +255,26 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">구문, 기호 또는 작업 분석기 작업을 각각 등록할 때 하나 이상의 구문, 기호 또는 작업 종류를 지정해야 합니다. 지정하지 않으면 등록된 작업이 분석하는 동안 호출되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="translated">구문 종류를 확인할 때 'syntax.IsKind(kind)' ~ 'syntax.Kind() == kind'를 선호합니다. 'IsKind'를 사용하는 코드는 런타임 시 약간 더 효율적이므로 해당하는 경우 이 형식을 일관되게 사용하면 복잡한 분석 시나리오에서 성능을 향상하는 데 도움이 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="translated">'Kind' 대신 'IsKind' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">구문 종류 확인에 'IsKind' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">구문 종류 확인에 'IsKind' 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
@@ -536,8 +556,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md의 설명서를 참조하세요.</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md에 있는 문서를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

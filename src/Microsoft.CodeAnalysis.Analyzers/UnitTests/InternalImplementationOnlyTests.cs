@@ -59,25 +59,20 @@ class SomeOtherClass : IMyOtherInterface { }";
                 TestState =
                 {
                     Sources = { source2 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
+                    },
+                    AdditionalProjectReferences = { "DependencyProject" },
                     ExpectedDiagnostics =
                     {
                         // Test0.cs(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
                         VerifyCS.Diagnostic().WithSpan(2, 7, 2, 16).WithArguments("SomeClass", "IMyInterface"),
                         // Test0.cs(4,7): error RS1009: Type SomeOtherClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
                         VerifyCS.Diagnostic().WithSpan(4, 7, 4, 21).WithArguments("SomeOtherClass", "IMyInterface"),
-                    },
-                },
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
                     },
                 },
             }.RunAsync();
@@ -105,19 +100,17 @@ class SomeOtherClass : IMyOtherInterface { }";
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
-                TestState = { Sources = { source2 } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source2 },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
             }.RunAsync();
         }
@@ -441,25 +434,20 @@ End Class
                 TestState =
                 {
                     Sources = { source2 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
+                    },
+                    AdditionalProjectReferences = { "DependencyProject" },
                     ExpectedDiagnostics =
                     {
                         // Test0.vb(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
                         VerifyVB.Diagnostic().WithSpan(2, 7, 2, 16).WithArguments("SomeClass", "IMyInterface"),
                         // Test0.vb(6,7): error RS1009: Type SomeOtherClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
                         VerifyVB.Diagnostic().WithSpan(6, 7, 6, 21).WithArguments("SomeOtherClass", "IMyInterface"),
-                    },
-                },
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.VisualBasic)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.vb", source1, filePath: "Test0.vb").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
                     },
                 },
             }.RunAsync();
@@ -495,19 +483,17 @@ End Class
             await new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
-                TestState = { Sources = { source2 } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source2 },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.VisualBasic)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.vb", source1, filePath: "Test0.vb").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
             }.RunAsync();
         }

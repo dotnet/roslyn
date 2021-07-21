@@ -244,15 +244,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             }
 
             public override ParameterValidationAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
-                IMethodSymbol targetMethod,
+                IMethodSymbol method,
                 IOperation? visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,
                 ParameterValidationAbstractValue defaultValue)
             {
-                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                ProcessRegularInvocationOrCreation(targetMethod, visitedArguments, originalOperation);
+                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+                ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
                 return value;
             }
 

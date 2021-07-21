@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
-
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
 {
     public static partial class VisualBasicPerformanceCodeFixVerifier<TAnalyzer, TCodeFix>

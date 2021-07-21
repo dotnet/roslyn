@@ -117,10 +117,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(
+            return RoslynHashCode.Combine(
                 this.PropertyName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
-                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault()));
+                this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
+                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault());
         }
 
         public override bool Equals(object obj)

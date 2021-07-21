@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../PublicApiAnalyzerResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../PublicApiAnalyzerResources.resx">
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
@@ -185,6 +185,16 @@
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
         <target state="translated">從宣告的 API 移除已刪除的類型與成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">符號 '{0}' 標記為已移除，但未在原始程式碼中刪除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">公用 API 標記為已移除，但存在於原始程式碼中</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">

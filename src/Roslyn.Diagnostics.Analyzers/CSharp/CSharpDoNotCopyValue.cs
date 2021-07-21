@@ -18,6 +18,9 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
         protected override NonCopyableWalker CreateWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
             => new CSharpNonCopyableWalker(context, cache);
 
+        protected override NonCopyableSymbolWalker CreateSymbolWalker(SymbolAnalysisContext context, NonCopyableTypesCache cache)
+            => new CSharpNonCopyableSymbolWalker(context, cache);
+
         private sealed class CSharpNonCopyableWalker : NonCopyableWalker
         {
             public CSharpNonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
@@ -45,6 +48,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 }
 
                 return false;
+            }
+        }
+
+        private sealed class CSharpNonCopyableSymbolWalker : NonCopyableSymbolWalker
+        {
+            public CSharpNonCopyableSymbolWalker(SymbolAnalysisContext context, NonCopyableTypesCache cache)
+                : base(context, cache)
+            {
             }
         }
     }

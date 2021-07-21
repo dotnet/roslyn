@@ -73,7 +73,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 accessibility: Accessibility.Internal,
                 statements: new[] { syntaxGenerator.ReturnStatement(newTestAccessorExpression) });
 
-            var parameterName = char.ToLowerInvariant(type.Name[0]) + type.Name[1..];
+            var parameterName = "instance";
             var fieldName = "_" + parameterName;
             var testAccessorField = syntaxGenerator.FieldDeclaration(
                 fieldName,

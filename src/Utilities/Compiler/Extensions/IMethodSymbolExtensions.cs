@@ -717,5 +717,48 @@ namespace Analyzer.Utilities.Extensions
                    "<Main>$" => true,
                    _ => false
                };
+
+        public static bool IsGetAwaiterFromAwaitablePattern([NotNullWhen(true)] this IMethodSymbol? method,
+            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
+            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
+        {
+            if (method is null
+                || !method.Name.Equals("GetAwaiter", StringComparison.Ordinal)
+                || method.Parameters.Length != 0)
+            {
+                return false;
+            }
+
+            var returnType = method.ReturnType?.OriginalDefinition;
+            if (returnType is null)
+            {
+                return false;
+            }
+
+            return returnType.DerivesFrom(inotifyCompletionType) ||
+                returnType.DerivesFrom(icriticalNotifyCompletionType);
+        }
+
+        public static bool IsGetResultFromAwaiterPattern(
+            [NotNullWhen(true)] this IMethodSymbol? method,
+            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
+            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
+        {
+            if (method is null
+                || !method.Name.Equals("GetResult", StringComparison.Ordinal)
+                || method.Parameters.Length != 0)
+            {
+                return false;
+            }
+
+            var containingType = method.ContainingType?.OriginalDefinition;
+            if (containingType is null)
+            {
+                return false;
+            }
+
+            return containingType.DerivesFrom(inotifyCompletionType) ||
+                containingType.DerivesFrom(icriticalNotifyCompletionType);
+        }
     }
 }

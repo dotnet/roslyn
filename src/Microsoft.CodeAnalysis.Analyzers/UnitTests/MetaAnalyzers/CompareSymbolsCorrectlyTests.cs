@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -1108,5 +1110,151 @@ public class C
                 },
             }.RunAsync();
         }
+
+        [Fact, WorkItem(4413, "https://github.com/dotnet/roslyn-analyzers/issues/4413")]
+        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNot()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M1(IFieldSymbol[] fields)
+    {
+        var result = fields.ToLookup(f => f.Name);
+    }
+
+    public void M2(IEnumerable<IPropertySymbol> source, IEnumerable<IPropertySymbol> destination)
+    {
+        var result = source.Join(destination, p => (p.Name, p.Type.Name), p => (p.Name, p.Type.Name), (p1, p2) => p1.Name);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4956, "https://github.com/dotnet/roslyn-analyzers/issues/4956")]
+        public async Task RS1024_StringGetHashCode()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        ReadOnlySpan<char> testROS = default;
+        int hashCode = string.GetHashCode(testROS, StringComparison.OrdinalIgnoreCase);
+    }
+}"
+                        , SymbolEqualityComparerStubCSharp
+                    },
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1024_GetHashCodeOnInt64()
+        {
+            var code = @"
+using System;
+using Microsoft.CodeAnalysis;
+
+static class HashCodeHelper
+{
+    public static Int32 GetHashCode(Int64 x) => 0;
+    public static Int32 GetHashCode(ISymbol symbol) => [|symbol.GetHashCode()|];
+}
+
+public class C
+{
+    public int GetHashCode(Int64 obj)
+    {
+        return HashCodeHelper.GetHashCode(obj);
+    }
+
+    public int GetHashCode(ISymbol symbol)
+    {
+        return HashCodeHelper.GetHashCode(symbol);
+    }
+
+    public int GetHashCode(object o)
+    {
+        if (o is ISymbol symbol)
+        {
+            return [|HashCode.Combine(symbol)|];
+        }
+
+        return HashCode.Combine(o);
+    }
+
+    public int GetHashCode(object o1, object o2)
+    {
+        if (o1 is ISymbol symbol1 && o2 is ISymbol symbol2)
+        {
+            return [|HashCode.Combine(symbol1, symbol2)|];
+        }
+
+        if (o1 is ISymbol symbolFirst)
+        {
+            return [|HashCode.Combine(symbolFirst, o2)|];
+        }
+
+        if (o2 is ISymbol symbolSecond)
+        {
+            return [|HashCode.Combine(o1, symbolSecond)|];
+        }
+
+        return HashCode.Combine(o1, o2);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                    MarkupHandling = Testing.MarkupMode.Allow
+                },
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+            }.RunAsync();
+        }
+
+        private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
+            => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
+                new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
+                new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
+                new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
+                new PackageIdentity("System.Security.Permissions", "4.7.0"),
+                new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
     }
 }

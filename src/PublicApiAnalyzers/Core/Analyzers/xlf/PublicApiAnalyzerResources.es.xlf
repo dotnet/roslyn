@@ -187,6 +187,16 @@
         <target state="translated">Quitar tipos y miembros eliminados de la API declarada</target>
         <note />
       </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">El símbolo ' {0} ' está marcado como retirado, pero no se elimina en el código fuente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">La API pública se marcó como quitada, pero existe en el código fuente</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
         <target state="translated">Los archivos PublicAPI.txt deben tener "#nullable Enable" para hacer un seguimiento de la información de nulabilidad, o bien se debe suprimir este diagnóstico. Con la nulabilidad habilitada, PublicAPI.txt registra los tipos que aceptan valores NULL (sufijo "?" en el tipo) o que no admiten valores NULL (sufijo "!"). También realiza el seguimiento de cualquier API que aún use un tipo de referencia obvio (prefijo "~" en la línea).</target>

@@ -187,6 +187,16 @@
         <target state="translated">Odebrat odstraněné typy a členy z deklarovaného rozhraní API</target>
         <note />
       </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">Symbol {0} se označil jako odebraný, ale neodstranil se ze zdrojového kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">Veřejné rozhraní API se označilo jako odebrané, ale existuje ve zdrojovém kódu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
         <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používají typy bez určení možnosti použití hodnoty null (předpona ~ na řádku).</target>

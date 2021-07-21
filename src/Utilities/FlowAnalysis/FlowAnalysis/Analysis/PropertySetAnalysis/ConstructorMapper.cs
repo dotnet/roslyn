@@ -98,9 +98,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.PropertyAbstractValues,
-                HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
-                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault()));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(PropertyAbstractValues, ref hashCode);
+            hashCode.Add(MapFromValueContentAbstractValue.GetHashCodeOrDefault());
+            hashCode.Add(MapFromPointsToAbstractValue.GetHashCodeOrDefault());
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)

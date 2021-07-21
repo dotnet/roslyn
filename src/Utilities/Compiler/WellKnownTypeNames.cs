@@ -7,6 +7,7 @@ namespace Analyzer.Utilities
     {
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
+        public const string MicrosoftAspNetCoreHttpHttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
@@ -32,6 +33,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+        public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
+        public const string MicrosoftCodeAnalysisCSharpExtensions = "Microsoft.CodeAnalysis.CSharpExtensions";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
         public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
         public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
@@ -55,6 +58,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+        public const string MicrosoftCodeAnalysisVisualBasicVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions";
+        public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
@@ -78,14 +83,12 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
         public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
+        public const string NUnitFrameworkInterfacesITestBuilder = "NUnit.Framework.Interfaces.ITestBuilder";
         public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
         public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
         public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
         public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
         public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
-        public const string NUnitFrameworkTestCaseAttribute = "NUnit.Framework.TestCaseAttribute";
-        public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
-        public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
         public const string SystemActivator = "System.Activator";
         public const string SystemAppContext = "System.AppContext";
@@ -189,6 +192,7 @@ namespace Analyzer.Utilities
         public const string SystemGC = "System.GC";
         public const string SystemGlobalizationCultureInfo = "System.Globalization.CultureInfo";
         public const string SystemGuid = "System.Guid";
+        public const string SystemHashCode = "System.HashCode";
         public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemIComparable = "System.IComparable";
         public const string SystemIComparable1 = "System.IComparable`1";
@@ -250,7 +254,10 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCallerLineNumberAttribute = "System.Runtime.CompilerServices.CallerLineNumberAttribute";
         public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+        public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
+        public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
+        public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
@@ -519,5 +526,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
         public const string XunitAssert = "Xunit.Assert";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitTraitAttribute = "Xunit.TraitAttribute";
     }
 }

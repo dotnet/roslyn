@@ -84,12 +84,12 @@ namespace Text.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule_CA1714, Rule_CA1717);
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            analysisContext.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(compilationContext =>
             {
                 INamedTypeSymbol? flagsAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemFlagsAttribute);
                 if (flagsAttribute == null)
@@ -109,8 +109,8 @@ namespace Text.Analyzers
                 return;
             }
 
-            var reportCA1714 = context.Options.MatchesConfiguredVisibility(Rule_CA1714, symbol, context.Compilation, context.CancellationToken);
-            var reportCA1717 = context.Options.MatchesConfiguredVisibility(Rule_CA1717, symbol, context.Compilation, context.CancellationToken);
+            var reportCA1714 = context.Options.MatchesConfiguredVisibility(Rule_CA1714, symbol, context.Compilation);
+            var reportCA1717 = context.Options.MatchesConfiguredVisibility(Rule_CA1717, symbol, context.Compilation);
             if (!reportCA1714 && !reportCA1717)
             {
                 return;
@@ -129,8 +129,7 @@ namespace Text.Analyzers
                 return;
             }
 
-            bool hasFlagsAttribute = symbol.GetAttributes().Any(a => flagsAttribute.Equals(a.AttributeClass));
-            if (hasFlagsAttribute)
+            if (symbol.HasAttribute(flagsAttribute))
             {
                 if (reportCA1714 && !IsPlural(symbol.Name)) // Checking Rule CA1714
                 {

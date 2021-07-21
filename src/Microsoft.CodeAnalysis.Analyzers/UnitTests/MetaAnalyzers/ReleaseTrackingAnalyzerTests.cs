@@ -50,13 +50,13 @@ class MyAnalyzer : DiagnosticAnalyzer
         new DiagnosticDescriptor({id}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }} 
+    public override void Initialize(AnalysisContext context) {{ }}
 }}";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
-        [WindowsOnlyFact]
+        [Fact]
         public async Task TestCodeFixToEnableAnalyzerReleaseTracking()
         {
             var source = @"
@@ -138,7 +138,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }} 
+    public override void Initialize(AnalysisContext context) {{ }}
 }";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
@@ -496,7 +496,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText, additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
                 additionalExpectedDiagnosticsInResult: ImmutableArray.Create(
-                    GetAdditionalFileResultAt(4, 1,
+                    GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule,
                         ReleaseTrackingHelper.UnshippedFileName,
@@ -636,7 +636,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             var unshippedText = DefaultUnshippedHeader + entry;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                    GetAdditionalFileResultAt(4, 1,
+                    GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
                         ReleaseTrackingHelper.UnshippedFileName,
@@ -697,7 +697,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             var unshippedText = DefaultChangedUnshippedHeader + entry;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                    GetAdditionalFileResultAt(4, 1,
+                    GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
                         ReleaseTrackingHelper.UnshippedFileName,
@@ -888,7 +888,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                    GetAdditionalFileResultAt(6, 1,
+                    GetAdditionalFileResultAt(7, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
                         fileWithDiagnostics,
@@ -921,15 +921,15 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
         #region Helpers
 
-        private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine +
+        private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine + BlankLine +
             ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
             ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-        private const string DefaultRemovedUnshippedHeader = ReleaseTrackingHelper.TableTitleRemovedRules + BlankLine +
+        private const string DefaultRemovedUnshippedHeader = ReleaseTrackingHelper.TableTitleRemovedRules + BlankLine + BlankLine +
             ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
             ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-        private const string DefaultChangedUnshippedHeader = ReleaseTrackingHelper.TableTitleChangedRules + BlankLine +
+        private const string DefaultChangedUnshippedHeader = ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + BlankLine +
             ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine +
             ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + BlankLine;
 
@@ -946,8 +946,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(path, line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 

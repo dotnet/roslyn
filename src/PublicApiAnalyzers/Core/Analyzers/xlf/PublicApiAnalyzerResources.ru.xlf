@@ -187,6 +187,16 @@
         <target state="translated">Удалите удаленные типы и элементы из объявленного API</target>
         <note />
       </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">Символ "{0}" помечен как удаленный, но он не удален в исходном коде</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">Открытый API помечен как удаленный, но он существует в исходном коде</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
         <target state="translated">Для файлов PublicAPI.txt необходимо установить директиву #nullable enable, чтобы отслеживать сведения о допустимости значений NULL, либо отключить этот параметр диагностики. Если значения NULL являются допустимыми, в файлах PublicAPI.txt записываются типы, которые допускают значения NULL (суффикс "?" типа) или не допускают значения NULL (суффикс "!"). Также отслеживаются все API, в которых все еще используется ссылочный тип без заметок о допустимости значений NULL (префикс "~" в строке).</target>

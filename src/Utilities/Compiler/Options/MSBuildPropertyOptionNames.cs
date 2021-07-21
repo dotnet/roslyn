@@ -19,6 +19,7 @@ namespace Analyzer.Utilities
         public const string ProjectTypeGuids = nameof(ProjectTypeGuids);
         public const string PublishSingleFile = nameof(PublishSingleFile);
         public const string IncludeAllContentForSelfExtract = nameof(IncludeAllContentForSelfExtract);
+        public const string InvariantGlobalization = nameof(InvariantGlobalization);
     }
 
     internal static class MSBuildPropertyOptionNamesHelpers

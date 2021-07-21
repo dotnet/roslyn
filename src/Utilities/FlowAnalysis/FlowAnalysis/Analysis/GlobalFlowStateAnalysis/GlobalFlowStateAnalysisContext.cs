@@ -83,8 +83,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateAnalysisValueSet> obj)
+        {
+            return true;
         }
     }
 }

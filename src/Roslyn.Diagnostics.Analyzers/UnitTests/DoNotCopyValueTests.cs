@@ -1222,5 +1222,148 @@ class C
                 // /0/Test0.cs(6,21): warning RS0042: Do not wrap non-copyable type 'System.Runtime.InteropServices.GCHandle?' in 'FieldInitializer' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.AvoidNullableWrapperRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle?", "FieldInitializer"));
         }
+
+        [Fact]
+        public async Task DoNotDefineNonCopyableFieldInCopyableType()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+class C1
+{
+    CanCopy field1;
+    CannotCopy field2;
+}
+
+struct C2
+{
+    CanCopy field1;
+    CannotCopy {|#0:field2|};
+}
+
+[NonCopyable]
+struct C3
+{
+    CanCopy field1;
+    CannotCopy field2;
+}
+
+struct CanCopy { }
+[NonCopyable] struct CannotCopy { }
+internal sealed class NonCopyableAttribute : System.Attribute { }
+",
+                // /0/Test0.cs(11,16): warning RS0042: Copyable field 'C2.field2' cannot have non-copyable type 'CannotCopy'
+                VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoFieldOfCopyableTypeRule).WithLocation(0).WithArguments("CannotCopy", "C2.field2"));
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Class C1
+    Private field1 As CanCopy
+    Private field2 As CannotCopy
+End Class
+
+Structure C2
+    Private field1 As CanCopy
+    Private {|#0:field2|} As CannotCopy
+End Structure
+
+<NonCopyable>
+Structure C3
+    Private field1 As CanCopy
+    Private field2 As CannotCopy
+End Structure
+
+Structure CanCopy : End Structure
+<NonCopyable> Structure CannotCopy : End Structure
+Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : End Class
+",
+                // /0/Test0.vb(9,13): warning RS0042: Copyable field 'Private field2 As CannotCopy' cannot have non-copyable type 'CannotCopy'
+                VerifyVB.Diagnostic(AbstractDoNotCopyValue.NoFieldOfCopyableTypeRule).WithLocation(0).WithArguments("CannotCopy", "Private field2 As CannotCopy"));
+        }
+
+        [Fact]
+        public async Task DoNotDefineNonCopyableAutoProperty()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+class C1
+{
+    CanCopy Property1 { get; set; }
+    CanCopy Property2 { get => throw null; set => throw null; }
+    CannotCopy {|#0:Property3|} { get; set; }
+    CannotCopy Property4 { get => throw null; set => throw null; }
+}
+
+struct C2
+{
+    CanCopy Property1 { get; set; }
+    CanCopy Property2 { get => throw null; set => throw null; }
+    CannotCopy {|#1:Property3|} { get; set; }
+    CannotCopy Property4 { get => throw null; set => throw null; }
+}
+
+struct CanCopy { }
+[NonCopyable] struct CannotCopy { }
+internal sealed class NonCopyableAttribute : System.Attribute { }
+",
+                // /0/Test0.cs(6,16): warning RS0042: Auto-property 'C1.Property3' cannot have non-copyable type 'CannotCopy'
+                VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAutoPropertyRule).WithLocation(0).WithArguments("CannotCopy", "C1.Property3"),
+                // /0/Test0.cs(14,16): warning RS0042: Auto-property 'C2.Property3' cannot have non-copyable type 'CannotCopy'
+                VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAutoPropertyRule).WithLocation(1).WithArguments("CannotCopy", "C2.Property3"));
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Class C1
+    Private Property Property1 As CanCopy
+
+    Private Property Property2 As CanCopy
+        Get
+            Throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            Throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+
+    Private Property {|#0:Property3|} As CannotCopy
+
+    Private Property Property4 As CannotCopy
+        Get
+            Throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            Throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Class
+
+Structure C2
+    Private Property Property1 As CanCopy
+
+    Private Property Property2 As CanCopy
+        Get
+            Throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            Throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+
+    Private Property {|#1:Property3|} As CannotCopy
+
+    Private Property Property4 As CannotCopy
+        Get
+            Throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            Throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Structure
+
+Structure CanCopy : End Structure
+<NonCopyable> Structure CannotCopy : End Structure
+Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : End Class
+",
+                // /0/Test0.vb(14,22): warning RS0042: Auto-property 'Private Property Property3 As CannotCopy' cannot have non-copyable type 'CannotCopy'
+                VerifyVB.Diagnostic(AbstractDoNotCopyValue.NoAutoPropertyRule).WithLocation(0).WithArguments("CannotCopy", "Private Property Property3 As CannotCopy"),
+                // /0/Test0.vb(38,22): warning RS0042: Auto-property 'Private Property Property3 As CannotCopy' cannot have non-copyable type 'CannotCopy'
+                VerifyVB.Diagnostic(AbstractDoNotCopyValue.NoAutoPropertyRule).WithLocation(1).WithArguments("CannotCopy", "Private Property Property3 As CannotCopy"));
+        }
     }
 }

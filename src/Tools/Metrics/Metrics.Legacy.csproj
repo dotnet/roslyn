@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <DefineConstants>$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />

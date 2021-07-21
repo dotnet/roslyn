@@ -15,7 +15,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private const string Id = RoslynDiagnosticIds.RelaxTestNamingSuppressionRuleId;
 
         // VSTHRD200: Use Async suffix for async methods
-        // https://github.com/microsoft/vs-threading/blob/master/doc/analyzers/VSTHRD200.md
+        // https://github.com/microsoft/vs-threading/blob/main/doc/analyzers/VSTHRD200.md
         private const string SuppressedDiagnosticId = "VSTHRD200";
 
         private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.RelaxTestNamingSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -70,10 +69,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public ImmutableHashSet<IOperation> DisposingOrEscapingOperations { get; }
         public DisposeAbstractValueKind Kind { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(DisposingOrEscapingOperations));
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(DisposingOrEscapingOperations));
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<DisposeAbstractValue> obj)
+        {
+            var other = (DisposeAbstractValue)obj;
+            return HashUtilities.Combine(DisposingOrEscapingOperations) == HashUtilities.Combine(other.DisposingOrEscapingOperations)
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
     }
 }

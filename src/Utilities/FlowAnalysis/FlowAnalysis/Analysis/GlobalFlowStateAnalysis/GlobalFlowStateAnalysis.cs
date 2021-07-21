@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     /// </summary>
     internal partial class GlobalFlowStateAnalysis : ForwardDataFlowAnalysis<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new GlobalFlowStateAnalysisDomain(GlobalFlowStateAnalysisValueSetDomain.Instance);
+        internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new(GlobalFlowStateAnalysisValueSetDomain.Instance);
 
         private GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomain analysisDomain, GlobalFlowStateDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         /// An optimistic points to analysis assumes that the global flow state doesn't change for such scenarios.
         /// A pessimistic points to analysis resets the global flow state to an unknown state for such scenarios.
         /// </param>
-        /// <param name="cancellationToken">Token to cancel analysis.</param>
         /// <param name="valueContentAnalysisResult">Optional value content analysis result, if <paramref name="performValueContentAnalysis"/> is true</param>
         /// <param name="interproceduralAnalysisKind"><see cref="InterproceduralAnalysisKind"/> for the analysis.</param>
         /// <param name="interproceduralAnalysisPredicate">Optional predicate for interprocedural analysis.</param>
@@ -52,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         /// Optional delegate to compute values for <paramref name="additionalSupportedValueTypes"/>.
         /// Must be non-null if <paramref name="additionalSupportedValueTypes"/> is non-empty.
         /// </param>
+        /// 
         /// <returns>Global flow state analysis result, or null if analysis did not succeed.</returns>
         public static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
@@ -62,7 +61,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             DiagnosticDescriptor rule,
             bool performValueContentAnalysis,
             bool pessimisticAnalysis,
-            CancellationToken cancellationToken,
             out ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
@@ -75,9 +73,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             }
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
+                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind);
             var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation,
-                defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties, cancellationToken);
+                defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pointsToAnalysisKind, pessimisticAnalysis,
                 performValueContentAnalysis, out valueContentAnalysisResult,
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             return dataFlowAnalysisResult.With(operationVisitor.GetGlobalValuesMap());
         }
 
-        protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData data)
-            => new GlobalFlowStateBlockAnalysisResult(basicBlock, data);
+        protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData blockAnalysisData)
+            => new(basicBlock, blockAnalysisData);
     }
 }

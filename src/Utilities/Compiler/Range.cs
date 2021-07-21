@@ -37,9 +37,9 @@ namespace System
         }
 
         /// <summary>Indicates whether the current Range object is equal to another object of the same type.</summary>
-        /// <param name="value">An object to compare with this object</param>
-        public override bool Equals(object? value) =>
-            value is Range r &&
+        /// <param name="obj">An object to compare with this object</param>
+        public override bool Equals(object? obj) =>
+            obj is Range r &&
             r.Start.Equals(Start) &&
             r.End.Equals(End);
 
@@ -50,7 +50,7 @@ namespace System
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(Start.GetHashCode(), End.GetHashCode());
+            return RoslynHashCode.Combine(Start.GetHashCode(), End.GetHashCode());
         }
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>

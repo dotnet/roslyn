@@ -1,63 +1,84 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+
+#if !NETCOREAPP
 using Analyzer.Utilities.Extensions;
+#endif
 
 namespace Analyzer.Utilities
 {
     internal static class HashUtilities
     {
-        internal static int GetHashCodeOrDefault(this object? obj) => obj?.GetHashCode() ?? 0;
+        internal static int GetHashCodeOrDefault<T>(this T? obj)
+            where T : class
+            => obj?.GetHashCode() ?? 0;
 
-        internal static int Combine(int newKey, int currentKey)
+        internal static int GetHashCodeOrDefault<T>(this T? obj)
+            where T : struct
+            => obj?.GetHashCode() ?? 0;
+
+        internal static int Combine<T>(ImmutableArray<T> array)
         {
-            return unchecked((currentKey * (int)0xA5555529) + newKey);
+            var hashCode = new RoslynHashCode();
+            Combine(array, ref hashCode);
+            return hashCode.ToHashCode();
         }
 
-        internal static int Combine<T>(ImmutableArray<T> array) => Combine(array, 0);
-        internal static int Combine<T>(ImmutableArray<T> array, int currentKey) => Combine(array, array.Length, currentKey);
-
-        public static int Combine<T>(params T[] sequence)
-            => Combine(sequence, sequence.Length, currentKey: 0);
-
-        public static int Combine<T>(IEnumerable<T> sequence, int length, int currentKey)
+        internal static void Combine<T>(ImmutableArray<T> array, ref RoslynHashCode hashCode)
         {
-            var hashCode = Combine(length, currentKey);
-            foreach (var element in sequence)
+            foreach (var element in array)
             {
-                hashCode = Combine(element.GetHashCodeOrDefault(), hashCode);
+                hashCode.Add(element);
             }
-
-            return hashCode;
         }
 
-        internal static int Combine<T>(ImmutableStack<T> stack) => Combine(stack, 0);
-        internal static int Combine<T>(ImmutableStack<T> stack, int currentKey)
+        internal static int Combine<T>(ImmutableStack<T> stack)
         {
-            var hashCode = currentKey;
+            var hashCode = new RoslynHashCode();
+            Combine(stack, ref hashCode);
+            return hashCode.ToHashCode();
+        }
 
-            var stackSize = 0;
+        internal static void Combine<T>(ImmutableStack<T> stack, ref RoslynHashCode hashCode)
+        {
             foreach (var element in stack)
             {
-                hashCode = Combine(element.GetHashCodeOrDefault(), hashCode);
-                stackSize++;
+                hashCode.Add(element);
             }
-
-            return Combine(stackSize, hashCode);
         }
 
-        internal static int Combine<T>(ImmutableHashSet<T> set) => Combine(set, 0);
-        internal static int Combine<T>(ImmutableHashSet<T> set, int currentKey)
-            => Combine(set.Select(element => element.GetHashCodeOrDefault()).Order(),
-                       set.Count,
-                       currentKey);
+        internal static int Combine<T>(ImmutableHashSet<T> set)
+        {
+            var hashCode = new RoslynHashCode();
+            Combine(set, ref hashCode);
+            return hashCode.ToHashCode();
+        }
 
-        internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary) => Combine(dictionary, 0);
-        internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary, int currentKey)
-            => Combine(dictionary.Select(kvp => Combine(kvp.Key.GetHashCodeOrDefault(), kvp.Value.GetHashCodeOrDefault())).Order(),
-                       dictionary.Count,
-                       currentKey);
+        internal static void Combine<T>(ImmutableHashSet<T> set, ref RoslynHashCode hashCode)
+        {
+            foreach (var element in set)
+            {
+                hashCode.Add(element);
+            }
+        }
+
+        internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+        {
+            var hashCode = new RoslynHashCode();
+            Combine(dictionary, ref hashCode);
+            return hashCode.ToHashCode();
+        }
+
+        internal static void Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary, ref RoslynHashCode hashCode)
+            where TKey : notnull
+        {
+            foreach (var (key, value) in dictionary)
+            {
+                hashCode.Add(key);
+                hashCode.Add(value);
+            }
+        }
     }
 }

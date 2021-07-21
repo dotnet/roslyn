@@ -12,6 +12,14 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class ITypeSymbolExtensions
     {
+#if CODEANALYSIS_V3_OR_BETTER
+        public static bool IsAssignableTo(
+            [NotNullWhen(returnValue: true)] this ITypeSymbol? fromSymbol,
+            [NotNullWhen(returnValue: true)] ITypeSymbol? toSymbol,
+            Compilation compilation)
+            => fromSymbol != null && toSymbol != null && compilation.ClassifyCommonConversion(fromSymbol, toSymbol).IsImplicit;
+#endif
+
         public static bool IsPrimitiveType(this ITypeSymbol type)
         {
             return type.SpecialType switch

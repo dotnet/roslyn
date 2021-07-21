@@ -187,6 +187,16 @@
         <target state="translated">削除された型とメンバーを、宣言された API から削除する</target>
         <note />
       </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">記号 '{0}' が削除済みとしてマークされていますが、ソース コードでは削除されていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">パブリック API が削除済みとマークされていますが、ソース コード内に存在します</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
         <target state="translated">PublicAPI.txt ファイルでは、NULL 値の許容情報を追跡するために '#nullable enable' を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、PublicAPI.txt は、どの型が null 許容 (型にサフィックス '?' を含む) または null 非許容 (サフィックス '!') かを記録します。また、oblivious 参照型 (行にプレフィックス '~' を含む) を使用している API を追跡します。</target>

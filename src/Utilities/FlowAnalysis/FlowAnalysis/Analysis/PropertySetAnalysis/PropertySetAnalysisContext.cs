@@ -155,14 +155,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public ImmutableDictionary<(INamedTypeSymbol, bool), string> HazardousUsageTypesToNames { get; }
 
-#pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(TypeToTrackMetadataNames.GetHashCode());
-            addPart(ConstructorMapper.GetHashCode());
-            addPart(PropertyMappers.GetHashCode());
-            addPart(HazardousUsageEvaluators.GetHashCode());
+            hashCode.Add(TypeToTrackMetadataNames.GetHashCode());
+            hashCode.Add(ConstructorMapper.GetHashCode());
+            hashCode.Add(PropertyMappers.GetHashCode());
+            hashCode.Add(HazardousUsageEvaluators.GetHashCode());
         }
-#pragma warning restore CA1307 // Specify StringComparison
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue> obj)
+        {
+            var other = (PropertySetAnalysisContext)obj;
+            return TypeToTrackMetadataNames.GetHashCode() == other.TypeToTrackMetadataNames.GetHashCode()
+                && ConstructorMapper.GetHashCode() == other.ConstructorMapper.GetHashCode()
+                && PropertyMappers.GetHashCode() == other.PropertyMappers.GetHashCode()
+                && HazardousUsageEvaluators.GetHashCode() == other.HazardousUsageEvaluators.GetHashCode();
+        }
     }
 }

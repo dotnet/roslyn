@@ -41,7 +41,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
+#pragma warning disable RS0030 // Do not used banned APIs
             DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+#pragma warning restore RS0030 // Do not used banned APIs
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithCSharpAttribute = @"
@@ -134,7 +136,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
+#pragma warning disable RS0030 // Do not used banned APIs
             DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+#pragma warning restore RS0030 // Do not used banned APIs
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithVBAttribute = @"

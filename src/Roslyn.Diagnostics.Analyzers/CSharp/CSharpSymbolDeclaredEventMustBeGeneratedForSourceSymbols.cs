@@ -45,12 +45,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             protected override ImmutableHashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
 
-            protected override SyntaxNode? GetFirstArgumentOfInvocation(SyntaxNode node)
+            protected override SyntaxNode? GetFirstArgumentOfInvocation(SyntaxNode invocation)
             {
-                var invocation = (InvocationExpressionSyntax)node;
-                if (invocation.ArgumentList != null)
+                var invocationExpression = (InvocationExpressionSyntax)invocation;
+                if (invocationExpression.ArgumentList != null)
                 {
-                    ArgumentSyntax argument = invocation.ArgumentList.Arguments.FirstOrDefault();
+                    ArgumentSyntax argument = invocationExpression.ArgumentList.Arguments.FirstOrDefault();
                     if (argument != null)
                     {
                         return argument.Expression;

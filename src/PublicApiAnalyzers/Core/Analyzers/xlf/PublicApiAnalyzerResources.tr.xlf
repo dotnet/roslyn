@@ -187,6 +187,16 @@
         <target state="translated">Silinen türleri ve üyeleri bildirilen API'den kaldırın</target>
         <note />
       </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">'{0}' sembolü kaldırıldı olarak işaretlenmiş ancak kaynak kodunda silinmemiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>Public API is marked as removed but it exists in source code</source>
+        <target state="translated">Genel API kaldırıldı olarak işaretlenmiş ancak kaynak kodunda mevcut</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
         <target state="translated">PublicAPI.txt dosyalarında null atanabilirlik bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null atanabilirlik etkin olduğunda PublicAPI.txt, null atanabilir (türde `?` soneki) veya null atanamaz (`!` soneki) türleri kaydeder. Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -187,10 +186,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(_currentBasicBlock != null);
                 return _currentBasicBlock!;
             }
-            private set
-            {
-                _currentBasicBlock = value;
-            }
+            private set => _currentBasicBlock = value;
         }
         protected ControlFlowConditionKind FlowBranchConditionKind { get; private set; }
         protected PointsToAbstractValue ThisOrMePointsToAbstractValue { get; }
@@ -324,7 +320,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 DataFlowAnalysisContext.WellKnownTypeProvider,
                 getPointsToAbstractValue: HasPointsToAnalysisResult ?
                     GetPointsToAbstractValue :
-                    (Func<IOperation, PointsToAbstractValue>?)null,
+                    null,
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,
                 getIsLValueFlowCapture: IsLValueFlowCapture,
                 containingTypeSymbol: analysisContext.OwningSymbol.ContainingType,
@@ -805,17 +801,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return ValueDomain.UnknownOrMayBeValue;
         }
 
-        protected virtual void ProcessReturnValue(IOperation? returnValueOperation)
+        protected virtual void ProcessReturnValue(IOperation? returnValue)
         {
-            if (returnValueOperation != null)
+            if (returnValue != null)
             {
-                _returnValueOperations?.Add(returnValueOperation);
+                _returnValueOperations?.Add(returnValue);
 
-                _ = GetAbstractValueForReturnOperation(returnValueOperation, out var implicitTaskPointsToValueOpt);
+                _ = GetAbstractValueForReturnOperation(returnValue, out var implicitTaskPointsToValueOpt);
                 if (implicitTaskPointsToValueOpt != null)
                 {
                     Debug.Assert(implicitTaskPointsToValueOpt.Kind == PointsToAbstractValueKind.KnownLocations);
-                    SetTaskWrappedValue(implicitTaskPointsToValueOpt, GetCachedAbstractValue(returnValueOperation));
+                    SetTaskWrappedValue(implicitTaskPointsToValueOpt, GetCachedAbstractValue(returnValue));
                 }
             }
         }
@@ -2148,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
                 DataFlowAnalysisContext.InterproceduralAnalysisPredicate?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
-                DataFlowAnalysisContext.AnalyzerOptions.IsConfiguredToSkipAnalysis(s_dummyDataflowAnalysisDescriptor, invokedMethod, OwningSymbol, WellKnownTypeProvider.Compilation, CancellationToken.None);
+                DataFlowAnalysisContext.AnalyzerOptions.IsConfiguredToSkipAnalysis(s_dummyDataflowAnalysisDescriptor, invokedMethod, OwningSymbol, WellKnownTypeProvider.Compilation);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (skipInterproceduralAnalysis ||
@@ -2170,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate())).Count();
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Count(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate()));
             int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
             if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
@@ -2694,25 +2690,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     HandlePossibleThrowingOperation(operation);
                 }
 
-                if (_pendingArgumentsToPostProcess.Any(arg => arg.Parent == operation))
+                var pendingArguments = _pendingArgumentsToPostProcess.ExtractAll(static (arg, operation) => arg.Parent == operation, operation);
+                foreach (IArgumentOperation argumentOperation in pendingArguments)
                 {
-                    var pendingArguments = _pendingArgumentsToPostProcess.Where(arg => arg.Parent == operation).ToImmutableArray();
-                    foreach (IArgumentOperation argumentOperation in pendingArguments)
+                    bool isEscaped;
+                    if (_pendingArgumentsToReset.Remove(argumentOperation))
                     {
-                        bool isEscaped;
-                        if (_pendingArgumentsToReset.Remove(argumentOperation))
-                        {
-                            PostProcessEscapedArgument(argumentOperation);
-                            isEscaped = true;
-                        }
-                        else
-                        {
-                            isEscaped = false;
-                        }
-
-                        PostProcessArgument(argumentOperation, isEscaped);
-                        _pendingArgumentsToPostProcess.Remove(argumentOperation);
+                        PostProcessEscapedArgument(argumentOperation);
+                        isEscaped = true;
                     }
+                    else
+                    {
+                        isEscaped = false;
+                    }
+
+                    PostProcessArgument(argumentOperation, isEscaped);
                 }
 
                 return value;

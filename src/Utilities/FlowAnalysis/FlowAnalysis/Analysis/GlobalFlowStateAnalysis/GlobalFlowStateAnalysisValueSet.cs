@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     internal sealed class GlobalFlowStateAnalysisValueSet : CacheBasedEquatable<GlobalFlowStateAnalysisValueSet>
     {
-        public static readonly GlobalFlowStateAnalysisValueSet Unset = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unset = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unset);
-        public static readonly GlobalFlowStateAnalysisValueSet Empty = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Empty = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Empty);
-        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unknown);
 
-        public GlobalFlowStateAnalysisValueSet(
+        private GlobalFlowStateAnalysisValueSet(
             ImmutableHashSet<IAbstractAnalysisValue> analysisValues,
             ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents,
             int height,
@@ -40,18 +40,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             Kind = kind;
         }
 
-        public GlobalFlowStateAnalysisValueSet(IAbstractAnalysisValue analysisValue)
-            : this(ImmutableHashSet.Create(analysisValue), ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, height: 0, GlobalFlowStateAnalysisValueSetKind.Known)
+        public static GlobalFlowStateAnalysisValueSet Create(
+            ImmutableHashSet<IAbstractAnalysisValue> analysisValues,
+            ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents,
+            int height)
         {
+            Debug.Assert(!analysisValues.IsEmpty || !parents.IsEmpty);
+            return new(analysisValues, parents, height, GlobalFlowStateAnalysisValueSetKind.Known);
         }
 
-        public GlobalFlowStateAnalysisValueSet(GlobalFlowStateAnalysisValueSet parent1, GlobalFlowStateAnalysisValueSet parent2)
-            : this(ImmutableHashSet<IAbstractAnalysisValue>.Empty,
-                   ImmutableHashSet.Create(parent1, parent2),
-                   height: Math.Max(parent1.Height, parent2.Height) + 1,
-                   GlobalFlowStateAnalysisValueSetKind.Known)
-        {
-        }
+        public static GlobalFlowStateAnalysisValueSet Create(IAbstractAnalysisValue analysisValue)
+            => new(ImmutableHashSet.Create(analysisValue), ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, height: 0, GlobalFlowStateAnalysisValueSetKind.Known);
 
         public ImmutableHashSet<IAbstractAnalysisValue> AnalysisValues { get; }
         public ImmutableHashSet<GlobalFlowStateAnalysisValueSet> Parents { get; }
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             var newHeight = Height + newRoot.Height + 1;
             if (Parents.IsEmpty)
             {
-                return new GlobalFlowStateAnalysisValueSet(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight);
             }
 
             using var parentsBuilder = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 parentsBuilder.Add(parent.WithRootParent(newRoot));
             }
 
-            return new GlobalFlowStateAnalysisValueSet(AnalysisValues, parentsBuilder.ToImmutable(), newHeight, GlobalFlowStateAnalysisValueSetKind.Known);
+            return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, parentsBuilder.ToImmutable(), newHeight);
         }
 
         internal GlobalFlowStateAnalysisValueSet WithAdditionalAnalysisValues(GlobalFlowStateAnalysisValueSet newAnalysisValuesSet, bool negate)
@@ -93,8 +92,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
             if (newAnalysisValues.Height == 0)
             {
-                return new GlobalFlowStateAnalysisValueSet(
-                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(
+                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height);
             }
 
             return newAnalysisValues.WithRootParent(this);
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             if (Height == 0 && AnalysisValues.Count == 1)
             {
                 var negatedAnalysisValues = ImmutableHashSet.Create(AnalysisValues.Single().GetNegatedValue());
-                return new GlobalFlowStateAnalysisValueSet(negatedAnalysisValues, Parents, Height, Kind);
+                return GlobalFlowStateAnalysisValueSet.Create(negatedAnalysisValues, Parents, Height);
             }
             else if (Height > 0 && AnalysisValues.Count == 0)
             {
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 var parentsBuilder = ImmutableHashSet.CreateBuilder<GlobalFlowStateAnalysisValueSet>();
                 foreach (var analysisValue in AnalysisValues)
                 {
-                    parentsBuilder.Add(new GlobalFlowStateAnalysisValueSet(analysisValue.GetNegatedValue()));
+                    parentsBuilder.Add(GlobalFlowStateAnalysisValueSet.Create(analysisValue.GetNegatedValue()));
                 }
 
                 int height;
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     height = 1;
                 }
 
-                return new GlobalFlowStateAnalysisValueSet(ImmutableHashSet<IAbstractAnalysisValue>.Empty, parentsBuilder.ToImmutable(), height, Kind);
+                return GlobalFlowStateAnalysisValueSet.Create(ImmutableHashSet<IAbstractAnalysisValue>.Empty, parentsBuilder.ToImmutable(), height);
             }
 
             static GlobalFlowStateAnalysisValueSet GetNegateValueFromParents(ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents)
@@ -159,16 +158,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     }
                 }
 
-                return new GlobalFlowStateAnalysisValueSet(analysisValuesBuilder.ToImmutable(), parentsBuilder.ToImmutable(), height, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(analysisValuesBuilder.ToImmutable(), parentsBuilder.ToImmutable(), height);
             }
         }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(AnalysisValues));
-            addPart(HashUtilities.Combine(Parents));
-            addPart(Height.GetHashCode());
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(AnalysisValues));
+            hashCode.Add(HashUtilities.Combine(Parents));
+            hashCode.Add(Height.GetHashCode());
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<GlobalFlowStateAnalysisValueSet> obj)
+        {
+            var other = (GlobalFlowStateAnalysisValueSet)obj;
+            return HashUtilities.Combine(AnalysisValues) == HashUtilities.Combine(other.AnalysisValues)
+                && HashUtilities.Combine(Parents) == HashUtilities.Combine(other.Parents)
+                && Height.GetHashCode() == other.Height.GetHashCode()
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
 
         public override string ToString()
