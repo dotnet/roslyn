@@ -525,6 +525,112 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_Pragmas()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(
+            #pragma warning disable IDE0001
+            #nullable enable
+               123 +
+            #pragma warning disable IDE0002
+            #nullable disable
+               5 +
+            #pragma warning disable IDE0003
+            #nullable restore
+               5
+            #pragma warning disable IDE0004
+            #nullable enable
+        );
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput:
+@"123 +
+            #pragma warning disable IDE0002
+            #nullable disable
+               5 +
+            #pragma warning disable IDE0003
+            #nullable restore
+               5
+").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_ImplicitAndExplicitConstructorBaseCalls()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Base
+{
+    const string p = nameof(p);
+    public Base(int p = 0, [CallerArgumentExpression(p)] string arg = ""<default-arg-base>"")
+    {
+        Console.WriteLine(""Base class: "" + arg);
+    }
+}
+
+class Derived1 : Base
+{
+    const string ppp = nameof(ppp);
+    public Derived1(int ppp, [CallerArgumentExpression(ppp)] string arg = ""<default-arg-derived1>"")
+        : base(ppp)
+    {
+        Console.WriteLine(""Derived1 class: "" + arg);
+    }
+}
+
+class Derived2 : Base
+{
+    const string p = nameof(p);
+    public Derived2(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg-derived2>"")
+    {
+        Console.WriteLine(""Derived2 class: "" + arg);
+    }
+}
+
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        _ = new Base(1+4);
+        Console.WriteLine();
+        _ = new Derived1(2+ 5);
+        Console.WriteLine();
+        _ = new Derived2(3 +  6);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput:
+@"Base class: 1+4
+
+Base class: ppp
+Derived1 class: 2+ 5
+
+Base class: <default-arg-base>
+Derived2 class: 3 +  6
+").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
         {
             string source = @"
