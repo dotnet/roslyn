@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../FeaturesResources.resx">
     <body>
@@ -302,7 +302,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Convert_to_record_struct">
         <source>Convert to record struct</source>
-        <target state="new">Convert to record struct</target>
+        <target state="translated">Converti in struct di record</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -642,12 +642,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Making a method an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">Se si imposta un metodo come iteratore, la sessione di debug non proseguirà.</target>
+        <target state="translated">Se si imposta un metodo come iteratore, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
         <source>Making a method 'async' will prevent the debug session from continuing.</source>
-        <target state="translated">Se si rende un metodo asincrono, la sessione di debug non proseguirà.</target>
+        <target state="translated">Se si imposta un metodo come 'async', la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">

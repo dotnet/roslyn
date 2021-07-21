@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../FeaturesResources.resx">
     <body>
@@ -302,7 +302,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Convert_to_record_struct">
         <source>Convert to record struct</source>
-        <target state="new">Convert to record struct</target>
+        <target state="translated">Převést na strukturu záznamu</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -642,7 +642,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Making a method an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">Převedení metody na iterátor zabrání v pokračování relace ladění.</target>
+        <target state="translated">Převedení metody na iterátor zabrání v pokračování ladicí relace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
