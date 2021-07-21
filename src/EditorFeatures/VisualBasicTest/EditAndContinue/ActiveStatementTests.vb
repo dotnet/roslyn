@@ -183,19 +183,19 @@ End Class
         Public Sub Update_Leaf_Reloadable()
 
             Dim src1 = ReloadableAttributeSrc + "
-[CreateNewOnMetadataUpdate]
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         <AS:1>Goo(1)</AS:1>
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>System.Console.WriteLine(a)</AS:0>
     End Sub
 End Class
 "
             Dim src2 = ReloadableAttributeSrc + "
-[CreateNewOnMetadataUpdate]
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         While True
