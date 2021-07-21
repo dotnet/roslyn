@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.slocalregistry
             threadingContext.ThrowIfNotOnUIThread();
 
-            this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
+            _registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 
         private static bool TryGetKeyPathAndName(IOption option, out string path, out string key)
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using var subKey = this._registryKey.OpenSubKey(path);
+                using var subKey = _registryKey.OpenSubKey(path);
                 if (subKey == null)
                 {
                     value = null;
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         bool IOptionPersister.TryPersist(OptionKey optionKey, object value)
         {
-            if (this._registryKey == null)
+            if (_registryKey == null)
             {
                 throw new InvalidOperationException();
             }
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using var subKey = this._registryKey.CreateSubKey(path);
+                using var subKey = _registryKey.CreateSubKey(path);
                 // Options that are of type bool have to be serialized as integers
                 if (optionKey.Option.Type == typeof(bool))
                 {

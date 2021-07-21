@@ -1924,6 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 AccessorDeclarationSyntax accessor => accessor.Modifiers,
                 VariableDeclarationSyntax varDecl => GetModifierTokens(varDecl.Parent),
                 VariableDeclaratorSyntax varDecl => GetModifierTokens(varDecl.Parent),
+                AnonymousFunctionExpressionSyntax anonymous => anonymous.Modifiers,
                 _ => default,
             };
 

@@ -2715,14 +2715,5 @@ public class MyClass
                 EnforcementLevel = ReportDiagnostic.Error
             };
         }
-
-        private static string GetMarkup(string source, LanguageVersion languageVersion)
-            => $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
-        <Document FilePath=""Test2.cs"">
-{source}
-        </Document>
-    </Project>
-</Workspace>";
     }
 }

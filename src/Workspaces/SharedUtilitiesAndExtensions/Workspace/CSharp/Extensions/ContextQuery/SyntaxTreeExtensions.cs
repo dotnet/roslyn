@@ -710,16 +710,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree.IsScript() || syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
                 return false;
-            }
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);
+            if (token == default)
+                return false;
 
-            var declaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+            var declaration = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
+            if (declaration?.NamespaceKeyword == token)
+                return true;
 
-            return declaration != null && (declaration.Name.Span.IntersectsWith(position) || declaration.NamespaceKeyword == token);
+            return declaration?.Name.Span.IntersectsWith(position) == true;
         }
 
         public static bool IsPartialTypeDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, [NotNullWhen(true)] out TypeDeclarationSyntax? declarationSyntax)
