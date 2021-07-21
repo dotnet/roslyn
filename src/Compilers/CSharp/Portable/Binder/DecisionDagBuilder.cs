@@ -998,7 +998,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (whenFalsePossible && !whenFalseState.IsImpossible && !(whenFalseBuilder.Any() && whenFalseBuilder.Last().IsFullyMatched))
                     whenFalseBuilder.Add(whenFalseState);
             }
-
             whenTrue = whenTrueBuilder.ToImmutableAndFree();
             whenFalse = whenFalseBuilder.ToImmutableAndFree();
         }
@@ -1138,7 +1137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
         /// <param name="falseTestImpliesTrueOther">set if <paramref name="test"/> being false means <paramref name="other"/> has been proven true</param>
-        /// <param name="foundExplicitNullTest"></param>
         private void CheckConsistentDecision(
             BoundDagTest test,
             BoundDagTest other,
@@ -1363,7 +1361,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
         }
-
 
         /// <summary>
         /// Determine what we can learn from one successful runtime type test about another planned
