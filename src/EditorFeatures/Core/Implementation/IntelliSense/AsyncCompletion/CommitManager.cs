@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // Make sure the notification isn't sent on UI thread.
                     await TaskScheduler.Default;
-                    await notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ConfigureAwait(false);
+                    _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
                 });
             }
 
