@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             : base(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
                    EnforceOnBuildValues.UseNullCheckOverTypeCheck,
                    CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
