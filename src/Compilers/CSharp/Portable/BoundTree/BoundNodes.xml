@@ -1429,6 +1429,7 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>

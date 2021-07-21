@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
         internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
 
+        internal static readonly IValueSet PositiveIntValues = new NumericValueSet<int, IntTC>(0, int.MaxValue);
+
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
             switch (specialType)

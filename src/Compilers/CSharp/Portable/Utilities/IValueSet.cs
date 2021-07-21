@@ -93,4 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         bool All(BinaryOperatorKind relation, T value);
     }
+
+    internal interface INumericValueSet<T> : IValueSet<T>
+    {
+        INumericValueSet<T> Shift(int offset);
+    }
 }

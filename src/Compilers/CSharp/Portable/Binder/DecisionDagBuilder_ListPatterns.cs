@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(list.LengthProperty is not null);
 
-                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, input);
+                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
                 tests.Add(new Tests.One(list.HasSlice

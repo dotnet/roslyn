@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The implementation of a value set for an numeric type <typeparamref name="T"/>.
         /// </summary>
-        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, INumericTC<T>
+        private sealed class NumericValueSet<T, TTC> : INumericValueSet<T> where TTC : struct, INumericTC<T>
         {
             private readonly ImmutableArray<(T first, T last)> _intervals;
 
@@ -50,6 +51,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public bool IsEmpty => _intervals.Length == 0;
+
+            INumericValueSet<T> INumericValueSet<T>.Shift(int offset)
+            {
+                Debug.Assert(this is NumericValueSet<int, IntTC>);
+                if (offset == 0)
+                    return this;
+                var builder = ArrayBuilder<(int first, int last)>.GetInstance();
+                foreach (var (first, last) in Unsafe.As<NumericValueSet<int, IntTC>>(this)._intervals)
+                {
+                    builder.Add((
+                        first == int.MaxValue ? first : first + offset,
+                        last == int.MaxValue ? last : last + offset));
+                }
+                return Unsafe.As<INumericValueSet<T>>(new NumericValueSet<int, IntTC>(builder.ToImmutableAndFree()));
+            }
 
             ConstantValue IValueSet.Sample
             {

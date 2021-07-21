@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -814,8 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
-                            SplitCases(
-                                state.Cases, state.RemainingValues, d,
+                            SplitCases(state,
                                 out ImmutableArray<StateForCase> whenTrueDecisions,
                                 out ImmutableArray<StateForCase> whenFalseDecisions,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
@@ -938,6 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void SplitCase(
+            DagState state,
             StateForCase stateForCase,
             BoundDagTest test,
             IValueSet? whenTrueValues,
@@ -946,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out StateForCase whenFalse,
             ref bool foundExplicitNullTest)
         {
-            stateForCase.RemainingTests.Filter(this, test, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
+            stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
             whenTrue = makeNext(whenTrueTests);
             whenFalse = makeNext(whenFalseTests);
             return;
@@ -962,30 +963,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void SplitCases(
-            ImmutableArray<StateForCase> statesForCases,
-            ImmutableDictionary<BoundDagTemp, IValueSet> values,
-            BoundDagTest test,
+            DagState state,
             out ImmutableArray<StateForCase> whenTrue,
             out ImmutableArray<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
+            RoslynDebug.AssertNotNull(state.SelectedTest);
+            var test = state.SelectedTest;
+            var statesForCases = state.Cases;
             var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
             var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
-            bool whenTruePossible, whenFalsePossible;
-            (whenTrueValues, whenFalseValues, whenTruePossible, whenFalsePossible) = SplitValues(values, test);
+            (whenTrueValues, whenFalseValues, bool whenTruePossible, bool whenFalsePossible) = SplitValues(state.RemainingValues, test);
             // whenTruePossible means the test could possibly have succeeded.  whenFalsePossible means it could possibly have failed.
             // Tests that are either impossible or tautological (i.e. either of these false) given
             // the set of values are normally removed and replaced by the known result, so we would not normally be processing
             // a test that always succeeds or always fails, but they can occur in erroneous programs (e.g. testing for equality
             // against a non-constant value).
-            foreach (var state in statesForCases)
+            whenTrueValues.TryGetValue(test.Input, out IValueSet? whenTrueValuesOpt);
+            whenFalseValues.TryGetValue(test.Input, out IValueSet? whenFalseValuesOpt);
+            foreach (var statesForCase in statesForCases)
             {
                 SplitCase(
-                    state, test,
-                    whenTrueValues.TryGetValue(test.Input, out var v1) ? v1 : null,
-                    whenFalseValues.TryGetValue(test.Input, out var v2) ? v2 : null,
+                    state, statesForCase, test,
+                    whenTrueValuesOpt, whenFalseValuesOpt,
                     out var whenTrueState, out var whenFalseState, ref foundExplicitNullTest);
                 // whenTrueState.IsImpossible occurs when Split results in a state for a given case where the case has been ruled
                 // out (because its test has failed). If not whenTruePossible, we don't want to add anything to the state.  In
@@ -1041,15 +1043,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 IValueSet fromTestPassing = valueFac.Related(relation.Operator(), value);
                 IValueSet fromTestFailing = fromTestPassing.Complement();
-                if (values.TryGetValue(test.Input, out IValueSet? tempValuesBeforeTest))
+                if (values.TryGetValue(input, out IValueSet? tempValuesBeforeTest))
                 {
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
+                // TODO: Set BoundDagPropertyEvaluation.IsLengthOrCount for indexable types
+                else if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
+                {
+                    Debug.Assert(input.Type.SpecialType == SpecialType.System_Int32);
+                    (_, BoundDagTemp lengthTemp, int offset) = GetCanonicalInput(e);
+                    if (values.TryGetValue(lengthTemp, out tempValuesBeforeTest))
+                    {
+                        var lengthValues = ((INumericValueSet<int>)fromTestPassing).Shift(offset);
+                        values = values.SetItem(lengthTemp, lengthValues.Intersect(tempValuesBeforeTest));
+                    }
+
+                    tempValuesBeforeTest = ValueSetFactory.PositiveIntValues;
+                    fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
+                    fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
+                }
+
                 var whenTrueValues = values.SetItem(input, fromTestPassing);
                 var whenFalseValues = values.SetItem(input, fromTestFailing);
                 return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
             }
+        }
+
+        private static (BoundDagTemp input, BoundDagTemp lengthTemp, int offset) GetCanonicalInput(BoundDagPropertyEvaluation e)
+        {
+            Debug.Assert(e.IsLengthOrCount);
+            int offset = 0;
+            BoundDagTemp input = e.Input;
+            BoundDagTemp lengthTemp = input;
+            BoundDagEvaluation? source = input.Source;
+            while (source is BoundDagSliceEvaluation slice)
+            {
+                offset += slice.StartIndex - slice.EndIndex;
+                lengthTemp = slice.LengthTemp;
+                input = slice.Input;
+                source = input.Source;
+            }
+            return (input, lengthTemp, offset);
+        }
+
+        private static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) GetCanonicalInput(BoundDagIndexerEvaluation e)
+        {
+            int index = e.Index;
+            BoundDagTemp input = e.Input;
+            BoundDagTemp lengthTemp = e.LengthTemp;
+            BoundDagEvaluation? source = input.Source;
+            while (source is BoundDagSliceEvaluation slice)
+            {
+                index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
+                lengthTemp = slice.LengthTemp;
+                input = slice.Input;
+                source = input.Source;
+            }
+            return (input, lengthTemp, index);
         }
 
         private static ImmutableArray<StateForCase> RemoveEvaluation(ImmutableArray<StateForCase> cases, BoundDagEvaluation e)
@@ -1087,12 +1138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
         /// <param name="falseTestImpliesTrueOther">set if <paramref name="test"/> being false means <paramref name="other"/> has been proven true</param>
+        /// <param name="foundExplicitNullTest"></param>
         private void CheckConsistentDecision(
             BoundDagTest test,
             BoundDagTest other,
+            DagState state,
             IValueSet? whenTrueValues,
             IValueSet? whenFalseValues,
             SyntaxNode syntax,
+            out Tests? trueOtherOpt,
             out bool trueTestPermitsTrueOther,
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
@@ -1105,9 +1159,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
 
+            trueOtherOpt = null;
+
             // if the tests are for unrelated things, there is no implication from one to the other
             if (!test.Input.Equals(other.Input))
-                return;
+            {
+                switch (test.Input.Source, other.Input.Source)
+                {
+                    case (BoundDagPropertyEvaluation { IsLengthOrCount: true } s1, BoundDagPropertyEvaluation { IsLengthOrCount: true } s2):
+                        {
+                            (BoundDagTemp s1Input, _, int s1Offset) = GetCanonicalInput(s1);
+                            (BoundDagTemp s2Input, _, int s2Offset) = GetCanonicalInput(s2);
+                            if (s1Input.Equals(s2Input))
+                            {
+                                Debug.Assert(whenTrueValues is INumericValueSet<int>);
+                                Debug.Assert(whenFalseValues is INumericValueSet<int>);
+                                whenTrueValues = ((INumericValueSet<int>)whenTrueValues).Shift(s1Offset - s2Offset);
+                                whenFalseValues = whenTrueValues.Complement();
+                                break;
+                            }
+                        }
+                        return;
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                        {
+                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                            if (s1Input.Equals(s2Input))
+                            {
+                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
+                                if (s1Index == s2Index)
+                                {
+                                    break;
+                                }
+
+                                if (s1Index < 0 != s2Index < 0)
+                                {
+                                    var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                    if (!lengthValues.IsEmpty)
+                                    {
+                                        int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                        {
+                                            break;
+                                        }
+                                        if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                        {
+                                            trueOtherOpt = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    default:
+                        return;
+                }
+            }
 
             switch (test)
             {
@@ -1176,8 +1284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                             break;
-                        case BoundDagValueTest _:
-                            break;
                         case BoundDagExplicitNullTest _:
                             foundExplicitNullTest = true;
                             // v is T --> !(v == null)
@@ -1194,8 +1300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 foundExplicitNullTest = true;
                             // v == K --> v != null
                             trueTestImpliesTrueOther = true;
-                            break;
-                        case BoundDagTypeTest _:
                             break;
                         case BoundDagExplicitNullTest _:
                             foundExplicitNullTest = true;
@@ -1259,6 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
         }
+
 
         /// <summary>
         /// Determine what we can learn from one successful runtime type test about another planned
@@ -1491,6 +1596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Field.Name})";
                         case BoundDagPropertyEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Property.Name})";
+                        case BoundDagIndexerEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}[{e.Index}])";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
@@ -1683,6 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public abstract void Filter(
                 DecisionDagBuilder builder,
                 BoundDagTest test,
+                DagState state,
                 IValueSet? whenTrueValues,
                 IValueSet? whenFalseValues,
                 out Tests whenTrue,
@@ -1702,6 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
+                    DagState state,
                     IValueSet? whenTrueValues,
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
@@ -1722,6 +1831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
+                    DagState state,
                     IValueSet? whenTrueValues,
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
@@ -1745,6 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
+                    DagState state,
                     IValueSet? whenTrueValues,
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
@@ -1754,16 +1865,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.CheckConsistentDecision(
                         test: test,
                         other: Test,
+                        state: state,
                         whenTrueValues: whenTrueValues,
                         whenFalseValues: whenFalseValues,
                         syntax: test.Syntax,
+                        trueOtherOpt: out Tests? trueOtherOpt,
                         trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                         falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? Tests.True.Instance : trueDecisionPermitsTrueOther ? this : (Tests)Tests.False.Instance;
-                    whenFalse = falseDecisionImpliesTrueOther ? Tests.True.Instance : falseDecisionPermitsTrueOther ? this : (Tests)Tests.False.Instance;
+                    whenTrue = trueDecisionImpliesTrueOther ? trueOtherOpt ?? True.Instance : trueDecisionPermitsTrueOther ? this : False.Instance;
+                    whenFalse = falseDecisionImpliesTrueOther ? trueOtherOpt ?? True.Instance : falseDecisionPermitsTrueOther ? this : False.Instance;
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
@@ -1801,13 +1914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
+                    DagState state,
                     IValueSet? whenTrueValues,
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
                     ref bool foundExplicitNullTest)
                 {
-                    Negated.Filter(builder, test, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundExplicitNullTest);
+                    Negated.Filter(builder, test, state, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundExplicitNullTest);
                     whenTrue = Not.Create(whenTestTrue);
                     whenFalse = Not.Create(whenTestFalse);
                 }
@@ -1827,6 +1941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
+                    DagState state,
                     IValueSet? whenTrueValues,
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
@@ -1837,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var falseBuilder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
                     foreach (var other in RemainingTests)
                     {
-                        other.Filter(builder, test, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
+                        other.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
                         trueBuilder.Add(oneTrue);
                         falseBuilder.Add(oneFalse);
                     }

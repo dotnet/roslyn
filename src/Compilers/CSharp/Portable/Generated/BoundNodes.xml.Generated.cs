@@ -5107,7 +5107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagPropertyEvaluation : BoundDagEvaluation
     {
-        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, bool isLengthOrCount, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagPropertyEvaluation, syntax, input, hasErrors || input.HasErrors())
         {
 
@@ -5115,18 +5115,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Property = property;
+            this.IsLengthOrCount = isLengthOrCount;
         }
 
 
         public PropertySymbol Property { get; }
+
+        public bool IsLengthOrCount { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagPropertyEvaluation(this);
 
-        public BoundDagPropertyEvaluation Update(PropertySymbol property, BoundDagTemp input)
+        public BoundDagPropertyEvaluation Update(PropertySymbol property, bool isLengthOrCount, BoundDagTemp input)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || input != this.Input)
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || isLengthOrCount != this.IsLengthOrCount || input != this.Input)
             {
-                var result = new BoundDagPropertyEvaluation(this.Syntax, property, input, this.HasErrors);
+                var result = new BoundDagPropertyEvaluation(this.Syntax, property, isLengthOrCount, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10741,7 +10744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Property, input);
+            return node.Update(node.Property, node.IsLengthOrCount, input);
         }
         public override BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
         {
@@ -12524,7 +12527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             PropertySymbol property = GetUpdatedSymbol(node, node.Property);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(property, input);
+            return node.Update(property, node.IsLengthOrCount, input);
         }
 
         public override BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
@@ -14814,6 +14817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, object? arg) => new TreeDumperNode("dagPropertyEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
+            new TreeDumperNode("isLengthOrCount", node.IsLengthOrCount, null),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
