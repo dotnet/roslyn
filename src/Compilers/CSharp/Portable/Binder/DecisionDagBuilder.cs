@@ -1051,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                 {
                     Debug.Assert(input.Type.SpecialType == SpecialType.System_Int32);
-                    (_, BoundDagTemp lengthTemp, int offset) = GetCanonicalInput(e);
-                    if (values.TryGetValue(lengthTemp, out tempValuesBeforeTest))
+                    (_, BoundDagTemp? lengthTemp, int offset) = GetCanonicalInput(e);
+                    if (lengthTemp is not null && values.TryGetValue(lengthTemp, out tempValuesBeforeTest))
                     {
                         var lengthValues = ((INumericValueSet<int>)fromTestPassing).Shift(offset);
                         values = values.SetItem(lengthTemp, lengthValues.Intersect(tempValuesBeforeTest));
@@ -1069,19 +1069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static (BoundDagTemp input, BoundDagTemp lengthTemp, int offset) GetCanonicalInput(BoundDagPropertyEvaluation e)
+        private static (BoundDagTemp input, BoundDagTemp? lengthTemp, int offset) GetCanonicalInput(BoundDagPropertyEvaluation e)
         {
             Debug.Assert(e.IsLengthOrCount);
             int offset = 0;
             BoundDagTemp input = e.Input;
-            BoundDagTemp lengthTemp = input;
-            BoundDagEvaluation? source = input.Source;
-            while (source is BoundDagSliceEvaluation slice)
+            BoundDagTemp? lengthTemp = null;
+            while (input.Source is BoundDagSliceEvaluation slice)
             {
                 offset += slice.StartIndex - slice.EndIndex;
                 lengthTemp = slice.LengthTemp;
                 input = slice.Input;
-                source = input.Source;
             }
             return (input, lengthTemp, offset);
         }
@@ -1091,13 +1089,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = e.Index;
             BoundDagTemp input = e.Input;
             BoundDagTemp lengthTemp = e.LengthTemp;
-            BoundDagEvaluation? source = input.Source;
-            while (source is BoundDagSliceEvaluation slice)
+            while (input.Source is BoundDagSliceEvaluation slice)
             {
                 index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
                 lengthTemp = slice.LengthTemp;
                 input = slice.Input;
-                source = input.Source;
             }
             return (input, lengthTemp, index);
         }
@@ -1144,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet? whenTrueValues,
             IValueSet? whenFalseValues,
             SyntaxNode syntax,
-            out Tests? trueOtherOpt,
+            out Tests trueOther,
             out bool trueTestPermitsTrueOther,
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
@@ -1157,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
 
-            trueOtherOpt = null;
+            trueOther = Tests.True.Instance;
 
             // if the tests are for unrelated things, there is no implication from one to the other
             if (!test.Input.Equals(other.Input))
@@ -1189,7 +1185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     break;
                                 }
-
                                 if (s1Index < 0 != s2Index < 0)
                                 {
                                     var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
@@ -1202,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         }
                                         if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                         {
-                                            trueOtherOpt = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                            trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
                                             break;
                                         }
                                     }
@@ -1866,14 +1861,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         whenTrueValues: whenTrueValues,
                         whenFalseValues: whenFalseValues,
                         syntax: test.Syntax,
-                        trueOtherOpt: out Tests? trueOtherOpt,
+                        trueOther: out Tests trueOther,
                         trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                         falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? trueOtherOpt ?? True.Instance : trueDecisionPermitsTrueOther ? this : False.Instance;
-                    whenFalse = falseDecisionImpliesTrueOther ? trueOtherOpt ?? True.Instance : falseDecisionPermitsTrueOther ? this : False.Instance;
+                    whenTrue = trueDecisionImpliesTrueOther ? trueOther : trueDecisionPermitsTrueOther ? this : False.Instance;
+                    whenFalse = falseDecisionImpliesTrueOther ? trueOther : falseDecisionPermitsTrueOther ? this : False.Instance;
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
