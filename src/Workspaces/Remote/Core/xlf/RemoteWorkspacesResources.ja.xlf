@@ -127,6 +127,11 @@
         <target state="translated">TODO コメント検出</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="new">Unused reference analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
         <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
         <target state="translated">間欠的なエラーのため、機能 '{0}' は現在使用できません。後でもう一度お試しください: '{1}'</target>
