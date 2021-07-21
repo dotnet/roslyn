@@ -1052,10 +1052,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(input.Type.SpecialType == SpecialType.System_Int32);
                     (_, BoundDagTemp? lengthTemp, int offset) = GetCanonicalInput(e);
-                    if (lengthTemp is not null && values.TryGetValue(lengthTemp, out tempValuesBeforeTest))
+                    if (lengthTemp is not null)
                     {
-                        var lengthValues = ((INumericValueSet<int>)fromTestPassing).Shift(offset);
-                        values = values.SetItem(lengthTemp, lengthValues.Intersect(tempValuesBeforeTest));
+                        Debug.Assert(values.ContainsKey(lengthTemp));
+                        var lengthValues = ValueSetFactory.Shift(fromTestPassing, offset);
+                        values = values.SetItem(lengthTemp, lengthValues.Intersect(values[lengthTemp]));
                     }
 
                     tempValuesBeforeTest = ValueSetFactory.PositiveIntValues;
@@ -1166,9 +1167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (BoundDagTemp s2Input, _, int s2Offset) = GetCanonicalInput(s2);
                             if (s1Input.Equals(s2Input))
                             {
-                                Debug.Assert(whenTrueValues is INumericValueSet<int>);
-                                Debug.Assert(whenFalseValues is INumericValueSet<int>);
-                                whenTrueValues = ((INumericValueSet<int>)whenTrueValues).Shift(s1Offset - s2Offset);
+                                Debug.Assert(whenTrueValues is not null);
+                                Debug.Assert(whenFalseValues is not null);
+                                whenTrueValues = ValueSetFactory.Shift(whenTrueValues, s1Offset - s2Offset);
                                 whenFalseValues = whenTrueValues.Complement();
                                 break;
                             }
@@ -1187,6 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 if (s1Index < 0 != s2Index < 0)
                                 {
+                                    Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
                                     var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
                                     if (!lengthValues.IsEmpty)
                                     {

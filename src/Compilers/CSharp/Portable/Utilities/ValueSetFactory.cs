@@ -30,6 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static readonly IValueSet PositiveIntValues = new NumericValueSet<int, IntTC>(0, int.MaxValue);
 
+        public static IValueSet Shift(IValueSet values, int offset)
+        {
+            if (offset == 0)
+                return values;
+            var intervals = ((NumericValueSet<int, IntTC>)values)._intervals;
+            var result = intervals.SelectAsArray((t, offset) => (safeAdd(t.first, offset), safeAdd(t.last, offset)), offset);
+            return new NumericValueSet<int, IntTC>(result);
+            static int safeAdd(int a, int b) => a == int.MaxValue ? a : a + b;
+        }
+
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
             switch (specialType)
