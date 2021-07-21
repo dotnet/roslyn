@@ -23,20 +23,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
-        protected readonly bool LocalFunction;
         protected readonly OptionSet Options;
 
         protected SelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            bool localFunction,
             OptionSet options)
         {
             Contract.ThrowIfNull(document);
 
             SemanticDocument = document;
             OriginalSpan = textSpan;
-            LocalFunction = localFunction;
             Options = options;
         }
 

@@ -96,6 +96,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
         }
 
+        public static bool ContainedInValidType(this SyntaxNode node)
+        {
+            Contract.ThrowIfNull(node);
+
+            if (IsContainedInNamespace(node))
+            {
+                return false;
+            }
+
+            return true;
+
+            static bool IsContainedInNamespace(SyntaxNode n)
+            {
+                var hasContainer = false;
+                while (n is not null)
+                {
+                    if (n is NamespaceDeclarationSyntax && hasContainer)
+                    {
+                        return true;
+                    }
+
+                    if (n is BaseMethodDeclarationSyntax
+                       or AccessorDeclarationSyntax
+                       or BlockSyntax
+                       or CompilationUnitSyntax)
+                    {
+                        hasContainer = true;
+                    }
+
+                    n = n.Parent;
+                }
+
+                return false;
+            }
+        }
+
         public static bool UnderValidContext(this SyntaxToken token)
             => token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
 

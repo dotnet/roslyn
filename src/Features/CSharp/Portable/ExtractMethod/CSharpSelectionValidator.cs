@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            bool localFunction,
             OptionSet options)
-            : base(document, textSpan, localFunction, options)
+            : base(document, textSpan, options)
         {
         }
 
@@ -207,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            var rootGlobalStatement = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is GlobalStatementSyntax);
+            /*var rootGlobalStatement = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is GlobalStatementSyntax);
             var commonRootContainer = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is TypeDeclarationSyntax);
 
-            if (LocalFunction && commonRootContainer is null && rootGlobalStatement is null)
+            if (commonRootContainer is null && rootGlobalStatement is null)
             {
                 return new SelectionInfo
                 {
@@ -219,9 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
-            }
+            }*/
 
-            if (commonRootContainer is null && !LocalFunction)
+            if (!commonRoot.ContainedInValidType())
             {
                 return new SelectionInfo
                 {

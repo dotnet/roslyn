@@ -16,9 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Public Sub New(document As SemanticDocument,
                        textSpan As TextSpan,
-                       localFunction As Boolean,
                        options As OptionSet)
-            MyBase.New(document, textSpan, localFunction, options)
+            MyBase.New(document, textSpan, options)
         End Sub
 
         Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of SelectionResult)
