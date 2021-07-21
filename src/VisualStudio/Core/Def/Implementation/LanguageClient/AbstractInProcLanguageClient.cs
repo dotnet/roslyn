@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
             // since that's the primary offending persister that needs to be addressed.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _ = GetCapabilities(new VSClientCapabilities { SupportsVisualStudioExtensions = true });
+            _ = GetCapabilities(new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
 
             if (_languageServer is not null)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
-            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
             {
