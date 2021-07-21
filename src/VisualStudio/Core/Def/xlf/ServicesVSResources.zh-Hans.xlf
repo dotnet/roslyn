@@ -852,6 +852,11 @@
         <target state="translated">首选复合赋值</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_file_scoped_namespace">
+        <source>Prefer file scoped namespace</source>
+        <target state="new">Prefer file scoped namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">首选索引运算符</target>

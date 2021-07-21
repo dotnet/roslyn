@@ -852,6 +852,11 @@
         <target state="translated">복합 대입 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_file_scoped_namespace">
+        <source>Prefer file scoped namespace</source>
+        <target state="new">Prefer file scoped namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">인덱스 연산자 선호</target>

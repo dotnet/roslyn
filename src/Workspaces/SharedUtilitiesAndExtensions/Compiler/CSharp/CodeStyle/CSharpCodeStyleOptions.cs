@@ -295,6 +295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowBlankLineAfterColonInConstructorInitializer)}")});
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferFileScopedNamespace = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferFileScopedNamespace),
+            defaultValue: CodeStyleOptions2.FalseWithSilentEnforcement,
+            "csharp_style_prefer_file_scoped_namespace",
+            $"TextEditor.CSharp.Specific.{nameof(PreferFileScopedNamespace)}");
+
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(

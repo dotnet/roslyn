@@ -852,6 +852,11 @@
         <target state="translated">Zusammengesetzte Zuweisungen bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_file_scoped_namespace">
+        <source>Prefer file scoped namespace</source>
+        <target state="new">Prefer file scoped namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">Indexoperator bevorzugen</target>

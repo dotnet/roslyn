@@ -859,6 +859,54 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferFileScopedNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+using System;
+
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+using System;
+
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferBlockNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+using System;
+
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+using System;
+
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+";
+
         private static readonly string s_preferSimpleUsingStatement = $@"
 using System;
 
@@ -1998,6 +2046,7 @@ class C2
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferFileScopedNamespace, ServicesVSResources.Prefer_file_scoped_namespace, s_preferFileScopedNamespace, s_preferBlockNamespace, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
