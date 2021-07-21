@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
-                while (parent != null && parent.Kind() == SyntaxKind.NamespaceDeclaration)
+                while (parent is BaseNamespaceDeclarationSyntax)
                 {
                     names.Add(GetName(parent, options));
                     parent = parent.Parent;
@@ -948,18 +948,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node?.Kind() == SyntaxKind.ClassDeclaration;
 
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Kind() == SyntaxKind.NamespaceDeclaration;
+            => node is BaseNamespaceDeclarationSyntax;
 
         public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
-            => node is NamespaceDeclarationSyntax namespaceDeclaration
-            ? namespaceDeclaration.Name
-            : null;
+            => (node as BaseNamespaceDeclarationSyntax)?.Name;
 
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
@@ -1973,6 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.CompilationUnit:
                     return DeclarationKind.CompilationUnit;
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return DeclarationKind.Namespace;
                 case SyntaxKind.UsingDirective:
                     return DeclarationKind.NamespaceImport;
