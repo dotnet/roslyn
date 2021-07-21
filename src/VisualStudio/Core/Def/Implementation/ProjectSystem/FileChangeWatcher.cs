@@ -52,6 +52,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_taskQueueGate)
             {
+                // Suppress ExecutionContext flow for asynchronous operations that write to the update file watchers. In
+                // addition to avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the
+                // need to clone data set by CallContext.LogicalSetData at each yielding await in the task tree.
+                //
+                // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on
+                // the same thread where SuppressFlow was originally run.
+                using var _ = FlowControlHelper.TrySuppressFlow();
+
                 _taskQueue = _taskQueue.ContinueWith(
                     _executeActionDelegate,
                     action,
