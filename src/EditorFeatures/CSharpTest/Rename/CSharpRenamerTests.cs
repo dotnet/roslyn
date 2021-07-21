@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             @"class OriginalName {}",
             @"class NewDocumentName {}",
             documentName: "OriginalName.cs",
-            newDocumentName: "NewDocumentName.cs");
+            newDocumentName: "NewDocumentName.cs",
+            renamedSymbols: RenameHelpers.MakeSymbolPairs("OriginalName", "NewDocumentName"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType_CaseInsensitive()
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             @"class OriginalName {}",
             @"class NewDocumentName {}",
             documentName: "originalName.cs",
-            newDocumentName: "NewDocumentName.cs");
+            newDocumentName: "NewDocumentName.cs",
+            renamedSymbols: RenameHelpers.MakeSymbolPairs("OriginalName", "NewDocumentName"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameInterface()
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             @"interface IInterface {}",
             @"interface IInterface2 {}",
             documentName: "IInterface.cs",
-            newDocumentName: "IInterface2.cs");
+            newDocumentName: "IInterface2.cs",
+            renamedSymbols: RenameHelpers.MakeSymbolPairs("IInterface", "IInterface2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameEnum()
@@ -64,7 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             @"enum MyEnum {}",
             @"enum MyEnum2 {}",
             documentName: "MyEnum.cs",
-            newDocumentName: "MyEnum2.cs");
+            newDocumentName: "MyEnum2.cs",
+            renamedSymbols: RenameHelpers.MakeSymbolPairs("MyEnum", "MyEnum2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenamePartialClass()
@@ -131,7 +135,7 @@ namespace Test
                 }
             };
 
-            return TestRenameDocument(originalDocuments, expectedDocuments);
+            return TestRenameDocument(originalDocuments, expectedDocuments, renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.C", "Test.C2"));
         }
 
         [Fact]
@@ -163,7 +167,8 @@ namespace Test
 }",
         documentPath: @"Test\Path\Document.cs",
         documentName: @"Document.cs",
-        newDocumentPath: @"Test\Path\After\Test\Document.cs");
+        newDocumentPath: @"Test\Path\After\Test\Document.cs",
+        renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces()
@@ -196,7 +201,8 @@ namespace Test.Path.After.Test
 }",
        documentPath: @"Test\Path\Document.cs",
        documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       newDocumentPath: @"Test\Path\After\Test\Document.cs",
+       renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C2", "Test.Path.After.Test.C2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces2()
@@ -243,7 +249,8 @@ namespace Other.Namespace
 }",
        documentPath: @"Test\Path\Document.cs",
        documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       newDocumentPath: @"Test\Path\After\Test\Document.cs",
+       renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C2", "Test.Path.After.Test.C2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces3()
@@ -290,7 +297,8 @@ namespace Test.Path.After.Test
 }",
        documentPath: @"Test\Path\Document.cs",
        documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+       newDocumentPath: @"Test\Path\After\Test\Document.cs",
+       renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C3", "Test.Path.After.Test.C3"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces_Nested()
@@ -329,7 +337,8 @@ namespace Test
 }",
 documentPath: @"Test\Path\Document.cs",
 documentName: @"Document.cs",
-newDocumentPath: @"Test\Path\After\Test\Document.cs");
+newDocumentPath: @"Test\Path\After\Test\Document.cs",
+renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
@@ -348,7 +357,8 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
 }",
         documentPath: @"Test\Path\Document.cs",
         documentName: @"Document.cs",
-        newDocumentPath: @"Test\Document.cs");
+        newDocumentPath: @"Test\Document.cs",
+        renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespaceAndClass()
@@ -368,7 +378,8 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
         documentPath: @"Test\Path\C2.cs",
         documentName: @"C.cs",
         newDocumentName: @"C2",
-        newDocumentPath: @"Test\C2.cs");
+        newDocumentPath: @"Test\C2.cs",
+        renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C2"));
 
         [Fact]
         [WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]

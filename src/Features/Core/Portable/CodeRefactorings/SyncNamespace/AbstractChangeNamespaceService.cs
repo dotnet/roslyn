@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -308,10 +309,36 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             foreach (var (id, container) in containers)
             {
                 var documentEditor = await solutionEditor.GetDocumentEditorAsync(id, cancellationToken).ConfigureAwait(false);
-                documentEditor.ReplaceNode(container, container.WithAdditionalAnnotations(ContainerAnnotation));
+
+                var renamedNodeSymbolPairs = GetRenamedSymbolPairs(container, documentEditor.Generator.SyntaxFacts, documentEditor.SemanticModel, cancellationToken);
+
+                foreach (var (node, symbol) in renamedNodeSymbolPairs)
+                {
+                    documentEditor.ReplaceNode(node,
+                        (currentNode, _) =>
+                        {
+                            if (RenameSymbolAnnotation.TryAnnotateNode(currentNode, symbol, out var newNode))
+                            {
+                                return newNode;
+                            }
+
+                            return currentNode;
+                        });
+                }
+
+                documentEditor.ReplaceNode(container, (currentContainer, _) => currentContainer.WithAdditionalAnnotations(ContainerAnnotation));
             }
 
             return solutionEditor.GetChangedSolution();
+        }
+
+        private static ImmutableArray<(SyntaxNode, ISymbol)> GetRenamedSymbolPairs(SyntaxNode container, ISyntaxFacts syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var typeNodes = container
+                .DescendantNodesAndSelf(node => syntaxFacts.IsNamespaceDeclaration(node) || syntaxFacts.IsTypeDeclaration(node))
+                .Where(node => syntaxFacts.IsTypeDeclaration(node));
+
+            return typeNodes.SelectAsArray(node => (node, semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken)));
         }
 
         protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(

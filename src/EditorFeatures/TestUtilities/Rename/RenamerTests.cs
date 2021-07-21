@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         protected async Task TestRenameDocument(
             DocumentWithInfo[] startDocuments,
             DocumentWithInfo[] endDocuments,
-            string[] expectedErrors = null)
+            string[] expectedErrors = null,
+            ImmutableDictionary<string, string> renamedSymbols = null)
         {
             using var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution;
@@ -64,6 +66,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
                 documentIdToDocumentInfoMap.Add((documentId, endDocuments[i]));
             }
+
+            // Store the solution before rename is called
+            var originalSolution = solution;
 
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
@@ -98,6 +103,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
                 Assert.Equal(0, remainingErrors.Count);
             }
+
+            if (renamedSymbols is not null)
+            {
+                await RenameHelpers.AssertRenameAnnotationsAsync(originalSolution, solution, renamedSymbols);
+            }
         }
 
         private static string[] GetDocumentFolders(string filePath)
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             return splitPath.Take(splitPath.Length - 1).ToArray();
         }
 
-        protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)
+        protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null, ImmutableDictionary<string, string> renamedSymbols = null)
         {
             var defaultDocumentName = documentName ?? DefaultDocumentName;
             var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
@@ -141,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 }
             };
 
-            return TestRenameDocument(startDocuments, endDocuments, expectedErrors);
+            return TestRenameDocument(startDocuments, endDocuments, expectedErrors, renamedSymbols);
         }
 
         protected async Task TestEmptyActionSet(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)

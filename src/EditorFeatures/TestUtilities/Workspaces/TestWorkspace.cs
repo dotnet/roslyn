@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
+        private readonly IEnumerable<Lazy<IRefactorNotifyService>> _refactorNotifyServices;
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -71,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+
+            _refactorNotifyServices = ExportProvider.GetExports<IRefactorNotifyService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
             {
@@ -393,6 +397,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         internal override void SetDocumentContext(DocumentId documentId)
             => OnDocumentContextUpdated(documentId);
+
+        internal override bool TryApplyChanges(
+           Solution newSolution,
+           IProgressTracker progressTracker)
+        {
+            var currentSolution = CurrentSolution;
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                // Tests are not required to have a threading context in the exports, so
+                // check if one is available. RefactorNotify tests require that one is available
+                var threadingContextExports = ExportProvider.GetExports<IThreadingContext>();
+                var threadingContext = threadingContextExports.SingleOrDefault();
+                if (threadingContext?.Value is not null)
+                {
+                    _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, threadingContext.Value);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Creates a TestHostDocument backed by a projection buffer. The surface buffer is 

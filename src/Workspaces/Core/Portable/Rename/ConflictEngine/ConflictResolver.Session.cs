@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 try
                 {
                     await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
-                    var baseSolution = _renameLocationSet.Solution;
+                    var baseSolution = await AnnotateRenamedSymbolsAsync().ConfigureAwait(false);
 
                     // Process rename one project at a time to improve caching and reduce syntax tree serialization.
                     RoslynDebug.Assert(_topologicallySortedProjects != null);
@@ -256,6 +257,39 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private async Task<Solution> AnnotateRenamedSymbolsAsync()
+            {
+                var solutionWithRenameSymbolAnnotations = _renameLocationSet.Solution;
+
+                if (RenameSymbolAnnotation.ShouldAnnotateSymbol(_renameLocationSet.Symbol))
+                {
+                    // Add the RenameSymbolAnnotation to declarations that will change
+                    foreach (var syntaxReferenceGroup in _renameLocationSet.Symbol.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
+                    {
+                        var syntaxTree = syntaxReferenceGroup.Key;
+                        var syntaxReferences = syntaxReferenceGroup.AsArray();
+
+                        var document = solutionWithRenameSymbolAnnotations.GetRequiredDocument(syntaxTree);
+                        var documentEditor = await DocumentEditor.CreateAsync(document, _cancellationToken).ConfigureAwait(false);
+
+                        foreach (var syntaxReference in syntaxReferences)
+                        {
+                            var node = await syntaxReference.GetSyntaxAsync(_cancellationToken).ConfigureAwait(false);
+
+                            if (RenameSymbolAnnotation.TryAnnotateNode(node, _renameLocationSet.Symbol, out var annotatedNode))
+                            {
+                                documentEditor.ReplaceNode(node, annotatedNode);
+                            }
+                        }
+
+                        var annotatedDocument = documentEditor.GetChangedDocument();
+                        solutionWithRenameSymbolAnnotations = annotatedDocument.Project.Solution;
+                    }
+                }
+
+                return solutionWithRenameSymbolAnnotations;
             }
 
 #if DEBUG
