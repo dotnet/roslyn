@@ -951,6 +951,53 @@ i", options);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
             );
         }
+        
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenValidCode_ShouldReturnValidResult()
+        {
+            var code = @"
+using System;
+var data = ""data"";
+var reply = data switch {
+    null => ""data are null"",
+    """" => ""data are empty"",
+    _ => data
+};
+
+return reply;
+";
+            var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+            compilation.VerifyDiagnostics();
+            
+            var result = await script.EvaluateAsync();
+            
+            Assert.Equal("data", result);
+            
+        }
+        
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenInvalidCode_ShouldReturnTheCompilationErrors()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,12): error CS0103: The name 'notExistentVariable' does not exist in the current context
+                    // var data = notExistentVariable switch { _ => null };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12));
+            }
+
+            Assert.True(exceptionThrown);
+        }
 
         private class StreamOffsetResolver : SourceReferenceResolver
         {
