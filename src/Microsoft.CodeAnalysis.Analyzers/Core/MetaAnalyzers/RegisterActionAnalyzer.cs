@@ -330,54 +330,52 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool isRegisterCodeBlockStartAction = IsRegisterAction(DiagnosticWellKnownNames.RegisterCodeBlockStartActionName, method, _analysisContext, _compilationStartAnalysisContext);
                 bool isRegisterOperationAction = IsRegisterAction(DiagnosticWellKnownNames.RegisterOperationActionName, method, _analysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext);
 
-                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction || isRegisterOperationAction)
+                if ((isRegisterSymbolAction || isRegisterSyntaxNodeAction || isRegisterOperationAction) &&
+                    method.Parameters.Length == 2 && method.Parameters[1].IsParams)
                 {
-                    if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
+                    IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
+                    if (arguments != null)
                     {
-                        IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
-                        if (arguments != null)
+                        int argumentCount = arguments.Count();
+                        if (argumentCount >= 1)
                         {
-                            int argumentCount = arguments.Count();
-                            if (argumentCount >= 1)
+                            ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
+                            if (type == null || type.Name.Equals(nameof(Action), StringComparison.Ordinal))
                             {
-                                ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
-                                if (type == null || type.Name.Equals(nameof(Action), StringComparison.Ordinal))
+                                if (argumentCount == 1)
                                 {
-                                    if (argumentCount == 1)
+                                    DiagnosticDescriptor rule;
+                                    if (isRegisterSymbolAction)
                                     {
-                                        DiagnosticDescriptor rule;
-                                        if (isRegisterSymbolAction)
-                                        {
-                                            rule = MissingSymbolKindArgumentRule;
-                                        }
-                                        else if (isRegisterOperationAction)
-                                        {
-                                            rule = MissingOperationKindArgumentRule;
-                                        }
-                                        else
-                                        {
-                                            rule = MissingSyntaxKindArgumentRule;
-                                        }
-
-                                        SyntaxNode invocationExpression = GetInvocationExpression(invocation);
-                                        Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
-                                        context.ReportDiagnostic(diagnostic);
+                                        rule = MissingSymbolKindArgumentRule;
                                     }
-                                    else if (isRegisterSymbolAction)
+                                    else if (isRegisterOperationAction)
                                     {
-                                        foreach (SyntaxNode argument in arguments.Skip(1))
-                                        {
-                                            symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
-                                            if (symbol != null &&
+                                        rule = MissingOperationKindArgumentRule;
+                                    }
+                                    else
+                                    {
+                                        rule = MissingSyntaxKindArgumentRule;
+                                    }
+
+                                    SyntaxNode invocationExpression = GetInvocationExpression(invocation);
+                                    Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
+                                    context.ReportDiagnostic(diagnostic);
+                                }
+                                else if (isRegisterSymbolAction)
+                                {
+                                    foreach (SyntaxNode argument in arguments.Skip(1))
+                                    {
+                                        symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
+                                        if (symbol != null &&
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
                                                 symbol.Kind == SymbolKind.Field &&
 #pragma warning restore CA1508 // Avoid dead conditional code
                                                 _symbolKind.Equals(symbol.ContainingType) &&
-                                                !s_supportedSymbolKinds.Contains(symbol.Name))
-                                            {
-                                                Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
-                                                context.ReportDiagnostic(diagnostic);
-                                            }
+                                            !s_supportedSymbolKinds.Contains(symbol.Name))
+                                        {
+                                            Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
+                                            context.ReportDiagnostic(diagnostic);
                                         }
                                     }
                                 }
@@ -428,12 +426,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private void AnalyzeArgumentSyntax(SyntaxNodeAnalysisContext context)
             {
                 SyntaxNode argumentExpression = GetArgumentExpression((TArgumentSyntax)context.Node);
-                if (argumentExpression != null)
+                if (argumentExpression != null &&
+                    context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol is IParameterSymbol parameter)
                 {
-                    if (context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol is IParameterSymbol parameter)
-                    {
-                        AnalyzeParameterReference(parameter);
-                    }
+                    AnalyzeParameterReference(parameter);
                 }
             }
 

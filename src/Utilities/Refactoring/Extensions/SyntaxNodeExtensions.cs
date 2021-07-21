@@ -129,16 +129,14 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var trivia in triviaList)
             {
-                if (trivia.HasStructure)
+                if (trivia.HasStructure &&
+                    trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                 {
-                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
+                    foreach (var token in skippedTokensTrivia.Tokens)
                     {
-                        foreach (var token in skippedTokensTrivia.Tokens)
+                        if (!token.Span.IsEmpty && position <= token.Span.End)
                         {
-                            if (!token.Span.IsEmpty && position <= token.Span.End)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
                 }
@@ -154,16 +152,14 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var trivia in triviaList.Reverse())
             {
-                if (trivia.HasStructure)
+                if (trivia.HasStructure &&
+                    trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                 {
-                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
+                    foreach (var token in skippedTokensTrivia.Tokens)
                     {
-                        foreach (var token in skippedTokensTrivia.Tokens)
+                        if (!token.Span.IsEmpty && token.SpanStart <= position)
                         {
-                            if (!token.Span.IsEmpty && token.SpanStart <= position)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
                 }

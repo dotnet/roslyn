@@ -280,12 +280,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                 builder.AppendLine();
                             }
                         }
-                        else if (currentTableKind == RuleEntryTableKind.Changed)
+                        else if (currentTableKind == RuleEntryTableKind.Changed
+                            && AddAllEntries(changedRuleEntriesToAdd, builder, prependNewLine: false))
                         {
-                            if (AddAllEntries(changedRuleEntriesToAdd, builder, prependNewLine: false))
-                            {
-                                builder.AppendLine();
-                            }
+                            builder.AppendLine();
                         }
                     }
 
