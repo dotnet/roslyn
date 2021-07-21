@@ -3422,8 +3422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
-                                                      : initializer == null ? null
-                                                      : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
