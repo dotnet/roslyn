@@ -1550,7 +1550,7 @@ False
 ";
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             verifier.VerifyIL("S.Test", @"
-
+{
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (S V_0)
@@ -1572,7 +1572,8 @@ False
   IL_0027:  ret
   IL_0028:  ldc.i4.0
   IL_0029:  ret
-}");
+}
+");
         }
 
         [Fact]
