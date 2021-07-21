@@ -136,7 +136,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
                 // (5,66): error CS9000: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(5, 66),
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -365,7 +365,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
                 // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string, "").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 35),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
