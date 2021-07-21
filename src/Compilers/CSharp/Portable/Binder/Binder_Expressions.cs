@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var (topLevelType, diagnosticId, errorLocation, diagnostics) = arg;
                 var type = typeWithAnnotations.Type;
                 if (type.IsDynamic()
-                    || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && type.IsReferenceType)
+                    || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
                     || type.IsNativeIntegerType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
