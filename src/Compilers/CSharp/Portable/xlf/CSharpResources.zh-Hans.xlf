@@ -807,7 +807,7 @@
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string">
+      <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
         <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
         <note />
