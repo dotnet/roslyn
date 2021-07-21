@@ -951,7 +951,7 @@ i", options);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
             );
         }
-        
+
         [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
         public async Task SwitchPatternWithVar_WhenValidCode_ShouldReturnValidResult()
         {
@@ -969,12 +969,12 @@ return reply;
             var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             var compilation = script.GetCompilation();
             compilation.VerifyDiagnostics();
-            
+
             var result = await script.EvaluateAsync();
-            
+
             Assert.Equal("data", result);
         }
-        
+
         [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
         [Fact]
         public async Task SwitchPatternWithVar_WhenNonExistentVariable_ShouldReturnNameNotInContextCompilationError()
