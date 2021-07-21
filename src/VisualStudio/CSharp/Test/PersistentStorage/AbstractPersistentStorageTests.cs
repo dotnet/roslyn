@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ExtraLarge,
         }
 
-        private const int Iterations = 100;
+        private const int Iterations = 20;
 
         private const int NumThreads = 10;
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
