@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers result = DeclarationModifiers.Public
                 | DeclarationModifiers.Override;
 
-            if (ContainingType.IsRecordStruct && CanBeReadOnly())
+            if (ContainingType.IsRecordStruct && IsEffectivelyReadOnly())
             {
                 result |= DeclarationModifiers.ReadOnly;
             }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
         }
 
-        protected virtual bool CanBeReadOnly() => false;
+        protected virtual bool IsEffectivelyReadOnly() => false;
 
         protected abstract SpecialMember OverriddenSpecialMember { get; }
 

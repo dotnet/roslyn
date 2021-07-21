@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result |= ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
             }
 
-            if (ContainingType.IsRecordStruct && IsAllPrintablePropertyGettersReadOnly(ContainingType)) 
+            if (ContainingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(ContainingType)) 
             {
                 result |= DeclarationModifiers.ReadOnly;
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isPrintable(Symbol m)
             {
-                if (m.DeclaredAccessibility != Accessibility.Public || m.IsStatic)
+                if (!IsPublicInstanceMember(m))
                 {
                     return false;
                 }
@@ -276,12 +276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool IsAllPrintablePropertyGettersReadOnly(NamedTypeSymbol containingType)
+        internal static bool AreAllPrintablePropertyGettersReadOnly(NamedTypeSymbol containingType)
         {
             return !containingType.GetMembers().Any(m => hasNonReadOnlyGetter(m));
 
             static bool hasNonReadOnlyGetter(Symbol m)
             {
+                if (!IsPublicInstanceMember(m))
+                {
+                    return false;
+                }
+
                 if (m.Kind is SymbolKind.Property)
                 {
                     var property = (PropertySymbol)m;
@@ -297,6 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return false;
             }
+        }
+
+        private static bool IsPublicInstanceMember(Symbol m)
+        {
+            return m.DeclaredAccessibility != Accessibility.Public || m.IsStatic;
         }
 
         private static bool IsPrintableProperty(PropertySymbol property)
