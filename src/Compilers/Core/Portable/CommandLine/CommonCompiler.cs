@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
+        public GeneratorDriverCache? DriverCache { get; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
 
         /// <summary>
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators);
 
-        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache)
         {
             IEnumerable<string> allArgs = args;
 
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
+            this.DriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
@@ -734,7 +736,18 @@ namespace Microsoft.CodeAnalysis
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
+        private protected Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics)
+        {
+            var cacheKey = Arguments.GetOutputFilePath(GetOutputFileName(input, cancellationToken: default));
+
+            var driver = this.DriverCache?.TryGetDriver(cacheKey) ?? CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
+            this.DriverCache?.CacheGenerator(cacheKey, driver);
+            generatorDiagnostics.AddRange(diagnostics);
+            return compilationOut;
+        }
+
+        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {

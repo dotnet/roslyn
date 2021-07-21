@@ -9793,6 +9793,111 @@ public class Program
             };
         }
 
+        [Fact]
+        public void Compiler_Uses_DriverCache()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            int sourceCallbackCount = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+            });
+
+            // with no cache, we'll see the callback execute multiple times
+            RunWithNoCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithNoCache();
+            Assert.Equal(2, sourceCallbackCount);
+
+            RunWithNoCache();
+            Assert.Equal(3, sourceCallbackCount);
+
+            // now re-run with a cache
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+            sourceCallbackCount = 0;
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
+        [Fact]
+        public void Compiler_Doesnt_Use_Cache_From_Other_Compilation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            int sourceCallbackCount = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+            });
+
+            // now re-run with a cache
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+            sourceCallbackCount = 0;
+
+            RunWithCache("1.dll");
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache("1.dll");
+            Assert.Equal(1, sourceCallbackCount);
+
+            // now emulate a new compilation, and check we were invoked, but only once
+            RunWithCache("2.dll");
+            Assert.Equal(2, sourceCallbackCount);
+
+            RunWithCache("2.dll");
+            Assert.Equal(2, sourceCallbackCount);
+
+            // now re-run our first compilation
+            RunWithCache("1.dll");
+            Assert.Equal(2, sourceCallbackCount);
+
+            // a new one
+            RunWithCache("3.dll");
+            Assert.Equal(3, sourceCallbackCount);
+
+            // and another old one
+            RunWithCache("2.dll");
+            Assert.Equal(3, sourceCallbackCount);
+
+            RunWithCache("1.dll");
+            Assert.Equal(3, sourceCallbackCount);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -9814,6 +9919,7 @@ public class Program
                                            int? expectedExitCode = null,
                                            bool errorlog = false,
                                            IEnumerable<ISourceGenerator> generators = null,
+                                           GeneratorDriverCache driverCache = null,
                                            params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
@@ -9835,7 +9941,7 @@ public class Program
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty());
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty(), driverCache: driverCache);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
