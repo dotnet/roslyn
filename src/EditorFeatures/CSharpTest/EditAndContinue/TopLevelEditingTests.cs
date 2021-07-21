@@ -13656,7 +13656,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder1()
+        public void Event_Accessor_Reorder1()
         {
             var src1 = "class C { event int E { add { } remove { } } }";
             var src2 = "class C { event int E { remove { } add { } } }";
@@ -13670,7 +13670,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder2()
+        public void Event_Accessor_Reorder2()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E1 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E2 { remove { } add { } } }";
@@ -13685,7 +13685,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder3()
+        public void Event_Accessor_Reorder3()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E2 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E1 { remove { } add { } } }";
@@ -13699,7 +13699,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventInsert()
+        public void Event_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { event int E { remove { } add { } } }";
@@ -13711,7 +13711,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventDelete()
+        public void Event_Delete()
         {
             var src1 = "class C { event int E { remove { } add { } } }";
             var src2 = "class C { }";
@@ -13723,7 +13723,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventInsert_IntoLayoutClass_Sequential()
+        public void Event_Insert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
 using System;
@@ -13868,7 +13868,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventField_AddAttribute()
+        public void Field_Event_Attribute_Add()
         {
             var src1 = @"
 class C
@@ -13888,23 +13888,6 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
-        }
-
-        [Fact]
-        public void EventField_AddAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    event Action F;
-}";
-            var src2 = @"
-class C
-{
-    [System.Obsolete]event Action F;
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
                ActiveStatementsDescription.Empty,
@@ -13915,7 +13898,7 @@ class C
         }
 
         [Fact]
-        public void Event_AddAttribute()
+        public void Event_Attribute_Add()
         {
             var src1 = @"
 class C
@@ -13935,23 +13918,6 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
-        }
-
-        [Fact]
-        public void Event_AddAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-            var src2 = @"
-class C
-{
-    [System.Obsolete]event Action F { add {} remove {} }
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
                ActiveStatementsDescription.Empty,
@@ -13964,7 +13930,7 @@ class C
         }
 
         [Fact]
-        public void EventAccessor_AddAttribute()
+        public void Event_Accessor_Attribute_Add()
         {
             var src1 = @"
 class C
@@ -13984,34 +13950,17 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
-        }
-
-        [Fact]
-        public void EventAccessor_AddAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-            var src2 = @"
-class C
-{
-    event Action F { add {} [System.Obsolete]remove {} }
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
-               new[] {
+                ActiveStatementsDescription.Empty,
+                new[] {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
-               },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
-        public void EventField_DeleteAttribute()
+        public void Field_Event_Attribute_Delete()
         {
             var src1 = @"
 class C
@@ -14031,34 +13980,17 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
-        }
-
-        [Fact]
-        public void EventField_DeleteAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    [System.Obsolete]event Action F;
-}";
-            var src2 = @"
-class C
-{
-    event Action F;
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
-               new[] {
-                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
-               },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                ActiveStatementsDescription.Empty,
+                new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
-        public void Event_DeleteAttribute()
+        public void Event_Attribute_Delete()
         {
             var src1 = @"
 class C
@@ -14078,23 +14010,6 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
-        }
-
-        [Fact]
-        public void Event_DeleteAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    [System.Obsolete]event Action F { add {} remove {} }
-}";
-            var src2 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
                ActiveStatementsDescription.Empty,
@@ -14107,7 +14022,7 @@ class C
         }
 
         [Fact]
-        public void EventAccessor_DeleteAttribute()
+        public void Event_Accessor_Attribute_Delete()
         {
             var src1 = @"
 class C
@@ -14127,23 +14042,6 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
-        }
-
-        [Fact]
-        public void EventAccessor_DeleteAttribute_SupportedByRuntime()
-        {
-            var src1 = @"
-class C
-{
-    event Action F { add {} [System.Obsolete]remove {} }
-}";
-            var src2 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-
-            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
                ActiveStatementsDescription.Empty,
