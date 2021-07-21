@@ -116,7 +116,7 @@
     <MicrosoftServiceHubClientVersion>2.8.10</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.8.10</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <MicrosoftVisualStudioCacheVersion>16.10.40-alpha</MicrosoftVisualStudioCacheVersion>
+    <MicrosoftVisualStudioCacheVersion>17.0.13-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>16.10.230</MicrosoftVisualStudioComponentModelHostVersion>
