@@ -176,6 +176,7 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
+                   /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
     - task: PowerShell@2
