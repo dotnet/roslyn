@@ -1175,11 +1175,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
                 if (unconstructedType.IsGenericType
-                    && options.IsAttributeTypeLookup()
-                    && boundTypeArguments.FirstOrDefault(bta => bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()) is { HasType: true } badAttributeArgument)
+                    && options.IsAttributeTypeLookup())
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, badAttributeArgument.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                    foreach (var typeArgument in boundTypeArguments)
+                    {
+                        var type = typeArgument.Type;
+                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                        }
+                        else
+                        {
+                            CheckDisallowedAttributeDependentType(typeArgument, isError: true, node.Location, diagnostics);
+                        }
+                    }
                 }
+
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
                 // arguments and construct the final result.

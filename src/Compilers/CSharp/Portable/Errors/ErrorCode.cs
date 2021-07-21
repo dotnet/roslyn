@@ -1982,6 +1982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
         ERR_AttrTypeArgCannotBeTypeVar = 8958,
+        WRN_AttrDependentTypeNotAllowed = 8959,
+        ERR_AttrDependentTypeNotAllowed = 8960
 
         #endregion
 

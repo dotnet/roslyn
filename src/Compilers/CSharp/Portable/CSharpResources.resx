@@ -1308,6 +1308,15 @@
   <data name="ERR_AttrTypeArgCannotBeTypeVar" xml:space="preserve">
     <value>'{0}': an attribute type argument cannot use type parameters</value>
   </data>
+  <data name="WRN_AttrDependentTypeNotAllowed" xml:space="preserve">
+    <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
+  </data>
+  <data name="WRN_AttrDependentTypeNotAllowed_Title" xml:space="preserve">
+    <value>Type cannot be used in this context because it cannot be represented in metadata.</value>
+  </data>
+  <data name="ERR_AttrDependentTypeNotAllowed" xml:space="preserve">
+    <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
+  </data>
   <data name="ERR_NewTyvarWithArgs" xml:space="preserve">
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
   </data>
