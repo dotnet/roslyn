@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 _format = null;
                 _cache.Clear();
+                this.GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
             }
         }
 
