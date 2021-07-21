@@ -44,5 +44,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string InheritanceMargin = "Roslyn.InheritanceMargin";
         public const string LspPullDiagnosticsFeatureFlag = "Lsp.PullDiagnostics";
         public const string ProgressionForceLegacySearch = "Roslyn.ProgressionForceLegacySearch";
+        public const string InlineDiagnostics = "Roslyn.InlineDiagnostics";
     }
 }

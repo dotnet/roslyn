@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     {
         private readonly IEditorFormatMap _editorFormatMap;
         protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        private bool? _experimentEnabled = null;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -60,6 +62,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
                 !string.IsNullOrWhiteSpace(diagnostic.Message) &&
                 !diagnostic.IsSuppressed;
+        }
+
+        protected internal override bool IsEnabled(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, document.Project.Language);
+            if (_experimentEnabled is null)
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
+                _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InlineDiagnostics);
+            }
+
+            var shouldEnableFeature = option == true || (_experimentEnabled == true && option == null);
+            return shouldEnableFeature;
         }
 
         protected override InlineDiagnosticsTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
