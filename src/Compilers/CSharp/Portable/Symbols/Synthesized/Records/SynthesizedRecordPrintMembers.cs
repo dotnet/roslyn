@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsPublicInstanceMember(Symbol m)
         {
-            return m.DeclaredAccessibility != Accessibility.Public || m.IsStatic;
+            return m.DeclaredAccessibility == Accessibility.Public && !m.IsStatic;
         }
 
         private static bool IsPrintableProperty(PropertySymbol property)
