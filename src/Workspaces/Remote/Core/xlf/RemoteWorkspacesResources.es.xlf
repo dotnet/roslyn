@@ -127,6 +127,11 @@
         <target state="translated">Detección de comentarios TODO</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="new">Unused reference analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
         <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
         <target state="translated">La característica "{0}" no está disponible debido a un error intermitente; vuelva a intentarlo más tarde: "{1}"</target>

@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.UnusedReferences;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteCodeLensReferencesService), null),
             (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
             (typeof(IRemoteInheritanceMarginService), null),
+            (typeof(IRemoteUnusedReferenceAnalysisService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;
