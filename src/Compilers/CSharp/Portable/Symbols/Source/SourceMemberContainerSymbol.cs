@@ -3545,7 +3545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
             }
 
-            var printMembers = addPrintMembersMethod();
+            var printMembers = addPrintMembersMethod(membersSoFar);
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
@@ -3656,7 +3656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
             }
 
-            MethodSymbol addPrintMembersMethod()
+            MethodSymbol addPrintMembersMethod(IEnumerable<Symbol> userDefinedMembers)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.PrintMembersMethodName,
@@ -3679,11 +3679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol printMembersMethod;
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
-                    printMembersMethod = new SynthesizedRecordPrintMembers(
-                        this,
-                        memberOffset: members.Count,
-                        this.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(members),
-                        diagnostics);
+                    printMembersMethod = new SynthesizedRecordPrintMembers(this, generatedMembers: members, userDefinedMembers: userDefinedMembers, diagnostics);
                     members.Add(printMembersMethod);
                 }
                 else
@@ -3758,7 +3754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             this,
                             printMethod,
                             memberOffset: members.Count,
-                            isReadOnly: this.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(members),
+                            isReadOnly: printMethod.IsEffectivelyReadOnly,
                             diagnostics);
                         members.Add(toStringMethod);
                     }

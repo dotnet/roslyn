@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,15 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordPrintMembers(
             SourceMemberContainerTypeSymbol containingType,
-            int memberOffset,
-            bool isReadOnly,
+            ArrayBuilder<Symbol> generatedMembers,
+            IEnumerable<Symbol> userDefinedMembers,
             BindingDiagnosticBag diagnostics)
             : base(
                   containingType,
                   WellKnownMemberNames.PrintMembersMethodName,
-                  isReadOnly: isReadOnly,
+                  isReadOnly: IsReadOnly(containingType, generatedMembers, userDefinedMembers),
                   hasBody: true,
-                  memberOffset, diagnostics)
+                  memberOffset: generatedMembers.Count,
+                  diagnostics)
         {
         }
 
@@ -289,7 +291,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool AreAllPrintablePropertyGettersReadOnly(ArrayBuilder<Symbol> members)
+        private static bool IsReadOnly(NamedTypeSymbol containingType, IEnumerable<Symbol> generatedMembers, IEnumerable<Symbol> userDefinedMembers)
+        {
+            return containingType.IsRecordStruct
+                && AreAllPrintablePropertyGettersReadOnly(generatedMembers)
+                && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers);
+        }
+
+        private static bool AreAllPrintablePropertyGettersReadOnly(IEnumerable<Symbol> members)
         {
             foreach (var member in members)
             {
