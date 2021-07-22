@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIterator,
             bool isExtensionMethod,
             bool isPartial,
+            bool isReadOnly,
             bool hasBody,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isPartial, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isPartial, isReadOnly, hasBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
             var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool HasExplicitAccessModifier { get; }
 
-        private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isPartial, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
+        private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isPartial, bool isReadOnly, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
@@ -274,6 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 hasExplicitAccessMod = true;
+            }
+
+            if (isReadOnly)
+            {
+                Debug.Assert(ContainingType.IsStructType());
+                mods |= DeclarationModifiers.ReadOnly;
             }
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);

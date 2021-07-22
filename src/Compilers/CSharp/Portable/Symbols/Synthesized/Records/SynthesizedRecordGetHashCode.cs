@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly PropertySymbol? _equalityContract;
 
         public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectGetHashCode, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectGetHashCode, memberOffset, isReadOnly: containingType.IsRecordStruct, diagnostics)
         {
             Debug.Assert(containingType.IsRecordStruct == equalityContract is null);
             _equalityContract = equalityContract;
@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override int GetParameterCountFromSyntax() => 0;
-
-        protected override bool IsReadOnly() => ContainingType.IsRecordStruct;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

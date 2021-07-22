@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> positionalMembers,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.DeconstructMethodName, hasBody: true, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.DeconstructMethodName, isReadOnly: IsReadOnly(containingType, positionalMembers), hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(positionalMembers.All(p => p is PropertySymbol { GetMethod: not null } or FieldSymbol));
             _ctor = ctor;
@@ -30,27 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            var result = DeclarationModifiers.Public;
-
-            if (ContainingType.IsRecordStruct && !_positionalMembers.Any(m => hasNonReadOnlyGetter(m)))
-            {
-                result |= DeclarationModifiers.ReadOnly;
-            }
+            const DeclarationModifiers result = DeclarationModifiers.Public;
 
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
-
-            static bool hasNonReadOnlyGetter(Symbol m)
-            {
-                if (m.Kind is SymbolKind.Property)
-                {
-                    var property = (PropertySymbol)m;
-                    var getterMethod = property.GetMethod;
-                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
-                }
-
-                return false;
-            }
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
@@ -120,6 +103,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             statementsBuilder.Add(F.Return());
             F.CloseMethod(F.Block(statementsBuilder.ToImmutableAndFree()));
+        }
+
+        private static bool IsReadOnly(SourceMemberContainerTypeSymbol containingType, ImmutableArray<Symbol> positionalMembers)
+        {
+            return containingType.IsRecordStruct && !positionalMembers.IsDefault && !positionalMembers.Any(m => hasNonReadOnlyGetter(m));
+
+            static bool hasNonReadOnlyGetter(Symbol m)
+            {
+                if (m.Kind is SymbolKind.Property)
+                {
+                    var property = (PropertySymbol)m;
+                    var getterMethod = property.GetMethod;
+                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
+                }
+
+                return false;
+            }
         }
     }
 }

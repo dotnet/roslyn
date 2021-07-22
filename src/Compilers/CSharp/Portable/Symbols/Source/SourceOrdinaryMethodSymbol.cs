@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isPartial: syntax.Modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0,
+                 isReadOnly: false,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  diagnostics)

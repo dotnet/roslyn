@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol _printMethod;
         public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectToString, memberOffset, diagnostics)
+            : base(
+                  containingType,
+                  WellKnownMemberNames.ObjectToString,
+                  memberOffset,
+                  isReadOnly: containingType.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(containingType),
+                  diagnostics)
         {
             Debug.Assert(printMethod is object);
             _printMethod = printMethod;
@@ -43,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override int GetParameterCountFromSyntax() => 0;
-
-        protected override bool IsReadOnly() => ContainingType.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(ContainingType);
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

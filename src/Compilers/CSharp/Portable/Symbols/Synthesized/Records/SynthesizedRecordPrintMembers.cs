@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.PrintMembersMethodName, hasBody: true, memberOffset, diagnostics)
+            : base(
+                  containingType, 
+                  WellKnownMemberNames.PrintMembersMethodName,
+                  isReadOnly: containingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(containingType),
+                  hasBody: true,
+                  memberOffset, diagnostics)
         {
         }
 
@@ -40,11 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 result |= ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
-            }
-
-            if (ContainingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(ContainingType)) 
-            {
-                result |= DeclarationModifiers.ReadOnly;
             }
 
             Debug.Assert((result & ~allowedModifiers) == 0);

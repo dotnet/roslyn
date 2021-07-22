@@ -11,20 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
-        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, name, hasBody: true, memberOffset, diagnostics)
+        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly, BindingDiagnosticBag diagnostics)
+            : base(containingType, name, isReadOnly: isReadOnly, hasBody: true, memberOffset, diagnostics)
         {
         }
 
         protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
-
-            if (IsReadOnly())
-            {
-                result |= DeclarationModifiers.ReadOnly;
-            }
-
+            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
@@ -34,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.MethodChecks(diagnostics);
             VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
         }
-
-        protected virtual bool IsReadOnly() => false;
 
         protected abstract SpecialMember OverriddenSpecialMember { get; }
 
