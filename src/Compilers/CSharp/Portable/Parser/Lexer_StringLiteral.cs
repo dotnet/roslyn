@@ -309,9 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void TrySetUnrecoverableError(SyntaxDiagnosticInfo error)
             {
-                // only need to record the earliest error we hit
-                if (Error == null || error.Offset < Error.Offset)
-                    Error = error;
+                // only need to record the first error we hit
+                Error ??= error;
 
                 // No matter what, ensure that we know we hit an error we can't recover from.
                 EncounteredUnrecoverableError = true;
@@ -319,9 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void TrySetRecoverableError(SyntaxDiagnosticInfo error)
             {
-                // only need to record the earliest error we hit
-                if (Error == null || error.Offset < Error.Offset)
-                    Error = error;
+                // only need to record the first error we hit
+                Error ??= error;
 
                 // Do not touch 'EncounteredUnrecoverableError'.  If we already encountered something unrecoverable,
                 // that doesn't change.  And if we haven't hit something unrecoverable then we stay in that mode as this
