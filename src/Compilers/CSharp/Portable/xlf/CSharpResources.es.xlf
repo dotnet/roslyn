@@ -847,6 +847,11 @@
         <target state="translated">El miembro de registro "{0}" debe ser público.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="new">'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</target>
@@ -1247,6 +1252,11 @@
         <target state="new">line span directive</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1260,6 +1270,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">ToString sellado en el registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5360,11 +5375,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <target state="translated">El primer operando de un operador de desplazamiento sobrecargado debe tener el mismo tipo que el tipo contenedor, y el tipo del segundo operando debe ser int</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Los structs no pueden contener constructores explícitos sin parámetros</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">Las enumeraciones no pueden contener constructores explícitos sin parámetros</target>
@@ -5388,11 +5398,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
         <target state="translated">'{0}': no se puede hacer referencia a un tipo a través de una expresión; pruebe con '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': no se pueden tener propiedades de instancia o inicializadores de campo en estructuras</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">

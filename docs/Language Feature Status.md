@@ -10,7 +10,6 @@ efforts behind them.
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- |
-| [Parameterless struct constructors](https://github.com/dotnet/csharplang/issues/99) | [struct-ctors](https://github.com/dotnet/roslyn/tree/features/struct-ctors) | [In Progress](https://github.com/dotnet/roslyn/issues/51698) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [jcouv](https://github.com/jouv) |
 | [nameof(parameter)](https://github.com/dotnet/csharplang/issues/373) | main | [In Progress](https://github.com/dotnet/roslyn/issues/40524) | [jcouv](https://github.com/jcouv) | TBD | [jcouv](https://github.com/jcouv) |
 | [Relax ordering of `ref` and `partial` modifiers](https://github.com/dotnet/csharplang/issues/946) | [ref-partial](https://github.com/dotnet/roslyn/tree/features/ref-partial) | In Progress | [alrz](https://github.com/alrz) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Parameter null-checking](https://github.com/dotnet/csharplang/issues/2145) | [param-nullchecking](https://github.com/dotnet/roslyn/tree/features/param-nullchecking) | [In Progress](https://github.com/dotnet/roslyn/issues/36024) | [fayrose](https://github.com/fayrose) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
@@ -38,6 +37,7 @@ efforts behind them.
 | [Static Abstract Members In Interfaces C# 10 Preview](https://github.com/dotnet/csharplang/issues/4436) | main | [Merged into 17.0p2](https://github.com/dotnet/roslyn/issues/52221) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Interpolated string improvements](https://github.com/dotnet/csharplang/issues/4487) | main | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/51499) | [333fred](https://github.com/333fred) | [AlekseyTs](https://github.com/AlekseyTs), [chsienki](https://github.com/chsienki) | [jaredpar](https://github.com/jaredpar) |
 | [File-scoped namespace](https://github.com/dotnet/csharplang/issues/137) | main | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/49000) | [RikkiGibson](https://github.com/RikkiGibson) | [jcouv](https://github.com/jcouv), [chsienki](https://github.com/chsienki) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| [Parameterless struct constructors](https://github.com/dotnet/csharplang/issues/99) | [struct-ctors](https://github.com/dotnet/roslyn/tree/features/struct-ctors) | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/51698) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [jcouv](https://github.com/jouv) |
 
 # VB 16.9
 
