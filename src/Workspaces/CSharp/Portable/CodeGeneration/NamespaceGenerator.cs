@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CodeGenerationDestination.CompilationUnit,
                 options, destination?.SyntaxTree.Options ?? options.ParseOptions,
                 cancellationToken);
-            if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
+            if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
 
             var members = Insert(destination.Members, namespaceDeclaration, options, availableIndices);
