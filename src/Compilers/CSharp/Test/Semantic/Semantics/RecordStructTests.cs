@@ -3455,7 +3455,7 @@ record struct A(int I, string S);
             var src = @"
 record struct A(int I, string S)
 {
-    public double T => 0.1;
+    public int I { get => 0; }
 }
 ";
             var comp = CreateCompilation(src);
