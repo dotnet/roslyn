@@ -442,11 +442,12 @@ public class [|C|]
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-namespace N;
-
-public class [|C|]
+namespace N
 {{
-    public C();
+    public class [|C|]
+    {{
+        public C();
+    }}
 }}");
         }
 
@@ -467,11 +468,12 @@ public class [|C|]
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-namespace N;
-
-public class [|C|]
+namespace N
 {{
-    public C();
+    public class [|C|]
+    {{
+        public C();
+    }}
 }}");
         }
 
