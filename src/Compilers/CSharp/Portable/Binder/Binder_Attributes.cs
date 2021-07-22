@@ -815,7 +815,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
             {
                 Debug.Assert(argumentsCount <= syntax.ArgumentList.Arguments.Count);
-                CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                 parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();

@@ -2174,10 +2174,7 @@ class Program
     }
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
-                // (14,4): error CS8773: Feature 'caller argument expression' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [My(1+2)]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(1+2)").WithArguments("caller argument expression", "10.0").WithLocation(14, 4));
+            CompileAndVerify(compilation, expectedOutput: "'3', '1+2'").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
