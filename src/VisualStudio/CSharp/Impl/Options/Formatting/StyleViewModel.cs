@@ -862,8 +862,6 @@ class Customer2
         private static readonly string s_preferFileScopedNamespace = $@"
 //[
 // {ServicesVSResources.Prefer_colon}
-using System;
-
 namespace A.B.C;
 
 public class Program
@@ -872,8 +870,6 @@ public class Program
 //]
 //[
 // {ServicesVSResources.Over_colon}
-using System;
-
 namespace A.B.C
 {{
     public class Program
@@ -886,8 +882,6 @@ namespace A.B.C
         private static readonly string s_preferBlockNamespace = $@"
 //[
 // {ServicesVSResources.Prefer_colon}
-using System;
-
 namespace A.B.C
 {{
     public class Program
@@ -897,8 +891,6 @@ namespace A.B.C
 //]
 //[
 // {ServicesVSResources.Over_colon}
-using System;
-
 namespace A.B.C;
 
 public class Program

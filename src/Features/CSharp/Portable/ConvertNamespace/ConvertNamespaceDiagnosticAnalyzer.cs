@@ -63,36 +63,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var preferFileScopedNamespace = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
             var severity = preferFileScopedNamespace.Notification.Severity;
 
-            if (ConvertNamespaceHelper.CanOfferUseRegular(optionSet, declaration, forAnalyzer: true))
-            {
-                var location = GetDiagnosticLocation(declaration, tree, severity);
+            var descriptor =
+                ConvertNamespaceHelper.CanOfferUseRegular(optionSet, declaration, forAnalyzer: true) ? s_useRegularNamespaceDescriptor :
+                ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true) ? s_useFileScopedNamespaceDescriptor : null;
+            if (descriptor == null)
+                return null;
 
-                var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                return DiagnosticHelper.Create(
-                    s_useRegularNamespaceDescriptor, location, severity,
-                    additionalLocations, ImmutableDictionary<string, string>.Empty);
-            }
-
-            if (ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
-            {
-                var location = GetDiagnosticLocation(declaration, tree, severity);
-
-                var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                return DiagnosticHelper.Create(
-                    s_useFileScopedNamespaceDescriptor, location, severity,
-                    additionalLocations, ImmutableDictionary<string, string>.Empty);
-            }
-
-            return null;
-        }
-
-        private static Location GetDiagnosticLocation(BaseNamespaceDeclarationSyntax declaration, SyntaxTree tree, ReportDiagnostic severity)
-        {
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
             // otherwise, if it's not hidden, just squiggle the name.
-            return severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
+            var diagnosticLocation = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                 ? tree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End))
                 : declaration.Name.GetLocation();
+
+            return DiagnosticHelper.Create(
+                descriptor,
+                GetDiagnosticLocation(declaration, tree, severity),
+                severity,
+                ImmutableArray.Create(declaration.GetLocation()),
+                ImmutableDictionary<string, string>.Empty);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var userPrefersFileScopedNamespaces = preference == true;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
-            // If the user likes file scoped namespaces, then we offer file scopedregular namespaces from the diagnostic analyzer.
+            // If the user likes file scoped namespaces, then we offer file scoped namespaces from the diagnostic analyzer.
             // If the user does not like file scoped namespaces then we offer file scoped namespaces from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             var canOffer = userPrefersFileScopedNamespaces == forAnalyzer || (!forAnalyzer && analyzerDisabled);

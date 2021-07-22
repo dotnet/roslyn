@@ -41,19 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return;
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (ConvertNamespaceHelper.CanOfferUseRegular(optionSet, namespaceDecl, forAnalyzer: false))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_regular_namespace,
-                    c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c)));
-            }
+            var title =
+                ConvertNamespaceHelper.CanOfferUseRegular(optionSet, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_regular_namespace :
+                ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_file_scoped_namespace : null;
+            if (title == null)
+                return;
 
-            if (ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                  CSharpFeaturesResources.Convert_to_file_scoped_namespace,
-                  c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c)));
-            }
+            context.RegisterRefactoring(new MyCodeAction(
+                title, c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c)));
         }
 
         private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
@@ -72,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(
-                string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }
