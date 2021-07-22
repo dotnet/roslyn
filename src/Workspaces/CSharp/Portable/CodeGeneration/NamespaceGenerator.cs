@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -28,7 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
+            var declaration = GenerateNamespaceDeclaration(
+                service, @namespace,
+                CodeGenerationDestination.Namespace,
+                options, destination?.SyntaxTree.Options ?? options.ParseOptions,
+                cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
 
@@ -44,7 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
+            var declaration = GenerateNamespaceDeclaration(
+                service, @namespace,
+                CodeGenerationDestination.CompilationUnit,
+                options, destination?.SyntaxTree.Options ?? options.ParseOptions,
+                cancellationToken);
             if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
 
@@ -55,17 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static SyntaxNode GenerateNamespaceDeclaration(
             ICodeGenerationService service,
             INamespaceSymbol @namespace,
+            CodeGenerationDestination destination,
             CodeGenerationOptions options,
+            ParseOptions parseOptions,
             CancellationToken cancellationToken)
         {
             options ??= CodeGenerationOptions.Default;
             GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
-            var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
+            var declaration = GetDeclarationSyntaxWithoutMembers(
+                @namespace, innermostNamespace, name, destination, options, parseOptions);
 
             declaration = options.GenerateMembers
-                    ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
-                    : declaration;
+                ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
+                : declaration;
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
@@ -83,14 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode GenerateNamespaceDeclarationWorker(
-            string name, INamespaceSymbol innermostNamespace)
+            string name, INamespaceSymbol innermostNamespace,
+            CodeGenerationDestination destination,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var usings = GenerateUsingDirectives(innermostNamespace);
 
             // If they're just generating the empty namespace then make that into compilation unit.
             if (name == string.Empty)
-            {
                 return SyntaxFactory.CompilationUnit().WithUsings(usings);
+
+            if (destination == CodeGenerationDestination.CompilationUnit &&
+                options.Options.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace).Value &&
+                ((CSharpParseOptions)parseOptions)?.LanguageVersion >= LanguageVersion.CSharp10)
+            {
+                return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
             }
 
             return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
@@ -100,15 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             INamespaceSymbol @namespace,
             INamespaceSymbol innermostNamespace,
             string name,
-            CodeGenerationOptions options)
+            CodeGenerationDestination destination,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<SyntaxNode>(@namespace, options);
-            if (reusableSyntax == null)
-            {
-                return GenerateNamespaceDeclarationWorker(name, innermostNamespace);
-            }
-
-            return RemoveAllMembers(reusableSyntax);
+            return reusableSyntax == null
+                ? GenerateNamespaceDeclarationWorker(name, innermostNamespace, destination, options, parseOptions)
+                : RemoveAllMembers(reusableSyntax);
         }
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)
