@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            DeclarationModifiers result = DeclarationModifiers.Public
-                | DeclarationModifiers.Override;
+            DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
 
             if (IsReadOnly())
             {
