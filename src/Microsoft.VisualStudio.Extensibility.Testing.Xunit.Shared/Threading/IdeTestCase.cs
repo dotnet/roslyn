@@ -9,7 +9,6 @@ namespace Xunit.Threading
     using System.Threading.Tasks;
     using Microsoft.Win32;
     using Xunit.Abstractions;
-    using Xunit.Harness;
     using Xunit.Sdk;
 
     public sealed class IdeTestCase : XunitTestCase
@@ -20,8 +19,8 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
+        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null)
+            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
@@ -39,6 +38,8 @@ namespace Xunit.Threading
         }
 
         public new TestMethodDisplay DefaultMethodDisplay => base.DefaultMethodDisplay;
+
+        public new TestMethodDisplayOptions DefaultMethodDisplayOptions => base.DefaultMethodDisplayOptions;
 
         public WpfTestSharedData SharedData
         {

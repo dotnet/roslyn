@@ -306,11 +306,11 @@ namespace Xunit.Harness
                         }
                         else if (testCase is IdeTestCase ideTestCase)
                         {
-                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
+                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
                         }
                         else
                         {
-                            return new XunitTestCase(this, TestMethodDisplay.ClassAndMethod, testCase.TestMethod, testCase.TestMethodArguments);
+                            return new XunitTestCase(this, TestMethodDisplay.ClassAndMethod, TestMethodDisplayOptions.None, testCase.TestMethod, testCase.TestMethodArguments);
                         }
                     });
 

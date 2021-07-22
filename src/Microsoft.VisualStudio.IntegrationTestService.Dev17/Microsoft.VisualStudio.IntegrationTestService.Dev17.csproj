@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.63-dev17-g3f11f5ab" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.2155-preview2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="17.0.0-previews-1-31310-052" PrivateAssets="all" />
   </ItemGroup>
 
