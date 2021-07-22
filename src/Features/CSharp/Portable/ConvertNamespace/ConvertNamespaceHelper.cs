@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         internal static bool CanOfferUseFileScoped(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
         {
-            if (declaration is not NamespaceDeclarationSyntax)
+            if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
+                return false;
+
+            if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
             var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
@@ -87,12 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
+            var semicolon = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+            var firstBodyToken = namespaceDeclaration.OpenBraceToken.GetNextToken();
+            if (firstBodyToken != namespaceDeclaration.CloseBraceToken)
+            {
+                if (!firstBodyToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+                    semicolon = semicolon.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            }
+
             return SyntaxFactory.FileScopedNamespaceDeclaration(
                 namespaceDeclaration.AttributeLists,
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
                 namespaceDeclaration.Name,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia),
+                semicolon,
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
                 namespaceDeclaration.Members).WithAdditionalAnnotations(Formatter.Annotation);
