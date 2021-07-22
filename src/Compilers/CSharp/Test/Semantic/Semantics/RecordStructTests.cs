@@ -3460,7 +3460,7 @@ record struct A(int I, string S)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.ToString");
+            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.Deconstruct");
             Assert.False(method.IsDeclaredReadOnly);
         }
 
