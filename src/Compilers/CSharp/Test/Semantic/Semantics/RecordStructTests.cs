@@ -56,7 +56,7 @@ record struct Point(int X, int Y);";
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""Point""
-  IL_000f:  call       ""bool Point.Equals(Point)""
+  IL_000f:  call       ""readonly bool Point.Equals(Point)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -228,7 +228,7 @@ True").VerifyDiagnostics();
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""S""
-  IL_000f:  call       ""bool S.Equals(S)""
+  IL_000f:  call       ""readonly bool S.Equals(S)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -877,13 +877,13 @@ public record struct S2 : I
 
             AssertEx.Equal(new[] {
                 "System.Int32 S.M(System.String s)",
-                "System.String S.ToString()",
-                "System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String S.ToString()",
+                "readonly System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean S.op_Inequality(S left, S right)",
                 "System.Boolean S.op_Equality(S left, S right)",
-                "System.Int32 S.GetHashCode()",
-                "System.Boolean S.Equals(System.Object obj)",
-                "System.Boolean S.Equals(S other)",
+                "readonly System.Int32 S.GetHashCode()",
+                "readonly System.Boolean S.Equals(System.Object obj)",
+                "readonly System.Boolean S.Equals(S other)",
                 "S..ctor()" },
                 comp.GetMember<NamedTypeSymbol>("S").GetMembers().ToTestDisplayStrings());
         }
@@ -1885,14 +1885,14 @@ record struct C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
-                "System.String C.ToString()",
-                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String C.ToString()",
+                "readonly System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C left, C right)",
                 "System.Boolean C.op_Equality(C left, C right)",
-                "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object obj)",
-                "System.Boolean C.Equals(C other)",
-                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "readonly System.Int32 C.GetHashCode()",
+                "readonly System.Boolean C.Equals(System.Object obj)",
+                "readonly System.Boolean C.Equals(C other)",
+                "readonly void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "C..ctor()",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3111,7 +3111,7 @@ record struct B(int X)
             verifier.VerifyDiagnostics();
 
             Assert.Equal(
-                "void B.Deconstruct(out System.Int32 X)",
+                "readonly void B.Deconstruct(out System.Int32 X)",
                 verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3248,7 +3248,7 @@ record struct B(int X, int Y)
                 );
 
             Assert.Equal(
-                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "readonly void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3288,7 +3288,7 @@ record struct C(int X)
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(6, 9));
 
             Assert.Equal(
-                "void C.Deconstruct(out System.Int32 X)",
+                "readonly void C.Deconstruct(out System.Int32 X)",
                 comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3365,7 +3365,7 @@ record struct C(string? X, string Y)
                 );
 
             Assert.Equal(
-                "void C.Deconstruct(out System.String? X, out System.String Y)",
+                "readonly void C.Deconstruct(out System.String? X, out System.String Y)",
                 comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3459,7 +3459,10 @@ record struct A(int I, string S)
 }
 ";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,21): warning CS8907: Parameter 'I' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct A(int I, string S)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "I").WithArguments("I").WithLocation(2, 21));
             var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.Deconstruct");
             Assert.False(method.IsDeclaredReadOnly);
         }
@@ -3934,7 +3937,7 @@ class B
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""A""
-  IL_000f:  call       ""bool A.Equals(A)""
+  IL_000f:  call       ""readonly bool A.Equals(A)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -3949,7 +3952,7 @@ class B
 }");
 
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -3958,7 +3961,7 @@ class B
             Assert.True(recordEquals.IsImplicitlyDeclared);
 
             var objectEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordObjEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(System.Object obj)", objectEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(System.Object obj)", objectEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, objectEquals.DeclaredAccessibility);
             Assert.False(objectEquals.IsAbstract);
             Assert.False(objectEquals.IsVirtual);
@@ -3967,7 +3970,7 @@ class B
             Assert.True(objectEquals.IsImplicitlyDeclared);
 
             MethodSymbol gethashCode = comp.GetMembers("A." + WellKnownMemberNames.ObjectGetHashCode).OfType<SynthesizedRecordGetHashCode>().Single();
-            Assert.Equal("System.Int32 A.GetHashCode()", gethashCode.ToTestDisplayString());
+            Assert.Equal("readonly System.Int32 A.GetHashCode()", gethashCode.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, gethashCode.DeclaredAccessibility);
             Assert.False(gethashCode.IsStatic);
             Assert.False(gethashCode.IsAbstract);
@@ -4130,7 +4133,7 @@ namespace System.Text
                 );
 
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
         }
 
         [Fact]
@@ -4213,7 +4216,7 @@ record struct A(int I, string S)
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""A""
-  IL_000f:  call       ""bool A.Equals(A)""
+  IL_000f:  call       ""readonly bool A.Equals(A)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -4541,7 +4544,7 @@ True True False False
   .maxstack  2
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldarg.1
-  IL_0003:  call       ""bool A.Equals(A)""
+  IL_0003:  call       ""readonly bool A.Equals(A)""
   IL_0008:  ret
 }
 ");
@@ -4793,7 +4796,7 @@ record struct C1;
   IL_001d:  pop
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
-  IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0020:  call       ""readonly bool C1.PrintMembers(System.Text.StringBuilder)""
   IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
   IL_0028:  ldc.i4.s   32
@@ -5222,7 +5225,7 @@ record struct C1
             CompileAndVerify(comp, expectedOutput: "RAN");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
-            Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
         }
 
         [Fact]
@@ -5429,7 +5432,7 @@ record struct A(int I, string S)
     public double T => 0.1;
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
             var method = comp.GetMember<SynthesizedRecordToString>("A.ToString");
             Assert.False(method.IsDeclaredReadOnly);
