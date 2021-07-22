@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
 
   <PropertyGroup>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.1.192" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" PrivateAssets="all" />
     <PackageReference Include="VSSDK.Shell.11" Version="11.0.4" PrivateAssets="all" />
   </ItemGroup>
 
