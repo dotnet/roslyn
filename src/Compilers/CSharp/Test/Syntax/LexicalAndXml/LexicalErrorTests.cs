@@ -4,10 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -448,7 +445,7 @@ class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string1()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString1()
         {
             var test = @"
 public class Test
@@ -464,7 +461,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string2()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString2()
         {
             var test = @"
 public class Test
@@ -484,7 +481,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string3()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString3()
         {
             var test = @"
 public class Test
@@ -504,7 +501,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string4()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString4()
         {
             var test = @"
 public class Test
@@ -525,7 +522,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string5()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString5()
         {
             var test = @"
 public class Test
@@ -545,7 +542,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string6()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString6()
         {
             var test = @"
 public class Test
@@ -566,7 +563,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string7()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString7()
         {
             var test = @"
 public class Test
@@ -588,7 +585,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string8()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString8()
         {
             var test = @"
 public class Test
@@ -609,7 +606,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string9()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString9()
         {
             var test = @"
 public class Test
@@ -630,7 +627,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string10()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString10()
         {
             var test = @"
 public class Test
@@ -651,7 +648,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string11()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString11()
         {
             var test = @"
 public class Test
@@ -670,7 +667,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string12()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString12()
         {
             var test = @"
 public class Test
@@ -704,7 +701,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string13()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString13()
         {
             var test = @"
 public class Test
@@ -739,7 +736,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string14()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString14()
         {
             var test = @"
 public class Test
@@ -755,7 +752,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string15()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString15()
         {
             var test = @"
 public class Test
@@ -775,7 +772,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string16()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString16()
         {
             var test = @"
 public class Test
@@ -799,7 +796,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string17()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString17()
         {
             var test = @"
 public class Test
@@ -815,7 +812,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string18()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString18()
         {
             var test = @"
 public class Test
@@ -835,7 +832,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string19()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString19()
         {
             var test = @"
 public class Test
@@ -858,7 +855,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string20()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString20()
         {
             var test = @"
 public class Test
@@ -878,7 +875,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string21()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString21()
         {
             var test = @"
 public class Test
@@ -898,7 +895,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string22()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString22()
         {
             var test = @"
 public class Test
@@ -923,7 +920,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string23()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString23()
         {
             var test = @"
 public class Test
@@ -945,7 +942,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string24()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString24()
         {
             var test = @"
 public class Test
@@ -967,7 +964,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string25()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString25()
         {
             var test = @"
 public class Test
@@ -990,7 +987,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string26()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString26()
         {
             var test = @"
 public class Test
@@ -1013,7 +1010,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string27()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString27()
         {
             var test = @"
 public class Test
@@ -1033,7 +1030,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string28()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString28()
         {
             var test = @"
 public class Test
@@ -1058,7 +1055,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string29()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString29()
         {
             var test = @"
 public class Test
@@ -1080,7 +1077,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string30()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString30()
         {
             var test = @"
 public class Test
@@ -1103,7 +1100,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string31()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString31()
         {
             var test = @"
 public class Test
@@ -1129,7 +1126,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string32()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString32()
         {
             var test = @"
 public class Test
@@ -1152,7 +1149,7 @@ public class Test
         }
 
         [Fact]
-        public void CS9000ERR_Newlines_are_not_allowed_inside_a_non_verbatim_interpolated_string33()
+        public void CS8958ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString33()
         {
             var test = @"
 public class Test
