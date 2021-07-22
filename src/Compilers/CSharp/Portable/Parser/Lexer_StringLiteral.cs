@@ -227,20 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
             subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
-
-            // if there are two syntax errors reported, then notify the user of the one earliest in the file.
-            if (subScanner.UnrecoverableError != null && subScanner.RecoverableError != null)
-            {
-                error = subScanner.UnrecoverableError.Offset <= subScanner.RecoverableError.Offset
-                    ? subScanner.UnrecoverableError
-                    : subScanner.RecoverableError;
-            }
-            else
-            {
-                // otherwise, just return any syntax error we might have.
-                error = subScanner.UnrecoverableError ?? subScanner.RecoverableError;
-            }
-
+            error = subScanner.Error;
             info.Text = TextWindow.GetText(intern: false);
         }
 
@@ -293,13 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// good strategy to get back on track.  This happens when we see things in the interpolation we truly do
             /// not know what to do with, or when we find we've gotten into an unbalanced state with the bracket pairs
             /// we're consuming.  In this case, we will often choose to bail out rather than go on and potentially make
-            /// things worse.  The second (<see cref="RecoverableError"/>), still indicates that the user code is wrong,
-            /// however we don't need to stop processing.
+            /// things worse.
             /// </summary>
-            public SyntaxDiagnosticInfo? UnrecoverableError;
-
-            /// <inheritdoc cref="UnrecoverableError"/>
-            public SyntaxDiagnosticInfo? RecoverableError;
+            public SyntaxDiagnosticInfo? Error;
+            private bool EncounteredUnrecoverableError;
 
             public InterpolatedStringScanner(
                 Lexer lexer,
@@ -321,6 +305,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return
                     (!allowNewline && SyntaxFacts.IsNewLine(ch)) ||
                     (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
+            }
+
+            private void TrySetUnrecoverableError(SyntaxDiagnosticInfo error)
+            {
+                // only need to record the first error we hit
+                Error ??= error;
+
+                // No matter what, ensure that we know we hit an error we can't recover from.
+                EncounteredUnrecoverableError = true;
+            }
+
+            private void TrySetRecoverableError(SyntaxDiagnosticInfo error)
+            {
+                // only need to record the first error we hit
+                Error ??= error;
+
+                // Do not touch 'EncounteredUnrecoverableError'.  If we already encountered something unrecoverable,
+                // that doesn't change.  And if we haven't hit something unrecoverable then we stay in that mode as this
+                // is a recoverable error.
             }
 
             internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, ref TokenInfo info, out bool closeQuoteMissing)
@@ -347,11 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (_lexer.TextWindow.PeekChar() != '"')
                 {
                     Debug.Assert(IsAtEnd());
-                    if (UnrecoverableError == null)
-                    {
-                        int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
-                        UnrecoverableError = _lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
-                    }
+                    int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
+                    TrySetUnrecoverableError(_lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst));
 
                     closeQuoteMissing = true;
                 }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             else
                             {
-                                UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
+                                TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}"));
                             }
                             continue;
                         case '{':
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 else
                                 {
                                     closeBraceMissing = true;
-                                    UnrecoverableError ??= _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
+                                    TrySetUnrecoverableError(_lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole));
                                 }
 
                                 interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition, closeBraceMissing));
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             char ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
                             if (ch == '{' || ch == '}')
                             {
-                                UnrecoverableError ??= _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                                TrySetUnrecoverableError(_lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch));
                             }
 
                             continue;
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
                         if (ch == '{' || ch == '}')
                         {
-                            UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch));
                         }
                     }
                     else if (ch == '"')
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                         else
                         {
-                            UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
+                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{"));
                         }
                     }
                     else if (ch == '}')
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
                     {
-                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString);
+                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
                     }
 
                     if (IsAtEnd(allowNewline: true))
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         case '#':
                             // preprocessor directives not allowed.
-                            UnrecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
+                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString()));
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return;
                             }
 
-                            UnrecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
+                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString()));
                             goto default;
                         case '"' when RecoveringFromRunawayLexing():
                             // When recovering from mismatched delimiters, we consume the next
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
                                 if (errorCode is ErrorCode code)
                                 {
-                                    RecoverableError ??= _lexer.MakeError(nestedStringPosition, width: 2, code);
+                                    TrySetRecoverableError(_lexer.MakeError(nestedStringPosition, width: 2, code));
                                 }
 
                                 continue;
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     {
                                         // error: single-line comment not allowed in an interpolated string.
                                         // report the error but keep going for good error recovery.
-                                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole);
+                                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole));
                                     }
 
                                     _lexer.TextWindow.AdvanceChar(); // skip /
@@ -698,9 +698,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// <summary>
             /// The lexer can run away consuming the rest of the input when delimiters are mismatched. This is a test
             /// for when we are attempting to recover from that situation.  Note that just running into new lines will
-            /// not make us thing we're in runaway lexing (which is why we ignore <see cref="RecoverableError"/> here).
+            /// not make us think we're in runaway lexing.
             /// </summary>
-            private bool RecoveringFromRunawayLexing() => this.UnrecoverableError != null;
+            private bool RecoveringFromRunawayLexing() => this.EncounteredUnrecoverableError;
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
                     {
-                        RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString);
+                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
                     }
 
                     if (IsAtEnd(allowNewline: true))
