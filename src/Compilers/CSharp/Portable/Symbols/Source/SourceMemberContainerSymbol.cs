@@ -3679,7 +3679,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol printMembersMethod;
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
-                    printMembersMethod = new SynthesizedRecordPrintMembers(this, memberOffset: members.Count, diagnostics);
+                    printMembersMethod = new SynthesizedRecordPrintMembers(
+                        this,
+                        memberOffset: members.Count,
+                        this.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(members),
+                        diagnostics);
                     members.Add(printMembersMethod);
                 }
                 else
@@ -3750,7 +3754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        var toStringMethod = new SynthesizedRecordToString(
+                            this,
+                            printMethod,
+                            memberOffset: members.Count,
+                            isReadOnly: this.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(members),
+                            diagnostics);
                         members.Add(toStringMethod);
                     }
                     else

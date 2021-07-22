@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordPrintMembers(
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
+            bool isReadOnly,
             BindingDiagnosticBag diagnostics)
             : base(
-                  containingType, 
+                  containingType,
                   WellKnownMemberNames.PrintMembersMethodName,
-                  isReadOnly: containingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(containingType),
+                  isReadOnly: isReadOnly,
                   hasBody: true,
                   memberOffset, diagnostics)
         {
@@ -288,32 +289,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool AreAllPrintablePropertyGettersReadOnly(NamedTypeSymbol containingType)
+        internal static bool AreAllPrintablePropertyGettersReadOnly(ArrayBuilder<Symbol> members)
         {
-            return !containingType.GetMembers().Any(m => hasNonReadOnlyGetter(m));
-
-            static bool hasNonReadOnlyGetter(Symbol m)
+            foreach (var member in members)
             {
-                if (!IsPublicInstanceMember(m))
+                if (member.Kind != SymbolKind.Property)
+                {
+                    continue;
+                }
+
+                var property = (PropertySymbol)member;
+
+                if (!IsPublicInstanceMember(property) || !IsPrintableProperty(property))
+                {
+                    continue;
+                }
+
+                var getterMethod = property.GetMethod;
+                if (property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly)
                 {
                     return false;
                 }
-
-                if (m.Kind is SymbolKind.Property)
-                {
-                    var property = (PropertySymbol)m;
-
-                    if (!IsPrintableProperty(property))
-                    {
-                        return false;
-                    }
-
-                    var getterMethod = property.GetMethod;
-                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
-                }
-
-                return false;
             }
+
+            return true;
         }
 
         private static bool IsPublicInstanceMember(Symbol m)
