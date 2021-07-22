@@ -242,6 +242,11 @@
         <target state="translated">Impossible d'utiliser une méthode d'extension avec un récepteur en tant que cible d'un opérateur '&amp;'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
+        <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
+        <target state="new">InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</target>
+        <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="translated">'{0}' doit correspondre par initialisation uniquement au membre substitué '{1}'</target>
@@ -427,6 +432,11 @@
         <target state="translated">Une arborescence de l'expression ne peut pas contenir d'expression d'index partant de la fin ('^').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
+        <source>An expression tree may not contain an interpolated string handler conversion.</source>
+        <target state="new">An expression tree may not contain an interpolated string handler conversion.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">Une arborescence de l'expression ne peut pas contenir de modèle d'accès à l'indexeur System.Index ou System.Range</target>
@@ -490,6 +500,16 @@
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
         <target state="translated">L'événement de type champ '{0}' ne peut pas être 'readonly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -612,6 +632,36 @@
         <target state="translated">Erreur interne dans le compilateur C#.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentAttributeMalformed">
+        <source>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</source>
+        <target state="new">The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</target>
+        <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
+        <source>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</source>
+        <target state="new">Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified">
+        <source>Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</source>
+        <target state="new">Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerCreationCannotUseDynamic">
+        <source>An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</source>
+        <target state="new">An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnInconsistent">
+        <source>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
+        <target state="new">Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnMalformed">
+        <source>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</source>
+        <target state="new">Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</target>
+        <note>void and bool are keywords</note>
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' n'est pas un modificateur de type de retour de pointeur de fonction valide. Les modificateurs valides sont 'ref' et 'ref readonly'.</target>
@@ -625,6 +675,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nom d'algorithme de hachage non valide : '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
+        <source>'{0}' is not a valid parameter name from '{1}'.</source>
+        <target state="new">'{0}' is not a valid parameter name from '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -677,6 +732,16 @@
         <target state="translated">La méthode '{0}' avec un bloc itérateur doit être 'async' pour retourner '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
+        <source>The #line directive end position must be greater than or equal to the start position</source>
+        <target state="new">The #line directive end position must be greater than or equal to the start position</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
+        <source>The #line directive value is missing or out of range</source>
+        <target state="new">The #line directive value is missing or out of range</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Aucune surcharge pour '{0}' ne correspond au pointeur de fonction '{1}'</target>
@@ -727,6 +792,11 @@
         <target state="translated">Impossible d'utiliser l'attribut [EnumeratorCancellation] sur plusieurs paramètres</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
         <target state="translated">Seule une déclaration partielle d'un seul enregistrement peut avoir une liste de paramètres</target>
@@ -750,6 +820,11 @@
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">Aucun constructeur de copie accessible n'a été trouvé dans le type de base '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
+        <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
+        <target state="new">Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -777,9 +852,19 @@
         <target state="new">The parameterless struct constructor must be 'public'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
+        <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
+        <target state="new">'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' doit autoriser la substitution, car l'enregistrement contenant n'est pas sealed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
+        <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
+        <target state="new">null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -1072,6 +1157,11 @@
         <target state="translated">Les contraintes 'class', 'struct', 'unmanaged', 'notnull' et 'default' ne peuvent pas être combinées ou dupliquées. De plus, elles doivent être spécifiées en premier dans la liste des contraintes.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeIsNotAnInterpolatedStringHandlerType">
+        <source>'{0}' is not an interpolated string handler type.</source>
+        <target state="new">'{0}' is not an interpolated string handler type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeMustBePublic">
         <source>Type '{0}' must be public to be used as a calling convention.</source>
         <target state="translated">Le type '{0}' doit être public pour être utilisé comme convention d'appel.</target>
@@ -1086,6 +1176,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' est attribué avec 'UnmanagedCallersOnly' et ne peut pas être converti en type délégué. Obtenez un pointeur de fonction vers cette méthode.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_WrongArityAsyncReturn">
+        <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
+        <target state="new">A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</target>
+        <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
@@ -1117,6 +1212,11 @@
         <target state="new">extended property patterns</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="new">global using directive</target>
@@ -1125,6 +1225,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">création d'un objet typé cible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImprovedInterpolatedStrings">
+        <source>interpolated string handlers</source>
+        <target state="new">interpolated string handlers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
@@ -1140,6 +1245,11 @@
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="new">lambda return type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLineSpanDirective">
+        <source>line span directive</source>
+        <target state="new">line span directive</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1210,6 +1320,16 @@
       <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
         <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
         <target state="translated">Le paramètre doit avoir une valeur non null au moment de la sortie, car le paramètre référencé par NotNullIfNotNull a une valeur non null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
+        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="new">Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
+        <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
+        <target state="new">Parameter to interpolated string handler conversion occurs after handler parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -3697,8 +3817,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Un espace de noms ne peut pas contenir directement des membres tels que des champs ou des méthodes</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Un espace de noms ne peut pas contenir directement des membres tels que des champs ou des méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
@@ -9229,11 +9349,6 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
         <target state="translated">La meilleure méthode Add surchargée '{0}' pour l'élément initialiseur de collection est obsolète. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Les instructions yield ne peuvent pas figurer au niveau supérieur dans le code interactif.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">L'attribut de sécurité '{0}' n'est pas valide dans ce type de déclaration. Les attributs de sécurité ne sont valides que dans les déclarations d'assembly, de type et de méthode.</target>
@@ -10760,11 +10875,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">Pour que le type '{0}' soit utilisé comme AsyncMethodBuilder du type '{1}', sa propriété Task doit retourner le type '{1}' à la place du type '{2}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">Les attributs ne sont pas autorisés sur les paramètres de fonction locale ou les paramètres de type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">

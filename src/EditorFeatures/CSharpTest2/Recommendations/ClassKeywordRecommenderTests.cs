@@ -401,5 +401,19 @@ global using Bar;");
             await VerifyKeywordAsync(
 @"record $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace NS; $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributeFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace NS; [Attr] $$");
+        }
     }
 }

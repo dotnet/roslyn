@@ -130,7 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptions.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptions.ForImplicitObjectCreation, LanguageNames.CSharp);
 
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp);
+            // If the option has not been set by the user, check if the option is enabled from experimentation.
+            // If so, default to that. Otherwise default to disabled
+            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () =>
+                experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin) ?? false);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -152,8 +155,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void UpdatePullDiagnosticsOptions()
         {
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull;
+            var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetDiagnosticModeCheckboxValue(normalPullDiagnosticsOption);
+
             Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+
+            static bool? GetDiagnosticModeCheckboxValue(DiagnosticMode mode)
+            {
+                return mode switch
+                {
+                    DiagnosticMode.Push => false,
+                    DiagnosticMode.Pull => true,
+                    DiagnosticMode.Default => null,
+                    _ => throw new System.ArgumentException("unknown diagnostic mode"),
+                };
+            }
         }
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
@@ -165,6 +181,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void Enable_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Push);
+            UpdatePullDiagnosticsOptions();
+        }
+
+        private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Default);
             UpdatePullDiagnosticsOptions();
         }
 

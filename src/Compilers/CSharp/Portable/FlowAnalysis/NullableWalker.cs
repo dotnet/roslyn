@@ -3834,7 +3834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // At this point, State.Reachable may be false for
             // invalid code such as `s + throw new Exception()`.
 
-            var method = binary.MethodOpt;
+            var method = binary.Method;
 
             if (binary.OperatorKind.IsUserDefined() &&
                 method?.ParameterCount == 2)
@@ -3855,7 +3855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameters = method.Parameters;
                 visitOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
                 visitOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
-                SetUpdatedSymbol(binary, binary.MethodOpt!, method);
+                SetUpdatedSymbol(binary, binary.Method!, method);
 
                 void visitOperandConversion(
                     BoundExpression expr,
@@ -6985,6 +6985,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.InterpolatedStringHandler:
+                    // https://github.com/dotnet/roslyn/issues/54583 Handle
+                    resultState = NullableFlowState.NotNull;
+                    break;
+
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
@@ -9286,7 +9291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node switch
             {
-                BoundBinaryOperator binary => InferResultNullability(binary.OperatorKind, binary.MethodOpt, binary.Type, leftType, rightType),
+                BoundBinaryOperator binary => InferResultNullability(binary.OperatorKind, binary.Method, binary.Type, leftType, rightType),
                 BoundUserDefinedConditionalLogicalOperator userDefined => InferResultNullability(userDefined),
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
@@ -9766,6 +9771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         {
+            // https://github.com/dotnet/roslyn/issues/54583
+            // Better handle the constructor propogation
             var result = base.VisitInterpolatedString(node);
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return result;
@@ -9784,6 +9791,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitStringInsert(node);
             SetUnknownResultNullability(node);
             return result;
+        }
+
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
         }
 
         public override BoundNode? VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)

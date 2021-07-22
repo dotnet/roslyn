@@ -11,12 +11,12 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Shared]
-    [Export(typeof(CSharpVisualBasicRequestDispatcherFactory))]
-    internal sealed class CSharpVisualBasicRequestDispatcherFactory : AbstractRequestDispatcherFactory
+    [Export(typeof(RequestDispatcherFactory))]
+    internal sealed class RequestDispatcherFactory : AbstractRequestDispatcherFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpVisualBasicRequestDispatcherFactory([ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
+        public RequestDispatcherFactory([ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
             : base(requestHandlerProviders)
         {
         }

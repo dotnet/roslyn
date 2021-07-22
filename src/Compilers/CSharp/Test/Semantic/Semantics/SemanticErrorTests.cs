@@ -6531,9 +6531,9 @@ public class Square
                 // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
                 //       var o1 = (1 == 1) ? aa : ii;   // CS0172
                 Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
-                // (22,19): error CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (22,19): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between 'Square.Circle' and 'Square'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
                 //       object o2 = (1 == 1) ? aa : ii;   // CS8652
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression", "9.0").WithLocation(22, 19)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "(1 == 1) ? aa : ii").WithArguments("8.0", "Square.Circle", "Square", "9.0").WithLocation(22, 19)
                 );
         }
 

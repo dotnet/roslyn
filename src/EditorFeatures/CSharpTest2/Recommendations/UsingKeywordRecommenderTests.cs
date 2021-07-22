@@ -195,6 +195,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsingKeyword_InsideNamespace()
         {
             await VerifyAbsenceAsync(@"namespace N {
@@ -414,6 +422,14 @@ global using Bar;");
 @"$$
 namespace NS
 {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"$$
+namespace NS;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

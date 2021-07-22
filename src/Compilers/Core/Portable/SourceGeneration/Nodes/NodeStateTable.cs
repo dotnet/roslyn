@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[0].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
+                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[_states.Count].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
                 return true;
             }
 
@@ -205,6 +205,14 @@ namespace Microsoft.CodeAnalysis
                 // - Added when new item position < previousTable.length
 
                 var previousEntry = _previous._states[_states.Count];
+
+                // when both entries have no items, we can short circuit
+                if (previousEntry.Count == 0 && outputs.Length == 0)
+                {
+                    _states.Add(previousEntry);
+                    return true;
+                }
+
                 var modified = new TableEntry.Builder();
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 

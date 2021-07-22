@@ -931,6 +931,18 @@ End Class"
 
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestHighlightReturnType() As Task
+            Dim source =
+"Class Program
+    Public Function M(x As Integer) As [|Integer|]
+        Return x
+    End Function
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
     End Class
 End Namespace
 

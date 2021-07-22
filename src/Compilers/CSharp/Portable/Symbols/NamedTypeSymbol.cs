@@ -1009,6 +1009,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
+        /// </summary>
+        internal abstract bool IsInterpolatedStringHandlerType { get; }
+
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsNullFunction = type => !type.HasType;
 
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsErrorType = type => type.HasType && type.Type.IsErrorType();

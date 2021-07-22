@@ -110,11 +110,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Arabirime '{0}' eklenmesi, hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">Bir kayda konumsal bir parametre eklenmesi hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Bir yöntem ile bir açık arabirim belirleyici ekleme hata ayıklama oturumu devam etmesini engeller.</target>
@@ -139,6 +134,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Değişim koşulları yakalamak değil ve adlandırılamaz</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
@@ -235,6 +235,21 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' öğesini '{1}' olarak değiştirmek, durum makinesinin şeklini değiştirdiğinden hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">{0} öğesinin görünürlüğünü değiştirmek, hata ayıklama oturumunun devam etmesini engeller.</target>
@@ -318,11 +333,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Kalanları özellik olarak oluştur ve ata</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">Bir konumsal parametrenin bir kayıttan silinmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -2095,6 +2105,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Etkin bir deyim etrafındaki '{0}' öğesini güncelleştirmek, hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</source>
+        <target state="new">Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
         <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
         <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
@@ -3014,6 +3029,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 "g" biçim belirticisi başka özel biçim belirticileri olmadan kullanılırsa, "g" standart tarih ve saat biçimi belirticisi olarak yorumlanır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">aralık değişkeni</target>
@@ -3174,11 +3194,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Bir '{0}' öğesinin Implements yan tümcesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Kısıtlamayı '{0}' yerine '{1}' olarak değiştirmek hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">'{0}' öğesinin farkını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
@@ -3222,11 +3237,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">Özellik/olay erişimcisinin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">Bir yöntemin (Sub/Function) türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3297,16 +3307,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">Etkin bir deyimin etrafından '{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Bir yöntem gövdesi ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Bir yöntem gövdesi silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3841,6 +3841,11 @@ Belirtilmemiş bir saat diliminden (DateTime.Kind özelliği DateTimeKind.Unspec
 DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisine eşdeğerdir ve DateTimeOffset değerinin UTC'den uzaklığını içeren bir sonuç dizesi üretir.
 
 "K" biçim belirticisi başka özel biçim belirticileri olmadan kullanılırsa, standart bir tarih ve saat biçimi belirticisi olarak yorumlanır ve bir FormatException oluşturur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

@@ -580,6 +580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't defined namespace inside a member.
+            return null;
+        }
+
         public override INamedTypeSymbol GetDeclaredSymbol(BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define type inside a member.

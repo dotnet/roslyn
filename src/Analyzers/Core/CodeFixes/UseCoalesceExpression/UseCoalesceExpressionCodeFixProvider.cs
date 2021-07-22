@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument, nameof(AnalyzersResources.Use_coalesce_expression))
             {
 
             }

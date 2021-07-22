@@ -397,7 +397,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();

@@ -156,6 +156,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Builder_Handles_Modification_When_Both_Tables_Have_Empty_Entries()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1, 2), EntryState.Added);
+            builder.AddEntries(ImmutableArray<int>.Empty, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3, 4), EntryState.Added);
+            var previousTable = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Added));
+            AssertTableEntries(previousTable, expected);
+
+            builder = previousTable.ToBuilder();
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), EqualityComparer<int>.Default)); // ((3, EntryState.Modified), (2, EntryState.Cached))
+            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, EqualityComparer<int>.Default)); // nothing
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), EqualityComparer<int>.Default)); // ((3, EntryState.Cached), (5, EntryState.Modified))
+            var newTable = builder.ToImmutableAndFree();
+
+            expected = ImmutableArray.Create((3, EntryState.Modified), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Modified));
+            AssertTableEntries(newTable, expected);
+        }
+
+        [Fact]
+        public void Node_Table_Doesnt_Modify_Single_Item_Multiple_Times_When_Same()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4), EntryState.Added);
+            var previousTable = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Added));
+            AssertTableEntries(previousTable, expected);
+
+            builder = previousTable.ToBuilder();
+            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default)); // ((1, EntryState.Cached))
+            Assert.True(builder.TryModifyEntry(2, EqualityComparer<int>.Default)); // ((2, EntryState.Cached))
+            Assert.True(builder.TryModifyEntry(5, EqualityComparer<int>.Default)); // ((5, EntryState.Modified))
+            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default)); // ((4, EntryState.Cached))
+
+            var newTable = builder.ToImmutableAndFree();
+
+            expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (5, EntryState.Modified), (4, EntryState.Cached));
+            AssertTableEntries(newTable, expected);
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;
@@ -295,7 +342,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
-                    enableIncremental: true);
+                    enableIncremental: true,
+                    disabledOutputs: IncrementalGeneratorOutputKind.None);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
         }

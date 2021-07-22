@@ -46,7 +46,7 @@ namespace ns4 {}
                 );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,1): error CS9002: A global using directive must precede all non-global using directives.
+                // (6,1): error CS8915: A global using directive must precede all non-global using directives.
                 // global using ns3;
                 Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(6, 1)
                 );
@@ -107,7 +107,7 @@ namespace ns
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (6,5): error CS9001: A global using directive cannot be used in a namespace declaration.
+                // (6,5): error CS8914: A global using directive cannot be used in a namespace declaration.
                 //     global using ns1;
                 Diagnostic(ErrorCode.ERR_GlobalUsingInNamespace, "global").WithLocation(6, 5)
                 );
@@ -133,7 +133,7 @@ namespace ns.ns.ns
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (6,5): error CS9001: A global using directive cannot be used in a namespace declaration.
+                // (6,5): error CS8914: A global using directive cannot be used in a namespace declaration.
                 //     global using ns1;
                 Diagnostic(ErrorCode.ERR_GlobalUsingInNamespace, "global").WithLocation(6, 5)
                 );
@@ -1111,7 +1111,7 @@ namespace NS3
 
             var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
             comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (5,1): error CS9002: A global using directive must precede all non-global using directives.
+                // (5,1): error CS8915: A global using directive must precede all non-global using directives.
                 // global using C = A.C2;
                 Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(5, 1),
                 // (5,18): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
@@ -1963,7 +1963,7 @@ namespace NS3
 ";
             var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
             comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (5,1): error CS9002: A global using directive must precede all non-global using directives.
+                // (5,1): error CS8915: A global using directive must precede all non-global using directives.
                 // global using C = C2;
                 Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(5, 1),
                 // (5,18): error CS0246: The type or namespace name 'C2' could not be found (are you missing a using directive or an assembly reference?)
@@ -4889,7 +4889,7 @@ class C5
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (4,5): error CS9001: A global using directive cannot be used in a namespace declaration.
+                // (4,5): error CS8914: A global using directive cannot be used in a namespace declaration.
                 //     global using NS2;
                 Diagnostic(ErrorCode.ERR_GlobalUsingInNamespace, "global").WithLocation(4, 5),
                 // (2000,17): error CS0246: The type or namespace name 'NS1C1' could not be found (are you missing a using directive or an assembly reference?)

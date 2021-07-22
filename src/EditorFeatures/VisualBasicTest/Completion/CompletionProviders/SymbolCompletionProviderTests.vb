@@ -6340,6 +6340,34 @@ End Class]]></code>.Value
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt?.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Day")
+            Await VerifyItemIsAbsentAsync(text, "Value")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Value")
+            Await VerifyItemIsAbsentAsync(text, "Day")
+        End Function
+
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestHidePropertyBackingFieldAndEventsAtExpressionLevel() As Task

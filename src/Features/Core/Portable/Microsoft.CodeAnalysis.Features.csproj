@@ -101,9 +101,12 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.TestsProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeCSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode" Partner="IntelliCode" Key="$(IntelliCodeKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="dotnet-watch" Partner="Watch" Key="$(AspNetCoreKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Partner="Razor" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
