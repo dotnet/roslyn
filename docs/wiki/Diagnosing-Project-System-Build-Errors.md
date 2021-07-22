@@ -19,7 +19,7 @@ There are a few ways to tell:
 
 ## How do I get log files to diagnose what is happening in Visual Studio 2022?
 
-1. Install the [Project System Tools Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
+1. Install the [Project System Tools 2022 Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools2022)
 2. Restart Visual Studio as a part of installing the extension.
 3. Close Visual Studio again, find your solution file on disk, and delete the .vs hidden folder that is alongside your solution. You'll have to show hidden files if you don't see it.
 4. Open Visual Studio. Don't open your Solution yet.
