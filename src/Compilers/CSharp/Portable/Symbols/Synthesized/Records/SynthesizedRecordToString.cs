@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        protected override bool IsEffectivelyReadOnly() => SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(ContainingType);
+        protected override bool IsReadOnly() => ContainingType.IsRecordStruct && SynthesizedRecordPrintMembers.AreAllPrintablePropertyGettersReadOnly(ContainingType);
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

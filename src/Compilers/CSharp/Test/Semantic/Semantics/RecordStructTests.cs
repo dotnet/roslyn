@@ -3438,6 +3438,33 @@ record struct C(int I)
         }
 
         [Fact]
+        public void Deconstruct_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.Deconstruct");
+            Assert.True(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void Deconstruct_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S)
+{
+    public double T => 0.1;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.ToString");
+            Assert.False(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
         public void Deconstruct_UserDefined()
         {
             var source =
@@ -4255,6 +4282,18 @@ record struct A
         }
 
         [Fact]
+        public void RecordEquals_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.True(recordEquals.IsDeclaredReadOnly);
+        }
+
+        [Fact]
         public void ObjectEquals_06()
         {
             var source = @"
@@ -4286,6 +4325,18 @@ record struct A
                 //     public override bool Equals(object obj) => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(4, 26)
                 );
+        }
+
+        [Fact]
+        public void ObjectEquals_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var objectEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordObjEquals>().Single();
+            Assert.True(objectEquals.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -4387,6 +4438,18 @@ public record struct A(int I);
                 // public record struct A(int I);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
                 );
+        }
+
+        [Fact]
+        public void GetHashCode_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordGetHashCode>("A.GetHashCode");
+            Assert.True(method.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -5343,6 +5406,33 @@ record struct C1
                 //     static private bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
                 );
+        }
+
+        [Fact]
+        public void ToString_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordToString>("A.ToString");
+            Assert.True(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void ToString_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S)
+{
+    public double T => 0.1;
+}
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordToString>("A.ToString");
+            Assert.False(method.IsDeclaredReadOnly);
         }
 
         [Fact]
