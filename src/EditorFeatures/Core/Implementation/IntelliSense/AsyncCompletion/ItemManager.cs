@@ -152,13 +152,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterReason = Helpers.GetFilterReason(data.Trigger);
 
-            // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
-            // However, we prefer using the original snapshot in some projection scenarios.
-            var snapshotForDocument = Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation)
-                ? triggerLocation.Snapshot
-                : data.Snapshot;
+            // We prefer using the original snapshot, which should always be available from items provided by Roslyn CompletionSource.
+            // Just to be defensive, if it's not found then use data.Snapshot instead.
+            var snapshotForDocument = data.InitialSortedList.FirstOrDefault(item => item.Properties.ContainsProperty(CompletionSource.TriggerLocation)) is VSCompletionItem firstItem &&
+                                        firstItem.Properties.GetProperty(CompletionSource.TriggerLocation) is SnapshotPoint triggerLocation
+                                        ? triggerLocation.Snapshot
+                                        : data.Snapshot;
 
-            var document = snapshotForDocument.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            var document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
