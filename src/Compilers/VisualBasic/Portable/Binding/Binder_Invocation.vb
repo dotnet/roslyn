@@ -3126,6 +3126,11 @@ ProduceBoundNode:
 
                     Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
 
+                    If isCallerArgumentExpression AndAlso Not SyntaxTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
+                        ' Silently require feature flag for this feature until Aleksey approves.
+                        isCallerArgumentExpression = False
+                    End If
+
                     If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
@@ -3177,10 +3182,6 @@ ProduceBoundNode:
                             End If
 
                             If argumentSyntax IsNot Nothing Then
-                                InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
-                                                                   argumentSyntax.Location,
-                                                                   DirectCast(argumentSyntax.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
-                                                                   InternalSyntax.Feature.CallerArgumentExpression)
                                 callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
                             End If
                         End If

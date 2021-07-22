@@ -30,7 +30,7 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
@@ -67,7 +67,7 @@ Class Program
 End Class
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="456").VerifyDiagnostics()
         End Sub
 
@@ -104,7 +104,7 @@ Class Program
 End Class
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
         End Sub
 
@@ -125,7 +125,7 @@ Public Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program", "
 .class public auto ansi sealed Program
 	extends [System.Runtime]System.Object
@@ -233,7 +233,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
         End Sub
 
@@ -254,13 +254,8 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC36716: Visual Basic 16.9 does not support caller argument expression.
-        Log(123)
-            ~~~
-</expected>)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9.WithFeature("CallerArgumentExpression"))
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -283,7 +278,7 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="123  + _
                5").VerifyDiagnostics()
         End Sub
@@ -305,7 +300,7 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="124, 123, 124").VerifyDiagnostics()
         End Sub
 
@@ -334,7 +329,7 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
@@ -357,7 +352,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="myIntegerExpression").VerifyDiagnostics()
         End Sub
 
@@ -380,7 +375,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="myIntegerExpression * 2").VerifyDiagnostics()
         End Sub
 
@@ -403,7 +398,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default-arg>")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
@@ -430,7 +425,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default>")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
@@ -478,7 +473,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="Main").VerifyDiagnostics()
         End Sub
 
@@ -520,7 +515,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(Parse(source, "C:\\Program.cs", options:=TestOptions.RegularLatest), targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(Parse(source, "C:\\Program.cs", options:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression")), targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="C:\\Program.cs").VerifyDiagnostics()
         End Sub
 
@@ -562,7 +557,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
         End Sub
 
@@ -604,7 +599,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="6").VerifyDiagnostics()
         End Sub
 
@@ -625,7 +620,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC30455: Argument not specified for parameter 'arg' of 'Public Sub Log(p As Integer, arg As String)'.
@@ -695,7 +690,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="5 + 4
 default
 default
@@ -731,7 +726,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="True").VerifyDiagnostics()
         End Sub
 
@@ -755,7 +750,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="target default value
 arg default value
 caller target value
@@ -785,7 +780,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="target default value
 arg default value
 caller target value
@@ -818,7 +813,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
@@ -843,7 +838,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="Main
 <default-arg-expression>").VerifyDiagnostics()
         End Sub
@@ -864,7 +859,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default>
 value")
             compilation.AssertTheseDiagnostics(
@@ -920,7 +915,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default>
 value").VerifyDiagnostics()
         End Sub
@@ -947,7 +942,7 @@ Public Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
@@ -973,7 +968,7 @@ Public Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="123 _ ' comment
     + 5").VerifyDiagnostics()
         End Sub
@@ -1004,7 +999,7 @@ Public Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
@@ -1028,7 +1023,7 @@ Public Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="<default-arg>")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
@@ -1063,7 +1058,7 @@ Public Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="target default value
 arg default value
 caller target value
@@ -1094,7 +1089,7 @@ Public Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="default
 value")
             compilation.AssertTheseDiagnostics(
@@ -1131,7 +1126,7 @@ Public Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="'<default1>', '<default0>'").VerifyDiagnostics()
         End Sub
 #End Region
@@ -1162,7 +1157,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="2, 1+  1
 4, explicit-value").VerifyDiagnostics()
         End Sub
@@ -1187,7 +1182,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", "
 {
   // Code size       27 (0x1b)
@@ -1226,7 +1221,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC33010: 'Delegate' parameters cannot be declared 'Optional'.
@@ -1309,7 +1304,7 @@ Public Class ComClass1
     End Sub
 End Class
 "
-            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.RegularLatest)
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             comp1.VerifyDiagnostics()
 
             Dim source2 = "
@@ -1320,7 +1315,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim comp2 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, TestOptions.ReleaseExe, TestOptions.RegularLatest)
+            Dim comp2 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, TestOptions.ReleaseExe, TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(comp2, expectedOutput:="1 + 2").VerifyDiagnostics()
         End Sub
 
@@ -1374,7 +1369,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="1 + 2").VerifyDiagnostics()
         End Sub
 
@@ -1442,7 +1437,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -1468,7 +1463,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="New value")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
@@ -1500,7 +1495,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="New value")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
@@ -1532,7 +1527,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC42505: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect. It is applied with an invalid parameter name.
@@ -1566,7 +1561,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC42504: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect because it's self-referential.
@@ -1600,7 +1595,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC31065: 'Set' parameter cannot be declared 'Optional'.
@@ -1631,7 +1626,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="New value").VerifyDiagnostics()
         End Sub
 #End Region
