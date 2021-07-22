@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ch = this.ScanEscapeSequence(out var c2);
                     _builder.Append(ch);
                     if (c2 != SlidingTextWindow.InvalidCharacter)
+                    {
                         _builder.Append(c2);
+                    }
                 }
                 else if (ch == quoteCharacter)
                 {
@@ -56,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
+                {
                     this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
+                }
 
                 if (_builder.Length > 0)
                 {
@@ -180,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
                 // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
                 if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
+                {
                     error ??= ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString;
+                }
 
                 TextWindow.AdvanceChar();
                 _builder.Append(ch);
@@ -428,12 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             continue;
                         case '\\':
                             if (_isVerbatim)
+                            {
                                 goto default;
+                            }
 
                             var escapeStart = _lexer.TextWindow.Position;
                             char ch = _lexer.ScanEscapeSequence(out _);
                             if (ch == '{' || ch == '}')
+                            {
                                 UnrecoverableError ??= _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                            }
 
                             continue;
                         default:
@@ -457,7 +467,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         var pos = _lexer.TextWindow.Position;
                         ch = _lexer.ScanEscapeSequence(out _);
                         if (ch == '{' || ch == '}')
+                        {
                             UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                        }
                     }
                     else if (ch == '"')
                     {
@@ -522,7 +534,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // remainder of the interpolated string that comes on the following lines.
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
+                    {
                         RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString);
+                    }
 
                     if (IsAtEnd(allowNewline: true))
                     {
@@ -575,7 +589,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case ')':
                         case ']':
                             if (ch == endingChar)
+                            {
                                 return;
+                            }
 
                             UnrecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
                             goto default;
@@ -604,7 +620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var discarded = default(TokenInfo);
                                 var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
                                 if (errorCode is ErrorCode code)
+                                {
                                     RecoverableError ??= _lexer.MakeError(nestedStringPosition, width: 2, code);
+                                }
 
                                 continue;
                             }
@@ -644,7 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     _lexer.TextWindow.AdvanceChar(); // skip /
                                     _lexer.TextWindow.AdvanceChar(); // skip /
                                     while (!IsAtEnd(allowNewline: false))
+                                    {
                                         _lexer.TextWindow.AdvanceChar(); // skip // comment character
+                                    }
 
                                     continue;
                                 case '*':
@@ -697,10 +717,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // of the interpolated string that comes on the following lines.
                     var allowNewLines = _isVerbatim && _allowNewlines;
                     if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
+                    {
                         RecoverableError ??= _lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString);
+                    }
 
                     if (IsAtEnd(allowNewline: true))
+                    {
                         return; // let the caller complain about the unterminated quote
+                    }
 
                     _lexer.TextWindow.AdvanceChar();
                     if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
