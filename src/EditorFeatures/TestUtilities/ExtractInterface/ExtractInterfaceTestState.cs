@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -32,11 +33,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
+        public static ExtractInterfaceTestState Create(
+            string markup,
+            string languageName,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            OptionsCollection options = null)
         {
             var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: (CSharpCompilationOptions)compilationOptions)
-                : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions);
+                ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
+                : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
+
+            if (options != null)
+            {
+                foreach (var kvp in options)
+                    workspace.SetOptions(workspace.Options.WithChangedOption(kvp.Key, kvp.Value));
+            }
+
             return new ExtractInterfaceTestState(workspace);
         }
 
