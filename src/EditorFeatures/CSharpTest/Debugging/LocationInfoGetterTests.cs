@@ -83,7 +83,7 @@ class Class
     {
     }$$
 }
-", "Class.Method()", 2);
+", "Namespace.Class.Method()", 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
