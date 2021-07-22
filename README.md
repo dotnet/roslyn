@@ -24,9 +24,12 @@ instance of Visual Studio.
 
 ## Install the test harness
 
-### Install the *to be determined* package
+### Install the test package for the applicable version(s) of Visual Studio
 
-*TODO*
+| Visual Studio Version | Integration Testing Package |
+| --- | --- |
+| 2022 | Microsoft.VisualStudio.Extensibility.Testing.Xunit |
+| 2012 - 2019 | Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy |
 
 ### Configure the test framework
 
