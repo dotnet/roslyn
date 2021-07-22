@@ -21,7 +21,7 @@
     <PackageReference Include="EnvDTE" Version="8.0.1" PrivateAssets="all" />
     <PackageReference Include="EnvDTE80" Version="8.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="7.10.6071" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="7.10.6072" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="8.0.50728" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.36" />
