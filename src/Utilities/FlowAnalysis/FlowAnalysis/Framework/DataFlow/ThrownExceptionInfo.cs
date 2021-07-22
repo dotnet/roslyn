@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 BasicBlockOrdinal == other.BasicBlockOrdinal &&
                 HandlingCatchRegion == other.HandlingCatchRegion &&
                 ContainingFinallyRegion == other.ContainingFinallyRegion &&
-                Equals(ExceptionType, other.ExceptionType) &&
+                SymbolEqualityComparer.Default.Equals(ExceptionType, other.ExceptionType) &&
                 InterproceduralCallStack.SequenceEqual(other.InterproceduralCallStack) &&
                 IsDefaultExceptionForExceptionsPathAnalysis == other.IsDefaultExceptionForExceptionsPathAnalysis;
         }

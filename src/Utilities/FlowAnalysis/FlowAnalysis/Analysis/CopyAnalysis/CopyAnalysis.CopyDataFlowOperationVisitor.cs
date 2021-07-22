@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
                 {
                     // Only tracking non-child analysis entities for exceptions path analysis for now.
-                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(ExceptionNamedType));
+                    Debug.Assert(SymbolEqualityComparer.Default.Equals(throwBranchWithExceptionType.ExceptionType, ExceptionNamedType));
                     predicate = e => !e.IsChildOrInstanceMember;
                 }
 

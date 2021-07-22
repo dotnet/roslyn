@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (symbolEqualityComparerType != null)
                 {
-                    var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+                    var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericHashSet1));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsConcurrentConcurrentDictionary2));
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (typeSymbol.Equals(symbolType))
+            if (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType))
             {
                 return true;
             }
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (!builder.ContainsKey(methodName))
                 {
-                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>());
+                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default));
                 }
 
                 builder[methodName].Add(typeSymbol);
