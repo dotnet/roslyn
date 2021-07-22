@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsUnconvertedInterpolatedStringAddition = isUnconvertedInterpolatedStringAddition;
                 InterpolatedStringHandlerData = interpolatedStringHandlerData;
             }
+
+            public UncommonData WithUpdatedMethod(MethodSymbol? method)
+            {
+                if ((object?)method == Method)
+                {
+                    return this;
+                }
+
+                return new UncommonData(ConstantValue, method, ConstrainedToType, OriginalUserDefinedOperatorsOpt, IsUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData);
+            }
         }
     }
 }
