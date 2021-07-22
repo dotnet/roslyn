@@ -17,7 +17,7 @@ There are a few ways to tell:
 3. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
     ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
 
-## How do I get log files to diagnose what is happening in Visual Studio 2019?
+## How do I get log files to diagnose what is happening in Visual Studio 2022?
 
 1. Install the [Project System Tools Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
 2. Restart Visual Studio as a part of installing the extension.
