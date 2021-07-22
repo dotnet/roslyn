@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(
-                string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }
