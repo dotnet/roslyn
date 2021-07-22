@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -23,24 +25,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Workspace _workspace;
+        private readonly IWpfTextView _textView;
 
         public InheritanceMargin(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IWaitIndicator waitIndicator,
-            InheritanceMarginTag tag)
+            IUIThreadOperationExecutor operationExecutor,
+            InheritanceMarginTag tag,
+            IWpfTextView textView)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = tag.Workspace;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
+            _textView = textView;
             InitializeComponent();
 
-            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag);
+            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
@@ -60,17 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-                _waitIndicator.Wait(
-                    title: EditorFeaturesResources.Navigating,
-                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                    allowCancel: true,
+                _operationExecutor.Execute(
+                    new UIThreadOperationExecutionOptions(
+                        title: EditorFeaturesResources.Navigating,
+                        defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+                        allowCancellation: true,
+                        showProgress: false),
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
-                        context.CancellationToken));
+                        context.UserCancellationToken));
             }
         }
 
@@ -98,6 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
             ResetBorderToInitialColor();
+            // Move the focus back to textView when the context menu is closed.
+            // It ensures the focus won't be left at the margin
+            ResetFocus();
         }
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -106,13 +116,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
-                // 1. [margin] -> Target1
+                // 1. [margin] -> Header
+                //                Target1
                 //                Target2
                 //                Target3
                 //
-                // 2. [margin] -> method Bar -> Target1
+                // 2. [margin] -> method Bar -> Header
+                //                           -> Target1
                 //                           -> Target2
-                //             -> method Foo -> Target3
+                //             -> method Foo -> Header
+                //                           -> Target3
                 //                           -> Target4
                 // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
                 // user is viewing the targets menu.
@@ -129,6 +142,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             this.Background = Brushes.Transparent;
             this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void ResetFocus()
+        {
+            if (!_textView.HasAggregateFocus)
+            {
+                var visualElement = _textView.VisualElement;
+                if (visualElement.Focusable)
+                {
+                    Keyboard.Focus(visualElement);
+                }
+            }
         }
     }
 }

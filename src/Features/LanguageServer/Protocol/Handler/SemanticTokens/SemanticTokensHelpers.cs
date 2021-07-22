@@ -19,24 +19,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         internal static readonly string[] RoslynCustomTokenTypes =
         {
+            ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
             ClassificationTypeNames.ControlKeyword,
             ClassificationTypeNames.DelegateName,
+            ClassificationTypeNames.EnumMemberName,
+            ClassificationTypeNames.EnumName,
+            ClassificationTypeNames.EventName,
             ClassificationTypeNames.ExcludedCode,
             ClassificationTypeNames.ExtensionMethodName,
             ClassificationTypeNames.FieldName,
+            ClassificationTypeNames.InterfaceName,
             ClassificationTypeNames.LabelName,
             ClassificationTypeNames.LocalName,
             ClassificationTypeNames.MethodName,
             ClassificationTypeNames.ModuleName,
+            ClassificationTypeNames.NamespaceName,
             ClassificationTypeNames.OperatorOverloaded,
-            ClassificationTypeNames.RecordClassName,
+            ClassificationTypeNames.ParameterName,
+            ClassificationTypeNames.PropertyName,
 
             // Preprocessor
             ClassificationTypeNames.PreprocessorKeyword,
             ClassificationTypeNames.PreprocessorText,
 
             ClassificationTypeNames.Punctuation,
+            ClassificationTypeNames.RecordClassName,
+            ClassificationTypeNames.RecordStructName,
 
             // Regex
             ClassificationTypeNames.RegexAlternation,
@@ -50,7 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.RegexText,
 
             ClassificationTypeNames.StringEscapeCharacter,
+            ClassificationTypeNames.StructName,
             ClassificationTypeNames.Text,
+            ClassificationTypeNames.TypeParameterName,
             ClassificationTypeNames.VerbatimStringLiteral,
             ClassificationTypeNames.WhiteSpace,
 
@@ -83,22 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
             new Dictionary<string, string>
             {
-                [ClassificationTypeNames.ClassName] = LSP.SemanticTokenTypes.Class,
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
-                [ClassificationTypeNames.EnumMemberName] = LSP.SemanticTokenTypes.EnumMember,
-                [ClassificationTypeNames.EnumName] = LSP.SemanticTokenTypes.Enum,
-                [ClassificationTypeNames.EventName] = LSP.SemanticTokenTypes.Event,
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
-                [ClassificationTypeNames.InterfaceName] = LSP.SemanticTokenTypes.Interface,
                 [ClassificationTypeNames.Keyword] = LSP.SemanticTokenTypes.Keyword,
-                [ClassificationTypeNames.NamespaceName] = LSP.SemanticTokenTypes.Namespace,
                 [ClassificationTypeNames.NumericLiteral] = LSP.SemanticTokenTypes.Number,
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
-                [ClassificationTypeNames.ParameterName] = LSP.SemanticTokenTypes.Parameter,
-                [ClassificationTypeNames.PropertyName] = LSP.SemanticTokenTypes.Property,
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
-                [ClassificationTypeNames.StructName] = LSP.SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.TypeParameterName] = LSP.SemanticTokenTypes.TypeParameter,
             };
 
         /// <summary>
@@ -292,16 +293,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
             {
                 var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
-                if (classificationType != ClassificationTypeNames.StaticSymbol)
+                if (classificationType == ClassificationTypeNames.StaticSymbol)
                 {
-                    // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
-                    // from integer to LSP token types).
-                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
+                    // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.Static;
+                }
+                else if (classificationType == ClassificationTypeNames.ReassignedVariable)
+                {
+                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.ReassignedVariable;
                 }
                 else
                 {
-                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.Static;
+                    // 6. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // from integer to LSP token types).
+                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
                 }
 
                 // Break out of the loop if we have no more classified spans left, or if the next classified span has

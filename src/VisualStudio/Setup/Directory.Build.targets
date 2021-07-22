@@ -25,8 +25,12 @@
     
     <PropertyGroup>
       <_Placeholder><![CDATA[<!--#SERVICEHUB_ASSETS#-->]]></_Placeholder>
-      <_Replacement>@(ServiceHubServiceJsonFile->'&lt;Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="%(FileName)%(Extension)" /&gt;', '
-    ')</_Replacement>
+      <_ReplacementDesktop Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'desktop'">@(ServiceHubServiceJsonFile->'&lt;Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="%(FileName)%(Extension)" /&gt;', '
+    ')</_ReplacementDesktop>
+      <_ReplacementCore Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'core'">@(ServiceHubServiceJsonFile->'&lt;Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="$(ServiceHubCoreSubPath)\%(FileName)%(Extension)" /&gt;', '
+    ')</_ReplacementCore>
+      <_Replacement>$(_ReplacementDesktop)
+$(_ReplacementCore)</_Replacement>
     </PropertyGroup>
     
     <Copy SourceFiles="$(VsixSourceManifestPath)" DestinationFiles="$(_GeneratedVsixManifestPath)" />

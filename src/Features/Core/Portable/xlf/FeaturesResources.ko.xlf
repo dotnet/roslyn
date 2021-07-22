@@ -1,7 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="new">#{0} directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM(약식)</target>
@@ -105,11 +110,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">인터페이스에 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">레코드에 위치 매개 변수를 추가하면 디버그 세션이 계속 진행되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">명시적 인터페이스 지정자를 사용하여 메서드를 추가하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -134,6 +134,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">교체 조건은 캡처하지 않고 이름을 지정할 수 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
@@ -230,6 +235,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하면 상태 시스템의 셰이프가 변경되므로 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">{0} 표시 여부를 변경하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -282,7 +302,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_record_struct">
         <source>Convert to record struct</source>
-        <target state="new">Convert to record struct</target>
+        <target state="translated">레코드 구조체로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -313,11 +333,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">나머지를 만들고 속성으로 할당합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">레코드에서 위치 매개 변수를 삭제하면 디버그 세션이 계속 진행되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -585,6 +600,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">로컬 소개</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">쿼리 변수 지정</target>
@@ -664,11 +694,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">제어 문자가 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 식을 포함하는 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2080,6 +2105,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">활성 문 주위에서 '{0}'을(를) 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</source>
+        <target state="new">Updating a reloadable type (marked by {0}) or its member is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">람다 식에 블록 본문 사용</target>
@@ -2363,7 +2398,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2429,6 +2464,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" 사용자 지정 형식 지정자(및 임의 개수의 추가 "H" 지정자)는 시간을 00부터 23까지의 숫자로 나타냅니다. 즉, 시간은 자정부터 경과한 시간을 계산하는 0 기반 24시간제로 표현됩니다. 한 자릿수 시간은 앞에 0이 있는 형식으로 지정됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2570,6 +2610,16 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">소스(특성)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -2979,6 +3029,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 다른 사용자 지정 형식 지정자 없이 "g" 형식 지정자를 사용하면 "g" 표준 날짜 및 시간 형식 지정자로 해석됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">범위 변수</target>
@@ -3139,11 +3194,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">'{0}'의 Implements 절을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'에서 '{1}'(으)로 제약 조건을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">'{0}'의 가변성(variance)을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -3187,11 +3237,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">속성/이벤트 접근자 종류를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">메서드(Sub/Function) 종류를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3262,16 +3307,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">활성 문 주위에서 '{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3806,6 +3841,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 동일하며 UTC에서 가져온 DateTimeOffset 값의 오프셋을 포함하는 결과 문자열을 생성합니다.
 
 다른 사용자 지정 형식 지정자 없이 "K" 형식 지정자를 사용하면 표준 날짜 및 시간 형식 지정자로 해석되어 FormatException을 throw합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

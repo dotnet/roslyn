@@ -1,4 +1,5 @@
 # Branches that trigger a build on commit
+
 trigger:
 - main
 - main-vs-deps
@@ -18,7 +19,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: $(queueName)
+    queue: BuildPool.Windows.Amd64.VS2022.Pre.Open
   strategy:
     maxParallel: 4
     matrix:

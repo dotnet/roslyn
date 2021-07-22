@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
-            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
-            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+            _signatureHelpControllerProvider = signatureHelpControllerProvider;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            this._allArgumentProviders = argumentProviders;
+            _allArgumentProviders = argumentProviders;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -739,6 +739,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
+            if (token.RawKind == 0)
+            {
+                // There is no touching word, so return empty immediately
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }

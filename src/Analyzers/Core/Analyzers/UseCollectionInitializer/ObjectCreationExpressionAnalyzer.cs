@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return;
                 }
 
-                if (!(child.AsNode() is TExpressionStatementSyntax statement))
+                if (child.AsNode() is not TExpressionStatementSyntax statement)
                 {
                     return;
                 }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             out SyntaxNode instance)
         {
             instance = null;
-            if (!(_syntaxFacts.GetExpressionOfExpressionStatement(statement) is TInvocationExpressionSyntax invocationExpression))
+            if (_syntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
             {
                 return false;
             }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
 
-            if (!(_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is TMemberAccessExpressionSyntax memberAccess))
+            if (_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
             {
                 return false;
             }

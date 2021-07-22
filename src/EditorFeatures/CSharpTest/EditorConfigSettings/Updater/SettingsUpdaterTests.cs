@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public partial class SettingsUpdaterTests : TestBase
     {
+        private const string EditorconfigPath = "/a/b/config";
+
         private static Workspace CreateWorkspaceWithProjectAndDocuments()
         {
             var projectId = ProjectId.CreateNewId();
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(""), filePath: "/a/b/config")));
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(""), filePath: EditorconfigPath)));
 
             return workspace;
         }
@@ -81,9 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
-            var option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
-            option.Value = true;
-            option.Notification = CodeStyle.NotificationOption2.Suggestion;
+            ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
+            option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
@@ -93,9 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
-            var option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
-            option.Value = AddImportPlacement.InsideNamespace;
-            option.Notification = CodeStyle.NotificationOption2.Warning;
+            ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
+            option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:warning",
@@ -337,20 +339,27 @@ csharp_new_line_before_else=true";
         public async Task TestCodeStyleSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
-            var updater = new OptionUpdater(workspace, "/a/b/config");
+            var updater = new OptionUpdater(workspace, EditorconfigPath);
+            var value = "false:silent";
+            var editorOptions = new TestAnalyzerConfigOptions(key => value);
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
                                                   "",
-                                                  TestAnalyzerConfigOptions.Instance,
+                                                  editorOptions,
                                                   workspace.Options,
                                                   updater);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
-            setting.ChangeValue(1);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+            value = "false:error";
+            var editorconfig = workspace.CurrentSolution.Projects.SelectMany(p => p.AnalyzerConfigDocuments.Where(a => a.FilePath == EditorconfigPath)).Single();
+            var text = await editorconfig.GetTextAsync();
+            var newSolution = workspace.CurrentSolution.WithAnalyzerConfigDocumentText(editorconfig.Id, text);
+            Assert.True(workspace.TryApplyChanges(newSolution));
+            setting.ChangeValue(0);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]

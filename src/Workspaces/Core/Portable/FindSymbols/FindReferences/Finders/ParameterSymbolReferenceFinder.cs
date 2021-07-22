@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // elsewhere as "paramName:" or "paramName:=".  We can narrow the search by
             // filtering down to matches of that form.  For now we just return any document
             // that references something with this name.
-            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name);
+            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

@@ -201,6 +201,26 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return -1;
         }
 
+        public int FindIndex<TArg>(Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(0, Count, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(startIndex, Count - startIndex, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, int count, Func<T, TArg, bool> match, TArg arg)
+        {
+            var endIndex = startIndex + count;
+            for (var i = startIndex; i < endIndex; i++)
+            {
+                if (match(_builder[i], arg))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public bool Remove(T element)
         {
             return _builder.Remove(element);
@@ -471,9 +491,27 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items._builder);
         }
 
+        public void AddRange<U>(ArrayBuilder<U> items, Func<U, T> selector)
+        {
+            foreach (var item in items)
+            {
+                _builder.Add(selector(item));
+            }
+        }
+
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
         {
             _builder.AddRange(items._builder);
+        }
+
+        public void AddRange<U>(ArrayBuilder<U> items, int start, int length) where U : T
+        {
+            Debug.Assert(start >= 0 && length >= 0);
+            Debug.Assert(start + length <= items.Count);
+            for (int i = start, end = start + length; i < end; i++)
+            {
+                Add(items[i]);
+            }
         }
 
         public void AddRange(ImmutableArray<T> items)

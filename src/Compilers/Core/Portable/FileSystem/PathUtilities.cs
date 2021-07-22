@@ -93,6 +93,11 @@ namespace Roslyn.Utilities
             return FileNameUtilities.GetExtension(path);
         }
 
+        public static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
+
         public static string ChangeExtension(string path, string? extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);
@@ -533,6 +538,9 @@ namespace Roslyn.Utilities
         public static string GetRelativePath(string directory, string fullPath)
         {
             string relativePath = string.Empty;
+
+            directory = TrimTrailingSeparators(directory);
+            fullPath = TrimTrailingSeparators(fullPath);
 
             if (IsChildPath(directory, fullPath))
             {

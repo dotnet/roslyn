@@ -1060,6 +1060,36 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferNullcheckOverTypeCheck = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (value1 is null)
+            return;
+
+        if (value2 is not null)
+            return;
+//]
+    }}
+    void M2(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (value1 is not object)
+            return;
+
+        if (value2 is object)
+            return;
+//]
+    }}
+}}
+";
+
         #region expression and block bodies
 
         private const string s_preferExpressionBodyForMethods = @"
@@ -2011,6 +2041,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(

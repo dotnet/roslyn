@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
-            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;

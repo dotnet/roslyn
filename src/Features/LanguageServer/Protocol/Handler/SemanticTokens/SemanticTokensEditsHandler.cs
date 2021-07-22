@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
     /// or every time an edit is made by the user.
     /// </summary>
-    internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
+    internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>
     {
         private readonly SemanticTokensCache _tokensCache;
 
-        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName;
+        public string Method => LSP.Methods.TextDocumentSemanticTokensFullDeltaName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _tokensCache = tokensCache;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensEditsParams request)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensDeltaParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;
         }
 
-        public async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> HandleRequestAsync(
-            LSP.SemanticTokensEditsParams request,
+        public async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>> HandleRequestAsync(
+            LSP.SemanticTokensDeltaParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
             }
 
-            var edits = new SemanticTokensEdits
+            var edits = new SemanticTokensDelta
             {
                 Edits = editArray,
                 ResultId = resultId

@@ -78,7 +78,7 @@
             <Border x:Name="Border" BorderThickness="1"
                     Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}"
                     BorderBrush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderBrush}">
-                <imaging:CrispImage Moniker="{Binding Path=ImageMoniker}"/>
+                <imaging:CrispImage Moniker="{Binding ImageMoniker}" ScaleFactor="{Binding ScaleFactor}" />
             </Border>
         </ControlTemplate>
     </Button.Template>
@@ -115,7 +115,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
-                                    <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="{Binding Margin}" Width="16" Height="16" VerticalAlignment="Center"
+                                    <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="22,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
                                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
                                     <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
                                                       VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>

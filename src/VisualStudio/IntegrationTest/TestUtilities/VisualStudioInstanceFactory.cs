@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
-        private VisualStudioInstance _currentlyRunningInstance;
+        private VisualStudioInstance? _currentlyRunningInstance;
 
         /// <summary>
         /// Identifies the first time a Visual Studio instance is launched during an integration test run.
@@ -103,7 +101,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
         // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
         // the assembly that is already loaded.
-        private static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
+        private static Assembly? AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
         {
             Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
             var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
@@ -125,6 +123,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 var shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
                 await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
+                Contract.ThrowIfNull(_currentlyRunningInstance);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
             }
@@ -174,7 +173,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
                 _currentlyRunningInstance?.Close();
 
-                var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
+                var instance = (ISetupInstance2)LocateVisualStudioInstance(requiredPackageIds);
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
                 installationPath = instance.GetInstallationPath();
 
@@ -200,7 +199,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // We create a new DTE instance in the current context since the COM object could have been separated
                 // from its RCW during the previous test.
 
-                Debug.Assert(_currentlyRunningInstance != null);
+                Contract.ThrowIfNull(_currentlyRunningInstance);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -277,6 +276,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
                     }
                 }
+
                 return isMatch;
             });
 

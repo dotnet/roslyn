@@ -235,20 +235,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterData()
-        {
-            await VerifyKeywordAsync(
-@"data $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPublicData()
-        {
-            await VerifyKeywordAsync(
-@"public data $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAbstract()
         {
             await VerifyKeywordAsync(
@@ -414,6 +400,20 @@ global using Bar;");
         {
             await VerifyKeywordAsync(
 @"record $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace NS; $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributeFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace NS; [Attr] $$");
         }
     }
 }

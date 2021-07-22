@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpFeaturesResources.resx">
     <body>
@@ -136,6 +136,11 @@
         <source>Conflict(s) detected.</source>
         <target state="translated">Konflikt(e) erkannt.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_container_async">
+        <source>Make container 'async'</source>
+        <target state="new">Make container 'async'</target>
+        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -415,6 +420,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">Datensatz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

@@ -1766,9 +1766,6 @@ class C
                 // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
-                // (3,28): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
-                //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "8.0").WithLocation(3, 28),
                 // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
@@ -2082,8 +2079,17 @@ interface I<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 37 });
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,18): error CS0534: 'MyClass2' does not implement inherited abstract member 'MyClass.MyMethod()'
+                //     public class MyClass2 : MyClass
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "MyClass2").WithArguments("MyNamespace.MyClass2", "MyNamespace.MyClass.MyMethod()").WithLocation(7, 18),
+                // (9,37): error CS0112: A static member cannot be marked as 'override'
+                //         override public static void MyMethod()   // CS0112, remove static keyword
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "MyMethod").WithArguments("override").WithLocation(9, 37),
+                // (9,37): warning CS0114: 'MyClass2.MyMethod()' hides inherited member 'MyClass.MyMethod()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //         override public static void MyMethod()   // CS0112, remove static keyword
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "MyMethod").WithArguments("MyNamespace.MyClass2.MyMethod()", "MyNamespace.MyClass.MyMethod()").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -2103,24 +2109,30 @@ class B : A
 ";
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             CreateCompilation(tree).VerifyDiagnostics(
-    // (78): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
-    //     protected static override object P { get { return null; } }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("B.P").WithLocation(7, 38),
-    // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
-    //     public static virtual object Q { get; }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
-    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
-    //     public static virtual object Q { get; }
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
-    // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
-    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
+                // (5,7): error CS0534: 'B' does not implement inherited abstract member 'A.P.get'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P.get").WithLocation(5, 7),
+                // (7,38): error CS0112: A static member cannot be marked as 'override'
+                //     protected static override object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("override").WithLocation(7, 38),
+                // (7,38): warning CS0114: 'B.P' hides inherited member 'A.P'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected static override object P { get { return null; } }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P").WithArguments("B.P", "A.P").WithLocation(7, 38),
+                // (8,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     public static virtual object Q { get; }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("virtual").WithLocation(8, 34),
+                // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     public static virtual object Q { get; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
+                // (9,37): error CS0112: A static member cannot be marked as 'abstract'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37),
+                // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
+                // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
         }
 
         [Fact]
@@ -2138,12 +2150,29 @@ abstract class B : A
     internal static abstract event System.Action R;
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 51 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 47 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 7, Column = 51, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 8, Column = 47, IsWarning = true });
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,51): error CS0112: A static member cannot be marked as 'override'
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("override").WithLocation(7, 51),
+                // (7,51): error CS0533: 'B.P' hides inherited abstract member 'A.P'
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P").WithArguments("B.P", "A.P").WithLocation(7, 51),
+                // (7,51): warning CS0114: 'B.P' hides inherited member 'A.P'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P").WithArguments("B.P", "A.P").WithLocation(7, 51),
+                // (7,51): warning CS0067: The event 'B.P' is never used
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P").WithLocation(7, 51),
+                // (8,47): error CS0112: A static member cannot be marked as 'virtual'
+                //     public static virtual event System.Action Q;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("virtual").WithLocation(8, 47),
+                // (8,47): warning CS0067: The event 'B.Q' is never used
+                //     public static virtual event System.Action Q;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(8, 47),
+                // (9,50): error CS0112: A static member cannot be marked as 'abstract'
+                //     internal static abstract event System.Action R;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50)
+                );
         }
 
         [Fact]
@@ -3651,6 +3680,31 @@ class BAttribute : System.Attribute { }
         }
 
         [Fact]
+        public void PartialMethodRenameParameters()
+        {
+            var text = @"namespace NS
+{
+    public partial class MyClass
+    {
+        partial void F<T, U>(T t) where T : class;
+        partial void F<T, U>(T tt) where T : class {}
+    }
+}";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<T, U>(T tt)' have signature differences.
+                //         partial void F<T, U>(T tt) where T : class {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<T, U>(T tt)").WithLocation(6, 22)
+                );
+
+            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+            var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
+            Assert.Equal(0, type1.TypeParameters.Length);
+            var f = type1.GetMembers("F").Single() as MethodSymbol;
+            Assert.Equal("T t", f.Parameters[0].ToTestDisplayString());
+        }
+
+        [Fact]
         public void PartialMethodRenameTypeParameters()
         {
             var text = @"namespace NS
@@ -3661,7 +3715,12 @@ class BAttribute : System.Attribute { }
         partial void F<U, T>(U u) where U : class {}
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<U, T>(U u)' have signature differences.
+                //         partial void F<U, T>(U u) where U : class {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<U, T>(U u)").WithLocation(6, 22)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
@@ -7723,7 +7782,8 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -10331,11 +10391,11 @@ public struct S
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (4,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator MyClass(MyClass aa)   // CS0555
 Diagnostic(ErrorCode.ERR_IdentityConversion, "MyClass"),
 
-// (11,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (11,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator S?(S s) { return s; }
 Diagnostic(ErrorCode.ERR_IdentityConversion, "S?")
                 );
@@ -14018,6 +14078,12 @@ partial class C<X>
                 // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'U'
                 //     partial void K1<T, U>() where T : class where U : IA<T> { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "U").WithLocation(32, 18),
+                // (32,18): warning CS8826: Partial method declarations 'void C<X>.K1<U, T>()' and 'void C<X>.K1<T, U>()' have differences in parameter names, parameter types, or return types.
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "K1").WithArguments("void C<X>.K1<U, T>()", "void C<X>.K1<T, U>()").WithLocation(32, 18),
+                // (33,18): warning CS8826: Partial method declarations 'void C<X>.K2<T1, T2>()' and 'void C<X>.K2<T, U>()' have differences in parameter names, parameter types, or return types.
+                //     partial void K2<T, U>() where T : class where U : T, IA<U> { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "K2").WithArguments("void C<X>.K2<T1, T2>()", "void C<X>.K2<T, U>()").WithLocation(33, 18),
                 // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent constraints for type parameter 'T'
                 //     partial void A1<T>() where T : class { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()", "T").WithLocation(38, 18));
@@ -18406,7 +18472,8 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(

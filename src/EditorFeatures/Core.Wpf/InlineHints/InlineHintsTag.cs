@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -94,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (!taggedText.IsDefaultOrEmpty)
                 {
-                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(
-                        taggedText, document, _threadingContext, _streamingPresenter);
+                    var context = new IntellisenseQuickInfoBuilderContext(document, _threadingContext, _streamingPresenter);
+                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(taggedText, context);
                 }
             }
 
@@ -123,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // Adds a little bit of padding to the left of the text relative to the border to make the text seem
                 // more balanced in the border
-                Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
-                VerticalAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
             };
 
             var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -155,19 +155,40 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-
-                // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(left, top: 0, right, bottom: 1),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(left, top: 0, right, bottom: 0),
             };
 
+            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            // gets pixel distance of baseline to top of the font height
+            var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
+
+            var dockPanel = new DockPanel
+            {
+                Height = dockPanelHeight,
+                LastChildFill = false,
+                // VerticalAlignment is set to Top because it will rest to the top relative to the stackpanel
+                VerticalAlignment = VerticalAlignment.Top
+            };
+
+            dockPanel.Children.Add(border);
+            DockPanel.SetDock(border, Dock.Bottom);
+
+            var stackPanel = new StackPanel
+            {
+                // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
+                Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
+                Orientation = Orientation.Vertical
+            };
+
+            stackPanel.Children.Add(dockPanel);
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
-            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(textView.VisualElement));
-            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(textView.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(textView.VisualElement));
+            TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
+            TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));
+            TextOptions.SetTextRenderingMode(stackPanel, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            return border;
+            return stackPanel;
         }
 
         private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
@@ -210,13 +231,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         private void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            var border = (Border)sender;
+            var hintUIElement = (FrameworkElement)sender;
             e.Handled = true;
 
             bool KeepOpen()
             {
-                var mousePoint = Mouse.GetPosition(border);
-                return !(mousePoint.X > border.ActualWidth || mousePoint.X < 0 || mousePoint.Y > border.ActualHeight || mousePoint.Y < 0);
+                var mousePoint = Mouse.GetPosition(hintUIElement);
+                return !(mousePoint.X > hintUIElement.ActualWidth || mousePoint.X < 0 || mousePoint.Y > hintUIElement.ActualHeight || mousePoint.Y < 0);
             }
 
             var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
