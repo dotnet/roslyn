@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
             SyntaxDiagnosticInfo? error = null;
-            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, ref error, out _);
+            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, ref error, closeQuoteMissing: out _);
             this.AddError(error);
         }
 
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                             var escapeStart = _lexer.TextWindow.Position;
-                            char ch = _lexer.ScanEscapeSequence(out _);
+                            char ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
                             if (ch == '{' || ch == '}')
                             {
                                 UnrecoverableError ??= _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // normal string & char constants can have escapes
                         var pos = _lexer.TextWindow.Position;
-                        ch = _lexer.ScanEscapeSequence(out _);
+                        ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
                         if (ch == '{' || ch == '}')
                         {
                             UnrecoverableError ??= _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     _isVerbatim = isVerbatimSubstring;
                                     _allowNewlines &= _isVerbatim;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     _isVerbatim = true;
                                     _allowNewlines = true;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out _);
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
