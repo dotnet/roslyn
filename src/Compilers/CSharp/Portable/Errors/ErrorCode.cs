@@ -384,12 +384,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadBinaryOperatorSignature = 563,
         ERR_BadShiftOperatorSignature = 564,
         ERR_InterfacesCantContainConversionOrEqualityOperators = 567,
-        ERR_StructsCantContainDefaultConstructor = 568,
+        //ERR_StructsCantContainDefaultConstructor = 568,
         ERR_CantOverrideBogusMethod = 569,
         ERR_BindToBogus = 570,
         ERR_CantCallSpecialMethod = 571,
         ERR_BadTypeReference = 572,
-        ERR_FieldInitializerInStruct = 573,
+        //ERR_FieldInitializerInStruct = 573,
         ERR_BadDestructorName = 574,
         ERR_OnlyClassesCanContainDestructors = 575,
         ERR_ConflictAliasAndMember = 576,
@@ -1981,6 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedAndNormalNamespace = 8955,
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
+        ERR_NonPublicParameterlessStructConstructor = 8958,
 
         #endregion
 
