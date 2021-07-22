@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
-        public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
+        public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin =
             new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
-                defaultValue: false,
+                defaultValue: null,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(

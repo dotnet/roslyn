@@ -37,14 +37,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                               .Concat(associatedNamedTypes.SelectAsArray(n => ((ISymbol)n, cascadeDirection)));
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IEventSymbol symbol,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(documentsWithGlobalAttributes);
         }
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

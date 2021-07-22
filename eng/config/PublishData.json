@@ -173,7 +173,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.10",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.10]"
     },
     "release/dev16.11-vs-deps": {
       "nugetKind": [
@@ -184,9 +185,10 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.11",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.11]"
     },
-    "release/dev17.0-preview1-vs-deps": {
+    "release/dev17.0-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -195,7 +197,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d17.0",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17p2]"
     },
     "main-vs-deps": {
       "nugetKind": [

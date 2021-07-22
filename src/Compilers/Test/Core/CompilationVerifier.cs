@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string source = null)
         {
             string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 

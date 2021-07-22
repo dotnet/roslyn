@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
-            public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
+            public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();

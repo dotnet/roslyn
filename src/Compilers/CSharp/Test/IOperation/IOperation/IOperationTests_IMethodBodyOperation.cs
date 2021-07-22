@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IMethodBodyOperation : SemanticModelTestBase
     {
         [Fact]
         public void RegularMethodBody_01()

@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sessionId = await service.StartDebuggingSessionAsync(
                 solution,
                 _debuggerService,
-                captureMatchingDocuments: false,
+                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 CancellationToken.None);
 
@@ -362,8 +363,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        [Fact]
-        public async Task StartDebuggingSession_CapturingDocuments()
+        [Theory]
+        [CombinatorialData]
+        public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
         {
             var encodingA = Encoding.BigEndianUnicode;
             var encodingB = Encoding.Unicode;
@@ -454,7 +456,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 loader: new FailingTextLoader(),
                 filePath: sourceFileD.Path));
 
-            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: true, reportDiagnostics: true, CancellationToken.None);
+            var captureMatchingDocuments = captureAllDocuments ?
+                ImmutableArray<DocumentId>.Empty :
+                (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
+
+            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
             var matchingDocuments = debuggingSession.LastCommittedSolution.Test_GetDocumentStates();
@@ -690,7 +696,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 LoadLibraryToDebuggee(moduleId);
             }
 
-            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
+            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: ImmutableArray<DocumentId>.Empty, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
             EnterBreakState(debuggingSession);
@@ -3573,7 +3579,8 @@ class C
                 var sessionId = await encService.StartDebuggingSessionAsync(
                     solution,
                     _debuggerService,
-                    captureMatchingDocuments: false,
+                    captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                    captureAllMatchingDocuments: true,
                     reportDiagnostics: true,
                     CancellationToken.None);
 

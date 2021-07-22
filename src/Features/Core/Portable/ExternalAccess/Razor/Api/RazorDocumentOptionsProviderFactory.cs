@@ -8,12 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 {
     [Shared]
     [Export(typeof(IDocumentOptionsProviderFactory))]
+    [ExtensionOrder(Before = PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class RazorDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly Lazy<IRazorDocumentOptionsService> _innerRazorDocumentOptionsService;
@@ -32,28 +32,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         }
 
         public IDocumentOptionsProvider? TryCreate(Workspace workspace)
-        {
-            var optionsService = _innerRazorDocumentOptionsService.Value;
-            return new RazorDocumentOptionsProvider(optionsService);
-        }
+            => new RazorDocumentOptionsProvider(_innerRazorDocumentOptionsService);
 
         private sealed class RazorDocumentOptionsProvider : IDocumentOptionsProvider
         {
-            public readonly IRazorDocumentOptionsService RazorDocumentOptionsService;
+            public readonly Lazy<IRazorDocumentOptionsService> RazorDocumentOptionsService;
 
-            public RazorDocumentOptionsProvider(IRazorDocumentOptionsService razorDocumentOptionsService)
+            public RazorDocumentOptionsProvider(Lazy<IRazorDocumentOptionsService> razorDocumentOptionsService)
             {
                 RazorDocumentOptionsService = razorDocumentOptionsService;
             }
 
-            public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+            public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(
+                Document document,
+                CancellationToken cancellationToken)
             {
                 if (!document.IsRazorDocument())
                 {
                     return null;
                 }
 
-                var options = await RazorDocumentOptionsService.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await RazorDocumentOptionsService.Value.GetOptionsForDocumentAsync(
+                    document, cancellationToken).ConfigureAwait(false);
                 return new RazorDocumentOptions(options);
             }
         }
