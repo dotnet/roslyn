@@ -252,6 +252,7 @@ static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string id
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net50.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net60.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp10.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
