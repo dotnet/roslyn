@@ -93,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var leadingTrivia = token.LeadingTrivia;
 
-            if (leadingTrivia.Count == 1 && leadingTrivia[0].Kind() == SyntaxKind.EndOfLineTrivia)
+            if (leadingTrivia.Count >= 1 && leadingTrivia[0].Kind() == SyntaxKind.EndOfLineTrivia)
             {
                 withoutBlankLine = token.WithLeadingTrivia(leadingTrivia.RemoveAt(0));
                 return true;
             }
 
-            if (leadingTrivia.Count == 2 && leadingTrivia[0].IsKind(SyntaxKind.WhitespaceTrivia) && leadingTrivia[1].IsKind(SyntaxKind.EndOfLineTrivia))
+            if (leadingTrivia.Count >= 2 && leadingTrivia[0].IsKind(SyntaxKind.WhitespaceTrivia) && leadingTrivia[1].IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 withoutBlankLine = token.WithLeadingTrivia(leadingTrivia.Skip(2));
                 return true;
