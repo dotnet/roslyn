@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
-        protected internal override bool IsEnabled
+        protected internal override bool IsEnabled(Document document)
             => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
         protected internal override bool IncludeDiagnostic(DiagnosticData data)

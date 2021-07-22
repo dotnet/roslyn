@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        //protected sealed override IEnumerable<PerLanguageOption2<bool?>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
         private bool? _experimentEnabled = null;
 
         [ImportingConstructor]
@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             return TaggerEventSources.Compose(
                 base.CreateEventSource(textViewOpt, subjectBuffer),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.EnableInlineDiagnostics),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
         }
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InlineDiagnostics);
             }
 
-            var shouldEnableFeature = option == true || (_experimentEnabled == true && option == null);
+            var shouldEnableFeature = option == true || (_experimentEnabled == true && !option.HasValue);
             return shouldEnableFeature;
         }
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     internal static class InlineDiagnosticsOptions
     {
-        public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
+        public static readonly PerLanguageOption2<bool?> EnableInlineDiagnostics =
             new(nameof(InlineDiagnosticsOptions),
                 nameof(EnableInlineDiagnostics),
                 defaultValue: false,
