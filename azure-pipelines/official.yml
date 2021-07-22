@@ -15,6 +15,7 @@ trigger:
 #  branches:
 #    include:
 #    - microbuild
+pr: none
 
 parameters:
 - name: SignTypeSelection
