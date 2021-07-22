@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -86,12 +87,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
-            throw new System.NotImplementedException();
+            return SyntaxFactory.FileScopedNamespaceDeclaration(
+                namespaceDeclaration.AttributeLists,
+                namespaceDeclaration.Modifiers,
+                namespaceDeclaration.NamespaceKeyword,
+                namespaceDeclaration.Name,
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia),
+                namespaceDeclaration.Externs,
+                namespaceDeclaration.Usings,
+                namespaceDeclaration.Members).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private static NamespaceDeclarationSyntax ConvertFileScopedNamespace(FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
         {
-            throw new System.NotImplementedException();
+            return SyntaxFactory.NamespaceDeclaration(
+                fileScopedNamespace.AttributeLists,
+                fileScopedNamespace.Modifiers,
+                fileScopedNamespace.NamespaceKeyword,
+                fileScopedNamespace.Name,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia),
+                fileScopedNamespace.Externs,
+                fileScopedNamespace.Usings,
+                fileScopedNamespace.Members,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default).WithAdditionalAnnotations(Formatter.Annotation);
         }
     }
 }
