@@ -442,9 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
-                // PROTOTYPE: NullableWalker.Scan() will call EnterParameter(methodThisParameter), and
-                // if 'this' is a struct and we have initial state above, then EnterParameter() will overwrite
-                // fields of 'this'. In short, we're overwriting the state from field initializers.
                 returns = this.Scan(ref badRegion);
             }
             while (this.stateChangedAfterUse);

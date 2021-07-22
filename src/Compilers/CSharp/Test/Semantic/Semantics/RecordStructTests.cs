@@ -1049,6 +1049,96 @@ record struct S2
         }
 
         [Fact]
+        public void TypeDeclaration_ParameterlessConstructor_OtherConstructors()
+        {
+            var src = @"
+record struct S1
+{
+    public S1() { }
+    S1(object o) { } // ok because no record parameter list
+}
+record struct S2
+{
+    S2(object o) { }
+}
+record struct S3()
+{
+    S3(object o) { } // 1
+}
+record struct S4()
+{
+    S4(object o) : this() { }
+}
+record struct S5(object o)
+{
+    public S5() { } // 2
+}
+record struct S6(object o)
+{
+    public S6() : this(null) { }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     S3(object o) { } // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(13, 5),
+                // (21,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S5() { } // 2
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S5").WithLocation(21, 12)
+                );
+        }
+
+        [Fact]
+        public void TypeDeclaration_ParameterlessConstructor_Initializers()
+        {
+            var src = @"
+var s1 = new S1();
+var s2 = new S2(null);
+var s2b = new S2();
+var s3 = new S3();
+var s4 = new S4(new object());
+var s5 = new S5();
+var s6 = new S6(""s6.other"");
+
+System.Console.Write((s1.field, s2.field, s2b.field is null, s3.field, s4.field, s5.field, s6.field, s6.other));
+
+record struct S1
+{
+    public string field = ""s1"";
+    public S1() { }
+}
+record struct S2
+{
+    public string field = ""s2"";
+    public S2(object o) { }
+}
+record struct S3()
+{
+    public string field = ""s3"";
+}
+record struct S4
+{
+    public string field = ""s4"";
+    public S4(object o) : this() { }
+}
+record struct S5()
+{
+    public string field = ""s5"";
+    public S5(object o) : this() { }
+}
+record struct S6(string other)
+{
+    public string field = ""s6.field"";
+    public S6() : this(""ignored"") { }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(s1, s2, True, s3, s4, s5, s6.field, s6.other)");
+        }
+
+        [Fact]
         public void TypeDeclaration_InstanceInitializers()
         {
             var src = @"
@@ -1074,9 +1164,6 @@ public record struct S
             comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
         }
-
-        // PROTOTYPE: Verify initializers are executed from synthesized and explicit parameterless constructors.
-        // PROTOTYPE: Verify explicit parameterless constructor calls 'this(...)' for primary constructor.
 
         [Fact]
         public void TypeDeclaration_NoDestructor()
@@ -2986,12 +3073,15 @@ public record struct X(int a)
         public void ParameterlessConstructor()
         {
             var src = @"
+System.Console.Write(new C().Property);
+
 record struct C()
 {
-    int Property { get; set; } = 42;
+    public int Property { get; set; } = 42;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42");
         }
 
         [Fact]
@@ -3447,7 +3537,18 @@ record struct C()
                 //             case C():
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
-            Assert.Null(comp.GetMember("C.Deconstruct"));
+            AssertEx.Equal(new[] {
+                "C..ctor()",
+                "void C.M(C c)",
+                "void C.Main()",
+                "System.String C.ToString()",
+                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C left, C right)",
+                "System.Boolean C.op_Equality(C left, C right)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object obj)",
+                "System.Boolean C.Equals(C other)" },
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
 
         [Fact]
