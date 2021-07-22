@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditingTestBase : CSharpTestBase
     {
+        public static readonly string ReloadableAttributeSrc = @"
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
+";
+
         internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
         {
             return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
