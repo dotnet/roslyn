@@ -118,6 +118,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
                     _serviceChannel = null;
                 }
 
+                GC.KeepAlive(_marshalledService);
                 _marshalledService = null;
                 _service = null;
 
