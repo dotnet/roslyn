@@ -89,12 +89,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             {
                 // If they have something like:
                 //
-                // PreviousLineOfCode();
                 // var s3 = $""Text1 { true ? ""Text2""[|:|]
                 // NextLineOfCode();
                 //
-                // Then they likely did not intend the code on the next line to be part of the conditional. 
-                // So instead find the colon and place the close paren after that.
+                // We will update this initially to:
+                //
+                // var s3 = $""Text1 { (true ? ""Text2""[|:|]
+                // NextLineOfCode();
+                //
+                // And we have to decide where the close paren should go.  Based on the parse tree, the
+                // 'NextLineOfCode()' expression will be pulled into the WhenFalse portion of the conditional.
+                // So placing the close paren after the conditional woudl result in: 'NextLineOfCode())'.
+                //
+                // However, the user intent is likely that NextLineOfCode is not part of the conditional
+                // So instead find the colon and place the close paren after that, producing:
+                //
+                // var s3 = $""Text1 { (true ? ""Text2"":)
+                // NextLineOfCode();
 
                 var endToken = sourceText.AreOnSameLine(conditional.ColonToken, conditional.WhenFalse.GetFirstToken())
                     ? conditional.WhenFalse.GetLastToken()
