@@ -440,7 +440,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol? VisitNamespace(NamespaceSymbol @namespace)
             {
                 var otherContainer = Visit(@namespace.ContainingSymbol);
-                RoslynDebug.AssertNotNull(otherContainer);
+
+                // TODO: Workaround for https://github.com/dotnet/roslyn/issues/54939.
+                // We should fail if the container can't be mapped.
+                // Currently this only occurs when determining reloadable type name for a type added to a new namespace,
+                // which is a rude edit.
+                // RoslynDebug.AssertNotNull(otherContainer);
+                if (otherContainer is null)
+                {
+                    return null;
+                }
 
                 switch (otherContainer.Kind)
                 {

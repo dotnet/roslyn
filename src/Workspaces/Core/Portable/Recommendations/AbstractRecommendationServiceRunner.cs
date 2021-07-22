@@ -254,11 +254,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             where TNamespaceDeclarationSyntax : SyntaxNode
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
-
             if (declarationSyntax == null)
-            {
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
