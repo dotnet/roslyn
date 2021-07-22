@@ -2045,7 +2045,45 @@ class C { }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
+        }
 
+        [Fact]
+        public void Metadata_References_Provider()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<string?> referenceList = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.MetadataReferencesProvider, (spc, r) => { referenceList.Add(r.Display); });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // Don't directly check the references we saw, as it may break as we change TFMs etc
+            // Instead we'll change one and check that only that one comes up a second time
+
+            var references = compilation.References.ToList();
+            var originalRef = references[0];
+            var modifiedRef = originalRef.WithAliases(new[] { "Alias " });
+
+            references.Remove(originalRef);
+            references.Insert(0, modifiedRef);
+
+            compilation = compilation.WithReferences(references);
+
+            referenceList.Clear();
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Single(referenceList, modifiedRef.Display);
         }
     }
 }
