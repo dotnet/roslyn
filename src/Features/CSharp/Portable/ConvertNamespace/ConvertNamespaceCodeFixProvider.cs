@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConvertNamespaceCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
