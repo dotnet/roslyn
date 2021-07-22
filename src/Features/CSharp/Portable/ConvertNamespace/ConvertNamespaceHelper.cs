@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (declaration is not FileScopedNamespaceDeclarationSyntax)
                 return false;
 
-            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
-            var preference = currentOptionValue.Value;
-            var userPrefersRegularNamespaces = preference == false;
-            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
+            var userPrefersRegularNamespaces = !option.Value;
+            var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
+            var forRefactoring = !forAnalyzer;
 
             // If the user likes regular namespaces, then we offer regular namespaces from the diagnostic analyzer.
             // If the user does not like regular namespaces then we offer regular namespaces bodies from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
-            var canOffer = userPrefersRegularNamespaces == forAnalyzer || (!forAnalyzer && analyzerDisabled);
+            var canOffer = userPrefersRegularNamespaces == forAnalyzer || (forRefactoring && analyzerDisabled);
             return canOffer;
         }
 
@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
-            var currentOptionValue = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
-            var preference = currentOptionValue.Value;
-            var userPrefersFileScopedNamespaces = preference == true;
-            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
+            var userPrefersFileScopedNamespaces = option.Value;
+            var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
+            var forRefactoring = !forAnalyzer;
 
             // If the user likes file scoped namespaces, then we offer file scoped namespaces from the diagnostic analyzer.
             // If the user does not like file scoped namespaces then we offer file scoped namespaces from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
-            var canOffer = userPrefersFileScopedNamespaces == forAnalyzer || (!forAnalyzer && analyzerDisabled);
+            var canOffer = userPrefersFileScopedNamespaces == forAnalyzer || (forRefactoring && analyzerDisabled);
             if (!canOffer)
                 return false;
 
@@ -72,10 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         public static async Task<Document> ConvertAsync(
             Document document, BaseNamespaceDeclarationSyntax baseNamespace, CancellationToken cancellationToken)
         {
-            var converted = Convert(baseNamespace);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            return document.WithSyntaxRoot(root.ReplaceNode(baseNamespace, converted));
+            return document.WithSyntaxRoot(root.ReplaceNode(baseNamespace, Convert(baseNamespace)));
         }
 
         public static BaseNamespaceDeclarationSyntax Convert(BaseNamespaceDeclarationSyntax baseNamespace)
