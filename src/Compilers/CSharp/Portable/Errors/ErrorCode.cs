@@ -1981,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedAndNormalNamespace = 8955,
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
-        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8958,
+        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8959,
 
         #endregion
 
