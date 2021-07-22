@@ -680,12 +680,12 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
-                //       string s = $"x { /* comment } y";
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
                 // (6,24): error CS1035: End-of-file found, '*/' expected
                 //       string s = $"x { /* comment } y";
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(6, 24),
+                // (6,40): error CS8959: Newlines are not allowed inside a non-verbatim interpolated string
+                //       string s = $"x { /* comment } y";
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 40),
                 // (9,1): error CS1733: Expected expression
                 // 
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 1),
@@ -715,24 +715,24 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
-                //       string s = $"x { /* comment
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
-                // (6,24): error CS1035: End-of-file found, '*/' expected
-                //       string s = $"x { /* comment
-                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(6, 24),
-                // (10,1): error CS1733: Expected expression
-                // 
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(10, 1),
-                // (10,1): error CS1002: ; expected
-                // 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 1),
-                // (10,1): error CS1513: } expected
-                // 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1),
-                // (10,1): error CS1513: } expected
-                // 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1));
+                    // (6,24): error CS1035: End-of-file found, '*/' expected
+                    //       string s = $"x { /* comment
+                    Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(6, 24),
+                    // (6,34): error CS8959: Newlines are not allowed inside a non-verbatim interpolated string
+                    //       string s = $"x { /* comment
+                    Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 34),
+                    // (10,1): error CS1733: Expected expression
+                    // 
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(10, 1),
+                    // (10,1): error CS1002: ; expected
+                    // 
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 1),
+                    // (10,1): error CS1513: } expected
+                    // 
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1),
+                    // (10,1): error CS1513: } expected
+                    // 
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1));
         }
 
         [Fact]
