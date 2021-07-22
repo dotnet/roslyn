@@ -238,7 +238,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9()
+        Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9_WithoutFeatureFlag()
             Dim source As String = "
 Imports System
 Imports System.Runtime.CompilerServices
@@ -254,8 +254,8 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9.WithFeature("CallerArgumentExpression"))
-            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>

@@ -268,11 +268,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Dim attributes = MyBase.GetCustomAttributesToEmit(compilationState)
 
-            If Not Location.SourceTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
+            If Not Location.IsInSource OrElse
+                Not Location.SourceTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
                 ' Silently require feature flag for this feature until Aleksey approves.
                 For Each attribute In attributes
                     Yield attribute
                 Next
+                Return
             End If
 
             For Each attribute In attributes
