@@ -35,6 +35,27 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_OldVersionWithFeatureFlag()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(123)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16.WithFeature("CallerArgumentExpression"))
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
             Dim source As String = "
 Imports System
