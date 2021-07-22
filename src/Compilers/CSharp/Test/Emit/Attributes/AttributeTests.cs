@@ -7176,12 +7176,15 @@ public class Test<U>
                 // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2()]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
-                // (9,2): error CS8940: 'U': an attribute type argument cannot use type parameters
+                // (9,2): error CS8958: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<U>]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
-                // (10,2): error CS8940: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
+                // (10,2): error CS8958: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
                 // [Gen2<System.Collections.Generic.List<U>>]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                // (10,2): error CS0579: Duplicate 'Gen2<>' attribute
+                // [Gen2<System.Collections.Generic.List<U>>]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Gen2<System.Collections.Generic.List<U>>").WithArguments("Gen2<>").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'Gen3<T>' requires 1 type arguments
                 // [Gen3(1)]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen3").WithArguments("Gen3<T>", "type", "1").WithLocation(11, 2));
@@ -7847,7 +7850,8 @@ public class IA
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,3): error CS0579: Duplicate 'IndexerName' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "IndexerName").WithArguments("IndexerName"));
+                // 	[IndexerName("ItemY")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "IndexerName").WithArguments("IndexerName").WithLocation(6, 3));
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal("ItemX", indexer.MetadataName); //First one wins.
@@ -8073,12 +8077,12 @@ using System;
 [A<int>] // 3, 4
 [B] // 5
 [B<>] // 6, 7
-[B<int>] // 8
-[C] // 9
-[C<>] // 10, 11
-[C<int>] // 12, 13
-[C<,>] // 14, 15
-[C<int, int>] // 16
+[B<int>] // 8, 9
+[C] // 10
+[C<>] // 11, 12
+[C<int>] // 13, 14
+[C<,>] // 15, 16
+[C<int, int>] // 17, 18
 class Test
 {
 }
@@ -8087,11 +8091,11 @@ public class A : Attribute
 {
 }
 
-public class B<T> : Attribute // 17
+public class B<T> : Attribute // 19
 {
 }
 
-public class C<T, U> : Attribute // 18
+public class C<T, U> : Attribute // 20
 {
 }
 ";
@@ -8120,37 +8124,43 @@ public class C<T, U> : Attribute // 18
                 // [B<>] // 6, 7
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<>").WithArguments("generic attributes", "10.0").WithLocation(7, 2),
                 // (8,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [B<int>] // 8
+                // [B<int>] // 8, 9
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<int>").WithArguments("generic attributes", "10.0").WithLocation(8, 2),
+                // (8,2): error CS0579: Duplicate 'B<>' attribute
+                // [B<int>] // 8, 9
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "B<int>").WithArguments("B<>").WithLocation(8, 2),
                 // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C] // 9
+                // [C] // 10
                 Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<>] // 10, 11
+                // [C<>] // 11, 12
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
                 // (10,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [C<>] // 10, 11
+                // [C<>] // 11, 12
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<int>] // 12, 13
+                // [C<int>] // 13, 14
                 Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
                 // (11,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [C<int>] // 12, 13
+                // [C<int>] // 13, 14
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int>").WithArguments("generic attributes", "10.0").WithLocation(11, 2),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
-                // [C<,>] // 14, 15
+                // [C<,>] // 15, 16
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
                 // (12,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [C<,>] // 14, 15
+                // [C<,>] // 15, 16
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<,>").WithArguments("generic attributes", "10.0").WithLocation(12, 2),
                 // (13,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [C<int, int>] // 16
+                // [C<int, int>] // 17, 18
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int, int>").WithArguments("generic attributes", "10.0").WithLocation(13, 2),
+                // (13,2): error CS0579: Duplicate 'C<,>' attribute
+                // [C<int, int>] // 17, 18
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<int, int>").WithArguments("C<,>").WithLocation(13, 2),
                 // (22,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // public class B<T> : Attribute // 17
+                // public class B<T> : Attribute // 19
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(22, 21),
                 // (26,24): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // public class C<T, U> : Attribute // 18
+                // public class C<T, U> : Attribute // 20
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(26, 24));
 
             comp = CreateCompilation(source);
@@ -8167,18 +8177,24 @@ public class C<T, U> : Attribute // 18
                 // (7,2): error CS7003: Unexpected use of an unbound generic name
                 // [B<>] // 6, 7
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
+                // (8,2): error CS0579: Duplicate 'B<>' attribute
+                // [B<int>] // 8, 9
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "B<int>").WithArguments("B<>").WithLocation(8, 2),
                 // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C] // 9
+                // [C] // 10
                 Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<>] // 10, 11
+                // [C<>] // 11, 12
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<int>] // 12, 13
+                // [C<int>] // 13, 14
                 Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
-                // [C<,>] // 14, 15
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2));
+                // [C<,>] // 15, 16
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
+                // (13,2): error CS0579: Duplicate 'C<,>' attribute
+                // [C<int, int>] // 17, 18
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<int, int>").WithArguments("C<,>").WithLocation(13, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
@@ -9743,8 +9759,10 @@ public class Program { }
 public class C<T> : System.Attribute where T : struct { }
 
 [C<object>] // 1
+public class C1 { }
+
 [C<int>]
-public class Program { }
+public class C2 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -9778,6 +9796,9 @@ public class Program { }
                 // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<System>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (5,2): error CS0579: Duplicate 'C<>' attribute
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<System>").WithArguments("C<>").WithLocation(5, 2),
                 // (5,4): error CS0118: 'System' is a namespace but is used like a type
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
@@ -9786,19 +9807,28 @@ public class Program { }
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
                 // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2),
+                // (6,2): error CS0579: Duplicate 'C<>' attribute
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<>").WithArguments("C<>").WithLocation(6, 2));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 // [C<ERROR>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,2): error CS0579: Duplicate 'C<>' attribute
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<System>").WithArguments("C<>").WithLocation(5, 2),
                 // (5,4): error CS0118: 'System' is a namespace but is used like a type
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
                 // (6,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
+                // (6,2): error CS0579: Duplicate 'C<>' attribute
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<>").WithArguments("C<>").WithLocation(6, 2));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9831,15 +9861,18 @@ using System;
 public class Attr<T> : Attribute { }
 
 [Attr<int>]
-[Attr<object>]
-[Attr<int>] // 1
+[Attr<object>] // 1
+[Attr<int>] // 2
 public class C {
 }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (8,2): error CS0579: Duplicate 'Attr<>' attribute
+                // [Attr<object>] // 1
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<object>").WithArguments("Attr<>").WithLocation(8, 2),
                 // (9,2): error CS0579: Duplicate 'Attr<>' attribute
-                // [Attr<int>] // 1
+                // [Attr<int>] // 2
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<int>").WithArguments("Attr<>").WithLocation(9, 2));
         }
 
