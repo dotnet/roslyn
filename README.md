@@ -28,20 +28,6 @@ instance of Visual Studio.
 
 *TODO*
 
-### Configure the `appDomain` xUnit property
-
-1. Add a file **xunit.runner.json** to the test project if it does not already exist
-2. Set the **Copy to Output Directory** property for the file to **Copy if newer**
-3. Update the file to set the `appDomain` property to `denied`:
-
-    ```json
-    {
-      "appDomain": "denied"
-    }
-    ```
-
-:link: See https://github.com/Microsoft/vs-extension-testing/issues/3
-
 ### Configure the test framework
 
 #### Classic projects

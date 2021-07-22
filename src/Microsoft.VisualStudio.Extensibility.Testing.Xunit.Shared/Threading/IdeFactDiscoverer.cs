@@ -6,7 +6,6 @@ namespace Xunit.Threading
     using System.Collections.Generic;
     using System.Linq;
     using Xunit.Abstractions;
-    using Xunit.Harness;
     using Xunit.Sdk;
 
     public class IdeFactDiscoverer : IXunitTestCaseDiscoverer
@@ -27,17 +26,17 @@ namespace Xunit.Threading
                     var testCases = new List<IXunitTestCase>();
                     foreach (var supportedVersion in GetSupportedVersions(factAttribute))
                     {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, supportedVersion);
+                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion);
                     }
                 }
                 else
                 {
-                    yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, "[IdeFact] methods are not allowed to be generic.");
+                    yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to be generic.");
                 }
             }
             else
             {
-                yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?");
+                yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?");
             }
         }
 
