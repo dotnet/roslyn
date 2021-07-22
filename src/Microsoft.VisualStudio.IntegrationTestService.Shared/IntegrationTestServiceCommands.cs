@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
                 _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
 
                 _serviceChannel.StartListening(null);
-                ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
+                ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: false);
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
             }
