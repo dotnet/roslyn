@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly CSharpSyntaxNode Syntax;
             internal readonly BoundNode? Body;
-            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly Binder? Binder;
             internal readonly NullableWalker.SnapshotManager? SnapshotManager;
             internal readonly ImmutableDictionary<Symbol, Symbol>? RemappedSymbols;
 
             internal InitialState(
                 CSharpSyntaxNode syntax,
                 BoundNode? bodyOpt = null,
-                ExecutableCodeBinder? binder = null,
+                Binder? binder = null,
                 NullableWalker.SnapshotManager? snapshotManager = null,
                 ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null)
             {
