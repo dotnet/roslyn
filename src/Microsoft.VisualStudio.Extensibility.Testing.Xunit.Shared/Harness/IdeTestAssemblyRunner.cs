@@ -187,9 +187,10 @@ namespace Xunit.Harness
             {
                 Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
-                // Install a COM message filter to handle retry operations when the first attempt fails
-                using (var messageFilter = new MessageFilter())
+                try
                 {
+                    // Install a COM message filter to handle retry operations when the first attempt fails
+                    using (var messageFilter = new MessageFilter())
                     using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
                         var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
@@ -207,6 +208,19 @@ namespace Xunit.Harness
 
                             return Tuple.Create(runSummary, executionMessageSinkFilter.TestAssemblyFinished);
                         }
+                    }
+                }
+                catch (Exception e)
+                {
+                    var previousException = WpfTestSharedData.Instance.Exception;
+                    try
+                    {
+                        WpfTestSharedData.Instance.Exception = e;
+                        return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource).ConfigureAwait(true);
+                    }
+                    finally
+                    {
+                        WpfTestSharedData.Instance.Exception = previousException;
                     }
                 }
             };

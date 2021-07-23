@@ -83,8 +83,8 @@ namespace Xunit.Threading
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
-            base.Deserialize(data);
             VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
+            base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;
         }
