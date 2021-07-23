@@ -233,7 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
-        IDS_FeatureGenericAttributes = MessageBase + 12810,
+        IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
+        IDS_FeatureStructFieldInitializers = MessageBase + 12811,
+        IDS_FeatureGenericAttributes = MessageBase + 12812,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -362,6 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers: // semantic check
                 case MessageID.IDS_FeatureLineSpanDirective:
                 case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
+                case MessageID.IDS_FeatureParameterlessStructConstructors: // semantic check
+                case MessageID.IDS_FeatureStructFieldInitializers: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                     return LanguageVersion.CSharp10;
 

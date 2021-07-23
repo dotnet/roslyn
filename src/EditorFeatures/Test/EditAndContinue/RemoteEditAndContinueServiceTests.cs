@@ -359,7 +359,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.EndDebuggingSessionAsync(solution, diagnosticUpdateSource, mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;

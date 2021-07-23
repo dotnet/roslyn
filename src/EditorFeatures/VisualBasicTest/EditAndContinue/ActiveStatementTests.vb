@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -25,6 +26,72 @@ End Class
 "
 
             Dim src2 = "
+Class C
+    Shared Sub Main()
+        While True
+            <AS:1>Goo(2)</AS:1>
+        End While
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2)"))
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
+            Dim src1 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>' comment
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         While True
@@ -109,33 +176,47 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
+        ' <summary>
+        ' CreateNewOnMetadataUpdate has no effect in presence of active statements (in break mode).
+        ' </summary>
         <Fact>
-        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
-            Dim src1 = "
+        Public Sub Update_Leaf_Reloadable()
+
+            Dim src1 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         <AS:1>Goo(1)</AS:1>
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>System.Console.WriteLine(a)</AS:0>
     End Sub
 End Class
 "
-            Dim src2 = "
+            Dim src2 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
-        <AS:1>Goo(1)</AS:1>' comment
+        While True
+            <AS:1>Goo(1)</AS:1>
+        End While
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>Console.WriteLine(a + 1)</AS:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+
+            edits.VerifySemantics(active,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"), preserveLocalVariables:=True),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Goo"), preserveLocalVariables:=True)
+                })
         End Sub
 
         <Fact>
