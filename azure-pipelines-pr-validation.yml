@@ -209,6 +209,7 @@ stages:
     - template: eng/pipelines/insert.yml
       parameters:
         createDraftPR: true
+        autoComplete: false
         insertToolset: $(InsertToolset)
         componentBuildProjectName: DevDiv
         componentBranchName: $(ComponentBranchName)

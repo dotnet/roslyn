@@ -5,6 +5,9 @@ parameters:
   - name: createDraftPR
     type: string
     default: ''
+  - name: autoComplete
+    type: string
+    default: ''
   - name: insertToolset
     type: string
     default: ''
@@ -29,10 +32,9 @@ steps:
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not ${{ parameters.createDraftPR }})"
       mv RoslynTools.VisualStudioInsertionTool.* RIT
       .\RIT\tools\OneOffInsertion.ps1 `
-        -autoComplete "$(Insertion.AutoComplete)" `
+        -autoComplete "${{ parameters.autoComplete }}" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
         -clientId "$(ClientId)" `

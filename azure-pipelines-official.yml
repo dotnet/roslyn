@@ -338,6 +338,7 @@ stages:
     - template: eng/pipelines/insert.yml
       parameters:
         createDraftPR: $(Insertion.CreateDraftPR)
+        autoComplete: $(Insertion.AutoComplete)
         insertToolset: $(Insertion.InsertToolset)
         componentBuildProjectName: internal
         componentBranchName: $(ComponentBranchName)
