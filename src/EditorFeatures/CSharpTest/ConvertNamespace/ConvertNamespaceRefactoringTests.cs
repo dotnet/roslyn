@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
     public class ConvertNamespaceRefactoringTests
     {
+        #region Convert To File Scoped
+
         [Fact]
         public async Task TestNoConvertToFileScopedInCSharp9()
         {
@@ -70,6 +72,68 @@ namespace $$N
                 FixedCode = @"
 namespace $$N;
 ",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOnNamespaceToken()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+$$namespace N
+{
+}
+",
+                FixedCode = @"
+namespace N;
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotBeforeNamespaceToken()
+        {
+            var code = @"
+$$
+namespace N
+{
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotOnOpenBrace()
+        {
+            var code = @"
+namespace N
+$${
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -395,5 +459,7 @@ class C
                 }
             }.RunAsync();
         }
+
+        #endregion
     }
 }
