@@ -4907,7 +4907,7 @@ public class ClassB
                 expectedDocumentName: "ClassB.cs",
                 new TestParameters(
                     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
-                    options: Option(CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement)));
+                    options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]

@@ -410,7 +410,8 @@ End Namespace");
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
 
             context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.NamespaceDeclarations, CodeStyleOptions2.TrueWithSilentEnforcement));
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -435,7 +436,8 @@ public class [|C|]
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "9");
 
             context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement));
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -461,7 +463,8 @@ namespace N
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
 
             context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.FalseWithSilentEnforcement));
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent)));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null

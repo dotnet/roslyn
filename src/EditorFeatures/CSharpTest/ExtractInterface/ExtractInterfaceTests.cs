@@ -458,7 +458,7 @@ namespace OuterNamespace
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement }
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();
@@ -495,7 +495,7 @@ namespace OuterNamespace
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9),
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement }
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();
@@ -533,7 +533,7 @@ namespace OuterNamespace
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.FalseWithSilentEnforcement }
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();

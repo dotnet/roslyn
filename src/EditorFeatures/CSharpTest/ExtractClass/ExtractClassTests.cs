@@ -283,7 +283,7 @@ internal class MyBase
             await TestAsync(
                 input, expected,
                 CSharpParseOptions.Default,
-                options: Option(CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement),
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent),
                 fixProviderData: new TestExtractClassOptionsService());
         }
 
@@ -335,7 +335,7 @@ namespace MyNamespace
             await TestAsync(
                 input, expected,
                 CSharpParseOptions.Default,
-                options: Option(CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement),
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent),
                 fixProviderData: new TestExtractClassOptionsService());
         }
 
@@ -387,7 +387,7 @@ namespace MyNamespace
             await TestAsync(
                 input, expected,
                 CSharpParseOptions.Default,
-                options: Option(CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.FalseWithSilentEnforcement),
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
                 fixProviderData: new TestExtractClassOptionsService());
         }
 
@@ -1752,11 +1752,11 @@ class Test : MyBase
 
         private class TestExtractClassOptionsService : IExtractClassOptionsService
         {
-            private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
+            private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
             private readonly bool _sameFile;
             private readonly bool isClassDeclarationSelection;
 
-            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
+            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
@@ -1766,7 +1766,7 @@ class Test : MyBase
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol selectedMember)
+            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember)
             {
                 var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -1796,7 +1796,7 @@ class Test : MyBase
                         s.makeAbstract))
                     .ToImmutableArray();
 
-                return Task.FromResult(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
+                return Task.FromResult<ExtractClassOptions?>(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
             }
         }
     }
