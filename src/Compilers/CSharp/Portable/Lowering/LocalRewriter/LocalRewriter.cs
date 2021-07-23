@@ -1038,9 +1038,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-<<<<<<< HEAD
             public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
-=======
+            {
+                Fail(node);
+                return null;
+            }
+
             public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
             {
                 Fail(node);
@@ -1048,7 +1051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
->>>>>>> origin/main
             {
                 Fail(node);
                 return null;

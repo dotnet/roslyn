@@ -36,14 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
-<<<<<<< HEAD
-                out ImmutableArray<LocalSymbol> temps,
-                invokedAsExtensionMethod: false);
-=======
                 ref temps,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.False);
->>>>>>> origin/main
+                invokedAsExtensionMethod: false);
 
             Debug.Assert(rewrittenExpression != null);
             node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);

@@ -1603,31 +1603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // That would be false under "not" and "or" patterns.
             void assignPatternVariablesAndMarkReadFields(BoundPattern pattern, bool definitely = true)
             {
-<<<<<<< HEAD
-                case BoundKind.DeclarationPattern:
-                    {
-                        var pat = (BoundDeclarationPattern)pattern;
-                        if (definitely)
-                            Assign(pat, value: null, isRef: false, read: false);
-                        break;
-                    }
-                case BoundKind.DiscardPattern:
-                case BoundKind.TypePattern:
-                    break;
-                case BoundKind.SlicePattern:
-                    {
-                        var pat = (BoundSlicePattern)pattern;
-                        if (pat.Pattern != null)
-                        {
-                            AssignPatternVariables(pat.Pattern, definitely);
-                        }
-                        break;
-                    }
-                case BoundKind.ConstantPattern:
-                    {
-                        var pat = (BoundConstantPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-=======
                 switch (pattern.Kind)
                 {
                     case BoundKind.DeclarationPattern:
@@ -1638,8 +1613,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     case BoundKind.DiscardPattern:
->>>>>>> origin/main
+                    case BoundKind.TypePattern:
                         break;
+                    case BoundKind.SlicePattern:
+                        {
+                            var pat = (BoundSlicePattern)pattern;
+                            if (pat.Pattern != null)
+                            {
+                                assignPatternVariablesAndMarkReadFields(pat.Pattern, definitely);
+                            }
+                            break;
+                        }
                     case BoundKind.ConstantPattern:
                         {
                             var pat = (BoundConstantPattern)pattern;
@@ -1689,51 +1673,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         }
-                    case BoundKind.TypePattern:
-                        break;
+                    case BoundKind.ListPattern:
+                        {
+                            var pat = (BoundListPattern)pattern;
+                            foreach (BoundPattern p in pat.Subpatterns)
+                            {
+                                assignPatternVariablesAndMarkReadFields(p, definitely);
+                            }
+                            if (definitely)
+                                Assign(pat, null, false, false);
+                            break;
+                        }
                     case BoundKind.RelationalPattern:
                         {
                             var pat = (BoundRelationalPattern)pattern;
                             this.VisitRvalue(pat.Value);
                             break;
                         }
-<<<<<<< HEAD
-                        break;
-                    }
-                case BoundKind.ListPattern:
-                    {
-                        var pat = (BoundListPattern)pattern;
-                        foreach (BoundPattern p in pat.Subpatterns)
-                        {
-                            AssignPatternVariables(p, definitely);
-                        }
-                        if (definitely)
-                            Assign(pat, null, false, false);
-                        break;
-                    }
-                case BoundKind.RelationalPattern:
-                    {
-                        var pat = (BoundRelationalPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                case BoundKind.NegatedPattern:
-                    {
-                        var pat = (BoundNegatedPattern)pattern;
-                        AssignPatternVariables(pat.Negated, definitely: false);
-                        break;
-                    }
-                case BoundKind.BinaryPattern:
-                    {
-                        var pat = (BoundBinaryPattern)pattern;
-                        bool def = definitely && !pat.Disjunction;
-                        AssignPatternVariables(pat.Left, def);
-                        AssignPatternVariables(pat.Right, def);
-                        break;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
-=======
                     case BoundKind.NegatedPattern:
                         {
                             var pat = (BoundNegatedPattern)pattern;
@@ -1751,7 +1707,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
                 }
->>>>>>> origin/main
             }
         }
 

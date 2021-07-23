@@ -1013,17 +1013,11 @@ done:
                 deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
             }
 
-<<<<<<< HEAD
-            ImmutableArray<BoundSubpattern> properties = node.PropertyPatternClause != null
-                ? BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors)
-                : default;
-=======
             ImmutableArray<BoundPropertySubpattern> properties = default;
             if (node.PropertyPatternClause != null)
             {
                 properties = BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors);
             }
->>>>>>> origin/main
 
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,

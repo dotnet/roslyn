@@ -116,9 +116,6 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFileScopedNamespa
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFileScopedNamespaceDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.FileScopedNamespaceDeclarationSyntax node) -> TResult
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordStructDeclaration = 9068 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
-<<<<<<< HEAD
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SlicePattern = 9034 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-=======
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLineDirectivePosition(Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLineSpanDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -138,7 +135,6 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax.Line
 override Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax.ColonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax.ColonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
->>>>>>> origin/main
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax

@@ -8051,7 +8051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argIsIndex
                         ? ErrorCode.ERR_ImplicitIndexIndexerWithName
                         : ErrorCode.ERR_ImplicitRangeIndexerWithName,
-                    arguments.Names[0].GetLocation());
+                    arguments.Names[0].GetValueOrDefault().Location);
             }
             return true;
 
@@ -8191,38 +8191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-<<<<<<< HEAD
             patternSymbol = null;
             return false;
         }
-=======
-            cleanup(lookupResult);
-            if (patternIndexerAccess is null)
-            {
-                return false;
-            }
-
-            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
-            checkWellKnown(WellKnownMember.System_Index__GetOffset);
-            if (arguments.Names.Count > 0)
-            {
-                diagnostics.Add(
-                    argIsRange
-                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
-                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
-                    arguments.Names[0].GetValueOrDefault().Location);
-            }
-            return true;
-
-            static void cleanup(LookupResult lookupResult)
-            {
-                lookupResult.Free();
-            }
-
-            static bool isIntNotByRef(ParameterSymbol param)
-                => param.Type.SpecialType == SpecialType.System_Int32 &&
-                   param.RefKind == RefKind.None;
->>>>>>> origin/main
 
         private bool TryLookupLengthOrCount(
             TypeSymbol receiverType,

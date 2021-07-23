@@ -141,12 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
-<<<<<<< HEAD
-                    out temps);
-=======
-                    ref temps,
-                    enableCallerInfo: ThreeState.True);
->>>>>>> origin/main
+                    ref temps);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 

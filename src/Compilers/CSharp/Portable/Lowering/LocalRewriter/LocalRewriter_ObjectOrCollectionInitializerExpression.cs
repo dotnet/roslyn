@@ -177,9 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt = builder.ToImmutableAndFree();
             }
 
-<<<<<<< HEAD
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps);
-=======
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
                 initializer.Arguments,
@@ -188,10 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 ref rewrittenReceiver,
                 out ArrayBuilder<LocalSymbol>? temps);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
->>>>>>> origin/main
 
             if (initializer.InvokedAsExtensionMethod)
             {
