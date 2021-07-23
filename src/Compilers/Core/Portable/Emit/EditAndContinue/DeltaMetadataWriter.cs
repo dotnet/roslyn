@@ -543,9 +543,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                var added = this.AddDefIfNecessary(_methodDefs, methodDef);
+                this.AddDefIfNecessary(_methodDefs, methodDef);
+                var methodChange = _changes.GetChange(methodDef);
 
-                if (added)
+                if (methodChange == SymbolChange.Added)
                 {
                     _firstParamRowMap.Add(GetMethodDefinitionHandle(methodDef), _parameterDefs.NextRowId);
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
@@ -554,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         _parameterDefList.Add(paramDef, methodDef);
                     }
                 }
-                else if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
+                else if (methodChange == SymbolChange.Updated)
                 {
                     // If we're re-emitting parameters for an existing method we need to find their original row numbers
                     // and reuse them so the EnCLog, EnCMap and CustomAttributes tables refer to the right rows
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                if (added)
+                if (methodChange == SymbolChange.Added)
                 {
                     if (methodDef.GenericParameterCount > 0)
                     {
@@ -900,16 +901,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var methodDef = _parameterDefList[paramDef];
 
-                if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
-                {
-                    // For previously emitted parameters we just update the Param row
-                    var param = GetParameterHandle(paramDef);
-                    _paramEncMapRows.Add(MetadataTokens.GetRowNumber(param));
-                    metadata.AddEncLogEntry(
-                        entity: param,
-                        code: EditAndContinueOperation.Default);
-                }
-                else
+                if (_methodDefs.IsAddedNotChanged(methodDef))
                 {
                     // For parameters on new methods we emit AddParameter rows for the method too
                     _paramEncMapRows.Add(parameterFirstId + i);
@@ -921,6 +913,15 @@ namespace Microsoft.CodeAnalysis.Emit
                         entity: MetadataTokens.ParameterHandle(parameterFirstId + i),
                         code: EditAndContinueOperation.Default);
                     i++;
+                }
+                else
+                {
+                    // For previously emitted parameters we just update the Param row
+                    var param = GetParameterHandle(paramDef);
+                    _paramEncMapRows.Add(MetadataTokens.GetRowNumber(param));
+                    metadata.AddEncLogEntry(
+                        entity: param,
+                        code: EditAndContinueOperation.Default);
                 }
             }
         }
