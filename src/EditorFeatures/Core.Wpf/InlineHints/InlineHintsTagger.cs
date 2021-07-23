@@ -78,10 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (_format != null)
             {
                 _format = null;
-                foreach (var tag in _cache)
+                _cache.Clear();
+                var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
+
+                foreach (var tag in tags)
                 {
-                    var inlineHintTag = (InlineHintsTag)tag.Tag;
-                    inlineHintTag.UpdateColor(Format, inlineHintTag.Adornment, _formatMap);
+                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(tag.Span));
                 }
             }
         }

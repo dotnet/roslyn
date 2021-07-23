@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly InlineHint _hint;
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-        private readonly ClassificationTypeMap _classificationTypeMap;
 
         private InlineHintsTag(
             FrameworkElement adornment,
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
-            _classificationTypeMap = taggerProvider.TypeMap;
 
             // Sets the tooltip to a string so that the tool tip opening event can be triggered
             // Tooltip value does not matter at this point because it immediately gets overwritten by the correct
@@ -191,38 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             TextOptions.SetTextRenderingMode(stackPanel, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
             return stackPanel;
-        }
-
-        public void UpdateColor(TextFormattingRunProperties format, UIElement uiElement, IClassificationFormatMap formatMap)
-        {
-            var stackPanel = (StackPanel)uiElement;
-            var dockPanel = (DockPanel)stackPanel.Children[0];
-            var border = (Border)dockPanel.Children[0];
-            var block = (TextBlock)border.Child;
-            block.FontFamily = format.Typeface.FontFamily;
-            block.FontSize = 0.75 * format.FontRenderingEmSize;
-            block.Foreground = format.ForegroundBrush;
-            border.Background = format.BackgroundBrush;
-
-            foreach (var inline in block.Inlines)
-            {
-                foreach (var text in _hint.DisplayParts)
-                {
-                    var run = (Run)inline;
-                    if (run.Foreground == Brushes.Black)
-                    {
-                        break;
-                    }
-
-                    var properties = formatMap.GetTextProperties(_classificationTypeMap.GetClassificationType(text.Tag.ToClassificationTypeName()));
-                    var brush = properties.ForegroundBrush.Clone();
-                    run.Foreground = brush;
-                }
-            }
-
-            var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-            dockPanel.Height = dockPanelHeight;
-            stackPanel.Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize));
         }
 
         private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
