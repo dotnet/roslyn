@@ -1642,11 +1642,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             if (!pat.Properties.IsDefaultOrEmpty)
                             {
-                                foreach (BoundSubpattern sub in pat.Properties)
+                                foreach (BoundPropertySubpattern sub in pat.Properties)
                                 {
-                                    if (sub is BoundPropertySubpattern { Member: var member }
-                                        && _sourceAssembly is not null)
+                                    if (_sourceAssembly is not null)
                                     {
+                                        BoundPropertySubpatternMember member = sub.Member;
                                         while (member is not null)
                                         {
                                             if (member.Symbol is FieldSymbol field)
