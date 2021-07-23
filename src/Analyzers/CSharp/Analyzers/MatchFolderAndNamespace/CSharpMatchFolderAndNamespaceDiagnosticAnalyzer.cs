@@ -7,17 +7,17 @@ using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<NamespaceDeclarationSyntax>
+    internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer
+        : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax>
     {
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
-        protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
-        }
+        protected override ImmutableArray<SyntaxKind> GetSyntaxKindsToAnalyze()
+            => ImmutableArray.Create(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
     }
 }

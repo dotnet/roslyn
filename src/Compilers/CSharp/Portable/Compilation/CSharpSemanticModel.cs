@@ -3792,12 +3792,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!isDynamic)
                 {
-                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.MethodOpt, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
+                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.Method, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
                 }
             }
             else
             {
-                Debug.Assert((object)binaryOperator.MethodOpt == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
+                Debug.Assert((object)binaryOperator.Method == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
 
                 if (!isDynamic &&
                     (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&

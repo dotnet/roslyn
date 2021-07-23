@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition UserMembersConstantsTypeDefinition;
         #endregion
-        #region User Memebers - Locals
+        #region User Members - Locals
         [Export]
         [Name(ClassificationTypeNames.LocalName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
