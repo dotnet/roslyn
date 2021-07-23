@@ -410,7 +410,7 @@ End Namespace");
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
 
             context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.PreferFileScopedNamespace, CodeStyleOptions2.TrueWithSilentEnforcement));
+                CSharpCodeStyleOptions.NamespaceDeclarations, CodeStyleOptions2.TrueWithSilentEnforcement));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null

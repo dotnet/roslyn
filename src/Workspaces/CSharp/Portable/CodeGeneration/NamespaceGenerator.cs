@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.CompilationUnit().WithUsings(usings);
 
             if (destination == CodeGenerationDestination.CompilationUnit &&
-                options.Options.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace).Value &&
+                options.Options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value == NamespaceDeclarationPreference.FileScoped &&
                 ((CSharpParseOptions)parseOptions)?.LanguageVersion >= LanguageVersion.CSharp10)
             {
                 return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);

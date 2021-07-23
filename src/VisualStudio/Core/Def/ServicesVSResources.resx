@@ -1773,7 +1773,7 @@ I agree to all of the foregoing:</value>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
   </data>
-  <data name="Prefer_file_scoped_namespace" xml:space="preserve">
-    <value>Prefer file scoped namespace</value>
+  <data name="Namespace_declarations" xml:space="preserve">
+    <value>Namespace declarations</value>
   </data>
 </root>

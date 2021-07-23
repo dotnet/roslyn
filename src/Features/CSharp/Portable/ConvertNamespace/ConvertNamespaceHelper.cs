@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (declaration is not FileScopedNamespaceDeclarationSyntax)
                 return false;
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
-            var userPrefersRegularNamespaces = !option.Value;
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
+            var userPrefersRegularNamespaces = option.Value == NamespaceDeclarationPreference.BlockScoped;
             var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
             var forRefactoring = !forAnalyzer;
 
@@ -42,8 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
-            var userPrefersFileScopedNamespaces = option.Value;
+            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp10)
+                return false;
+
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
+            var userPrefersFileScopedNamespaces = option.Value == NamespaceDeclarationPreference.FileScoped;
             var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
             var forRefactoring = !forAnalyzer;
 

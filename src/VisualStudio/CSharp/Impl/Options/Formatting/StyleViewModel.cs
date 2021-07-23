@@ -2038,7 +2038,7 @@ class C2
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferFileScopedNamespace, ServicesVSResources.Prefer_file_scoped_namespace, s_preferFileScopedNamespace, s_preferBlockNamespace, this, optionStore, codeBlockPreferencesGroupTitle));
+            AddNamespaceDeclarationsOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
@@ -2149,6 +2149,24 @@ class C2
                 enumValues,
                 new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
                 this, optionStore, bracesPreferenceGroupTitle, bracesPreferences));
+        }
+
+        private void AddNamespaceDeclarationsOptions(OptionStore optionStore, string group)
+        {
+            var preferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Block_scoped, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.File_scoped, isChecked: false),
+            };
+
+            var enumValues = new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<NamespaceDeclarationPreference>(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                ServicesVSResources.Namespace_declarations,
+                enumValues,
+                new[] { s_preferBlockNamespace, s_preferFileScopedNamespace },
+                this, optionStore, group, preferences));
         }
 
         private void AddExpressionBodyOptions(OptionStore optionStore, string expressionPreferencesGroupTitle)

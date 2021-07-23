@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static readonly ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> s_descriptors =
             ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
-                .Add(s_useRegularNamespaceDescriptor, CSharpCodeStyleOptions.PreferFileScopedNamespace)
-                .Add(s_useFileScopedNamespaceDescriptor, CSharpCodeStyleOptions.PreferFileScopedNamespace);
+                .Add(s_useRegularNamespaceDescriptor, CSharpCodeStyleOptions.NamespaceDeclarations)
+                .Add(s_useFileScopedNamespaceDescriptor, CSharpCodeStyleOptions.NamespaceDeclarations);
 
         public ConvertNamespaceDiagnosticAnalyzer()
             : base(s_descriptors, LanguageNames.CSharp)
@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         private static Diagnostic? AnalyzeNamespace(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
         {
             var tree = declaration.SyntaxTree;
-            var preferFileScopedNamespace = optionSet.GetOption(CSharpCodeStyleOptions.PreferFileScopedNamespace);
-            var severity = preferFileScopedNamespace.Notification.Severity;
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
 
             var descriptor =
                 ConvertNamespaceHelper.CanOfferUseRegular(optionSet, declaration, forAnalyzer: true) ? s_useRegularNamespaceDescriptor :
@@ -71,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
             // otherwise, if it's not hidden, just squiggle the name.
+            var severity = option.Notification.Severity;
             var diagnosticLocation = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                 ? tree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End))
                 : declaration.Name.GetLocation();
