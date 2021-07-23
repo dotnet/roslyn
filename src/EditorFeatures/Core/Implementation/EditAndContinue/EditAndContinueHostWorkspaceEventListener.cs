@@ -6,44 +6,32 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
+namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     /// <summary>
-    /// Connects <see cref="VisualStudioWorkspace"/> to the ServiceHub services.
-    /// Launches ServiceHub if it is not running yet and starts services that push information from <see cref="VisualStudioWorkspace"/> to the ServiceHub process.
+    /// Notifies EnC service of host workspace events.
     /// </summary>
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal sealed class VisualStudioWorkspaceEditAndContinueListener : IEventListener<object>, IEventListenerStoppable
+    internal sealed class EditAndContinueHostWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceEditAndContinueListener()
+        public EditAndContinueHostWorkspaceEventListener()
         {
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (workspace is not VisualStudioWorkspace)
-            {
-                return;
-            }
-
             workspace.DocumentOpened += WorkspaceDocumentOpened;
         }
 
         public void StopListening(Workspace workspace)
         {
-            if (workspace is not VisualStudioWorkspace)
-            {
-                return;
-            }
-
             workspace.DocumentOpened -= WorkspaceDocumentOpened;
         }
 
