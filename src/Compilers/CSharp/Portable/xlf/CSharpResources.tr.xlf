@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpResources.resx">
     <body>
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
         <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
-        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
+        <target state="translated">Lambda ifadelerinde öznitelikler parantezli parametre listesi gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="needs-review-translation">'{0}' kayıt üyesi, '{2}' konumsal parametresi ile eşleşecek şekilde '{1}' türünde okunabilir bir örnek özelliği olmalıdır.</target>
+        <target state="translated">{0} kayıt üyesi, {1} konumsal parametresi ile eşleşmesi için {2} türünde okunabilir bir örnek özelliği veya alan olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
-        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
+        <target state="translated">'{0}' alıcı türü geçerli bir kayıt türü değil ve bir yapı türü değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -219,7 +219,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
-        <target state="new">The delegate type could not be inferred.</target>
+        <target state="translated">Temsilci türü çıkarsanamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -544,12 +544,12 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
-        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <target state="translated">Bir ad alanı bildiriminde genel using yönergesi kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
-        <target state="new">A global using directive must precede all non-global using directives.</target>
+        <target state="translated">Genel bir using yönergesi genel olmayan tüm using yönergelerinden önce gelmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_NonPublicAPIInRecord">
         <source>Record member '{0}' must be public.</source>
         <target state="translated">'{0}' kayıt üyesi genel olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
@@ -1214,7 +1219,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
-        <target state="new">global using directive</target>
+        <target state="translated">genel using yönergesi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -1229,12 +1234,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
-        <target state="new">inferred delegate type</target>
+        <target state="translated">çıkarsanan temsilci türü</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
-        <target state="new">lambda attributes</target>
+        <target state="translated">lambda öznitelikleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1247,19 +1252,29 @@
         <target state="new">line span directive</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
-        <target state="new">positional fields in records</target>
+        <target state="translated">kayıtlardaki konumsal alanlar</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
-        <target state="new">record structs</target>
+        <target state="translated">kayıt yapıları</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">kayıtta mühürlü ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1274,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
-        <target state="new">with on structs</target>
+        <target state="translated">yapılar ile birlikte</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -4478,7 +4493,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt, tümü yapı ya da tümü arabirim olmalıdır</target>
+        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5360,11 +5375,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Yapı birimleri parametresi olmayan açık oluşturucular içeremez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">Sabit listeleri açık parametresiz oluşturucu içeremez</target>
@@ -5390,11 +5400,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">'{0}': bir türe ifade üzerinden başvurulamaz; bunun yerine '{1}' deneyin</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': struct'larda örnek özellik veya alan başlatıcıları olamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Yıkıcının adı türün adıyla eşleşmelidir</target>
@@ -5417,7 +5422,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
         <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
-        <target state="needs-review-translation">Oluşturucu, yıkıcı, işleç veya açık arabirim uygulaması olduğundan Conditional özniteliği '{0}' üzerinde geçerli değil</target>
+        <target state="translated">Oluşturucu, yıkıcı, işleç, lambda ifadesi veya açık arabirim uygulaması olduğundan, Conditional özniteliği '{0}' üzerinde geçerli değil</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">

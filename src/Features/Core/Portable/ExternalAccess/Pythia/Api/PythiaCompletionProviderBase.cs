@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider
+    internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider, INotifyCommittingItemCompletionProvider
     {
         public static PerLanguageOption2<bool> HideAdvancedMembersOption => CompletionOptions.HideAdvancedMembers;
 
@@ -56,5 +56,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
             => base.GetChangeAsync(document, item, commitKey, cancellationToken);
+
+        public virtual Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }
