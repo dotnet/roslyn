@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         internal static MemberDescriptor InitializeSingleFromStream(Stream stream, string name)
         {
             var signatureBuilder = ImmutableArray.CreateBuilder<byte>();
-            return InitializeSingleFromStream(stream, name, signatureBuilder));
+            return InitializeSingleFromStream(stream, name, signatureBuilder);
         }
 
         private static MemberDescriptor InitializeSingleFromStream(Stream stream, string name, ImmutableArray<byte>.Builder signatureBuilder)
