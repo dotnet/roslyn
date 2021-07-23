@@ -1100,7 +1100,7 @@ class D
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, methodF0, methodF1, options: SemanticEditOption.EmitAllParametersForMethodUpdate),
+                    SemanticEdit.Create(SemanticEditKind.Update, methodF0, methodF1),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, methodG1)));
 
             // Verify delta metadata contains expected rows.
@@ -1149,7 +1149,7 @@ class D
             var diff2 = compilation2.EmitDifference(
               diff1.NextGeneration,
               ImmutableArray.Create(
-                  SemanticEdit.Create(SemanticEditKind.Update, methodG1, methodG2, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
+                  SemanticEdit.Create(SemanticEditKind.Update, methodG1, methodG2)));
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
@@ -1214,8 +1214,8 @@ delegate void D([A]int x);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, invoke0, invoke1, options: SemanticEditOption.EmitAllParametersForMethodUpdate),
-                    SemanticEdit.Create(SemanticEditKind.Update, beginInvoke0, beginInvoke1, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
+                    SemanticEdit.Create(SemanticEditKind.Update, invoke0, invoke1),
+                    SemanticEdit.Create(SemanticEditKind.Update, beginInvoke0, beginInvoke1)));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();

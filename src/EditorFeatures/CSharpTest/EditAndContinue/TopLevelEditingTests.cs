@@ -8324,7 +8324,7 @@ class C
                 ActiveStatementsDescription.Empty,
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true, options: SemanticEditOption.EmitAllParametersForMethodUpdate)
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"))
                 },
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
