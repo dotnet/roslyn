@@ -616,8 +616,7 @@ namespace $$N
     namespace N2
     {
     }
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -639,7 +638,7 @@ namespace {|CS8954:N2|};
                 FixedCode = @"
 namespace $$N
 {
-    namespace N2;
+    namespace {|CS8955:N2|};
 }
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
@@ -688,7 +687,7 @@ namespace N
 namespace $${|CS8956:N|};
 ",
                 FixedCode = @"
-int i = 0;
+{|CS8805:int i = 0;|}
 
 namespace $$N
 {
@@ -715,7 +714,7 @@ namespace $$N
                 TestCode = @"
 namespace $$N;
 
-int i = 0;
+int {|CS0116:i|} = 0;
 ",
                 FixedCode = @"
 namespace $$N
@@ -853,12 +852,12 @@ namespace $$N;
 class C
 {{|CS1513:|}",
                 FixedCode = @"
-namespace N;
+namespace N
 {
     /// <summary/>
     class C
     {
-    }",
+    }{|CS1513:|}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
