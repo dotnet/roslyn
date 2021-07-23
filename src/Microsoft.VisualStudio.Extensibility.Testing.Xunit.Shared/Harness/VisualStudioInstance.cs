@@ -52,7 +52,7 @@ namespace Xunit.Harness
                 new BinaryClientFormatterSinkProvider(),
                 new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full });
 
-            ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
+            ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: false);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
             _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
