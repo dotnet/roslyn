@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsValidCallerInfoContext(node))
             {
-                // CS8958: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
+                // CS8966: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
