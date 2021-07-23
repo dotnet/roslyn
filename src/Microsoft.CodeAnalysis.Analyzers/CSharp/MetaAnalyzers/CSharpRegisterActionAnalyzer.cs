@@ -77,10 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             }
 
             protected override bool IsSyntaxKind(ITypeSymbol type)
-            {
-                return (_csharpSyntaxKind != null && SymbolEqualityComparer.Default.Equals(type, _csharpSyntaxKind)) ||
-                    (_basicSyntaxKind != null && SymbolEqualityComparer.Default.Equals(type, _basicSyntaxKind));
-            }
+                => SymbolEqualityComparer.Default.Equals(type, _csharpSyntaxKind)
+                    || SymbolEqualityComparer.Default.Equals(type, _basicSyntaxKind);
         }
     }
 }

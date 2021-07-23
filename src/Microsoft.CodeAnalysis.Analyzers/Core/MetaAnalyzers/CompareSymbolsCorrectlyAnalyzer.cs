@@ -260,24 +260,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol symbolType)
-        {
-            if (typeSymbol == null)
-            {
-                return false;
-            }
-
-            if (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType))
-            {
-                return true;
-            }
-
-            if (typeSymbol.AllInterfaces.Contains(symbolType))
-            {
-                return true;
-            }
-
-            return false;
-        }
+            => typeSymbol != null
+                && (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType)
+                    || typeSymbol.AllInterfaces.Contains(symbolType));
 
         private static bool IsSymbolClassType(IOperation operation)
         {

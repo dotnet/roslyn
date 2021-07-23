@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static partial class IMethodSymbolExtensions
+    internal static class IMethodSymbolExtensions
     {
         /// <summary>
         /// Checks if the given method overrides <see cref="object.Equals(object)"/>.
@@ -214,8 +214,7 @@ namespace Analyzer.Utilities.Extensions
 
             // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
-            return method.ReturnType != null &&
-                SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTaskType) &&
+            return SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTaskType) &&
                 method.Parameters.IsEmpty &&
                 method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         }

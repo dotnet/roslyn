@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     {
                         AnalyzeFixerWithFixAll(fixer, context);
                     }
-                    else if (fixer.BaseType != null && SymbolEqualityComparer.Default.Equals(fixer.BaseType, _codeFixProviderSymbol))
+                    else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _codeFixProviderSymbol))
                     {
                         Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     // Local functions
                     bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
                     {
-                        if (namedType == null || SymbolEqualityComparer.Default.Equals(namedType, _codeActionSymbol))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, _codeActionSymbol))
                         {
                             return false;
                         }
