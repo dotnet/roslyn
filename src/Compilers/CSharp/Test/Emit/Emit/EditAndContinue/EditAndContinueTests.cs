@@ -1412,17 +1412,25 @@ class C
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F2");
-            CheckNames(readers, reader2.GetParameterDefNames());
+            CheckNames(readers, reader2.GetParameterDefNames(), "", "s2");
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F2
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), // C.F2
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Constant, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader2,
                 Handle(8, TableIndex.TypeRef),
                 Handle(5, TableIndex.MethodDef),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param),
+                Handle(2, TableIndex.Constant),
+                Handle(4, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(3, TableIndex.AssemblyRef));
         }
@@ -1649,8 +1657,10 @@ namespace N
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1677,10 +1687,12 @@ namespace N
                 Handle(9, TableIndex.MethodDef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(11, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
                 Handle(4, TableIndex.Param),
                 Handle(7, TableIndex.MemberRef),
                 Handle(8, TableIndex.MemberRef),
                 Handle(9, TableIndex.MemberRef),
+                Handle(6, TableIndex.CustomAttribute),
                 Handle(11, TableIndex.CustomAttribute),
                 Handle(12, TableIndex.CustomAttribute),
                 Handle(13, TableIndex.CustomAttribute),
@@ -2514,11 +2526,15 @@ class C
             CheckEncLogDefinitions(reader3,
                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMapDefinitions(reader3,
                 Handle(4, TableIndex.TypeDef),
                 Handle(5, TableIndex.MethodDef),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param),
                 Handle(4, TableIndex.CustomAttribute));
         }
 
@@ -3233,6 +3249,12 @@ interface I
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
@@ -11836,13 +11858,15 @@ namespace N
                 Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default)); // R.PrintMembers
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(20, TableIndex.TypeRef),
                 Handle(21, TableIndex.TypeRef),
                 Handle(22, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));
@@ -11952,13 +11976,15 @@ Console.WriteLine(""Hello World"");
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)); // Synthesized Main method
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default), // Synthesized Main method
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(8, TableIndex.TypeRef),
                 Handle(9, TableIndex.TypeRef),
                 Handle(10, TableIndex.TypeRef),
                 Handle(1, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
                 Handle(6, TableIndex.MemberRef),
                 Handle(7, TableIndex.MemberRef),
                 Handle(2, TableIndex.AssemblyRef));
