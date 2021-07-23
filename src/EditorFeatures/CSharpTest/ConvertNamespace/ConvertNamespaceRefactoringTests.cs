@@ -633,14 +633,12 @@ namespace $$N
                 TestCode = @"
 namespace $$N;
 
-namespace {|CS8954:N2|};
-",
+namespace {|CS8954:N2|};",
                 FixedCode = @"
 namespace $$N
 {
     namespace {|CS8955:N2|};
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -694,11 +692,6 @@ namespace $$N
 }
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11),
-                },
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -719,17 +712,9 @@ int {|CS0116:i|} = 0;
                 FixedCode = @"
 namespace $$N
 {
-    {|CS0116:i|}nt i = 0;
-}
-",
+    int {|CS0116:i|} = 0;
+}",
                 LanguageVersion = LanguageVersion.CSharp10,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(6,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                    DiagnosticResult.CompilerError("CS8803").WithSpan(6, 1, 6, 11),
-                    // /0/Test0.cs(6,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(6, 1, 6, 11),
-                },
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -859,6 +844,7 @@ namespace N
     {
     }{|CS1513:|}",
                 LanguageVersion = LanguageVersion.CSharp10,
+                CodeActionValidationMode = CodeActionValidationMode.None,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }

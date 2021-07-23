@@ -157,6 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Kind() == SyntaxKind.EndOfFileToken)
                 return null;
 
+            if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
+                return null;
+
             if (previousToken.Parent is not FileScopedNamespaceDeclarationSyntax)
                 return null;
 
