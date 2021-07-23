@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Catch e As NotSupportedException
                 ' TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
-                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing, updatedMethods:=updatedMethods.ToImmutableAndFree(), updatedTypes:=updatedTypes.ToImmutableAndFree())
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing, updatedMethods:=updatedMethods.ToImmutableAndFree(), changedTypes:=updatedTypes.ToImmutableAndFree())
             End Try
 
             If testData IsNot Nothing Then
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 diagnostics:=diagnostics.ToReadOnlyAndFree(),
                 baseline:=newBaseline,
                 updatedMethods:=updatedMethods.ToImmutableAndFree(),
-                updatedTypes:=updatedTypes.ToImmutableAndFree())
+                changedTypes:=updatedTypes.ToImmutableAndFree())
         End Function
 
         Friend Function MapToCompilation(

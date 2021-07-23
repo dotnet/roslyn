@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
             var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
-            var updatedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
+            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             PEDeltaAssemblyBuilder moduleBeingBuilt;
             try
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null, updatedMethods: updatedMethods.ToImmutableAndFree(), updatedTypes: updatedTypes.ToImmutableAndFree());
+                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null, updatedMethods: updatedMethods.ToImmutableAndFree(), changedTypes: changedTypes.ToImmutableAndFree());
             }
 
             if (testData != null)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
-                    updatedTypes,
+                    changedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOptions.PdbFilePath,
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 baseline: newBaseline,
                 updatedMethods: updatedMethods.ToImmutableAndFree(),
-                updatedTypes: updatedTypes.ToImmutableAndFree());
+                changedTypes: changedTypes.ToImmutableAndFree());
         }
 
         /// <summary>

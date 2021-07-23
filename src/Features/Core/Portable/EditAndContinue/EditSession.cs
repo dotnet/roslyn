@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         Contract.ThrowIfNull(emitResult.Baseline);
 
                         var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-                        var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
