@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             int position,
             CancellationToken cancellationToken)
         {
-            if (context == null)
+            if (context is null)
             {
                 // Some LSP clients don't support sending extra context, so all we can do is invoke
                 return Completion.CompletionTrigger.Invoke;
             }
-            else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
+            else if (context.TriggerKind is LSP.CompletionTriggerKind.Invoked or LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
             {
                 if (context is not LSP.VSCompletionContext vsCompletionContext)
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         return Completion.CompletionTrigger.Invoke;
                 }
             }
-            else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
+            else if (context.TriggerKind is LSP.CompletionTriggerKind.TriggerCharacter)
             {
                 Contract.ThrowIfNull(context.TriggerCharacter);
                 Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
@@ -640,6 +640,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+            => GetDocumentationMarkupContent(tags, document.Project.Language, featureSupportsMarkdown);
+
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
         {
             if (!featureSupportsMarkdown)
             {
@@ -657,7 +660,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        var codeBlockLanguageName = GetCodeBlockLanguageName(document);
+                        var codeBlockLanguageName = GetCodeBlockLanguageName(language);
                         builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
                         builder.Append(taggedText.Text);
                         isInCodeBlock = true;
@@ -686,13 +689,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Value = builder.ToString(),
             };
 
-            static string GetCodeBlockLanguageName(Document document)
+            static string GetCodeBlockLanguageName(string language)
             {
-                return document.Project.Language switch
+                return language switch
                 {
                     (LanguageNames.CSharp) => CSharpMarkdownLanguageName,
                     (LanguageNames.VisualBasic) => VisualBasicMarkdownLanguageName,
-                    _ => throw new InvalidOperationException($"{document.Project.Language} is not supported"),
+                    _ => throw new InvalidOperationException($"{language} is not supported"),
                 };
             }
 

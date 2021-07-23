@@ -246,9 +246,6 @@ class B
                 // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 //         a.E += a.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
-                // (12,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         if (a.E != null)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a.E").WithArguments("inferred delegate type").WithLocation(12, 13),
                 // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
                 //             M(a.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),
@@ -1887,9 +1884,10 @@ class C : I
                 // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
                 //     sealed void M3<T>() { }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
-                // (10,34): error CS0112: A static member 'C.M4<T>()' cannot be marked as override, virtual, or abstract
+                // (10,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     internal static virtual void M4<T>() { }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("virtual").WithLocation(10, 34)
+                );
         }
 
         [WorkItem(542391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542391")]

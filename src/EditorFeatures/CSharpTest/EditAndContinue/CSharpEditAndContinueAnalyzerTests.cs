@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         #region Helpers
 
-        private static void TestSpans(string source, Func<SyntaxKind, bool> hasLabel)
+        private static void TestSpans(string source, Func<SyntaxNode, bool> hasLabel)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(source);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var expectedText = source.Substring(expected.Start, expected.Length);
                 var token = tree.GetRoot().FindToken(expected.Start);
                 var node = token.Parent;
-                while (!hasLabel(node.Kind()))
+                while (!hasLabel(node))
                 {
                     node = node.Parent;
                 }
@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
 /*<span>*/delegate C<T> D2()/*</span>*/;
 
-[/*<span>*/Attrib/*</span>*/]
-/*<span>*/[Attrib]/*</span>*/
+[Attrib]
 /*<span>*/public class Z/*</span>*/
 {
     /*<span>*/int f/*</span>*/;
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => SyntaxComparer.TopLevel.HasLabel(kind));
+            TestSpans(source, node => SyntaxComparer.TopLevel.HasLabel(node));
         }
 
         [Fact]
@@ -767,10 +766,10 @@ class D
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
 
             var expectedDiagnostic = outOfMemory ?
-                $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big, "src.cs")}" :
+                $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, "src.cs")}" :
                 // Because the error message that is formatted into this template string includes a stacktrace with newlines, we need to replicate that behavior
                 // here so that any trailing punctuation is removed from the translated template string.
-                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error, "src.cs", "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
+                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, "src.cs", "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
         {
             _progress = progress;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
-                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
@@ -336,11 +338,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

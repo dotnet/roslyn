@@ -512,6 +512,12 @@ breaks
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            TestNormalizeDeclaration("namespace NS;class C{}", "namespace NS;\r\nclass C\r\n{\r\n}");
+        }
+
+        [Fact]
         public void TestSpacingOnRecord()
         {
             TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
@@ -969,6 +975,15 @@ class Derived : Base
         public void TestNormalizeBlockAnonymousFunctions(string actual, string expected)
         {
             TestNormalizeStatement(actual, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

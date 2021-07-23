@@ -57,14 +57,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             try
             {
-                using var token = this._asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
+                using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
 
                 // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
                 // doesn't block the UI thread.
                 await TaskScheduler.Default;
 
-                await _languageClientBroker.Value.LoadAsync(
-                    new LanguageClientMetadata(new[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), _languageClient).ConfigureAwait(false);
+                await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[]
+                {
+                        ContentTypeNames.CSharpContentType,
+                        ContentTypeNames.VisualBasicContentType,
+                        ContentTypeNames.FSharpContentType
+                }), _languageClient).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {

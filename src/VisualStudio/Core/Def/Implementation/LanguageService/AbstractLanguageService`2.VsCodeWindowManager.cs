@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly IThreadingContext _threadingContext;
             private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
-            private INavigationBarController? _navigationBarController;
+            private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private IOptionService? _optionService;
             private WorkspaceRegistration? _workspaceRegistration;
@@ -72,8 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // There's a new workspace, so make sure we unsubscribe from the old workspace option changes and subscribe to new.
                 UpdateOptionChangedSource(_workspaceRegistration.Workspace);
-
-                _navigationBarController?.SetWorkspace(_workspaceRegistration.Workspace);
 
                 // Trigger a check to see if the dropdown should be added / removed now that the buffer is in a different workspace.
                 AddOrRemoveDropdown();
@@ -209,12 +208,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
                 var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
                 var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer);
-                newController.SetWorkspace(_workspaceRegistration?.Workspace);
                 var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    newController.Disconnect();
+                    newController.Dispose();
                     ErrorHandler.ThrowOnFailure(hr);
                 }
 
@@ -229,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (_navigationBarController != null)
                     {
-                        _navigationBarController.Disconnect();
+                        _navigationBarController.Dispose();
                         _navigationBarController = null;
                     }
 

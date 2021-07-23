@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)>>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly TaskScheduler _scheduler;
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+
+        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new();
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -61,7 +64,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                await using var _ = disposable.ConfigureAwait(false);
 
                 // For the starting symbol, always cascade up and down the inheritance hierarchy.
                 var symbols = await DetermineAllSymbolsAsync(
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)>();
+            var set = new HashSet<ISymbol>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
@@ -122,7 +126,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private ValueTask HandleLocationAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
-            => _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken);
+        private async ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
+        {
+            var group = await GetOrCreateSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask<SymbolGroup> GetOrCreateSymbolGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // See if this symbol is already associated with a symbol group.
+            if (!_symbolToGroup.TryGetValue(symbol, out var group))
+            {
+                // If not, compute the group it should be associated with.
+                group = await DetermineSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+
+                // now try to update our mapping.
+                lock (_symbolToGroup)
+                {
+                    // Another thread may have beat us, so only do this if we're actually the first to get here.
+                    if (!_symbolToGroup.TryGetValue(symbol, out _))
+                    {
+                        foreach (var groupSymbol in group.Symbols)
+                            Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
+                    }
+                }
+            }
+
+            return group;
+        }
     }
 }

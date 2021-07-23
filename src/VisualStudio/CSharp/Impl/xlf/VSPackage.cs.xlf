@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../VSPackage.resx">
     <body>
@@ -81,7 +81,8 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
+Editor Color Scheme;
+Inheritance Margin;</source>
         <target state="needs-review-translation">Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 

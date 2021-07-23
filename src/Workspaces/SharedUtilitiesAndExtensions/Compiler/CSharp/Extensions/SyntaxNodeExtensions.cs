@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
                 SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
                 _ => null,
             };
 
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<UsingDirectiveSyntax> GetEnclosingUsingDirectives(this SyntaxNode node)
         {
             return node.GetAncestorOrThis<CompilationUnitSyntax>()!.Usings
-                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                       .Concat(node.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>()
                                    .Reverse()
                                    .SelectMany(n => n.Usings));
         }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
         {
             return node.GetAncestorOrThis<CompilationUnitSyntax>()!.Externs
-                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                       .Concat(node.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>()
                                    .Reverse()
                                    .SelectMany(n => n.Externs));
         }
@@ -543,17 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        public static NamespaceDeclarationSyntax? GetInnermostNamespaceDeclarationWithUsings(this SyntaxNode contextNode)
+        public static BaseNamespaceDeclarationSyntax? GetInnermostNamespaceDeclarationWithUsings(this SyntaxNode contextNode)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
             if (usingDirectiveAncestor == null)
             {
-                return contextNode.GetAncestorsOrThis<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
+                return contextNode.GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
             }
             else
             {
                 // We are inside a using directive. In this case, we should find and return the first 'parent' namespace with usings.
-                var containingNamespace = usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>();
+                var containingNamespace = usingDirectiveAncestor.GetAncestor<BaseNamespaceDeclarationSyntax>();
                 if (containingNamespace == null)
                 {
                     // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    return containingNamespace.GetAncestors<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
+                    return containingNamespace.GetAncestors<BaseNamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
                 }
             }
         }
@@ -958,6 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.Modifiers;
                 case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
                 case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
@@ -971,6 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.WithModifiers(modifiers);
                 case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
                 case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
@@ -1046,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case CompilationUnitSyntax compilation:
                     return compilation.Members;
-                case NamespaceDeclarationSyntax @namespace:
+                case BaseNamespaceDeclarationSyntax @namespace:
                     return @namespace.Members;
                 case TypeDeclarationSyntax type:
                     return type.Members;

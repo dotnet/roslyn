@@ -281,19 +281,19 @@ record struct Point(int x, int y);
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
                 );
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
                 );
 
-            comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1514: { expected
                 // struct Point(int x, int y);
@@ -324,10 +324,10 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
                 );
 
-            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -376,23 +376,23 @@ namespace NS
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(src1);
@@ -963,26 +963,183 @@ public record struct S
         }
 
         [Fact]
-        public void TypeDeclaration_NoParameterlessConstructor()
+        public void TypeDeclaration_ParameterlessConstructor_01()
+        {
+            var src =
+@"record struct S0();
+record struct S1;
+record struct S2
+{
+    public S2() { }
+}";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S0();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8),
+                // (3,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(3, 8),
+                // (5,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(5, 12));
+
+            var verifier = CompileAndVerify(src);
+            verifier.VerifyIL("S0..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyMissing("S1..ctor()");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void TypeDeclaration_ParameterlessConstructor_02()
+        {
+            var src =
+@"record struct S1
+{
+    S1() { }
+}
+record struct S2
+{
+    internal S2() { }
+}";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (3,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(3, 5),
+                // (3,5): error CS8938: The parameterless struct constructor must be 'public'.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (5,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(5, 8),
+                // (7,14): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 14),
+                // (7,14): error CS8938: The parameterless struct constructor must be 'public'.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8918: The parameterless struct constructor must be 'public'.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (7,14): error CS8918: The parameterless struct constructor must be 'public'.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
+        }
+
+        [Fact]
+        public void TypeDeclaration_ParameterlessConstructor_OtherConstructors()
         {
             var src = @"
-public record struct S
+record struct S1
 {
-    public S() { }
+    public S1() { }
+    S1(object o) { } // ok because no record parameter list
+}
+record struct S2
+{
+    S2(object o) { }
+}
+record struct S3()
+{
+    S3(object o) { } // 1
+}
+record struct S4()
+{
+    S4(object o) : this() { }
+}
+record struct S5(object o)
+{
+    public S5() { } // 2
+}
+record struct S6(object o)
+{
+    public S6() : this(null) { }
 }
 ";
-            // This will be allowed in C# 10
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,12): error CS0568: Structs cannot contain explicit parameterless constructors
-                //     public S() { }
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(4, 12)
+                // (13,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     S3(object o) { } // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(13, 5),
+                // (21,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S5() { } // 2
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S5").WithLocation(21, 12)
                 );
         }
 
         [Fact]
-        public void TypeDeclaration_NoInstanceInitializers()
+        public void TypeDeclaration_ParameterlessConstructor_Initializers()
+        {
+            var src = @"
+var s1 = new S1();
+var s2 = new S2(null);
+var s2b = new S2();
+var s3 = new S3();
+var s4 = new S4(new object());
+var s5 = new S5();
+var s6 = new S6(""s6.other"");
+
+System.Console.Write((s1.field, s2.field, s2b.field is null, s3.field, s4.field, s5.field, s6.field, s6.other));
+
+record struct S1
+{
+    public string field = ""s1"";
+    public S1() { }
+}
+record struct S2
+{
+    public string field = ""s2"";
+    public S2(object o) { }
+}
+record struct S3()
+{
+    public string field = ""s3"";
+}
+record struct S4
+{
+    public string field = ""s4"";
+    public S4(object o) : this() { }
+}
+record struct S5()
+{
+    public string field = ""s5"";
+    public S5(object o) : this() { }
+}
+record struct S6(string other)
+{
+    public string field = ""s6.field"";
+    public S6() : this(""ignored"") { }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(s1, s2, True, s3, s4, s5, s6.field, s6.other)");
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers()
         {
             var src = @"
 public record struct S
@@ -991,17 +1148,21 @@ public record struct S
     public int Property { get; set; } = 43;
 }
 ";
-            // This will be allowed in C# 10, or we need to improve the message
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-            var comp = CreateCompilation(src);
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int field = 42;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "field").WithArguments("S").WithLocation(4, 16),
-                // (5,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
+                // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int Property { get; set; } = 43;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Property").WithArguments("S").WithLocation(5, 16)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(5, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1115,18 +1276,9 @@ partial record struct S3();
                 // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
-                // (6,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S2();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(6, 25),
-                // (8,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(8, 25),
                 // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25),
-                // (9,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );
         }
 
@@ -1620,8 +1772,6 @@ record struct C(int X, int Y)
         [Fact]
         public void RecordProperties_01_EmptyParameterList()
         {
-            // We will allow declaring parameterless constructors
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var src = @"
 using System;
 record struct C()
@@ -1633,11 +1783,7 @@ record struct C()
         Console.Write(c.Z);
     }
 }";
-            CreateCompilation(src).VerifyEmitDiagnostics(
-                // (3,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(3, 16)
-                );
+            CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2054,6 +2200,7 @@ namespace System
     public class String { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T> { }
 }
@@ -2070,7 +2217,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -2146,6 +2294,7 @@ namespace System
     public class String { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T> { }
 }
@@ -2162,7 +2311,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -2857,7 +3007,7 @@ public record struct iii
             var text = @"
 static record struct R(int I)
 {
-    R() : this(0) { }
+    public R() : this(0) { }
     ~R() { }
 }
 ";
@@ -2866,9 +3016,6 @@ static record struct R(int I)
                 // (2,22): error CS0106: The modifier 'static' is not valid for this item
                 // static record struct R(int I)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 22),
-                // (4,5): error CS0568: Structs cannot contain explicit parameterless constructors
-                //     R() : this(0) { }
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "R").WithLocation(4, 5),
                 // (5,6): error CS0575: Only class types can contain destructors
                 //     ~R() { }
                 Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "R").WithArguments("R.~R()").WithLocation(5, 6)
@@ -2930,16 +3077,15 @@ public record struct X(int a)
         public void ParameterlessConstructor()
         {
             var src = @"
+System.Console.Write(new C().Property);
+
 record struct C()
 {
-    int Property { get; set; } = 42;
+    public int Property { get; set; } = 42;
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42");
         }
 
         [Fact]
@@ -2959,7 +3105,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
@@ -3005,7 +3151,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics(
                 // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
                 //     /// <param name="x">Description for <see cref="x"/></param>
@@ -3388,9 +3534,6 @@ record struct C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16),
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
@@ -3398,7 +3541,18 @@ record struct C()
                 //             case C():
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
-            Assert.Null(comp.GetMember("C.Deconstruct"));
+            AssertEx.Equal(new[] {
+                "C..ctor()",
+                "void C.M(C c)",
+                "void C.Main()",
+                "System.String C.ToString()",
+                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C left, C right)",
+                "System.Boolean C.op_Equality(C left, C right)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object obj)",
+                "System.Boolean C.Equals(C other)" },
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
 
         [Fact]
@@ -4069,6 +4223,7 @@ namespace System
     public class String { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T> { }
 }
@@ -4085,7 +4240,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -4320,6 +4476,7 @@ namespace System
     public class String { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T> { }
 }
@@ -4336,7 +4493,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -4707,7 +4865,7 @@ record struct C1;
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -4723,18 +4881,18 @@ record struct C1;
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  brfalse.s  IL_0033
+  IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
-  IL_0028:  ldstr      "" ""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""}""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldloc.0
-  IL_0040:  callvirt   ""string object.ToString()""
-  IL_0045:  ret
+  IL_0028:  ldc.i4.s   32
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.s   125
+  IL_0033:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_0038:  pop
+  IL_0039:  ldloc.0
+  IL_003a:  callvirt   ""string object.ToString()""
+  IL_003f:  ret
 }
 ");
         }
@@ -4903,25 +5061,21 @@ record struct C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       50 (0x32)
+  // Code size       38 (0x26)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
+  IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldflda     ""int C1.field""
-  IL_001f:  constrained. ""int""
-  IL_0025:  callvirt   ""string object.ToString()""
-  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_002f:  pop
-  IL_0030:  ldc.i4.1
-  IL_0031:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""int C1.field""
+  IL_0013:  constrained. ""int""
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0023:  pop
+  IL_0024:  ldc.i4.1
+  IL_0025:  ret
 }
 ");
         }
@@ -4945,25 +5099,21 @@ record struct C1<T> where T : struct
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       50 (0x32)
+  // Code size       38 (0x26)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
+  IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldflda     ""T C1<T>.field""
-  IL_001f:  constrained. ""T""
-  IL_0025:  callvirt   ""string object.ToString()""
-  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_002f:  pop
-  IL_0030:  ldc.i4.1
-  IL_0031:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""T C1<T>.field""
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0023:  pop
+  IL_0024:  ldc.i4.1
+  IL_0025:  ret
 }
 ");
         }
@@ -4987,23 +5137,19 @@ record struct C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       39 (0x27)
+  // Code size       27 (0x1b)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
+  IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldfld      ""string C1.field""
-  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0024:  pop
-  IL_0025:  ldc.i4.1
-  IL_0026:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldfld      ""string C1.field""
+  IL_0013:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0018:  pop
+  IL_0019:  ldc.i4.1
+  IL_001a:  ret
 }
 ");
         }
@@ -5035,62 +5181,42 @@ record struct C1(int I)
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size      151 (0x97)
+  // Code size       91 (0x5b)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""I""
+  IL_0001:  ldstr      ""I = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  call       ""readonly int C1.I.get""
-  IL_001f:  stloc.0
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  constrained. ""int""
-  IL_0028:  callvirt   ""string object.ToString()""
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""readonly int C1.I.get""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""int""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldarg.1
+  IL_0028:  ldstr      "", field1 = ""
   IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_0032:  pop
   IL_0033:  ldarg.1
-  IL_0034:  ldstr      "", ""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldarg.1
-  IL_0040:  ldstr      ""field1""
-  IL_0045:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_004a:  pop
-  IL_004b:  ldarg.1
-  IL_004c:  ldstr      "" = ""
-  IL_0051:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0056:  pop
-  IL_0057:  ldarg.1
-  IL_0058:  ldarg.0
-  IL_0059:  ldfld      ""string C1.field1""
-  IL_005e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0063:  pop
-  IL_0064:  ldarg.1
-  IL_0065:  ldstr      "", ""
-  IL_006a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_006f:  pop
-  IL_0070:  ldarg.1
-  IL_0071:  ldstr      ""field2""
-  IL_0076:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_007b:  pop
-  IL_007c:  ldarg.1
-  IL_007d:  ldstr      "" = ""
-  IL_0082:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0087:  pop
-  IL_0088:  ldarg.1
-  IL_0089:  ldarg.0
-  IL_008a:  ldfld      ""string C1.field2""
-  IL_008f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0094:  pop
-  IL_0095:  ldc.i4.1
-  IL_0096:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldfld      ""string C1.field1""
+  IL_003a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_003f:  pop
+  IL_0040:  ldarg.1
+  IL_0041:  ldstr      "", field2 = ""
+  IL_0046:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_004b:  pop
+  IL_004c:  ldarg.1
+  IL_004d:  ldarg.0
+  IL_004e:  ldfld      ""string C1.field2""
+  IL_0053:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0058:  pop
+  IL_0059:  ldc.i4.1
+  IL_005a:  ret
 }
 ");
         }
@@ -5111,33 +5237,29 @@ readonly record struct C1(int I);
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       53 (0x35)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""I""
+  IL_0001:  ldstr      ""I = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  call       ""int C1.I.get""
-  IL_001f:  stloc.0
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  constrained. ""int""
-  IL_0028:  callvirt   ""string object.ToString()""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldc.i4.1
-  IL_0034:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""int C1.I.get""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""int""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -5153,18 +5275,18 @@ readonly record struct C1(int I);
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  brfalse.s  IL_0033
+  IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
-  IL_0028:  ldstr      "" ""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""}""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldloc.0
-  IL_0040:  callvirt   ""string object.ToString()""
-  IL_0045:  ret
+  IL_0028:  ldc.i4.s   32
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.s   125
+  IL_0033:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_0038:  pop
+  IL_0039:  ldloc.0
+  IL_003a:  callvirt   ""string object.ToString()""
+  IL_003f:  ret
 }
 ");
         }
@@ -6449,9 +6571,9 @@ public struct B
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (13,16): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,16): error CS8773: Feature 'with on structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         return this with { X = 42 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this with { X = 42 }").WithArguments("with on structs").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "this with { X = 42 }").WithArguments("with on structs", "10.0").WithLocation(13, 16)
                 );
 
             comp = CreateCompilation(src);
@@ -7775,12 +7897,12 @@ public class C
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS8652: The feature 'with on anonymous types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,17): error CS8773: Feature 'with on anonymous types' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         var b = Identity(a) with { A = Identity(30), B = Identity(40) };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Identity(a) with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Identity(a) with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types", "10.0").WithLocation(9, 17)
                 );
 
-            comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "Identity({ A = 10, B = 20 }) Identity(30) Identity(40) { A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
@@ -9742,7 +9864,6 @@ public class C
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            // TODO2
             var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -9993,6 +10114,35 @@ Block[B3] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
+        [Fact, WorkItem(53849, "https://github.com/dotnet/roslyn/issues/53849")]
+        public void WithExpr_AnonymousType_ValueIsLoweredToo()
+        {
+            var src = @"
+var x = new { Property = 42 };
+var adjusted = x with { Property = x.Property + 2 };
+
+System.Console.WriteLine(adjusted);
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ Property = 44 }");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(53849, "https://github.com/dotnet/roslyn/issues/53849")]
+        public void WithExpr_AnonymousType_ValueIsLoweredToo_NestedWith()
+        {
+            var src = @"
+var x = new { Property = 42 };
+var container = new { Item = x };
+var adjusted = container with { Item = x with { Property = x.Property + 2 } };
+
+System.Console.WriteLine(adjusted);
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ Item = { Property = 44 } }");
+            verifier.VerifyDiagnostics();
+        }
+
         [Fact]
         public void AttributesOnPrimaryConstructorParameters_01()
         {
@@ -10070,15 +10220,15 @@ record struct A(int X)
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (8,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(8, 8),
-                // (8,17): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(8, 8),
+                // (8,17): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42");
             verifier.VerifyIL("A.Deconstruct", @"

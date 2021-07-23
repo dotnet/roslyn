@@ -97,6 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 If Not first Then
                     members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CommaToken)))
                 End If
+
                 first = False
 
                 If [property].IsReadOnly Then
