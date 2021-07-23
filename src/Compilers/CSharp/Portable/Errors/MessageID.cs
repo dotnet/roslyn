@@ -233,8 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
-        // PROTOTYPE: compact before merge
-        IDS_FeatureCallerArgumentExpression = MessageBase + 13000,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -347,7 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# 10.0 features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check
-                case MessageID.IDS_FeatureCallerArgumentExpression: // semantic check
                 case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
                 case MessageID.IDS_FeatureImprovedInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureRecordStructs:

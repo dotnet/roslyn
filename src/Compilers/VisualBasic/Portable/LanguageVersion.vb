@@ -21,8 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic15_5 = 1505
         VisualBasic16 = 1600
         VisualBasic16_9 = 1609
-        ' PROTOTYPE(caller-expr): Map to language version matching whatever VS version the feature will be shipped in.
-        VisualBasic17 = 1700
 
         Latest = Integer.MaxValue
     End Enum
@@ -41,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic15_3,
                     LanguageVersion.VisualBasic15_5,
                     LanguageVersion.VisualBasic16,
-                    LanguageVersion.VisualBasic16_9,
-                    LanguageVersion.VisualBasic17
+                    LanguageVersion.VisualBasic16_9
 
                     Return True
             End Select
@@ -74,8 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "16"
                 Case LanguageVersion.VisualBasic16_9
                     Return "16.9"
-                Case LanguageVersion.VisualBasic17
-                    Return "17"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
@@ -92,9 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
                 Case LanguageVersion.Latest
-                    Return LanguageVersion.VisualBasic17
+                    Return LanguageVersion.VisualBasic16_9
                 Case LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic17
+                    Return LanguageVersion.VisualBasic16
                 Case Else
                     Return version
             End Select
@@ -102,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property CurrentVersion As LanguageVersion
             Get
-                Return LanguageVersion.VisualBasic17
+                Return LanguageVersion.VisualBasic16_9
             End Get
         End Property
 
@@ -133,8 +128,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "16"
                 Case LanguageVersion.VisualBasic16_9
                     Return "16.9"
-                Case LanguageVersion.VisualBasic17
-                    Return "17"
                 Case LanguageVersion.Default
                     Return "default"
                 Case LanguageVersion.Latest
@@ -174,8 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = LanguageVersion.VisualBasic16
                 Case "16.9"
                     result = LanguageVersion.VisualBasic16_9
-                Case "17", "17.0"
-                    result = LanguageVersion.VisualBasic17
                 Case "default"
                     result = LanguageVersion.Default
                 Case "latest"

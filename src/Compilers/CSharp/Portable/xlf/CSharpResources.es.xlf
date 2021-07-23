@@ -1202,11 +1202,6 @@
         <target state="new">async method builder override</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCallerArgumentExpression">
-        <source>caller argument expression</source>
-        <target state="new">caller argument expression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">valores devueltos de covariante</target>

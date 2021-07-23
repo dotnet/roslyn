@@ -64,7 +64,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -130,7 +130,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -195,9 +195,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (29,22): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
                 // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
@@ -251,9 +251,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (28,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (28,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(28, 33),
                 // (28,63): error CS1741: A ref or out parameter cannot have a default value
@@ -310,9 +310,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (29,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
                 // (39,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
@@ -367,9 +367,9 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // (29,33): warning CS9005: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
+                // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
                 //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
                 ).VerifyIL("Program.Main", @"
@@ -412,7 +412,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
@@ -451,7 +451,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
         }
 
@@ -490,7 +490,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
         }
 
@@ -518,10 +518,116 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_Pragmas()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(
+            #pragma warning disable IDE0001
+            #nullable enable
+               123 +
+            #pragma warning disable IDE0002
+            #nullable disable
+               5 +
+            #pragma warning disable IDE0003
+            #nullable restore
+               5
+            #pragma warning disable IDE0004
+            #nullable enable
+        );
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput:
+@"123 +
+            #pragma warning disable IDE0002
+            #nullable disable
+               5 +
+            #pragma warning disable IDE0003
+            #nullable restore
+               5
+").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_ImplicitAndExplicitConstructorBaseCalls()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Base
+{
+    const string p = nameof(p);
+    public Base(int p = 0, [CallerArgumentExpression(p)] string arg = ""<default-arg-base>"")
+    {
+        Console.WriteLine(""Base class: "" + arg);
+    }
+}
+
+class Derived1 : Base
+{
+    const string ppp = nameof(ppp);
+    public Derived1(int ppp, [CallerArgumentExpression(ppp)] string arg = ""<default-arg-derived1>"")
+        : base(ppp)
+    {
+        Console.WriteLine(""Derived1 class: "" + arg);
+    }
+}
+
+class Derived2 : Base
+{
+    const string p = nameof(p);
+    public Derived2(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg-derived2>"")
+    {
+        Console.WriteLine(""Derived2 class: "" + arg);
+    }
+}
+
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        _ = new Base(1+4);
+        Console.WriteLine();
+        _ = new Derived1(2+ 5);
+        Console.WriteLine();
+        _ = new Derived2(3 +  6);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput:
+@"Base class: 1+4
+
+Base class: ppp
+Derived1 class: 2+ 5
+
+Base class: <default-arg-base>
+Derived2 class: 3 +  6
+").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -545,7 +651,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
@@ -576,7 +682,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
@@ -602,7 +708,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
         }
 
@@ -628,7 +734,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
         }
 
@@ -691,6 +797,393 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithMemberNameAttributes2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
+                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWitLineNumberAttributes()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithLineNumberAttributes2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWitLineNumberAttributes3()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithLineNumberAttributes4()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentNonOptionalParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentNonOptionalParameter2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                //         Log(default(int));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithOverride()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+abstract class Base
+{
+    const string p = nameof(p);
+    public abstract void Log_RemoveAttributeInOverride(int p, [CallerArgumentExpression(p)] string arg =""default"");
+    public abstract void Log_AddAttributeInOverride(int p, string arg =""default"");
+}
+
+class Derived : Base
+{
+    const string p = nameof(p);
+    public override void Log_AddAttributeInOverride(int p, [CallerArgumentExpression(p)] string arg = ""default"")
+        => Console.WriteLine(arg);
+
+    public override void Log_RemoveAttributeInOverride(int p, string arg = ""default"")
+        => Console.WriteLine(arg);
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var derived = new Derived();
+        derived.Log_AddAttributeInOverride(5 + 4);
+        derived.Log_RemoveAttributeInOverride(5 + 5);
+
+        ((Base)derived).Log_AddAttributeInOverride(5 + 4);
+        ((Base)derived).Log_RemoveAttributeInOverride(5 + 5);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: @"5 + 4
+default
+default
+5 + 5").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithUserDefinedConversionFromString()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    public C(string s) => S = s;
+    public string S { get; }
+    public static implicit operator C(string s) => new C(s);
+}
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
+    {
+        Console.WriteLine(arg.S);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (19,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'C'
+                //     static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "C").WithLocation(19, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithExtensionGetEnumerator()
+        {
+            string source = @"
+using System;
+using System.Collections;
+using System.Runtime.CompilerServices;
+
+public static class Extensions
+{
+    public static IEnumerator GetEnumerator(this IEnumerator enumerator, [CallerArgumentExpression(""enumerator"")] string s = ""default"")
+    {
+        Console.WriteLine(s);
+        return enumerator;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new [] { """", """" }.GetEnumerator();
+
+        foreach (var y in x)
+        {
+        }
+    }
+}
+
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "x").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithExtensionDeconstruct()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Extensions
+{
+    public static void Deconstruct(this Person p, out string firstName, out string lastName, [CallerArgumentExpression(""firstName"")] string s = ""default"")
+    {
+        firstName = p.FirstName;
+        lastName = p.LastName;
+        Console.WriteLine(s);
+    }
+}
+
+public class Person
+{
+    public Person(string firstName, string lastName)
+        => (FirstName, LastName) = (firstName, lastName);
+
+    public string FirstName { get; }
+    public string LastName { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var p = new Person(""myFirstName"", ""myLastName"");
+        var (first, last) = p;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            compilation.VerifyDiagnostics(
+                // (29,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'first'.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "first").WithArguments("first").WithLocation(29, 14),
+                // (29,21): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'last'.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "last").WithArguments("last").WithLocation(29, 21),
+                // (29,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
+                //         var (first, last) = p;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithOptionalTargetParameter()
         {
             string source = @"
@@ -714,7 +1207,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -749,7 +1242,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -789,7 +1282,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
@@ -848,7 +1341,7 @@ public static class C
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                // (11,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
                 //         [CallerArgumentExpression("p")] string p = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
                 );
@@ -896,6 +1389,56 @@ C.M(""value"");
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestInterpolatedStringHandler()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+M(1 + /**/ 1, $""""); // Should print ""1 + 1""
+
+void M(object o, [InterpolatedStringHandlerArgument(""o"")] CustomHandler c) => Console.WriteLine(c.ToString());
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    private readonly StringBuilder _builder;
+    public CustomHandler(int literalLength, int formattedCount, object o, [CallerArgumentExpression(""o"")] string s = """")
+    {
+        _builder = new StringBuilder();
+        _builder.Append(s);
+    }
+    public void AppendLiteral(string s) => _builder.AppendLine(s.ToString());
+    public void AppendFormatted(object o) => _builder.AppendLine(""value:"" + o.ToString());
+    public override string ToString() => _builder.ToString();
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerArgumentAttribute : Attribute
+    {
+        public InterpolatedStringHandlerArgumentAttribute(string argument) => Arguments = new string[] { argument };
+        public InterpolatedStringHandlerArgumentAttribute(params string[] arguments) => Arguments = arguments;
+        public string[] Arguments { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerAttribute : Attribute
+    {
+        public InterpolatedStringHandlerAttribute()
+        {
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(compilation, expectedOutput: "1 + /**/ 1").VerifyDiagnostics();
+        }
         #endregion
 
         #region CallerArgumentExpression - Attribute constructor
@@ -927,7 +1470,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
@@ -961,7 +1504,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
@@ -994,7 +1537,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
@@ -1031,7 +1574,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
@@ -1137,7 +1680,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -1179,7 +1722,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -1225,7 +1768,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
@@ -1301,7 +1844,7 @@ public class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                // (10,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
                 //         [CallerArgumentExpression("p")] string p = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
                 );
@@ -1390,7 +1933,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1422,7 +1965,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1454,7 +1997,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1487,7 +2030,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
@@ -1526,7 +2069,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_default, param2: param2_default
@@ -1570,7 +2113,7 @@ class Program
         _ = new MyAttribute(0+0, c: 1+1);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
 '0', '2', '2', '0+0', '', '1+1'").VerifyDiagnostics();
         }
@@ -1602,7 +2145,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
         }
 
@@ -1631,10 +2174,7 @@ class Program
     }
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
-                // (14,4): error CS8773: Feature 'caller argument expression' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [My(1+2)]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(1+2)").WithArguments("caller argument expression", "10.0").WithLocation(14, 4));
+            CompileAndVerify(compilation, expectedOutput: "'3', '1+2'").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1661,7 +2201,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
         }
 
@@ -1689,7 +2229,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (8,36): error CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
@@ -1749,7 +2289,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
@@ -1783,7 +2323,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"2, 1+  1
 4, explicit-value").VerifyDiagnostics();
         }
@@ -1819,7 +2359,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
@@ -1857,7 +2397,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
@@ -1896,7 +2436,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
@@ -1947,7 +2487,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)

@@ -1388,8 +1388,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
                     argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
-
                     var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }

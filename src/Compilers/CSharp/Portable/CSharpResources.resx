@@ -6706,9 +6706,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</value>
   </data>
-  <data name="IDS_FeatureCallerArgumentExpression" xml:space="preserve">
-    <value>caller argument expression</value>
-  </data>
   <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
     <value>sealed ToString in record</value>
   </data>
