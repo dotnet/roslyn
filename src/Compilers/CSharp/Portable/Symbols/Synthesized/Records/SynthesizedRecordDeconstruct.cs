@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers result = DeclarationModifiers.Public;
-
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
