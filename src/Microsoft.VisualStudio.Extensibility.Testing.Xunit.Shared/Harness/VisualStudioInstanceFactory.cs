@@ -326,7 +326,7 @@ namespace Xunit.Harness
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
-            var temporaryFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var temporaryFolder = Path.Combine(Path.GetTempPath(), "vs-extension-testing", Path.GetRandomFileName());
             Assert.False(Directory.Exists(temporaryFolder));
             Directory.CreateDirectory(temporaryFolder);
 
