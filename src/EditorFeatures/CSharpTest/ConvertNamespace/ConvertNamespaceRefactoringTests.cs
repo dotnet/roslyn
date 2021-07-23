@@ -689,8 +689,7 @@ namespace $${|CS8956:N|};
 
 namespace $$N
 {
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -841,8 +840,7 @@ namespace N
 {
     /// <summary/>
     class C
-    {
-    }{|CS1513:|}",
+    {}{|CS1513:|}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 Options =
