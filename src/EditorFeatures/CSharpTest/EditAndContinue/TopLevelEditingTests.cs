@@ -2548,7 +2548,7 @@ record C
             var src2 = @"
 record struct C
 {
-    private bool PrintMembers(System.Text.StringBuilder builder)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
         return true;
     }

@@ -3545,13 +3545,13 @@ record struct C()
                 "C..ctor()",
                 "void C.M(C c)",
                 "void C.Main()",
-                "System.String C.ToString()",
-                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String C.ToString()",
+                "readonly System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C left, C right)",
                 "System.Boolean C.op_Equality(C left, C right)",
-                "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object obj)",
-                "System.Boolean C.Equals(C other)" },
+                "readonly System.Int32 C.GetHashCode()",
+                "readonly System.Boolean C.Equals(System.Object obj)",
+                "readonly System.Boolean C.Equals(C other)" },
                 comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
 
@@ -5165,21 +5165,24 @@ record struct C1<T> where T : struct
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""T C1<T>.field""
-  IL_0013:  constrained. ""T""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_000e:  ldfld      ""T C1<T>.field""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
         }
