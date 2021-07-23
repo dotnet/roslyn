@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordPrintMembers(
             SourceMemberContainerTypeSymbol containingType,
-            ArrayBuilder<Symbol> generatedMembers,
             IEnumerable<Symbol> userDefinedMembers,
+            int memberOffset,
             BindingDiagnosticBag diagnostics)
             : base(
                   containingType,
                   WellKnownMemberNames.PrintMembersMethodName,
-                  isReadOnly: IsReadOnly(containingType, generatedMembers, userDefinedMembers),
+                  isReadOnly: IsReadOnly(containingType, userDefinedMembers),
                   hasBody: true,
-                  memberOffset: generatedMembers.Count,
+                  memberOffset: memberOffset,
                   diagnostics)
         {
         }
@@ -291,12 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsReadOnly(NamedTypeSymbol containingType, IEnumerable<Symbol> generatedMembers, IEnumerable<Symbol> userDefinedMembers)
+        private static bool IsReadOnly(NamedTypeSymbol containingType, IEnumerable<Symbol> userDefinedMembers)
         {
-            return containingType.IsReadOnly
-                || (containingType.IsRecordStruct
-                    && AreAllPrintablePropertyGettersReadOnly(generatedMembers)
-                    && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers));
+            return containingType.IsReadOnly || (containingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers));
         }
 
         private static bool AreAllPrintablePropertyGettersReadOnly(IEnumerable<Symbol> members)
