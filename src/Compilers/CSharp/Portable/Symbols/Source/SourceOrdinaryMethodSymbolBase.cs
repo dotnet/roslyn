@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  isIterator: isIterator)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
+            Debug.Assert(!isReadOnly || this.IsImplicitlyDeclared, "We only expect synthesized methods to use this flag to make a method readonly. Explicitly declared methods should get this value from modifiers in syntax.");
 
             _name = name;
 
