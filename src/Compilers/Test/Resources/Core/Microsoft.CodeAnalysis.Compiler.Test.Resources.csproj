@@ -23,6 +23,10 @@
     <EmbeddedResource Include="AssemblyLoadTests\Delta.dll" />
     <Content Include="AssemblyLoadTests\Gamma.cs" />
     <EmbeddedResource Include="AssemblyLoadTests\Gamma.dll" />
+    <Content Include="AssemblyLoadTests\Version2\Delta.cs" />
+    <EmbeddedResource Include="AssemblyLoadTests\Version2\Delta.dll" />
+    <Content Include="AssemblyLoadTests\Version2\Epsilon.cs" />
+    <EmbeddedResource Include="AssemblyLoadTests\Version2\Epsilon.dll" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestLib01.dll" />

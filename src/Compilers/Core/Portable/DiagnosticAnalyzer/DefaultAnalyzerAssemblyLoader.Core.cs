@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 #if NETCOREAPP
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -14,33 +18,79 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
-        private AssemblyLoadContext _loadContext;
+        private readonly object _guard = new object();
+        private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>();
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
-            //.NET Native doesn't support AssemblyLoadContext.GetLoadContext. 
-            // Initializing the _loadContext in the .ctor would cause
-            // .NET Native builds to fail because the .ctor is called. 
-            // However, LoadFromPathImpl is never called in .NET Native, so 
-            // we do a lazy initialization here to make .NET Native builds happy.
-            if (_loadContext == null)
-            {
-                AssemblyLoadContext loadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly);
+            AssemblyLoadContext? loadContext;
 
-                if (System.Threading.Interlocked.CompareExchange(ref _loadContext, loadContext, null) == null)
+            var fullDirectoryPath = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException();
+            lock (_guard)
+            {
+                if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    _loadContext.Resolving += (context, name) =>
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath);
+                    loadContext.Resolving += (context, name) =>
                     {
-                        Debug.Assert(ReferenceEquals(context, _loadContext));
+                        Debug.Assert(ReferenceEquals(context, loadContext));
                         return Load(name.FullName);
                     };
+                    _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
 
-            return LoadImpl(fullPath);
+            return loadContext.LoadFromAssemblyPath(fullPath);
         }
 
-        protected virtual Assembly LoadImpl(string fullPath) => _loadContext.LoadFromAssemblyPath(fullPath);
+        private class DirectoryLoadContext : AssemblyLoadContext
+        {
+            private string _directory;
+            public DirectoryLoadContext(string fullDirectoryPath)
+            {
+                _directory = fullDirectoryPath;
+            }
+
+            protected override Assembly? Load(AssemblyName assemblyName)
+            {
+                // When we want to provide an analyzer with a possibly shared dependency, such as the compiler assemblies,
+                // we want to first search the assembly load context that this class is loaded into.
+                // This method of obtaining the context tries to account for the possibility that
+                // multiple versions of the compiler assemblies themselves could be hosted in different assembly load contexts in a single process.
+                var sharedContext = AssemblyLoadContext.GetLoadContext(typeof(DirectoryLoadContext).Assembly);
+
+                var alreadyLoadedAssembly = sharedContext?.Assemblies.FirstOrDefault(
+                    assembly => AssemblyName.ReferenceMatchesDefinition(assemblyName, assembly.GetName()));
+                if (alreadyLoadedAssembly is not null)
+                {
+                    return alreadyLoadedAssembly;
+                }
+
+                var simpleName = assemblyName.Name;
+                var assemblyPath = Path.Combine(_directory, assemblyName.Name + ".dll");
+                try
+                {
+                    return LoadFromAssemblyPath(assemblyPath);
+                }
+                catch (FileNotFoundException)
+                {
+                    return null;
+                }
+            }
+
+            protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+            {
+                var assemblyPath = Path.Combine(_directory, unmanagedDllName + ".dll");
+                try
+                {
+                    return LoadUnmanagedDllFromPath(assemblyPath);
+                }
+                catch (DllNotFoundException)
+                {
+                    return IntPtr.Zero;
+                }
+            }
+        }
     }
 }
 

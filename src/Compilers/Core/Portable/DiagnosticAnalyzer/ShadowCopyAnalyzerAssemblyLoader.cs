@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadImpl(string fullPath)
+        protected override Assembly LoadFromPathImpl(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
 
-            return base.LoadImpl(shadowCopyPath);
+            return base.LoadFromPathImpl(shadowCopyPath);
         }
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)

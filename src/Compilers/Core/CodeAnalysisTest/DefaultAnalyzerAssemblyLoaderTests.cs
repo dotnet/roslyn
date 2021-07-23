@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             StringBuilder sb = new StringBuilder();
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = Temp.CreateDirectory().CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var betaDll = Temp.CreateDirectory().CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
-            var gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
 
             var loader = new DefaultAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(alphaDll.Path);
@@ -82,6 +82,52 @@ Delta: Gamma: Beta: Test B
             var actual = sb.ToString();
 
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var path1 = Temp.CreateDirectory();
+            var gammaDll = path1.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var delta1Dll = path1.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
+
+            var path2 = Temp.CreateDirectory();
+            var epsilonDll = path2.CreateFile("Epsilon.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Epsilon);
+            var delta2Dll = path2.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta2);
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(gammaDll.Path);
+            loader.AddDependencyLocation(delta1Dll.Path);
+            loader.AddDependencyLocation(epsilonDll.Path);
+            loader.AddDependencyLocation(delta2Dll.Path);
+
+            Assembly gamma = loader.LoadFromPath(gammaDll.Path);
+            var g = gamma.CreateInstance("Gamma.G");
+            g.GetType().GetMethod("Write").Invoke(g, new object[] { sb, "Test G" });
+
+            Assembly epsilon = loader.LoadFromPath(epsilonDll.Path);
+            var e = epsilon.CreateInstance("Epsilon.E");
+            e.GetType().GetMethod("Write").Invoke(e, new object[] { sb, "Test E" });
+
+            var actual = sb.ToString();
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                Assert.Equal(
+@"Delta: Gamma: Test G
+Delta.2: Epsilon: Test E
+",
+                    actual);
+            }
+            else
+            {
+                Assert.Equal(
+@"Delta: Gamma: Test G
+Delta: Epsilon: Test E
+",
+                    actual);
+            }
         }
     }
 }

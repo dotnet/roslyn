@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Build Delta.dll with: csc.exe /t:library Delta.cs
+// Build Epsilon.dll with: csc.exe /t:library /r:Delta.dll Epsilon.cs
 
 using System.Text;
+using Delta;
 
-[assembly: System.Reflection.AssemblyTitle("Delta")]
-[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
-
-namespace Delta
+namespace Epsilon
 {
-    public class D
+    public class E
     {
         public void Write(StringBuilder sb, string s)
         {
-            sb.AppendLine("Delta: " + s);
+            D d = new D();
+
+            d.Write(sb, "Epsilon: " + s);
         }
     }
 }

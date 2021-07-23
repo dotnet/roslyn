@@ -4,10 +4,11 @@
 
 // Build Delta.dll with: csc.exe /t:library Delta.cs
 
+
 using System.Text;
 
 [assembly: System.Reflection.AssemblyTitle("Delta")]
-[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+[assembly: System.Reflection.AssemblyVersion("2.0.0.0")]
 
 namespace Delta
 {
@@ -15,7 +16,7 @@ namespace Delta
     {
         public void Write(StringBuilder sb, string s)
         {
-            sb.AppendLine("Delta: " + s);
+            sb.AppendLine("Delta.2: " + s);
         }
     }
 }
