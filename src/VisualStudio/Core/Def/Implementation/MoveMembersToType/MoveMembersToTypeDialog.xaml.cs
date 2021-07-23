@@ -19,24 +19,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
     internal partial class MoveMembersToTypeDialog : DialogWindow
     {
         public string MoveMembersToTypeDialogTitle => "Test";
-        public string NamespaceLabelText => ServicesVSResources.Type_Name;
+        public string DestinationLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
 
         public MoveMembersToTypeDialogViewModel ViewModel { get; }
-        public MemberSelection MemberSelectionControl { get; }
+        public StaticMemberSelection MemberSelectionControl { get; }
 
         internal MoveMembersToTypeDialog(MoveMembersToTypeDialogViewModel viewModel)
             : base()
         {
             ViewModel = viewModel;
+            DataContext = viewModel;
+
+            MemberSelectionControl = new StaticMemberSelection(ViewModel.MemberSelectionViewModel);
 
             // Set focus to first tab control when the window is loaded
             Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
-            DataContext = viewModel;
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
@@ -58,9 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             public TestAccessor(MoveMembersToTypeDialog dialog)
                 => _dialog = dialog;
 
-            //public Button OKButton => _dialog.OKButton;
-            //public Button CancelButton => _dialog.CancelButton;
-            //public ComboBox NamespaceBox => _dialog.NamespaceBox;
+            public Button OKButton => _dialog.OKButton;
+            public Button CancelButton => _dialog.CancelButton;
 
         }
     }

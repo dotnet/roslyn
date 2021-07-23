@@ -4,7 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog" 
+    xmlns:movememberstotype="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType" 
+    d:DataContext="{d:DesignInstance Type=movememberstotype:MoveMembersToTypeDialogViewModel}"
+    vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
     x:Uid="MoveMembersToTypeDialog"
     x:Name="dialog"
     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.MoveMembersToTypeDialog"
@@ -13,12 +18,13 @@
     WindowStartupLocation="CenterOwner"
     Height="498"
     Width="500"
-    MinHeight="498"
-    MinWidth="510"
+    MinHeight="298"
+    MinWidth="210"
     HasDialogFrame="True"
     ShowInTaskbar="False"
-    ResizeMode="CanResizeWithGrip"
-    Title="{Binding MoveMembersToTypeDialogTitle, ElementName=dialog}">
+    ResizeMode="CanResize"
+    Title="{Binding MoveMembersToTypeDialogTitle, ElementName=dialog}"
+    Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <vs:DialogWindow.Resources>
         <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">73</sys:Double>
@@ -41,49 +47,101 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
+        <Thickness x:Key="messageMargin">0, 9, 0, 0</Thickness>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </vs:DialogWindow.Resources>
-    <Grid Margin="0,10,0,10">
+    <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="25"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <controls:NewTypeDestinationSelection Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
+        <StackPanel Orientation="Vertical" Grid.Row="0">
+            <Label x:Uid="DestinationLabel" 
+                       x:Name="DestinationLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
+                       Target="{Binding ElementName=DestinationTextBox}" />
+            <ComboBox x:Uid="DestinationBox"
+                          Name="DestinationBox"
+                          IsEditable="True"
+                          IsReadOnly="False"
+                          AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
+                          Text="{Binding DestinationName, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                          ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
+                          BorderThickness="0" 
+                          Margin="0 0 20 0"
+                          MaxDropDownHeight="150">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <imaging:CrispImage 
+                                Grid.Column="0" 
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+
+                            <TextBlock Grid.Column="1" Text="{Binding TypeName}" />
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            <StackPanel Orientation="Horizontal"  
+                        Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Margin="{StaticResource messageMargin}">
+                <imaging:CrispImage Name="MessageIcon"
+                                    Moniker="{Binding Icon}" 
+                                    Height="16"
+                                    Width="16"
+                                    VerticalAlignment="Top" />
+
+                <vs:LiveTextBlock x:Name="MessageText"
+                           Text="{Binding Message}"
+                           Margin="7, 0, 0, 0"
+                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+            </StackPanel>
+        </StackPanel>
 
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"
-                  Margin="0, 9, 0, 0"
-                  Grid.Row="1"
+                  Margin="0, 150, 0, 0"
+                  Grid.Row="2"
                   Header="{Binding ElementName=dialog, Path=SelectMembers}">
             <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>
-        <StackPanel
-            Grid.Row="2"
-            Margin="0, 5, 8, 0"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-            <Button
-                x:Name="OKButton"
-                x:Uid="OKButton"
-                Click="OKButton_Click"
-                IsDefault="True"
-                Margin="0"
-                IsEnabled="{Binding OkButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
-                Padding="{StaticResource ResourceKey=ButtonPadding}"
-                Content="{Binding OK, ElementName=dialog}"
-                MinWidth="{StaticResource ResourceKey=ButtonWidth}"
-                MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
-            <Button
-                x:Name="CancelButton"
-                x:Uid="CancelButton"
-                Click="CancelButton_Click"
-                IsCancel="True"
-                Padding="{StaticResource ResourceKey=ButtonPadding}"
-                Margin="7, 0, 0, 0"
-                Content="{Binding Cancel, ElementName=dialog}"
-                MinWidth="{StaticResource ResourceKey=ButtonWidth}"
-                MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
+        <StackPanel Grid.Row="3"
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <Button x:Uid="OkButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=ButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=ButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
         </StackPanel>
-        
     </Grid>
 </vs:DialogWindow>
