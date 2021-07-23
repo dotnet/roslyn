@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _endLineTagAggregator.BatchedTagsChanged += EndLineTagAggregator_BatchedTagsChanged;
         }
 
+        /// <summary>
+        /// Getting all tags changed events and removing all inline diagnostics to be redrawn
+        /// based on if they intersect with any IEndOfLineAdornmentTags after the layout change
+        /// has completed.
+        /// </summary>
         private void EndLineTagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
             TextView.QueuePostLayoutAction(() =>
@@ -211,8 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                 var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
-                var visualElement = graphicsResult.VisualElement;
-
+                // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
+                // diagnostic would be drawn. If they are the same, then we do not want to draw
+                // the diagnostic.
                 var skipTag = false;
                 var endOfLineTags = _endLineTagAggregator.GetTags(tagMappingSpan.Span);
                 foreach (var endOfLineTag in endOfLineTags)
@@ -236,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     continue;
                 }
 
+                var visualElement = graphicsResult.VisualElement;
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window
                 if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
                 {
