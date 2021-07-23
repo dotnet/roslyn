@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     {
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
+        private readonly ITagAggregator<IEndOfLineAdornmentTag> _endLineTagAggregator;
 
         public InlineDiagnosticsAdornmentManager(
             IThreadingContext threadingContext, IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService,
@@ -37,6 +38,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _formatMap = classificationFormatMapService.GetClassificationFormatMap(textView);
             _formatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
             TextView.ViewportWidthChanged += TextView_ViewportWidthChanged;
+
+            _endLineTagAggregator = tagAggregatorFactoryService.CreateTagAggregator<IEndOfLineAdornmentTag>(textView);
+            _endLineTagAggregator.BatchedTagsChanged += EndLineTagAggregator_BatchedTagsChanged;
+        }
+
+        private void EndLineTagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        {
+            TextView.QueuePostLayoutAction(() =>
+            {
+                foreach (var span in e.Spans)
+                {
+                    var changedSpans = span.GetSpans(TextView.TextBuffer);
+                    UpdateSpans_CallOnlyOnUIThread(changedSpans, removeOldTags: true);
+                }
+            });
         }
 
         /// <summary>
@@ -196,6 +212,29 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
                 var visualElement = graphicsResult.VisualElement;
+
+                var skipTag = false;
+                var endOfLineTags = _endLineTagAggregator.GetTags(tagMappingSpan.Span);
+                foreach (var endOfLineTag in endOfLineTags)
+                {
+                    var endLineTagPoint = endOfLineTag.Span.Start.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
+                    if (endLineTagPoint == null)
+                    {
+                        continue;
+                    }
+
+                    var lineViewEndLineTag = TextView.GetTextViewLineContainingBufferPosition(endLineTagPoint.Value);
+                    if (lineViewEndLineTag.Start.Equals(lineView.Start))
+                    {
+                        skipTag = true;
+                        break;
+                    }
+                }
+
+                if (skipTag)
+                {
+                    continue;
+                }
 
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window
                 if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
