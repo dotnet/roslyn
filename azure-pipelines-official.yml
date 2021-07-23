@@ -308,14 +308,6 @@ stages:
     pool:
       vmImage: windows-2019
     steps:
-    - checkout: none
-
-    - task: NuGetCommand@2
-      displayName: 'Install RIT from Azure Artifacts'
-      inputs:
-        command: custom
-        arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-
     - powershell: |
         $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
@@ -343,40 +335,14 @@ stages:
         Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
       displayName: Set Insertion Variables
 
-    - powershell: |
-        mv RoslynTools.VisualStudioInsertionTool.* RIT
-        .\RIT\tools\OneOffInsertion.ps1 `
-          -autoComplete "$(Insertion.AutoComplete)" `
-          -buildQueueName "$(Build.DefinitionName)" `
-          -cherryPick "(default)" `
-          -clientId "$(ClientId)" `
-          -clientSecret "$(ClientSecret)" `
-          -componentAzdoUri "$(System.CollectionUri)" `
-          -componentBranchName "$(ComponentBranchName)" `
-          -componentGitHubRepoName "dotnet/roslyn" `
-          -componentName "Roslyn" `
-          -componentProjectName "internal" `
-          -createDraftPR "$(Insertion.CreateDraftPR)" `
-          -defaultValueSentinel "(default)" `
-          -dropPath "(default)" `
-          -insertCore "(default)" `
-          -insertDevDiv "(default)" `
-          -insertionCount "1" `
-          -insertToolset "$(Insertion.InsertToolset)" `
-          -titlePrefix "$(Insertion.TitlePrefix)" `
-          -titleSuffix "$(Insertion.TitleSuffix)" `
-          -queueValidation "true" `
-          -requiredValueSentinel "REQUIRED" `
-          -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
-          -specificBuild "$(Build.BuildNumber)" `
-          -updateAssemblyVersions "(default)" `
-          -updateCoreXTLibraries "(default)" `
-          -visualStudioBranchName "$(VSBranchName)" `
-          -writePullRequest "prid.txt" `
-      displayName: 'Run OneOffInsertion.ps1'
-
-    - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
-      displayName: 'Report PR URL'
+    - template: eng/pipelines/insert.yml
+      parameters:
+        createDraftPR: $(Insertion.CreateDraftPR)
+        insertToolset: $(Insertion.InsertToolset)
+        componentBuildProjectName: internal
+        componentBranchName: $(ComponentBranchName)
+        vsBranchName: $(VSBranchName)
+        titlePrefix: $(Insertion.TitlePrefix)
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

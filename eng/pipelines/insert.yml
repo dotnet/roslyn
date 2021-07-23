@@ -1,0 +1,65 @@
+parameters:
+  # These are actually a booleans but must be defined as string.
+  # Parameters are evaluated at compile time, but all variables are strings at compile time.
+  # So in order to pass a parameter that comes from a variable these must be typed as string.
+  - name: createDraftPR
+    type: string
+    default: ''
+  - name: insertToolset
+    type: string
+    default: ''
+
+  - name: componentBuildProjectName
+    type: string
+  - name: componentBranchName
+    type: string
+  - name: vsBranchName
+    type: string
+  - name: titlePrefix
+    type: string
+    default: ''
+
+steps:
+  - checkout: none
+
+  - task: NuGetCommand@2
+    displayName: 'Install RIT from Azure Artifacts'
+    inputs:
+      command: custom
+      arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not ${{ parameters.createDraftPR }})"
+      mv RoslynTools.VisualStudioInsertionTool.* RIT
+      .\RIT\tools\OneOffInsertion.ps1 `
+        -autoComplete "$(Insertion.AutoComplete)" `
+        -buildQueueName "$(Build.DefinitionName)" `
+        -cherryPick "(default)" `
+        -clientId "$(ClientId)" `
+        -clientSecret "$(ClientSecret)" `
+        -componentAzdoUri "$(System.CollectionUri)" `
+        -componentBranchName "${{ parameters.componentBranchName }}" `
+        -componentGitHubRepoName "dotnet/roslyn" `
+        -componentName "Roslyn" `
+        -componentProjectName "${{ parameters.componentBuildProjectName }}" `
+        -createDraftPR "${{ parameters.createDraftPR }}" `
+        -defaultValueSentinel "(default)" `
+        -dropPath "(default)" `
+        -insertCore "(default)" `
+        -insertDevDiv "(default)" `
+        -insertionCount "1" `
+        -insertToolset "${{ parameters.insertToolset }}" `
+        -titlePrefix "${{ parameters.titlePrefix }}" `
+        -titleSuffix "(default)" `
+        -queueValidation "true" `
+        -requiredValueSentinel "REQUIRED" `
+        -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
+        -specificBuild "$(Build.BuildNumber)" `
+        -updateAssemblyVersions "(default)" `
+        -updateCoreXTLibraries "(default)" `
+        -visualStudioBranchName "${{ parameters.vsBranchName }}" `
+        -writePullRequest "prid.txt" `
+    displayName: 'Run OneOffInsertion.ps1'
+
+  - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
+    displayName: 'Report PR URL'

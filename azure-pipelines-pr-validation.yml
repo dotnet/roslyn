@@ -194,3 +194,24 @@ stages:
     - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
       displayName: Perform Cleanup Tasks
       condition: succeededOrFailed()
+
+- stage: insert
+  displayName: Create Insertion
+  dependsOn:
+    - build
+  
+  jobs:
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      vmImage: windows-2019
+    steps:
+    - template: eng/pipelines/insert.yml
+      parameters:
+        createDraftPR: true
+        insertToolset: $(InsertToolset)
+        componentBuildProjectName: DevDiv
+        componentBranchName: $(ComponentBranchName)
+        vsBranchName: $(VisualStudioBranchName)
+        titlePrefix: $(OptionalTitlePrefix)
+  
