@@ -38,9 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var title = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
                 ? CSharpFeaturesResources.Convert_to_file_scoped_namespace
                 : CSharpFeaturesResources.Convert_to_regular_namespace;
+            var equivalenceKey = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
+                ? nameof(CSharpFeaturesResources.Convert_to_file_scoped_namespace)
+                : nameof(CSharpFeaturesResources.Convert_to_regular_namespace);
 
             context.RegisterCodeFix(
-                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -61,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }
