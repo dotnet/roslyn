@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 foreach (var tag in _cache)
                 {
                     var inlineHintTag = (InlineHintsTag)tag.Tag;
-                    InlineHintsTag.UpdateColor(Format, inlineHintTag.Adornment);
+                    inlineHintTag.UpdateColor(Format, inlineHintTag.Adornment, _formatMap);
                 }
             }
         }
