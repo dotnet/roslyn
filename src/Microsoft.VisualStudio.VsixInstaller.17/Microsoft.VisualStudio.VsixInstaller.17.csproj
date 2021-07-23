@@ -9,6 +9,7 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
     <IsPackable>false</IsPackable>
+    <DefineConstants>$(DefineConstants);DEV17</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

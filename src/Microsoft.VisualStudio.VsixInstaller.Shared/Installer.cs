@@ -77,6 +77,18 @@ namespace Microsoft.VisualStudio.VsixInstaller
                 {
                     if (extensionManager.IsInstalled(extension))
                     {
+#if !(DEV11 || DEV12)
+                        if (extension.Header.IsExperimental
+                            && extensionManager.TryGetInstalledExtension(extension.Header.Identifier, out var installedExtension)
+                            && !installedExtension.Header.IsExperimental
+                            && installedExtension.InstalledPerMachine)
+                        {
+                            // Experimental extensions can be installed to the per-user folder without removing the
+                            // non-experimental extension from a machine location.
+                            continue;
+                        }
+#endif
+
                         extensionManager.Uninstall(extensionManager.GetInstalledExtension(extension.Header.Identifier));
                     }
                 }

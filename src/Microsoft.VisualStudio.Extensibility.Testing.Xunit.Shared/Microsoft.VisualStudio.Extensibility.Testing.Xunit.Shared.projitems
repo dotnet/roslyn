@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\VisualStudio_InProc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\OutOfProcComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\TestInvoker_OutOfProc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\ErrorReportingIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\ExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />

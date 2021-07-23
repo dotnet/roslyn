@@ -10,6 +10,7 @@ namespace Xunit.Harness
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Setup.Configuration;
     using Microsoft.Win32;
@@ -136,7 +137,7 @@ namespace Xunit.Harness
                 installationPath = instance.Item1;
                 actualVersion = instance.Item2;
 
-                hostProcess = StartNewVisualStudioProcess(installationPath, version, extensionFiles);
+                hostProcess = await StartNewVisualStudioProcessAsync(installationPath, version, extensionFiles).ConfigureAwait(true);
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -320,12 +321,12 @@ namespace Xunit.Harness
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath, Version version, ImmutableList<string> extensionFiles)
+        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
-            var temporaryFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var temporaryFolder = Path.Combine(Path.GetTempPath(), "vs-extension-testing", Path.GetRandomFileName());
             Assert.False(Directory.Exists(temporaryFolder));
             Directory.CreateDirectory(temporaryFolder);
 
@@ -342,7 +343,28 @@ namespace Xunit.Harness
                     rootSuffix,
                     $"\"{installationPath}\"",
                     string.Join(" ", extensions.Select(extension => $"\"{extension}\"")));
-                Process.Start(CreateSilentStartInfo(installerAssemblyPath, arguments)).WaitForExit();
+
+                var installProcessStartInfo = CreateSilentStartInfo(installerAssemblyPath, arguments);
+                installProcessStartInfo.RedirectStandardError = true;
+                installProcessStartInfo.RedirectStandardOutput = true;
+                using var installProcess = Process.Start(installProcessStartInfo);
+                var standardErrorAsync = installProcess.StandardError.ReadToEndAsync();
+                var standardOutputAsync = installProcess.StandardOutput.ReadToEndAsync();
+                installProcess.WaitForExit();
+
+                if (installProcess.ExitCode != 0)
+                {
+                    var messageBuilder = new StringBuilder();
+                    messageBuilder.AppendLine($"VSIX installer failed with exit code: {installProcess.ExitCode}");
+                    messageBuilder.AppendLine();
+                    messageBuilder.AppendLine($"Standard Error:");
+                    messageBuilder.AppendLine(await standardErrorAsync.ConfigureAwait(true));
+                    messageBuilder.AppendLine();
+                    messageBuilder.AppendLine($"Standard Output:");
+                    messageBuilder.AppendLine(await standardOutputAsync.ConfigureAwait(true));
+
+                    throw new InvalidOperationException(messageBuilder.ToString());
+                }
             }
             finally
             {

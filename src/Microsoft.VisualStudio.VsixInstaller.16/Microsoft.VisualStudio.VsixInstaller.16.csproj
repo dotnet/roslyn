@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <Platforms>x86</Platforms>
     <IsPackable>false</IsPackable>
+    <DefineConstants>$(DefineConstants);DEV16</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
