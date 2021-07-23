@@ -1347,12 +1347,14 @@ hasRelatedInterfaces:
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) && !typeArgument.IsAbstract;
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false) && !typeArgument.IsAbstract;
 
                 case TypeKind.TypeParameter:
                     {
@@ -1370,11 +1372,11 @@ hasRelatedInterfaces:
         }
 
         /// <summary>
-        /// Return true if the class type has a public parameterless constructor.
+        /// Return true if the type has a public parameterless constructor.
         /// </summary>
-        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type)
+        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
-            Debug.Assert(type.TypeKind == TypeKind.Class);
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
@@ -1382,7 +1384,7 @@ hasRelatedInterfaces:
                     return constructor.DeclaredAccessibility == Accessibility.Public;
                 }
             }
-            return false;
+            return synthesizedIfMissing;
         }
 
         /// <summary>
