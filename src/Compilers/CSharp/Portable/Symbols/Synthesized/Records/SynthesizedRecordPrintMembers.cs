@@ -308,7 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var property = (PropertySymbol)member;
-
                 if (!IsPublicInstanceMember(property) || !IsPrintableProperty(property))
                 {
                     continue;
