@@ -22,16 +22,16 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      debug_32:
+      debug_inproc:
         _configuration: Debug
         _oop64bit: false
-      debug_64:
+      debug_oop:
         _configuration: Debug
         _oop64bit: true
-      release_32:
+      release_inproc:
         _configuration: Release
         _oop64bit: false
-      release_64:
+      release_oop:
         _configuration: Release
         _oop64bit: true
   timeoutInMinutes: 135
