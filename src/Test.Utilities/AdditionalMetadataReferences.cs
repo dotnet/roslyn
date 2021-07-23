@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
@@ -80,6 +82,19 @@ namespace Test.Utilities
         public static MetadataReference SystemWebExtensions { get; } = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
         public static MetadataReference SystemServiceModel { get; } = MetadataReference.CreateFromFile(typeof(System.ServiceModel.OperationContractAttribute).Assembly.Location);
 #endif
+
+        private static readonly Lazy<ReferenceAssemblies> _lazyNet60 =
+            new(() =>
+            {
+                return new ReferenceAssemblies(
+                    "net6.0",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "6.0.0-preview.6.21352.12"),
+                    Path.Combine("ref", "net6.0"));
+            });
+
+        public static ReferenceAssemblies Net60 => _lazyNet60.Value;
 
         private static ReferenceAssemblies CreateDefaultReferenceAssemblies()
         {
