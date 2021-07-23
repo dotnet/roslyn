@@ -293,9 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsReadOnly(NamedTypeSymbol containingType, IEnumerable<Symbol> generatedMembers, IEnumerable<Symbol> userDefinedMembers)
         {
-            return containingType.IsRecordStruct
-                && AreAllPrintablePropertyGettersReadOnly(generatedMembers)
-                && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers);
+            return containingType.IsReadOnly
+                || (containingType.IsRecordStruct
+                    && AreAllPrintablePropertyGettersReadOnly(generatedMembers)
+                    && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers));
         }
 
         private static bool AreAllPrintablePropertyGettersReadOnly(IEnumerable<Symbol> members)
