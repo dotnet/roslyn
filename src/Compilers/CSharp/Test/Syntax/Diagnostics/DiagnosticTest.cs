@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var set = new HashSet<ErrorCode>();
             foreach (ErrorCode value in values)
             {
-                Assert.True(set.Add(value));
+                Assert.True(set.Add(value), $"{value} is duplicated!");
             }
         }
 
@@ -264,6 +264,12 @@ class X
                         case ErrorCode.WRN_UnreadRecordParameter:
                         case ErrorCode.WRN_DoNotCompareFunctionPointers:
                         case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                        case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                        case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -379,7 +385,7 @@ class X
         {
             foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
             {
-                if ((int)error < 8600 || (int)error >= 9000)
+                if ((int)error < 8600 || (int)error >= 8912)
                 {
                     continue;
                 }
