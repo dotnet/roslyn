@@ -34,8 +34,6 @@ namespace Xunit.Harness
             var completedTestCaseIds = new HashSet<string>();
             try
             {
-                ExecutionMessageSink.OnMessage(new TestAssemblyStarting(testCases, TestAssembly, DateTime.Now, GetTestFrameworkEnvironment(), GetTestFrameworkDisplayName()));
-
                 foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
                 {
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
@@ -65,6 +63,7 @@ namespace Xunit.Harness
                             var test = new XunitTest(testCase, testCase.DisplayName);
                             ExecutionMessageSink.OnMessage(new TestStarting(test));
                             ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+                            result.Failed++;
                             ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
 
                             ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
@@ -75,16 +74,6 @@ namespace Xunit.Harness
 
                     ExecutionMessageSink.OnMessage(new TestClassFinished(casesByTestClass.ToArray(), casesByTestClass.Key, 0, casesByTestClass.Count(), casesByTestClass.Count(), 0));
                 }
-
-                throw;
-            }
-            finally
-            {
-                var totalExecutionTime = testAssemblyFinishedMessages.Sum(message => message.ExecutionTime);
-                var testsRun = testAssemblyFinishedMessages.Sum(message => message.TestsRun);
-                var testsFailed = testAssemblyFinishedMessages.Sum(message => message.TestsFailed);
-                var testsSkipped = testAssemblyFinishedMessages.Sum(message => message.TestsSkipped);
-                ExecutionMessageSink.OnMessage(new TestAssemblyFinished(testCases, TestAssembly, totalExecutionTime, testsRun, testsFailed, testsSkipped));
             }
 
             return result;
