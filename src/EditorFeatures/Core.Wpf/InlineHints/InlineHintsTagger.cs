@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 _format = null;
                 _cache.Clear();
+
+                // When classifications change we need to rebuild the inline tags with updated Font and Color information.
                 var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
 
                 foreach (var tag in tags)
