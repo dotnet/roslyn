@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var title =
-                ConvertNamespaceHelper.CanOfferUseRegular(optionSet, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_regular_namespace :
+                ConvertNamespaceHelper.CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_block_scoped_namespace :
                 ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_file_scoped_namespace : null;
             if (title == null)
                 return;

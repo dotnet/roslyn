@@ -92,6 +92,11 @@
         <target state="translated">Porovnat s {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="new">Convert to block scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_file_scoped_namespace">
         <source>Convert to file-scoped namespace</source>
         <target state="new">Convert to file-scoped namespace</target>
@@ -101,11 +106,6 @@
         <source>Convert to method</source>
         <target state="translated">Převést na metodu</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_regular_namespace">
-        <source>Convert to regular namespace</source>
-        <target state="new">Convert to regular namespace</target>
-        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>

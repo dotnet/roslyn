@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     internal static class ConvertNamespaceHelper
     {
-        internal static bool CanOfferUseRegular(OptionSet optionSet, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
+        internal static bool CanOfferUseBlockScoped(OptionSet optionSet, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
         {
             if (declaration is not FileScopedNamespaceDeclarationSyntax)
                 return false;

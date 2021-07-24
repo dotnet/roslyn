@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseRegularNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             var title = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
                 ? CSharpFeaturesResources.Convert_to_file_scoped_namespace
-                : CSharpFeaturesResources.Convert_to_regular_namespace;
+                : CSharpFeaturesResources.Convert_to_block_scoped_namespace;
             var equivalenceKey = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
                 ? nameof(CSharpFeaturesResources.Convert_to_file_scoped_namespace)
-                : nameof(CSharpFeaturesResources.Convert_to_regular_namespace);
+                : nameof(CSharpFeaturesResources.Convert_to_block_scoped_namespace);
 
             context.RegisterCodeFix(
                 new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
