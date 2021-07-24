@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Options
             var changedKeysBuilder = ImmutableHashSet.CreateBuilder<OptionKey>();
             for (var i = 0; i < count; i++)
             {
-                if (TryDeserializeOptionKey(reader, lookup) is OptionKey optionKey)
+                if (TryDeserializeOptionKey(reader, lookup) is { } optionKey)
                     changedKeysBuilder.Add(optionKey);
             }
 
