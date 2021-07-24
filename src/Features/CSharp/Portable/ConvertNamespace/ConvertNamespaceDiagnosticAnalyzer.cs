@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
             // otherwise, if it's not hidden, just squiggle the name.
             var severity = option.Notification.Severity;
-            var diagnosticLocation = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
-                ? tree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End))
-                : declaration.Name.GetLocation();
+            var diagnosticLocation = GetDiagnosticLocation(declaration, tree, severity);
 
             return DiagnosticHelper.Create(
                 descriptor,
@@ -81,6 +79,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 severity,
                 ImmutableArray.Create(declaration.GetLocation()),
                 ImmutableDictionary<string, string>.Empty);
+
+            static Location GetDiagnosticLocation(BaseNamespaceDeclarationSyntax declaration, SyntaxTree tree, ReportDiagnostic severity)
+            {
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) != ReportDiagnostic.Hidden)
+                    return declaration.Name.GetLocation();
+
+                var end = declaration is FileScopedNamespaceDeclarationSyntax fileScopedNamespace
+                    ? fileScopedNamespace.SemicolonToken.Span.End
+                    : declaration.Name.Span.End;
+
+                return tree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, end));
+            }
         }
     }
 }

@@ -586,7 +586,7 @@ $$
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace {|IDE0160:N|};
+{|IDE0160:namespace N;|}
 ",
                 FixedCode = @"
 namespace N
