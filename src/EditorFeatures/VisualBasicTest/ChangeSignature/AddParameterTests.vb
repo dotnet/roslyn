@@ -825,5 +825,36 @@ End Class]]></Text>.NormalizedValue()
 
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_NoLastWhitespaceTrivia() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+''' <summary>
+''' </summary>
+''' <param name="a"></param>
+Sub $$M(a As Integer)
+End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation =
+            {
+                New AddedParameterOrExistingIndex(0),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "b", CallSiteKind.Value), "Integer")
+            }
+
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    ''' <summary>
+    ''' </summary>
+    ''' <param name="a"></param>
+    ''' <param name="b"></param>
+    Sub M(a As Integer, b As Integer)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
     End Class
 End Namespace

@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => node switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // case * :
             // default:
             // <label> :
+            // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
+                                               SyntaxKind.ExpressionColon,
                                                SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);

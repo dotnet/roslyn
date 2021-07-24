@@ -708,6 +708,17 @@ End Class", Async Function(w)
             End Function)
         End Function
 
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindAbstractMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "MustInherit Class A
+Public MustOverride Sub M()
+End Class", Async Function(w)
+                Dim item = (Await _aggregator.GetItemsAsync("M")).Single
+                VerifyNavigateToResultItem(item, "M", "[|M|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "A", "Test"))
+            End Function)
+        End Function
+
         <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <Theory>
         <CombinatorialData>

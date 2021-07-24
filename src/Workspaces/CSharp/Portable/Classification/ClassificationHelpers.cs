@@ -310,11 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)

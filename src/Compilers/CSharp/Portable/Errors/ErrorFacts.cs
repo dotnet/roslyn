@@ -204,6 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (code)
             {
+                case ErrorCode.WRN_PartialMethodTypeDifference:
+                    // Warning level 6 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.
+                    return 6;
                 case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_PrecedenceInversion:
@@ -472,6 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                     return 1;
                 default:
                     return 0;

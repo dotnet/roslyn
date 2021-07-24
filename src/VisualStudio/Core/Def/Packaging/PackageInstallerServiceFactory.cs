@@ -440,7 +440,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _workQueue.AddWork((solutionChanged, changedProject));
         }
 
-        private Task ProcessWorkQueueAsync(
+        private ValueTask ProcessWorkQueueAsync(
             ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
@@ -449,13 +449,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
 
             return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private async Task ProcessWorkQueueWorkerAsync(
+        private async ValueTask ProcessWorkQueueWorkerAsync(
             ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
@@ -646,7 +646,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             using var _ = ArrayBuilder<Project>.GetInstance(out var result);
 
-            foreach (var (projectId, state) in this._projectToInstalledPackageAndVersion)
+            foreach (var (projectId, state) in _projectToInstalledPackageAndVersion)
             {
                 if (state.TryGetInstalledVersion(packageName, out var installedVersion) &&
                     installedVersion == version)

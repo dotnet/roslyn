@@ -38,10 +38,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-            // it. However, it's deliberate.  We want to make sure that the code runs on 
-            // the background so that no one takes an accidentally dependency on running on 
-            // the UI thread.
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
+            // run any of this on the UI thread and potentially allow any code to take a dependency on that.
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document, selection, includeSuppressionFixes: true, isBlocking, addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -272,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 // Wrap the suppression/configuration actions within another top level suggested action
                 // to avoid clutter in the light bulb menu.
-                var suppressOrConfigureCodeAction = new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues);
+                var suppressOrConfigureCodeAction = new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
