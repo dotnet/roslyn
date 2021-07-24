@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.NotNull(pref);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/54818"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestInternalsVisibleToSigned()
         {
             var solution = await SolutionAsync(
