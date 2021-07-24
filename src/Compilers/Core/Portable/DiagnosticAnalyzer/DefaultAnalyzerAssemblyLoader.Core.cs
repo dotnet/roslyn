@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         private class DirectoryLoadContext : AssemblyLoadContext
         {
-            private string _directory;
+            private readonly string _directory;
             public DirectoryLoadContext(string fullDirectoryPath)
             {
                 _directory = fullDirectoryPath;
