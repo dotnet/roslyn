@@ -57,12 +57,8 @@
 
   <ItemGroup>
     <None Include="xlf\*" />
-    <Resource Include="SyntaxTree.bmp">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="SyntaxTree.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="SyntaxTree.bmp" />
+    <Resource Include="SyntaxTree.ico" />
     <EmbeddedResource Include="Resources.resx" GenerateSource="true" />
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>

@@ -8,6 +8,7 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <DeployProjectOutput>false</DeployProjectOutput>
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.SDK</VisualStudioInsertionComponent>
     <Ngen>false</Ngen>

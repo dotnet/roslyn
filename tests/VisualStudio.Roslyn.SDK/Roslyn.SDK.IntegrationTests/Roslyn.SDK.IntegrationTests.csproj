@@ -6,6 +6,7 @@
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\Extensions\IVerifierExtensions.cs" Link="IVerifierExtensions.cs" />
@@ -35,21 +36,36 @@
     <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="VsixTesting.Xunit" Version="$(VsixTestingXunitVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitLegacyVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" />
+    <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" CopyVsix="true" />
   </ItemGroup>
 
-  <Target Name="PrepareVsixProjectReferences" BeforeTargets="ResolveProjectReferences" DependsOnTargets="PrepareProjectReferences">
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)" Targets="CreateVsixContainer;VSIXContainerProjectOutputGroup" BuildInParallel="$(BuildInParallel)" Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework); CreateVsixContainer=true" Condition="'%(_MSBuildProjectReferenceExistent.CopyVsix)' == 'true'" ContinueOnError="!$(BuildingProject)" RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
+      <_Parameter1>Roslyn.SDK.vsix</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <Target Name="PrepareVsixProjectReferences"
+          BeforeTargets="ResolveProjectReferences"
+          DependsOnTargets="PrepareProjectReferences">
+    <MSBuild
+      Projects="@(_MSBuildProjectReferenceExistent)"
+      Targets="VSIXContainerProjectOutputGroup"
+      BuildInParallel="$(BuildInParallel)"
+      Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework); CreateVsixContainer=true"
+      Condition="'%(_MSBuildProjectReferenceExistent.CopyVsix)' == 'true'"
+      ContinueOnError="!$(BuildingProject)"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
 
       <Output TaskParameter="TargetOutputs" ItemName="_ProjectReferenceVsixOutputs" />
     </MSBuild>
 
     <ItemGroup>
-      <None Include="@(_ProjectReferenceVsixOutputs)" Condition="Exists('%(Identity)')" CopyToOutputDirectory="PreserveNewest" />
+      <ReferenceCopyLocalPaths Include="@(_ProjectReferenceVsixOutputs)" />
     </ItemGroup>
   </Target>
 

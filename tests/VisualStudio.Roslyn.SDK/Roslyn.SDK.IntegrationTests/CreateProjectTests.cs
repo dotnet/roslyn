@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await base.DisposeAsync();
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateFromTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateAnalyzerFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateRefactoringFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateStandaloneToolFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateAnalyzerFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateRefactoringFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateStandaloneToolFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
