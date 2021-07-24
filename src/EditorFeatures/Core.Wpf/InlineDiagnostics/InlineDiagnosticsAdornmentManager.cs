@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -52,11 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             TextView.QueuePostLayoutAction(() =>
             {
-                foreach (var span in e.Spans)
-                {
-                    var changedSpans = span.GetSpans(TextView.TextBuffer);
-                    UpdateSpans_CallOnlyOnUIThread(changedSpans, removeOldTags: true);
-                }
+                var allSpans = e.Spans.SelectMany(span => span.GetSpans(TextView.TextBuffer));
+                UpdateSpans_CallOnlyOnUIThread(new NormalizedSnapshotSpanCollection(allSpans), removeOldTags: true);
             });
         }
 
@@ -210,37 +208,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     continue;
                 }
 
-                var tag = tagMappingSpan.Tag;
-                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-
                 var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
                 // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
                 // diagnostic would be drawn. If they are the same, then we do not want to draw
                 // the diagnostic.
-                var skipTag = false;
-                var endOfLineTags = _endLineTagAggregator.GetTags(tagMappingSpan.Span);
-                foreach (var endOfLineTag in endOfLineTags)
-                {
-                    var endLineTagPoint = endOfLineTag.Span.Start.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
-                    if (endLineTagPoint == null)
-                    {
-                        continue;
-                    }
-
-                    var lineViewEndLineTag = TextView.GetTextViewLineContainingBufferPosition(endLineTagPoint.Value);
-                    if (lineViewEndLineTag.Start.Equals(lineView.Start))
-                    {
-                        skipTag = true;
-                        break;
-                    }
-                }
-
-                if (skipTag)
+                if (_endLineTagAggregator.GetTags(lineView.Extent).Any())
                 {
                     continue;
                 }
+
+                var tag = tagMappingSpan.Tag;
+                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
+                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
 
                 var visualElement = graphicsResult.VisualElement;
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window
