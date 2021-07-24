@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        //protected sealed override IEnumerable<PerLanguageOption2<bool?>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
         private bool? _experimentEnabled = null;
 
         [ImportingConstructor]
