@@ -340,6 +340,8 @@ stages:
         createDraftPR: $(Insertion.CreateDraftPR)
         autoComplete: $(Insertion.AutoComplete)
         insertToolset: $(Insertion.InsertToolset)
+        clientId: $(ClientId)
+        clientSecret: $(ClientSecret)
         componentBuildProjectName: internal
         componentBranchName: $(ComponentBranchName)
         vsBranchName: $(VSBranchName)

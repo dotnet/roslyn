@@ -12,6 +12,11 @@ parameters:
     type: string
     default: ''
 
+  - name: clientId
+    type: string
+  - name: clientSecret
+    type: string
+
   - name: componentBuildProjectName
     type: string
   - name: componentBranchName
@@ -37,8 +42,8 @@ steps:
         -autoComplete "${{ parameters.autoComplete }}" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
-        -clientId "$(ClientId)" `
-        -clientSecret "$(ClientSecret)" `
+        -clientId "${{ parameters.clientId }}" `
+        -clientSecret "${{ parameters.clientSecret }}" `
         -componentAzdoUri "$(System.CollectionUri)" `
         -componentBranchName "${{ parameters.componentBranchName }}" `
         -componentGitHubRepoName "dotnet/roslyn" `
