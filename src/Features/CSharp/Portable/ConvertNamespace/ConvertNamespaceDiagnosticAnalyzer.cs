@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         private static readonly DiagnosticDescriptor s_useRegularNamespaceDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseRegularNamespaceDiagnosticId,
             EnforceOnBuildValues.UseRegularNamespace,
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Convert_to_regular_namespace), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Convert_to_block_scoped_namespace), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)));
 
         private static readonly DiagnosticDescriptor s_useFileScopedNamespaceDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId,

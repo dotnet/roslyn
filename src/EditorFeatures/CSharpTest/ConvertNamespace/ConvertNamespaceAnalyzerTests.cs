@@ -508,7 +508,7 @@ namespace $$N;
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N;
+{|IDE0160:namespace $$N;|}
 ",
                 FixedCode = @"
 namespace $$N
@@ -528,7 +528,7 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = @"
-$$namespace N;
+$${|IDE0160:namespace N;|}
 ",
                 FixedCode = @"
 namespace N
@@ -547,7 +547,7 @@ namespace N
         {
             var code = @"
 $$
-namespace N;
+{|IDE0160:namespace N;|}
 ";
             await new VerifyCS.Test
             {
@@ -565,7 +565,7 @@ namespace N;
         public async Task TestConvertToBlockNotAfterSemicolon()
         {
             var code = @"
-namespace N;
+{|IDE0160:namespace N;|}
 $$
 ";
             await new VerifyCS.Test
