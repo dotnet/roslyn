@@ -321,6 +321,31 @@ class Class2 { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithFileScopedNamespace()
+        {
+            var code =
+@"namespace N1;
+
+[||]class Class1 { }
+class Class2 { }
+";
+
+            var codeAfterMove =
+@"namespace N1;
+class Class2 { }
+";
+
+            var expectedDocumentName = "Class1.cs";
+
+            var destinationDocumentText =
+@"namespace N1;
+
+class Class1 { }
+";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_Simple()
         {
             var code =

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -527,6 +528,25 @@ public class Derived : TestClass
     public override string Test { get; }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestFileScopedNamespaces()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+namespace Test;
+
+struct [|S1|] { }
+",
+                FixedCode = @"
+namespace Test;
+
+internal struct S1 { }
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
     }
 }
