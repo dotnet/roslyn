@@ -1981,6 +1981,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
         ERR_NoImplicitConvTargetTypedConditional = 8957,
         ERR_NonPublicParameterlessStructConstructor = 8958,
+        ERR_NoConversionForCallerArgumentExpressionParam = 8959,
+        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 8960,
+        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 8961,
+        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 8962,
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 8963,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
+        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
 
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,

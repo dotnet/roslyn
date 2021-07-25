@@ -137,6 +137,11 @@
         <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
+        <source>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</source>
+        <target state="new">The CallerArgumentExpressionAttribute may only be applied to parameters with default values</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Не удается использовать коллекцию динамического типа в асинхронном операторе foreach</target>
@@ -822,6 +827,11 @@
         <target state="translated">"{0}": тип, использованный в операторе using, должен иметь возможность неявного преобразования в System.IDisposable. Вы хотели использовать "await using" вместо "using"?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
+        <source>CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</source>
+        <target state="new">CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">Доступный конструктор копий не найден в базовом типе "{0}".</target>
@@ -1325,6 +1335,66 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation_Title">
+        <source>The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
+        <target state="new">The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerFilePathPreferredOverCallerArgumentExpression">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerFilePathPreferredOverCallerArgumentExpression_Title">
+        <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</source>
+        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerLineNumberPreferredOverCallerArgumentExpression">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerLineNumberPreferredOverCallerArgumentExpression_Title">
+        <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</source>
+        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
+        <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</source>
+        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
