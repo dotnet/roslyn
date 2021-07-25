@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
+                Debug.Fail($"Failed to deserialize: {name}-{feature}-{isPerLanguage}-{language}");
                 return null;
             }
         }
