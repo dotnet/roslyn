@@ -276,15 +276,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBinaryOperator
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
+        public override ConstantValue? ConstantValue => Data?.ConstantValue;
 
-        public override Symbol? ExpressionSymbol
-        {
-            get { return this.MethodOpt; }
-        }
+        public override Symbol? ExpressionSymbol => this.Method;
+
+        internal MethodSymbol? Method => Data?.Method;
+
+        internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
+
+        internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
 
     internal partial class BoundInterpolatedStringBase

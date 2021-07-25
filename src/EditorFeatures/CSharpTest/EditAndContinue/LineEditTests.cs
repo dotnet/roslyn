@@ -1013,6 +1013,32 @@ class C
         }
 
         [Fact]
+        public void Field_LineChange_Reloadable()
+        {
+            var src1 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C
+{
+    int Goo = 1, Bar = 2;
+}
+";
+            var src2 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C
+{
+    int Goo = 1,
+                 Bar = 2;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
+                });
+        }
+
+        [Fact]
         public void Field_Recompile1a()
         {
             var src1 = @"
@@ -1175,6 +1201,31 @@ class C<T>
                 diagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.GenericTypeUpdate, "class C<T>")
+                });
+        }
+
+        [Fact]
+        public void Field_Generic_Reloadable()
+        {
+            var src1 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C<T>
+{
+    static int Goo = 1 + 1;
+}
+";
+            var src2 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C<T>
+{
+    static int Goo = 1 +  1;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
                 });
         }
 

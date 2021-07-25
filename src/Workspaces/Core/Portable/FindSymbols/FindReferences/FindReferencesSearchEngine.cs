@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                await using var _ = disposable.ConfigureAwait(false);
 
                 // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
                 // we'll expand this set as we dicover new symbols to search for in each project.
