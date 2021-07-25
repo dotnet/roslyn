@@ -134,7 +134,7 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (5,66): error CS9000: Newlines are not allowed inside a non-verbatim interpolated string
+                // (5,66): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
                 // (6,6): error CS1026: ) expected
