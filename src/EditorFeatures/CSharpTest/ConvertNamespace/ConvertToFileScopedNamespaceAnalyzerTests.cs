@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         public async Task TestNoConvertToFileScopedInCSharp9()
         {
             var code = @"
-namespace $$N
+namespace N
 {
 }
 ";
@@ -40,10 +40,10 @@ namespace $$N
         }
 
         [Fact]
-        public async Task TestNoConvertToFileScopedInCSharp10WithFileScopedPreference()
+        public async Task TestNoConvertToFileScopedInCSharp10WithBlockScopedPreference()
         {
             var code = @"
-namespace $$N
+namespace N
 {
 }
 ";
@@ -65,7 +65,7 @@ namespace $$N
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 {
 }
 ",
@@ -81,72 +81,10 @@ namespace $$N;
         }
 
         [Fact]
-        public async Task TestOnNamespaceToken()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
-$$namespace N
-{
-}
-",
-                FixedCode = @"
-namespace N;
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNotBeforeNamespaceToken()
-        {
-            var code = @"
-$$
-namespace N
-{
-}
-";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNotOnOpenBrace()
-        {
-            var code = @"
-namespace N
-$${
-}
-";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
         public async Task TestNoConvertWithMultipleNamespaces()
         {
             var code = @"
-namespace $$N
+namespace N
 {
 }
 
@@ -170,32 +108,9 @@ namespace N2
         public async Task TestNoConvertWithNestedNamespaces1()
         {
             var code = @"
-namespace $$N
-{
-    namespace N2
-    {
-    }
-}
-";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNoConvertWithNestedNamespaces2()
-        {
-            var code = @"
 namespace N
 {
-    namespace $$N2
+    namespace N2
     {
     }
 }
@@ -216,9 +131,9 @@ namespace N
         public async Task TestNoConvertWithTopLevelStatement1()
         {
             var code = @"
-int i = 0;
+{|CS8805:int i = 0;|}
 
-namespace $$N
+namespace N
 {
 }
 ";
@@ -227,11 +142,6 @@ namespace $$N
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11),
-                },
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -243,7 +153,7 @@ namespace $$N
         public async Task TestNoConvertWithTopLevelStatement2()
         {
             var code = @"
-namespace $$N
+namespace N
 {
 }
 
@@ -276,7 +186,7 @@ int i = 0;
                 TestCode = @"
 using System;
 
-namespace $$N
+[|namespace N|]
 {
 }
 ",
@@ -299,7 +209,7 @@ namespace $$N;
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 {
     using System;
 }
@@ -323,7 +233,7 @@ using System;
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 {
     class C
     {
@@ -351,7 +261,7 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 {
     /// <summary/>
     class C
@@ -381,7 +291,7 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 {
     /// <summary/>
     class C
@@ -408,7 +318,7 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = @"
-namespace $$N
+[|namespace N|]
 { // comment
     class C
     {
@@ -437,7 +347,7 @@ class C
             {
                 TestCode = @"
 // copyright
-namespace $$N
+[|namespace N|]
 {
     class C
     {
