@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
-                while (parent != null && parent is BaseNamespaceDeclarationSyntax)
+                while (parent is BaseNamespaceDeclarationSyntax)
                 {
                     names.Add(GetName(parent, options));
                     parent = parent.Parent;
@@ -961,6 +961,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
+
+        public SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Usings;
+
+        public SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit)
+            => ((CompilationUnitSyntax)compilationUnit).Usings;
 
         private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {
