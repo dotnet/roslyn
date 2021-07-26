@@ -20,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
+    using static ConvertNamespaceHelper;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var diagnostic = context.Diagnostics.First();
 
-            var (title, equivalenceKey) = ConvertNamespaceHelper.GetInfo(
+            var (title, equivalenceKey) = GetInfo(
                 diagnostic.Id switch
                 {
                     IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.BlockScoped,
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.Location.FindNode(cancellationToken);
-            var converted = ConvertNamespaceHelper.Convert(namespaceDecl);
+            var converted = Convert(namespaceDecl);
 
             editor.ReplaceNode(namespaceDecl, converted);
             return Task.CompletedTask;
