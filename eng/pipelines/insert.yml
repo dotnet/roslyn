@@ -37,12 +37,31 @@ steps:
       command: custom
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
+  # The next two steps define component repo variables for the insertion (if the build lives outside of devdiv).
+  # Unfortunately there are a few limitations regarding variables and pipeline parameters inside ADO pipeline templates.
+  #   1.  It is not possible to define variables in yaml along with steps in templates.
+  #       See https://github.com/MicrosoftDocs/azure-devops-docs/issues/6890#issuecomment-594635314
+  #       The workaround is to define them via scripts as below.
+  #
+  #   2.  Template parameters cannot be tested correctly inside scripts as it just replaces the ${{param}} with the value of the parameter.
+  #       If the parameter is empty, it replaces with nothing which leads to errors in running the script.
+  #       As such, we use a conditional step to test the template parameter and overwrite the template variable.
+
+  # It is not possible to define template variables in yaml along with steps.
+  # See https://github.com/MicrosoftDocs/azure-devops-docs/issues/6890#issuecomment-594635314
+  # The workaround is to define them as below.
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Insertion.ComponentAzdoUri]$($(System.CollectionUri))"
-      Write-Host "##vso[task.setvariable variable=Insertion.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
-    displayName: Set Insertion Variables
+      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
+    displayName: Set Template Variables
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$($(System.CollectionUri))"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
+    displayName: Update Template Variables
     condition: ne('${{ parameters.componentBuildProjectName }}', '')
 
+  # Now that everything is set, actually perform the insertion.
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
       .\RIT\tools\OneOffInsertion.ps1 `
@@ -51,8 +70,8 @@ steps:
         -cherryPick "(default)" `
         -clientId "${{ parameters.clientId }}" `
         -clientSecret "${{ parameters.clientSecret }}" `
-        -componentAzdoUri "$(Insertion.ComponentAzdoUri)" `
-        -componentProjectName "$(Insertion.ComponentProjectName)" `
+        -componentAzdoUri "$(Template.ComponentAzdoUri)" `
+        -componentProjectName "$(Template.ComponentProjectName)" `
         -componentName "Roslyn" `
         -componentGitHubRepoName "dotnet/roslyn" `
         -componentBranchName "${{ parameters.componentBranchName }}" `
