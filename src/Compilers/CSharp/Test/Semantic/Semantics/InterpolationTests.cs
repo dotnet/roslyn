@@ -131,19 +131,21 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with {.
-                //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (5,66): error CS1026: ) expected
+                // (5,66): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 66),
-                // (5,66): error CS1002: ; expected
-                //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 66)
-                );
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
+                // (6,6): error CS1026: ) expected
+                //     }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
+                // (6,6): error CS1002: ; expected
+                //     }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 6),
+                // (7,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2));
         }
 
         [Fact]
@@ -161,8 +163,16 @@ class Program {
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71)
-                );
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
+                // (6,6): error CS1026: ) expected
+                //     }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
+                // (6,6): error CS1002: ; expected
+                //     }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 6),
+                // (7,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2));
         }
 
         [Fact]
@@ -178,19 +188,24 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with {.
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
                 // (5,71): error CS1035: End-of-file found, '*/' expected
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 71),
-                // (5,77): error CS1026: ) expected
+                // (5,77): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 77),
-                // (5,77): error CS1002: ; expected
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
-                );
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 77),
+                // (7,2): error CS1026: ) expected
+                // }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 2),
+                // (7,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 2),
+                // (7,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2),
+                // (7,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2));
         }
 
         [Fact]
@@ -345,20 +360,21 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,29): error CS8076: Missing close delimiter '}' for interpolated expression started with {.
-                //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 29),
-                // (6,31): error CS1010: Newline in constant
-                //         Console.WriteLine( $"{" );
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(   // (6,31): error CS1010: Newline in constant
+                                                                         //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (6,35): error CS1026: ) expected
+                // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 35),
-                // (6,35): error CS1002: ; expected
-                //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 35),
+                // (7,6): error CS1026: ) expected
+                //     }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
+                // (7,6): error CS1002: ; expected
+                //     }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 6),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2));
         }
 
         [Fact]

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
         internal class TestContext : IDisposable
         {
-            private readonly TestWorkspace _workspace;
+            public readonly TestWorkspace Workspace;
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
             public static TestContext Create(
@@ -46,18 +46,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var workspace = CreateWorkspace(
                     projectLanguage, metadataSources, includeXmlDocComments,
                     sourceWithSymbolReference, languageVersion, metadataLanguageVersion);
+
                 return new TestContext(workspace);
             }
 
             public TestContext(TestWorkspace workspace)
             {
-                _workspace = workspace;
-                _metadataAsSourceService = _workspace.GetService<IMetadataAsSourceFileService>();
+                Workspace = workspace;
+                _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
             }
 
             public Solution CurrentSolution
             {
-                get { return _workspace.CurrentSolution; }
+                get { return Workspace.CurrentSolution; }
             }
 
             public Project DefaultProject
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
                 finally
                 {
-                    _workspace.Dispose();
+                    Workspace.Dispose();
                 }
             }
 
@@ -264,8 +265,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             internal async Task<ISymbol> GetNavigationSymbolAsync()
             {
-                var testDocument = _workspace.Documents.Single(d => d.FilePath == "SourceDocument");
-                var document = _workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+                var testDocument = Workspace.Documents.Single(d => d.FilePath == "SourceDocument");
+                var document = Workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
