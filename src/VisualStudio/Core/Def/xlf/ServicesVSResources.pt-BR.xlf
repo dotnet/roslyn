@@ -567,6 +567,11 @@
         <target state="translated">Namespace: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
