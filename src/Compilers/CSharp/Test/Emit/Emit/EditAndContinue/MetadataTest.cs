@@ -4,28 +4,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-using static Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase;
-using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
-using System.Collections.Immutable;
-using System.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    internal class MetadataTest
+    internal partial class MetadataTest : IDisposable
     {
         private readonly CSharpCompilationOptions? _options;
         private readonly TargetFramework _targetFramework;
 
+        private readonly List<IDisposable> _disposables = new();
         private readonly List<MetadataReader> _readers = new();
-        private readonly List<GenerationInfo> _generations = new();
+
+        private int _genId = 1;
+        private GenerationInfo? _prevGeneration;
 
         public MetadataTest(CSharpCompilationOptions? options, TargetFramework? targetFramework)
         {
@@ -33,62 +33,58 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _targetFramework = targetFramework ?? TargetFramework.Standard;
         }
 
-        internal MetadataTest AddGeneration(string source, SemanticEditDescription[]? edits = null, string[]? typeDefs = null, string[]? methodDefs = null, string[]? memberRefs = null, int? customAttributesTableSize = null, EditAndContinueLogEntry[]? encLog = null, EntityHandle[]? encMap = null)
+        internal MetadataTest AddGeneration(string source)
         {
-            _generations.Add(new GenerationInfo(source, edits, typeDefs, methodDefs, memberRefs, customAttributesTableSize, encLog, encMap));
+            Assert.Null(_prevGeneration);
+
+            var compilation = CSharpTestBase.CreateCompilation(source, options: _options, targetFramework: _targetFramework);
+
+            var bytes = compilation.EmitToArray();
+            var md = ModuleMetadata.CreateFromImage(bytes);
+            _disposables.Add(md);
+
+            var reader = md.MetadataReader;
+            _readers.Add(reader);
+
+            var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
+
+            _prevGeneration = new GenerationInfo("initial compilation", _readers, compilation, reader, baseline);
+
             return this;
         }
 
-        internal void Verify()
+        internal MetadataTest AddGeneration(string source, SemanticEditDescription[] edits)
         {
-            Assert.True(_generations.Count > 2, "Should have at least 2 generations (one baseline, one delta)");
+            Assert.NotNull(_prevGeneration);
+            Debug.Assert(_prevGeneration is not null);
 
-            var firstGeneration = _generations[0];
-            var prevCompilation = CreateCompilation(firstGeneration.Source, options: _options, targetFramework: _targetFramework);
+            var compilation = _prevGeneration.Compilation.WithSource(source);
 
-            var disposables = new List<IDisposable>();
+            var semanticEdits = GetSemanticEdits(edits, _prevGeneration.Compilation, compilation);
 
-            var bytes = prevCompilation.EmitToArray();
-            var md = ModuleMetadata.CreateFromImage(bytes);
-            disposables.Add(md);
+            var diff = compilation.EmitDifference(_prevGeneration.Baseline, semanticEdits);
 
-            try
-            {
-                VerifyCompilation(firstGeneration, md.MetadataReader, "initial compilation");
+            var md = diff.GetMetadata();
+            _disposables.Add(md);
 
-                var prevReader = md.MetadataReader;
-                var prevBaseline = EmitBaseline.CreateInitialBaseline(md, EmptyLocalsProvider);
+            var reader = md.Reader;
+            _readers.Add(reader);
 
-                int genId = 1;
-                foreach (var generation in _generations.Skip(1))
-                {
-                    Debug.Assert(generation.Edits is not null);
+            EncValidation.VerifyModuleMvid(_genId, _prevGeneration.MetadataReader, reader);
 
-                    var compilation = prevCompilation.WithSource(generation.Source);
+            _prevGeneration = new GenerationInfo($"generation {_genId++}", _readers, compilation, md.Reader, diff.NextGeneration);
 
-                    var edits = GetSemanticEdits(generation.Edits, prevCompilation, compilation);
+            return this;
+        }
 
-                    var diff1 = compilation.EmitDifference(prevBaseline, edits);
+        internal MetadataTest Verify(Action<GenerationInfo> verification)
+        {
+            Assert.NotNull(_prevGeneration);
+            Debug.Assert(_prevGeneration is not null);
 
-                    var genMd = diff1.GetMetadata();
-                    disposables.Add(genMd);
+            verification(_prevGeneration);
 
-                    EncValidation.VerifyModuleMvid(genId, prevReader, genMd.Reader);
-
-                    VerifyCompilation(generation, genMd.Reader, $"generation {genId++}");
-
-                    prevReader = genMd.Reader;
-                    prevBaseline = diff1.NextGeneration;
-                    prevCompilation = compilation;
-                }
-            }
-            finally
-            {
-                foreach (var disposable in disposables)
-                {
-                    disposable.Dispose();
-                }
-            }
+            return this;
         }
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(SemanticEditDescription[] edits, Compilation oldCompilation, Compilation newCompilation)
@@ -96,60 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return ImmutableArray.CreateRange(edits.Select(e => new SemanticEdit(e.Kind, e.SymbolProvider(oldCompilation), e.SymbolProvider(newCompilation))));
         }
 
-        private void VerifyCompilation(GenerationInfo generation, MetadataReader reader, string description)
+        public void Dispose()
         {
-            _readers.Add(reader);
-
-            if (generation.TypeDefs is not null)
+            foreach (var disposable in _disposables)
             {
-                var actual = _readers.GetStrings(reader.GetTypeDefNames());
-                AssertEx.Equal(generation.TypeDefs, actual, message: $"TypeDefs don't match in {description}");
-            }
-            if (generation.MethodDefs is not null)
-            {
-                var actual = _readers.GetStrings(reader.GetMethodDefNames());
-                AssertEx.Equal(generation.MethodDefs, actual, message: $"MethodDefs don't match in {description}");
-            }
-            if (generation.MemberRefs is not null)
-            {
-                var actual = _readers.GetStrings(reader.GetMemberRefNames());
-                AssertEx.Equal(generation.MemberRefs, actual, message: $"MemberRefs don't match in {description}");
-            }
-            if (generation.CustomAttributesTableSize.HasValue)
-            {
-                AssertEx.AreEqual(generation.CustomAttributesTableSize.Value, reader.CustomAttributes.Count, message: $"CustomAttributes table size doesnt't match in {description}");
-            }
-            if (generation.EncLog is not null)
-            {
-                AssertEx.Equal(generation.EncLog, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: $"EncLog doesn't match in {description}");
-            }
-            if (generation.EncMap is not null)
-            {
-                AssertEx.Equal(generation.EncMap, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: $"EncMap doesn't match in {description}");
-            }
-        }
-
-        private class GenerationInfo
-        {
-            public readonly string Source;
-            public readonly SemanticEditDescription[]? Edits;
-            public readonly string[]? TypeDefs;
-            public readonly string[]? MethodDefs;
-            public readonly string[]? MemberRefs;
-            public readonly int? CustomAttributesTableSize;
-            public readonly EditAndContinueLogEntry[]? EncLog;
-            public readonly EntityHandle[]? EncMap;
-
-            public GenerationInfo(string source, SemanticEditDescription[]? edits, string[]? typeDefs, string[]? methodDefs, string[]? memberRefs, int? customAttributesTableSize, EditAndContinueLogEntry[]? encLog, EntityHandle[]? encMap)
-            {
-                Source = source;
-                Edits = edits;
-                TypeDefs = typeDefs;
-                MethodDefs = methodDefs;
-                MemberRefs = memberRefs;
-                CustomAttributesTableSize = customAttributesTableSize;
-                EncLog = encLog;
-                EncMap = encMap;
+                disposable.Dispose();
             }
         }
     }
