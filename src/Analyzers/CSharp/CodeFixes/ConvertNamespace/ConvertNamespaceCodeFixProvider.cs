@@ -20,7 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
-    using static ConvertNamespaceHelper;
+    using static ConvertNamespaceAnalysis;
+    using static ConvertNamespaceTransform;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)

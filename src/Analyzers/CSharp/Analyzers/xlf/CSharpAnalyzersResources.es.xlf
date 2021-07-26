@@ -27,6 +27,16 @@
         <target state="translated">Convertir una instrucción switch en expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="new">Convert to block scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="new">Convert to file-scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">Desconstruir la declaración de variable</target>

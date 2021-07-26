@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -20,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                    EnforceOnBuildValues.UseFileScopedNamespace,
                    CSharpCodeStyleOptions.NamespaceDeclarations,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Convert_to_file_scoped_namespace), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_file_scoped_namespace), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var tree = declaration.SyntaxTree;
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
 
-            if (!ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
+            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
                 return null;
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.

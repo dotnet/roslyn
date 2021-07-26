@@ -16,7 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
-    using static ConvertNamespaceHelper;
+    using static ConvertNamespaceAnalysis;
+    using static ConvertNamespaceTransform;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeRefactoringProvider : CodeRefactoringProvider
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return;
 
             context.RegisterRefactoring(new MyCodeAction(
-                info.Value.title, c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c), info.Value.equivalenceKey));
+                info.Value.title, c => ConvertAsync(document, namespaceDecl, c), info.Value.equivalenceKey));
         }
 
         private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
