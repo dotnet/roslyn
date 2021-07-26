@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public ImmutableArray<MethodDefinitionHandle> UpdatedMethods { get; }
 
         /// <summary>
-        /// Hnadles of types that were changed (updated or inserted) in this delta.
+        /// Handles of types that were changed (updated or inserted) in this delta.
         /// </summary>
         public ImmutableArray<TypeDefinitionHandle> ChangedTypes { get; }
 

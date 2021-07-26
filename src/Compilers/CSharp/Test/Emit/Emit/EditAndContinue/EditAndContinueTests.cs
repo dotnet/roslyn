@@ -2088,6 +2088,7 @@ class C
             var readers = new[] { reader0, reader1 };
 
             CheckNames(readers, reader1.GetTypeDefNames(), "C#1");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C#1");
 
             CheckEncLogDefinitions(reader1,
                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -2119,6 +2120,7 @@ class C
             readers = new[] { reader0, reader1, reader2 };
 
             CheckNames(readers, reader2.GetTypeDefNames(), "C#2");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C#2");
 
             CheckEncLogDefinitions(reader2,
                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -2151,6 +2153,7 @@ class C
             readers = new[] { reader0, reader1, reader2, reader3 };
 
             CheckNames(readers, reader3.GetTypeDefNames(), "C#2");
+            CheckNames(readers, diff3.EmitResult.ChangedTypes, "C#2");
 
             CheckEncLogDefinitions(reader3,
                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
