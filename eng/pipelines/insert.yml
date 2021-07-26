@@ -38,12 +38,10 @@ steps:
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
   - powershell: |
-      if ($null -ne ${{ parameters.componentBuildProjectName }})
-      {
-        Write-Host "##vso[task.setvariable variable=Insertion.ComponentAzdoUri]$($(System.CollectionUri))"
-        Write-Host "##vso[task.setvariable variable=Insertion.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
-      }
+      Write-Host "##vso[task.setvariable variable=Insertion.ComponentAzdoUri]$($(System.CollectionUri))"
+      Write-Host "##vso[task.setvariable variable=Insertion.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
     displayName: Set Insertion Variables
+    condition: ne('${{ parameters.componentBuildProjectName }}', '')
 
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
