@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
 
             // Holds last position before _ ' Comment so we can reset after processing comment
-            var previousLineColumn = new LineColumn();
+            var previousLineColumn = LineColumn.Default;
             SyntaxTrivia trivia;
             for (var i = 0; i < list.Count; i++)
             {
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         // If we are on a new line we don't want to continue
                         // reseting indenting this handles the case of a NewLine
                         // followed by whitespace and a comment
-                        previousLineColumn = new LineColumn();
+                        previousLineColumn = LineColumn.Default;
                     }
                     else if (LineContinuationFollowedByWhitespaceComment(previousTrivia, (i + 1) < list.Count ? list[i + 1] : default))
                     {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     lineColumn = previousLineColumn;
                     // When we see a NewLine we don't want any special handling
                     // for _ ' Comment
-                    previousLineColumn = new LineColumn();
+                    previousLineColumn = LineColumn.Default;
                 }
 
                 implicitLineBreak = implicitLineBreak || ContainsImplicitLineBreak(trivia);

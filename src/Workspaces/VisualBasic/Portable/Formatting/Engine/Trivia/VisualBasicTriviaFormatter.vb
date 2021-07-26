@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
-                Return LineColumnRule.ForceSpacesOrUseFollowIndentation(spacesOrIndentation:=0)
+                Return LineColumnRule.ForceSpacesOrUseFollowIndentation(indentation:=0)
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
