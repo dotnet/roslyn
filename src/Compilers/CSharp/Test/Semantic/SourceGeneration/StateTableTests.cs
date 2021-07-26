@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);
             _ = dstBuilder.GetLatestStateTableForNode(batchNode);
 
-            // second time through should show as cached
+            // second time through should show as modified
             dstBuilder = GetBuilder(dstBuilder.ToImmutable());
             var table = dstBuilder.GetLatestStateTableForNode(batchNode);
 
