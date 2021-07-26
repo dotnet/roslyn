@@ -46,10 +46,6 @@ steps:
   #   2.  Template parameters cannot be tested correctly inside scripts as it just replaces the ${{param}} with the value of the parameter.
   #       If the parameter is empty, it replaces with nothing which leads to errors in running the script.
   #       As such, we use a conditional step to test the template parameter and overwrite the template variable.
-
-  # It is not possible to define template variables in yaml along with steps.
-  # See https://github.com/MicrosoftDocs/azure-devops-docs/issues/6890#issuecomment-594635314
-  # The workaround is to define them as below.
   - powershell: |
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
