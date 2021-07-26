@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     // IMPORTANT: Keep this file sorted alphabetically.
     internal static class WellKnownTypeNames
     {
+        public const string BenchmarkDotNetAttributesBenchmarkAttribute = "BenchmarkDotNet.Attributes.BenchmarkAttribute";
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string MicrosoftAspNetCoreHttpHttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
