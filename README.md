@@ -1,4 +1,4 @@
-# Visual Studio Extension Testing
+﻿# Visual Studio Extension Testing
 
 This project allows Visual Studio extension developers to write integration tests that run inside an experimental
 instance of Visual Studio.
@@ -45,16 +45,17 @@ using Xunit;
 
 #### SDK projects
 
-SDK projects have the ability to automatically generate assembly attributes. This functionality can be leveraged to
-configured the required test framework attribute. Simply add the following to your project file:
+> 💡 By default, SDK projects automatically generate the required assembly attribute. Manual customization is only
+> required if the default assembly attributes support has been disabled, or in cases where the automatic application of
+> `TestFrameworkAttribute` is not desired.
+
+To disable generation of `TestFrameworkAttribute` (which will require manual addition similar to classic projects), add
+the following to the project file:
 
 ```xml
-<ItemGroup>
-  <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-    <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
-    <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
-  </AssemblyAttribute>
-</ItemGroup>
+<PropertyGroup>
+  <GenerateTestFrameworkAttribute>false</GenerateTestFrameworkAttribute>
+</PropertyGroup>
 ```
 
 ### Configure extensions for deployment
