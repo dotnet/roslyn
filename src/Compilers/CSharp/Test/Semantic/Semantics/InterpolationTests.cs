@@ -10316,6 +10316,32 @@ Expression<Func<CustomHandler>> expr = () => $"""";
             );
         }
 
+        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        public void AsStringInExpressionTrees_01()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<string, string>> e = o => $""{o.Length}"";";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        public void AsStringInExpressionTrees_02()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<Func<string, string>>> e = () => o => $""{o.Length}"";";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter)

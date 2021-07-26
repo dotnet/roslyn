@@ -1671,7 +1671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (parameterType?.Kind == SymbolKind.NamedType &&
                                     (object)parameterType.GetDelegateType() != null)
                                 {
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                    // Just assume we're not in an expression tree for the purposes of error recovery.
+                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
                                 }
                             }
 

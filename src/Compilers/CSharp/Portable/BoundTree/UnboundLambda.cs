@@ -399,8 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             => Data.InferDelegateType(ref useSiteInfo);
 
-        public BoundLambda Bind(NamedTypeSymbol delegateType)
-            => SuppressIfNeeded(Data.Bind(delegateType));
+        public BoundLambda Bind(NamedTypeSymbol delegateType, bool isExpressionTree)
+            => SuppressIfNeeded(Data.Bind(delegateType, isExpressionTree));
 
         public BoundLambda BindForErrorRecovery()
             => SuppressIfNeeded(Data.BindForErrorRecovery());
@@ -519,13 +519,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns the inferred return type, or null if none can be inferred.
-        public BoundLambda Bind(NamedTypeSymbol delegateType)
+        public BoundLambda Bind(NamedTypeSymbol delegateType, bool isTargetExpressionTree)
         {
-            BoundLambda? result;
-            if (!_bindingCache!.TryGetValue(delegateType, out result))
+            bool inExpressionTree = Binder.InExpressionTree || isTargetExpressionTree;
+
+            if (!_bindingCache!.TryGetValue(delegateType, out BoundLambda? result))
             {
-                result = ReallyBind(delegateType);
-                result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, delegateType, result);
+                result = ReallyBind(delegateType, inExpressionTree);
+                // For simplicity, we don't cache expression tree results
+                if (!inExpressionTree)
+                {
+                    result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, delegateType, result);
+                }
             }
 
             return result;
@@ -629,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteInfo);
         }
 
-        private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
+        private BoundLambda ReallyBind(NamedTypeSymbol delegateType, bool inExpressionTree)
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
 
@@ -649,7 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For simplicity, reuse is limited to expression-bodied lambdas. In those cases,
             // we reuse the bound expression and apply any conversion to the return value
             // since the inferred return type was not used when binding for return inference.
-            if (refKind == CodeAnalysis.RefKind.None &&
+            if (!inExpressionTree &&
+                refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
                 GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
                 (lambdaSymbol = returnInferenceLambda.Symbol).RefKind == refKind &&
@@ -663,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
-                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
