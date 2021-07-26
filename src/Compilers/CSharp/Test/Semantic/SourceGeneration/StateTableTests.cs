@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
@@ -349,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(table, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
         }
 
-
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T item, EntryState state)> expected)
         {
             int index = 0;
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             int index = 0;
             foreach (var entry in table)
             {
-                Assert.Equal(expected[index].item, (IEnumerable<T>)entry.item);
+                AssertEx.Equal(expected[index].item, entry.item);
                 Assert.Equal(expected[index].state, entry.state);
                 index++;
             }
