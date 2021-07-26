@@ -221,5 +221,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
+
+        public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(LanguageClientInitializationInfoBase initializationState)
+        {
+            var initializationFailureContext = new InitializationFailureContext();
+            initializationFailureContext.FailureMessage = string.Format(ServicesVSResources.Language_client_initialization_failed,
+                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
+            return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
+        }
+
+        public abstract bool ShowNotificationOnInitializeFailed { get; }
     }
 }
