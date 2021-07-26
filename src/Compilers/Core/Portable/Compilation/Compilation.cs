@@ -3132,7 +3132,7 @@ namespace Microsoft.CodeAnalysis
                         out MetadataSizes metadataSizes);
 
                     writer.GetUpdatedMethodTokens(updatedMethods);
-                    writer.GetChangedTypeTokens(context, changedTypes);
+                    writer.GetChangedTypeTokens(changedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 

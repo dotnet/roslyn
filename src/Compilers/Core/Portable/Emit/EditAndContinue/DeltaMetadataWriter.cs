@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all updated or added types.
         /// </summary>
-        public void GetChangedTypeTokens(EmitContext context, ArrayBuilder<TypeDefinitionHandle> types)
+        public void GetChangedTypeTokens(ArrayBuilder<TypeDefinitionHandle> types)
         {
             foreach (var def in _changedTypeDefs)
             {

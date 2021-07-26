@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
@@ -35,9 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
-            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
-            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
-
             PEDeltaAssemblyBuilder moduleBeingBuilt;
             try
             {
@@ -55,7 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null, updatedMethods: updatedMethods.ToImmutableAndFree(), changedTypes: changedTypes.ToImmutableAndFree());
+                return new EmitDifferenceResult(
+                    success: false,
+                    diagnostics: diagnostics.ToReadOnlyAndFree(),
+                    baseline: null,
+                    updatedMethods: ImmutableArray<MethodDefinitionHandle>.Empty,
+                    changedTypes: ImmutableArray<TypeDefinitionHandle>.Empty);
             }
 
             if (testData != null)
@@ -69,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(changes != null);
 
             EmitBaseline? newBaseline = null;
+            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
+            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             if (compilation.Compile(
                 moduleBeingBuilt,
