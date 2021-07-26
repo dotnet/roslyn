@@ -46,7 +46,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     context.RegisterCodeFix(
                         CodeAction.Create(
                             RoslynDiagnosticsAnalyzersResources.AddSharedAttribute,
-                            _ => AddSharedAttribute(document, root!, declaration),
+                            _ => AddSharedAttributeAsync(document, root!, declaration),
                             equivalenceKey: nameof(RoslynDiagnosticsAnalyzersResources.AddSharedAttribute)),
                         diagnostic);
                 }
@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static bool TryGetDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration)
             => (declaration = node.FirstAncestorOrSelf<TTypeSyntax>()) is not null;
 
-        private static Task<Document> AddSharedAttribute(Document document, SyntaxNode root, SyntaxNode declaration)
+        private static Task<Document> AddSharedAttributeAsync(Document document, SyntaxNode root, SyntaxNode declaration)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(typeof(SharedAttribute).FullName));
