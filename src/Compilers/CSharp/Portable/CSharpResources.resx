@@ -6664,6 +6664,48 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
+  <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
+  </data>
+  <data name="ERR_NoConversionForCallerArgumentExpressionParam" xml:space="preserve">
+    <value>CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionParamForUnconsumedLocation" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionParamForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_CallerFilePathPreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</value>
+  </data>
+  <data name="WRN_CallerFilePathPreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</value>
+  </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</value>
+  </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
+  </data>
+  <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</value>
+  </data>
+  <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</value>
+  </data>
   <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
     <value>sealed ToString in record</value>
   </data>
@@ -6796,5 +6838,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
+  </data>
+  <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
+    <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
   </data>
 </root>
