@@ -9898,6 +9898,113 @@ class C
             void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
+        [Fact]
+        public void Compiler_Can_Disable_DriverCache()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            int sourceCallbackCount = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+            });
+
+            // run with the cache
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+            sourceCallbackCount = 0;
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            // now re-run with the cache disabled
+            sourceCallbackCount = 0;
+
+            RunWithCacheDisabled();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCacheDisabled();
+            Assert.Equal(2, sourceCallbackCount);
+
+            RunWithCacheDisabled();
+            Assert.Equal(3, sourceCallbackCount);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+
+            void RunWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:disable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
+        [Fact]
+        public void Adding_Or_Removing_A_Genertor_Invalidates_Cache()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            int sourceCallbackCount = 0;
+            int sourceCallbackCount2 = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+            });
+
+            var generator2 = new PipelineCallbackGenerator2((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount2++;
+                });
+            });
+
+            // run with the cache
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+
+            RunWithOneGenerator();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(0, sourceCallbackCount2);
+
+            RunWithOneGenerator();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(0, sourceCallbackCount2);
+
+            RunWithTwoGenerators();
+            Assert.Equal(2, sourceCallbackCount);
+            Assert.Equal(1, sourceCallbackCount2);
+
+            RunWithTwoGenerators();
+            Assert.Equal(2, sourceCallbackCount);
+            Assert.Equal(1, sourceCallbackCount2);
+
+            // this seems counterintuitive, but when the only thing to change is the generator, its valid to use the previously cached 
+            // driver. Thus the first generator will still use the cached results and not run
+            RunWithOneGenerator();
+            Assert.Equal(2, sourceCallbackCount);
+            Assert.Equal(1, sourceCallbackCount2);
+
+            void RunWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+
+            void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;

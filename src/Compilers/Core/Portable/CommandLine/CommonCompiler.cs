@@ -738,13 +738,38 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         private protected Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics)
         {
-            var cacheKey = Arguments.GetOutputFilePath(GetOutputFileName(input, cancellationToken: default));
+            GeneratorDriver? driver = null;
+            string cacheKey = string.Empty;
+            bool disableCache = Arguments.ParseOptions.Features.ContainsKey("disable-generator-cache");
+            if (this.DriverCache is object && !disableCache)
+            {
+                cacheKey = deriveCacheKey();
+                driver = this.DriverCache.TryGetDriver(cacheKey);
+            }
 
-            var driver = this.DriverCache?.TryGetDriver(cacheKey) ?? CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
-            this.DriverCache?.CacheGenerator(cacheKey, driver);
             generatorDiagnostics.AddRange(diagnostics);
+
+            if (!disableCache)
+            {
+                this.DriverCache?.CacheGenerator(cacheKey, driver);
+            }
             return compilationOut;
+
+            string deriveCacheKey()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(Arguments.GetOutputFilePath(GetOutputFileName(input, cancellationToken: default)));
+                foreach (var generator in generators)
+                {
+                    // append the generator FQN and the MVID of the assembly it came from, so any changes will invalidate the cache
+                    var type = generator.GetGeneratorType();
+                    sb.Append(type.AssemblyQualifiedName);
+                    sb.Append(type.Assembly.ManifestModule.ModuleVersionId.ToString());
+                }
+                return sb.ToString();
+            }
         }
 
         private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
