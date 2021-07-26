@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
-                CSharpCodeStyleOptionGroups.UsingDirectivePreferences, optionName,
+                CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
                 defaultValue,
                 storageLocations: new OptionStorageLocation2[] {
                     new EditorConfigStorageLocation<CodeStyleOption2<NamespaceDeclarationPreference>>(
