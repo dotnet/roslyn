@@ -1719,6 +1719,24 @@ I agree to all of the foregoing:</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>

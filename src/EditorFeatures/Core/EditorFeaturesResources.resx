@@ -1080,4 +1080,13 @@ Do you want to proceed?</value>
   <data name="All_methods" xml:space="preserve">
     <value>All methods</value>
   </data>
+  <data name="Inline_Diagnostics_Error" xml:space="preserve">
+    <value>Inline Diagnostics - Error</value>
+  </data>
+  <data name="Inline_Diagnostics_Rude_Edit" xml:space="preserve">
+    <value>Inline Diagnostics - Rude Edit</value>
+  </data>
+  <data name="Inline_Diagnostics_Warning" xml:space="preserve">
+    <value>Inline Diagnostics - Warning</value>
+  </data>
 </root>

@@ -251,10 +251,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
         }
 
-        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan, out SnapshotPoint mappedPoint)
         {
-            var mappedPoint = GetMappedPoint(snapshotSpan, mappingTagSpan);
-            if (mappedPoint is null)
+            mappedPoint = default;
+            var point = GetMappedPoint(snapshotSpan, mappingTagSpan);
+
+            if (point is null)
             {
                 return false;
             }
@@ -269,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return false;
             }
 
+            mappedPoint = point.Value;
             return true;
         }
 
@@ -287,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return null;
             }
 
-            return mappedPoint;
+            return mappedPoint.Value;
         }
 
         // Map the mapping span to the visual snapshot. note that as a result of projection
