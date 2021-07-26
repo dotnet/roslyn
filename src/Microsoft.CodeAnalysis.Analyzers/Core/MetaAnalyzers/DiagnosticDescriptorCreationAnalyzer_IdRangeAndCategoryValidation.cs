@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -117,9 +118,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         arg3.Append(", ");
                     }
 
-                    arg3.Append(!ShouldValidateRange(range)
-                        ? range.prefix + "XXXX"
-                        : $"{range.prefix}{range.start}-{range.prefix}{range.end}");
+                    if (ShouldValidateRange(range))
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}-{0}{2}", range.prefix, range.start, range.end);
+                    }
+                    else
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}XXXX", range.prefix);
+                    }
                 }
 
                 string arg4 = Path.GetFileName(additionalText.Path);
@@ -374,9 +380,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             prefix = prefixBuilder.ToString();
-            return prefix.Length > 0 &&
-                suffixStr.Length > 0 &&
-                int.TryParse(suffixStr.ToString(), out suffix);
+            return prefix.Length > 0 && int.TryParse(suffixStr.ToString(), out suffix);
         }
     }
 }
