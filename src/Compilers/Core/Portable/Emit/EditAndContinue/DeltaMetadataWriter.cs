@@ -319,9 +319,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override bool TryGetTypeDefinitionHandle(ITypeDefinition def, out TypeDefinitionHandle handle)
         {
-            int index;
-            bool result = _typeDefs.TryGetRowId(def, out index);
-            handle = MetadataTokens.TypeDefinitionHandle(index);
+            bool result = _typeDefs.TryGetRowId(def, out int rowId);
+            handle = MetadataTokens.TypeDefinitionHandle(rowId);
             return result;
         }
 
@@ -342,9 +341,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override bool TryGetMethodDefinitionHandle(IMethodDefinition def, out MethodDefinitionHandle handle)
         {
-            int index;
-            bool result = _methodDefs.TryGetRowId(def, out index);
-            handle = MetadataTokens.MethodDefinitionHandle(index);
+            bool result = _methodDefs.TryGetRowId(def, out int rowId);
+            handle = MetadataTokens.MethodDefinitionHandle(rowId);
             return result;
         }
 
@@ -520,16 +518,13 @@ namespace Microsoft.CodeAnalysis.Emit
                     throw ExceptionUtilities.UnexpectedValue(change);
             }
 
-            int typeIndex;
-            var ok = _typeDefs.TryGetRowId(typeDef, out typeIndex);
-            Debug.Assert(ok);
+            int typeRowId = _typeDefs.GetRowId(typeDef);
 
             foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
-                int eventMapIndex;
-                if (!_eventMap.TryGetRowId(typeIndex, out eventMapIndex))
+                if (!_eventMap.Contains(typeRowId))
                 {
-                    _eventMap.Add(typeIndex);
+                    _eventMap.Add(typeRowId);
                 }
 
                 this.AddDefIfNecessary(_eventDefs, eventDef);
@@ -562,10 +557,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
             {
-                int propertyMapIndex;
-                if (!_propertyMap.TryGetRowId(typeIndex, out propertyMapIndex))
+                if (!_propertyMap.Contains(typeRowId))
                 {
-                    _propertyMap.Add(typeIndex);
+                    _propertyMap.Add(typeRowId);
                 }
 
                 this.AddDefIfNecessary(_propertyDefs, propertyDef);
@@ -579,17 +573,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 var methodDef = (IMethodDefinition?)methodImpl.ImplementingMethod.AsDefinition(this.Context);
                 RoslynDebug.AssertNotNull(methodDef);
 
-                int methodDefIndex;
-                ok = _methodDefs.TryGetRowId(methodDef, out methodDefIndex);
-                Debug.Assert(ok);
+                int methodDefRowId = _methodDefs.GetRowId(methodDef);
 
                 // If there are N existing MethodImpl entries for this MethodDef,
                 // those will be index:1, ..., index:N, so it's sufficient to check for index:1.
-                int methodImplIndex;
-                var key = new MethodImplKey(methodDefIndex, index: 1);
-                if (!_methodImpls.TryGetRowId(key, out methodImplIndex))
+                var key = new MethodImplKey(methodDefRowId, index: 1);
+                if (!_methodImpls.Contains(key))
                 {
-                    implementingMethods.Add(methodDefIndex);
+                    implementingMethods.Add(methodDefRowId);
                     this.methodImplList.Add(methodImpl);
                 }
             }
@@ -600,9 +591,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 int index = 1;
                 while (true)
                 {
-                    int methodImplIndex;
                     var key = new MethodImplKey(methodDefIndex, index);
-                    if (!_methodImpls.TryGetRowId(key, out methodImplIndex))
+                    if (!_methodImpls.Contains(key))
                     {
                         _methodImpls.Add(key);
                         break;
@@ -801,12 +791,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    int typeIndex = _typeDefs.GetRowId(member.ContainingTypeDefinition);
-                    Debug.Assert(typeIndex > 0);
-
-                    int mapRowId;
-                    var ok = map.TryGetRowId(typeIndex, out mapRowId);
-                    Debug.Assert(ok);
+                    int typeRowId = _typeDefs.GetRowId(member.ContainingTypeDefinition);
+                    int mapRowId = map.GetRowId(typeRowId);
 
                     metadata.AddEncLogEntry(
                         entity: MetadataTokens.Handle(mapTable, mapRowId),
@@ -1195,14 +1181,18 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public int GetRowId(T item)
             {
-                TryGetRowId(item, out int rowId);
+                bool containsItem = TryGetRowId(item, out int rowId);
 
                 // Fails if we are attempting to make a change that should have been reported as rude,
                 // e.g. the corresponding definitions type don't match, etc.
+                Debug.Assert(containsItem);
                 Debug.Assert(rowId > 0);
 
                 return rowId;
             }
+
+            public bool Contains(T item)
+                => TryGetRowId(item, out _);
 
             // A method rather than a property since it freezes the table.
             public IReadOnlyDictionary<T, int> GetAdded()
