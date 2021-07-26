@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(
                 service, @namespace,
                 CodeGenerationDestination.Namespace,
-                options, destination?.SyntaxTree.Options ?? options.ParseOptions,
+                options, destination.SyntaxTree.Options ?? options.ParseOptions,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(
                 service, @namespace,
                 CodeGenerationDestination.CompilationUnit,
-                options, destination?.SyntaxTree.Options ?? options.ParseOptions,
+                options, destination.SyntaxTree.Options ?? options.ParseOptions,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             INamespaceSymbol @namespace,
             CodeGenerationDestination destination,
             CodeGenerationOptions options,
-            ParseOptions parseOptions,
+            ParseOptions? parseOptions,
             CancellationToken cancellationToken)
         {
             options ??= CodeGenerationOptions.Default;
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string name, INamespaceSymbol innermostNamespace,
             CodeGenerationDestination destination,
             CodeGenerationOptions options,
-            ParseOptions parseOptions)
+            ParseOptions? parseOptions)
         {
             var usings = GenerateUsingDirectives(innermostNamespace);
 
@@ -108,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.CompilationUnit().WithUsings(usings);
 
             if (destination == CodeGenerationDestination.CompilationUnit &&
-                options.Options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value == NamespaceDeclarationPreference.FileScoped &&
-                ((CSharpParseOptions)parseOptions)?.LanguageVersion >= LanguageVersion.CSharp10)
+                options.Options!.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value == NamespaceDeclarationPreference.FileScoped &&
+                ((CSharpParseOptions?)parseOptions)?.LanguageVersion >= LanguageVersion.CSharp10)
             {
                 return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
             }
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string name,
             CodeGenerationDestination destination,
             CodeGenerationOptions options,
-            ParseOptions parseOptions)
+            ParseOptions? parseOptions)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<SyntaxNode>(@namespace, options);
             return reusableSyntax == null
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return usingDirectives.ToSyntaxList();
         }
 
-        private static UsingDirectiveSyntax GenerateUsingDirective(ISymbol symbol)
+        private static UsingDirectiveSyntax? GenerateUsingDirective(ISymbol symbol)
         {
             if (symbol is IAliasSymbol alias)
             {
@@ -176,14 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static NameSyntax GenerateName(INamespaceOrTypeSymbol symbol)
         {
-            if (symbol is ITypeSymbol type)
-            {
-                return type.GenerateTypeSyntax() as NameSyntax;
-            }
-            else
-            {
-                return SyntaxFactory.ParseName(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-            }
+            return symbol is ITypeSymbol type
+                ? type.GenerateNameSyntax()
+                : SyntaxFactory.ParseName(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
     }
 }
