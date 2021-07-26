@@ -11,9 +11,15 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA1008 // Enums should have zero value
     {
         /// <summary>
-        /// Correctness rule which should have <b>no false positives</b>, and is required to be fixed by users.
-        /// This rule will be <b>enabled in CI and IDE live analysis</b> by default with severity <see cref="DiagnosticSeverity.Error"/>.
+        /// Correctness rule which prevents the compiler from producing a well-defined output binary, and must have
+        /// <b>no false positives</b>. Violations of this rule must be fixed by users before any other testing work can
+        /// continue. This rule will be <b>enabled in CI and IDE live analysis</b> by default with severity
+        /// <see cref="DiagnosticSeverity.Error"/>.
         /// </summary>
+        /// <remarks>
+        /// Since analyzers cannot directly influence output binaries, this value is only valid in the implementation of
+        /// source generators.
+        /// </remarks>
         BuildError = 1,
 
         /// <summary>
