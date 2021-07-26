@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // We need to remember the trigger location for when a completion service claims expanded items are available
             // since the intial trigger we are able to get from IAsyncCompletionSession might not be the same (e.g. in projection scenarios,)
-            // so when they are requested via expander later, we can retrieve it,.
-            // Techinically we should save the trigger location for each individual service that made such claim, but in reality , only Roslyn's completion service uses
-            // expander, so we can get away with not making such distinction.
+            // so when they are requested via expander later, we can retrieve it.
+            // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
+            // completion service uses expander, so we can get away with not making such distinction.
             if (!isExpanded && expandItemsAvailable)
             {
                 session.Properties[ExpandedItemTriggerLocation] = triggerLocation;
