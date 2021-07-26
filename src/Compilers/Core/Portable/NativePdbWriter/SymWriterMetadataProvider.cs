@@ -44,7 +44,8 @@ namespace Microsoft.Cci
             }
             else
             {
-                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t);
+                int generation = (t is INamedTypeDefinition namedType) ? _writer.Module.GetTypeDefinitionGeneration(namedType) : 0;
+                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t, generation);
 
                 INamespaceTypeDefinition namespaceTypeDef;
                 if ((namespaceTypeDef = t.AsNamespaceTypeDefinition(_writer.Context)) != null)

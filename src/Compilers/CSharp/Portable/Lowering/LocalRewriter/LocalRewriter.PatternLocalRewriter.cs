@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Convert(operandType, rewrittenExpr),
                         _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
                         _factory.SpecialType(SpecialType.System_Boolean),
-                        null);
+                        method: null, constrainedToTypeOpt: null);
                 }
 
                 return _localRewriter.MakeNullCheck(syntax, rewrittenExpr, operatorKind);
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     literal = _factory.Convert(comparisonType, literal);
                 }
 
-                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
+                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
             }
 
             /// <summary>

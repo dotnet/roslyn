@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Emit
             var fieldsAdded = MapDefinitions(baseline.FieldsAdded);
             var methodsAdded = MapDefinitions(baseline.MethodsAdded);
             var propertiesAdded = MapDefinitions(baseline.PropertiesAdded);
+            var generationOrdinals = MapDefinitions(baseline.GenerationOrdinals);
 
             return baseline.With(
                 targetCompilation,
                 targetModuleBuilder,
                 baseline.Ordinal,
                 baseline.EncId,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
                 methodImplsAdded: baseline.MethodImplsAdded,
+                customAttributesAdded: baseline.CustomAttributesAdded,
                 tableEntriesAdded: baseline.TableEntriesAdded,
                 blobStreamLengthAdded: baseline.BlobStreamLengthAdded,
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,

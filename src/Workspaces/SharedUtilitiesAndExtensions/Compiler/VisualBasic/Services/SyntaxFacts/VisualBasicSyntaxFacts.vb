@@ -959,6 +959,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(compilationUnit, CompilationUnitSyntax).Members
         End Function
 
+        Public Function GetImportsOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfNamespaceDeclaration
+            'Visual Basic doesn't have namespaced imports
+            Return Nothing
+        End Function
+
+        Public Function GetImportsOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfCompilationUnit
+            Return DirectCast(compilationUnit, CompilationUnitSyntax).Imports
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
@@ -1014,6 +1023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     builder.Append(s_dotToken)
                 End If
             End While
+
             names.Free()
 
             ' name (include generic type parameters)
@@ -1080,6 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     End If
                 End If
             End If
+
             Debug.Assert(name IsNot Nothing, "Unexpected node type " + node.Kind().ToString())
             Return name
         End Function
@@ -1092,6 +1103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     builder.Append(", ")
                     builder.Append(typeParameterList.Parameters(i).Identifier.Text)
                 Next
+
                 builder.Append(")"c)
             End If
         End Sub
@@ -1370,6 +1382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     If (node.Parent.IsKind(SyntaxKind.FieldDeclaration)) Then
                         Return True
                     End If
+
                     Return False
 
                 Case SyntaxKind.NamespaceStatement,
@@ -2296,6 +2309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.RaiseEventAccessorBlock
                     Return DeclarationKind.RaiseAccessor
             End Select
+
             Return DeclarationKind.None
         End Function
 
@@ -2304,6 +2318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             For i = 0 To nodes.Count - 1
                 count = count + GetDeclarationCount(nodes(i))
             Next
+
             Return count
         End Function
 
@@ -2322,6 +2337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.ImportsStatement
                     Return DirectCast(node, ImportsStatementSyntax).ImportsClauses.Count
             End Select
+
             Return 1
         End Function
 
@@ -2336,6 +2352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                         Return p.ParameterList IsNot Nothing AndAlso p.ParameterList.Parameters.Count > 0 AndAlso p.Modifiers.Any(SyntaxKind.DefaultKeyword)
                     End If
             End Select
+
             Return False
         End Function
 

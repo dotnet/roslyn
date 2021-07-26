@@ -334,6 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         If expressionToCastType.IsWidening Then
                             Return True
                         End If
+
                         If expressionToCastType.IsNarrowing AndAlso
                             Not _semanticModel.OptionStrict = OptionStrict.On Then
                             Return True
