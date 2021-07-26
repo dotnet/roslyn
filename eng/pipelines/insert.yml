@@ -17,12 +17,13 @@ parameters:
   - name: clientSecret
     type: string
 
-  - name: componentBuildProjectName
-    type: string
   - name: componentBranchName
     type: string
   - name: vsBranchName
     type: string
+  - name: componentBuildProjectName
+    type: string
+    default: ''
   - name: titlePrefix
     type: string
     default: ''
@@ -37,6 +38,14 @@ steps:
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
   - powershell: |
+      if ($null -ne ${{ parameters.componentBuildProjectName }})
+      {
+        Write-Host "##vso[task.setvariable variable=Insertion.ComponentAzdoUri]$($(System.CollectionUri))"
+        Write-Host "##vso[task.setvariable variable=Insertion.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
+      }
+    displayName: Set Insertion Variables
+
+  - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
       .\RIT\tools\OneOffInsertion.ps1 `
         -autoComplete "${{ parameters.autoComplete }}" `
@@ -44,11 +53,11 @@ steps:
         -cherryPick "(default)" `
         -clientId "${{ parameters.clientId }}" `
         -clientSecret "${{ parameters.clientSecret }}" `
-        -componentAzdoUri "$(System.CollectionUri)" `
-        -componentBranchName "${{ parameters.componentBranchName }}" `
-        -componentGitHubRepoName "dotnet/roslyn" `
+        -componentAzdoUri "$(Insertion.ComponentAzdoUri)" `
+        -componentProjectName "$(Insertion.ComponentProjectName)" `
         -componentName "Roslyn" `
-        -componentProjectName "${{ parameters.componentBuildProjectName }}" `
+        -componentGitHubRepoName "dotnet/roslyn" `
+        -componentBranchName "${{ parameters.componentBranchName }}" `
         -createDraftPR "${{ parameters.createDraftPR }}" `
         -defaultValueSentinel "(default)" `
         -dropPath "(default)" `
