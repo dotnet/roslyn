@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
+    using static ConvertNamespaceHelper;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
     internal class ConvertNamespaceCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -41,14 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return;
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var title =
-                ConvertNamespaceHelper.CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_block_scoped_namespace :
-                ConvertNamespaceHelper.CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? CSharpFeaturesResources.Convert_to_file_scoped_namespace : null;
-            if (title == null)
+            var info =
+                CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
+                CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
+                ((string title, string equivalenceKey)?)null;
+            if (info == null)
                 return;
 
             context.RegisterRefactoring(new MyCodeAction(
-                title, c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c)));
+                info.Value.title, c => ConvertNamespaceHelper.ConvertAsync(document, namespaceDecl, c), info.Value.equivalenceKey));
         }
 
         private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
@@ -67,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

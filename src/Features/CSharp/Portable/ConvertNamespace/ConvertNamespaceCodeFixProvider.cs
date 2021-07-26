@@ -10,11 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
@@ -35,12 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var diagnostic = context.Diagnostics.First();
 
-            var title = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
-                ? CSharpFeaturesResources.Convert_to_file_scoped_namespace
-                : CSharpFeaturesResources.Convert_to_block_scoped_namespace;
-            var equivalenceKey = diagnostic.Id == IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId
-                ? nameof(CSharpFeaturesResources.Convert_to_file_scoped_namespace)
-                : nameof(CSharpFeaturesResources.Convert_to_block_scoped_namespace);
+            var (title, equivalenceKey) = ConvertNamespaceHelper.GetInfo(
+                diagnostic.Id switch
+                {
+                    IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.BlockScoped,
+                    IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.FileScoped,
+                    _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
+                });
 
             context.RegisterCodeFix(
                 new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),

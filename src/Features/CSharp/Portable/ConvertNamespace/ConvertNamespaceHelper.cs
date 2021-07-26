@@ -18,7 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     internal static class ConvertNamespaceHelper
     {
-        internal static bool CanOfferUseBlockScoped(OptionSet optionSet, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
+        public static (string title, string equivalenceKey) GetInfo(NamespaceDeclarationPreference preference)
+            => preference switch
+            {
+                NamespaceDeclarationPreference.BlockScoped => (CSharpFeaturesResources.Convert_to_block_scoped_namespace, nameof(CSharpFeaturesResources.Convert_to_block_scoped_namespace)),
+                NamespaceDeclarationPreference.FileScoped => (CSharpFeaturesResources.Convert_to_file_scoped_namespace, nameof(CSharpFeaturesResources.Convert_to_file_scoped_namespace)),
+                _ => throw ExceptionUtilities.UnexpectedValue(preference),
+            };
+
+        public static bool CanOfferUseBlockScoped(OptionSet optionSet, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
         {
             if (declaration is not FileScopedNamespaceDeclarationSyntax)
                 return false;
