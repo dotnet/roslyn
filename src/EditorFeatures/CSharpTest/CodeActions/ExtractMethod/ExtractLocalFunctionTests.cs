@@ -4851,5 +4851,55 @@ class C
     }
 }", codeActionIndex: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractLocalMethodNaming()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        const string NAME = ""SOMETEXT"";
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+        }
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        const string NAME = ""SOMETEXT"";
+        {|Rename:NewMethod|}(NAME);
+
+            void NewMethod(string NAME1)
+            {
+                Assert.AreEqual(string.Format(NAME1, 0, 0), SomeOtherMethod(j));
+            }
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+        }
     }
 }

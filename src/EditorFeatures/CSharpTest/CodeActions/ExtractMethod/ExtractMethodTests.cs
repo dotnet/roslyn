@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
