@@ -202,8 +202,9 @@ class C
 </symbols>");
         }
 
-        [Fact]
-        public void AddAsyncMethod()
+        [Theory]
+        [MemberData(nameof(ExternalPdbFormats))]
+        public void AddAsyncMethod(DebugInformationFormat format)
         {
             var source0 = @"
 using System.Threading.Tasks;
@@ -224,7 +225,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
 
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), EmptyLocalsProvider);
             var diff1 = compilation1.EmitDifference(
@@ -271,6 +272,40 @@ class C
                     Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
                     Row(1, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
+
+                diff1.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(4) }, @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method token=""0x6000004"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""35"" document=""1"" />
+            <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+            <entry offset=""0x6d"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x72"" hidden=""true"" document=""1"" />
+            <entry offset=""0x8c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x94"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0xa2"">
+            <namespace name=""System.Threading.Tasks"" />
+          </scope>
+          <asyncInfo>
+            <kickoffMethod token=""0x6000002"" />
+            <await yield=""0x2e"" resume=""0x49"" token=""0x6000004"" />
+          </asyncInfo>
+        </method>
+      </methods>
+    </symbols>");
             }
         }
 
@@ -2385,8 +2420,9 @@ class C
             });
         }
 
-        [Fact]
-        public void Awaiters_MultipleGenerations()
+        [Theory]
+        [MemberData(nameof(ExternalPdbFormats))]
+        public void Awaiters_MultipleGenerations(DebugInformationFormat format)
         {
             var source0 = @"
 using System.Threading.Tasks;
@@ -2523,7 +2559,7 @@ class C
             var h2 = compilation2.GetMember<MethodSymbol>("C.H");
             var h3 = compilation3.GetMember<MethodSymbol>("C.H");
 
-            var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -2574,6 +2610,43 @@ class C
             var md1 = diff1.GetMetadata();
             var md2 = diff2.GetMetadata();
             var md3 = diff3.GetMetadata();
+
+            diff1.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(9) }, @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method token=""0x6000009"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0x19"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1a"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x25"" hidden=""true"" document=""1"" />
+            <entry offset=""0x79"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x85"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd8"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" document=""1"" />
+            <entry offset=""0xdc"" hidden=""true"" document=""1"" />
+            <entry offset=""0xf6"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xfe"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x10c"">
+            <namespace name=""System.Threading.Tasks"" />
+          </scope>
+          <asyncInfo>
+            <kickoffMethod token=""0x6000004"" />
+            <await yield=""0x37"" resume=""0x55"" token=""0x6000009"" />
+            <await yield=""0x97"" resume=""0xb3"" token=""0x6000009"" />
+          </asyncInfo>
+        </method>
+      </methods>
+    </symbols>");
 
             // 1 field def added & 4 methods updated (MoveNext and kickoff for F and G)
             CheckEncLogDefinitions(md1.Reader,
@@ -2730,6 +2803,43 @@ class C
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
+            diff2.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(9) }, @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method token=""0x6000009"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0x19"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1a"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x25"" hidden=""true"" document=""1"" />
+            <entry offset=""0x79"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x85"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd8"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" document=""1"" />
+            <entry offset=""0xdc"" hidden=""true"" document=""1"" />
+            <entry offset=""0xf6"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xfe"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x10c"">
+            <namespace name=""System.Threading.Tasks"" />
+          </scope>
+          <asyncInfo>
+            <kickoffMethod token=""0x6000004"" />
+            <await yield=""0x37"" resume=""0x55"" token=""0x6000009"" />
+            <await yield=""0x97"" resume=""0xb3"" token=""0x6000009"" />
+          </asyncInfo>
+        </method>
+      </methods>
+    </symbols>");
+
             // Note that the new awaiters are allocated slots <>u__4, <>u__5.
             diff2.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -2875,6 +2985,35 @@ class C
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            diff3.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(15) }, @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method token=""0x600000f"">
+          <customDebugInfo>
+            <forward token=""0x600000c"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0xe"" startLine=""24"" startColumn=""5"" endLine=""24"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xf"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x1a"" hidden=""true"" document=""1"" />
+            <entry offset=""0x6b"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""18"" document=""1"" />
+            <entry offset=""0x6f"" hidden=""true"" document=""1"" />
+            <entry offset=""0x89"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x91"" hidden=""true"" document=""1"" />
+          </sequencePoints>
+          <asyncInfo>
+            <kickoffMethod token=""0x6000006"" />
+            <await yield=""0x2c"" resume=""0x47"" token=""0x600000f"" />
+          </asyncInfo>
+        </method>
+      </methods>
+    </symbols>");
         }
 
         [Fact]
