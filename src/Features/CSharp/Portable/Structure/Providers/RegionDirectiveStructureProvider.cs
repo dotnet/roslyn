@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             RegionDirectiveTriviaSyntax regionDirective,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
