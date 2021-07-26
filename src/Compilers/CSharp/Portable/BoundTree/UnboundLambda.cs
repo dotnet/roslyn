@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda>? _bindingCache;
+        private ImmutableDictionary<(NamedTypeSymbol Type, bool IsExpressionLambda), BoundLambda>? _bindingCache;
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeCache)
             {
-                _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(Symbols.SymbolEqualityComparer.ConsiderEverything);
+                _bindingCache = ImmutableDictionary<(NamedTypeSymbol Type, bool IsExpressionLambda), BoundLambda>.Empty.WithComparers(BindingCacheComparer.Instance);
                 _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
             }
 
@@ -523,14 +523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool inExpressionTree = Binder.InExpressionTree || isTargetExpressionTree;
 
-            if (!_bindingCache!.TryGetValue(delegateType, out BoundLambda? result))
+            if (!_bindingCache!.TryGetValue((delegateType, inExpressionTree), out BoundLambda? result))
             {
                 result = ReallyBind(delegateType, inExpressionTree);
-                // For simplicity, we don't cache expression tree results
-                if (!inExpressionTree)
-                {
-                    result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, delegateType, result);
-                }
+                result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, (delegateType, inExpressionTree), result);
             }
 
             return result;
@@ -654,6 +650,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For simplicity, reuse is limited to expression-bodied lambdas. In those cases,
             // we reuse the bound expression and apply any conversion to the return value
             // since the inferred return type was not used when binding for return inference.
+            // We don't reuse the body if we're binding in an expression tree, because we didn't
+            // know that we were binding for an expression tree when originally binding the lambda
+            // for return inference.
             if (!inExpressionTree &&
                 refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
@@ -1258,6 +1257,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return nx - ny;
+        }
+
+        private sealed class BindingCacheComparer : IEqualityComparer<(NamedTypeSymbol Type, bool IsExpressionTree)>
+        {
+            public static readonly BindingCacheComparer Instance = new BindingCacheComparer();
+
+            public bool Equals([AllowNull] (NamedTypeSymbol Type, bool IsExpressionTree) x, [AllowNull] (NamedTypeSymbol Type, bool IsExpressionTree) y)
+                => x.IsExpressionTree == y.IsExpressionTree && Symbol.Equals(x.Type, y.Type, TypeCompareKind.ConsiderEverything);
+
+            public int GetHashCode([DisallowNull] (NamedTypeSymbol Type, bool IsExpressionTree) obj)
+                => Hash.Combine(obj.Type, obj.IsExpressionTree.GetHashCode());
         }
     }
 
