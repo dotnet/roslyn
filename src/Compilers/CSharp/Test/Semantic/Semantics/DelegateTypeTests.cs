@@ -1483,8 +1483,7 @@ static class E2
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Func`1").WithLocation(7, 13));
         }
 
-        [Fact]
-        public void SystemActionAndFunc_UseSiteErrors()
+        private static MetadataReference GetCorlibWithInvalidActionAndFuncOfT()
         {
             var sourceA =
 @".assembly mscorlib
@@ -1547,7 +1546,13 @@ static class E2
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
   .method public hidebysig instance !T Invoke() { ldnull throw }
 }";
-            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+            return CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+        }
+
+        [Fact]
+        public void SystemActionAndFunc_UseSiteErrors()
+        {
+            var refA = GetCorlibWithInvalidActionAndFuncOfT();
 
             var sourceB =
 @"class Program
@@ -1991,29 +1996,301 @@ class Program
         }
 
         [Fact]
-        public void ImplicitlyTypedVariables()
+        public void ImplicitlyTypedVariables_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var d1 = Main;
+        Report(d1);
+        var d2 = () => { };
+        Report(d2);
+        var d3 = delegate () { };
+        Report(d3);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetDelegateTypeName());
+}";
+
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         var d1 = Main;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(6, 18),
+                // (8,18): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(8, 18),
+                // (10,18): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(10, 18));
+
+            comp = CreateCompilation(new[] { source, s_utils }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Action
+System.Action
+System.Action");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      100 (0x64)
+  .maxstack  2
+  .locals init (System.Action V_0, //d1
+                System.Action V_1, //d2
+                System.Action V_2) //d3
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldftn      ""void Program.Main()""
+  IL_0008:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void Program.Report(System.Delegate)""
+  IL_0014:  nop
+  IL_0015:  ldsfld     ""System.Action Program.<>c.<>9__0_0""
+  IL_001a:  dup
+  IL_001b:  brtrue.s   IL_0034
+  IL_001d:  pop
+  IL_001e:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0023:  ldftn      ""void Program.<>c.<Main>b__0_0()""
+  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002e:  dup
+  IL_002f:  stsfld     ""System.Action Program.<>c.<>9__0_0""
+  IL_0034:  stloc.1
+  IL_0035:  ldloc.1
+  IL_0036:  call       ""void Program.Report(System.Delegate)""
+  IL_003b:  nop
+  IL_003c:  ldsfld     ""System.Action Program.<>c.<>9__0_1""
+  IL_0041:  dup
+  IL_0042:  brtrue.s   IL_005b
+  IL_0044:  pop
+  IL_0045:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_004a:  ldftn      ""void Program.<>c.<Main>b__0_1()""
+  IL_0050:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0055:  dup
+  IL_0056:  stsfld     ""System.Action Program.<>c.<>9__0_1""
+  IL_005b:  stloc.2
+  IL_005c:  ldloc.2
+  IL_005d:  call       ""void Program.Report(System.Delegate)""
+  IL_0062:  nop
+  IL_0063:  ret
+}");
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_02()
+        {
+            var source =
+@"var d1 = object.ReferenceEquals;
+var d2 = () => { };
+var d3 = delegate () { };
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithKind(SourceCodeKind.Script));
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // var d1 = object.ReferenceEquals;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object.ReferenceEquals").WithArguments("inferred delegate type", "10.0").WithLocation(1, 10),
+                // (2,10): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(2, 10),
+                // (3,10): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(3, 10));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10.WithKind(SourceCodeKind.Script));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_03()
         {
             var source =
 @"class Program
 {
     static void Main()
     {
-        var d1 = Main;
-        var d2 = () => { };
-        var d3 = delegate () { };
+        ref var d1 = Main;
+        ref var d2 = () => { };
+        ref var d3 = delegate () { };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-                //         var d1 = Main;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d1 = Main").WithArguments("method group").WithLocation(5, 13),
-                // (6,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var d2 = () => { };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d2 = () => { }").WithArguments("lambda expression").WithLocation(6, 13),
-                // (7,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                //         var d3 = delegate () { };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d3 = delegate () { }").WithArguments("anonymous method").WithLocation(7, 13));
+                // (5,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //         ref var d1 = Main;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "d1 = Main").WithLocation(5, 17),
+                // (5,22): error CS1657: Cannot use 'Main' as a ref or out value because it is a 'method group'
+                //         ref var d1 = Main;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Main").WithArguments("Main", "method group").WithLocation(5, 22),
+                // (6,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //         ref var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "d2 = () => { }").WithLocation(6, 17),
+                // (6,22): error CS1510: A ref or out value must be an assignable variable
+                //         ref var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "() => { }").WithLocation(6, 22),
+                // (7,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //         ref var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "d3 = delegate () { }").WithLocation(7, 17),
+                // (7,22): error CS1510: A ref or out value must be an assignable variable
+                //         ref var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate () { }").WithLocation(7, 22));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        using var d1 = Main;
+        using var d2 = () => { };
+        using var d3 = delegate () { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using var d1 = Main;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d1 = Main;").WithArguments("System.Action").WithLocation(5, 9),
+                // (6,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d2 = () => { };").WithArguments("System.Action").WithLocation(6, 9),
+                // (7,9): error CS1674: 'Action': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var d3 = delegate () { };").WithArguments("System.Action").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_05()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        foreach (var d1 in Main) { }
+        foreach (var d2 in () => { }) { }
+        foreach (var d3 in delegate () { }) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,28): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
+                //         foreach (var d1 in Main) { }
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(5, 28),
+                // (6,28): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
+                //         foreach (var d2 in () => { }) { }
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "() => { }").WithArguments("lambda expression").WithLocation(6, 28),
+                // (7,28): error CS0446: Foreach cannot operate on a 'anonymous method'. Did you intend to invoke the 'anonymous method'?
+                //         foreach (var d3 in delegate () { }) { }
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "delegate () { }").WithArguments("anonymous method").WithLocation(7, 28));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Func<int> f;
+        var d1 = Main;
+        f = d1;
+        var d2 = object (int x) => x;
+        f = d2;
+        var d3 = delegate () { return string.Empty; };
+        f = d3;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0029: Cannot implicitly convert type 'System.Action' to 'System.Func<int>'
+                //         f = d1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("System.Action", "System.Func<int>").WithLocation(8, 13),
+                // (10,13): error CS0029: Cannot implicitly convert type 'System.Func<int, object>' to 'System.Func<int>'
+                //         f = d2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("System.Func<int, object>", "System.Func<int>").WithLocation(10, 13),
+                // (12,13): error CS0029: Cannot implicitly convert type 'System.Func<string>' to 'System.Func<int>'
+                //         f = d3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d3").WithArguments("System.Func<string>", "System.Func<int>").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_07()
+        {
+            var source =
+@"class Program
+{
+    static void F(object o) { }
+    static void F(int i) { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = x => x;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 18),
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var d2 = x => x;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_08()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        var d1 = (F);
+        Report(d1);
+        var d2 = (object (int x) => x);
+        Report(d2);
+        var d3 = (delegate () { return string.Empty; });
+        Report(d3);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetDelegateTypeName());
+}";
+            CompileAndVerify(new[] { source, s_utils }, options: TestOptions.DebugExe, expectedOutput:
+@"System.Func<System.Int32>
+System.Func<System.Int32, System.Object>
+System.Func<System.String>");
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_UseSiteErrors()
+        {
+            var source =
+@"class Program
+{
+    static void F(object o) { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = () => 1;
+    }
+}";
+            var comp = CreateEmptyCompilation(source, new[] { GetCorlibWithInvalidActionAndFuncOfT() });
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0648: 'Action<T>' is a type not supported by the language
+                //         var d1 = F;
+                Diagnostic(ErrorCode.ERR_BogusType, "F").WithArguments("System.Action<T>").WithLocation(6, 18),
+                // (7,18): error CS0648: 'Func<T>' is a type not supported by the language
+                //         var d2 = () => 1;
+                Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Func<T>").WithLocation(7, 18));
         }
 
         /// <summary>
