@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Assert.Null(driver);
         }
 
-        private GeneratorDriver[] GetDrivers(int count) =>  Enumerable.Range(0, count).Select(i => CSharpGeneratorDriver.Create(Array.Empty<ISourceGenerator>())).ToArray();
+        private GeneratorDriver[] GetDrivers(int count) => Enumerable.Range(0, count).Select(i => CSharpGeneratorDriver.Create(Array.Empty<ISourceGenerator>())).ToArray();
     }
 }
