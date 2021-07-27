@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (self, cancellationToken) => new ValueTask<TextAndVersion>(self.GetTextAndVersionAsync(cancellationToken)),
+                static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
                 static (textAndVersion, _) => textAndVersion.Text,
                 this,
                 cancellationToken);
@@ -257,15 +257,15 @@ namespace Microsoft.CodeAnalysis
                 textAndVersionSource: newTextSource);
         }
 
-        private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+        private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
         {
             if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
-                return textAndVersion;
+                return new ValueTask<TextAndVersion>(textAndVersion);
             }
             else
             {
-                return await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return new ValueTask<TextAndVersion>(TextAndVersionSource.GetValueAsync(cancellationToken));
             }
         }
 
