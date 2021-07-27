@@ -177,20 +177,23 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(out textAndVersion);
 
-        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {
-                return sourceText;
+                return new ValueTask<SourceText>(sourceText);
             }
 
             if (TryGetText(out var text))
             {
-                return text;
+                return new ValueTask<SourceText>(text);
             }
 
-            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Text;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (self, cancellationToken) => new ValueTask<TextAndVersion>(self.GetTextAndVersionAsync(cancellationToken)),
+                static (textAndVersion, _) => textAndVersion.Text,
+                this,
+                cancellationToken);
         }
 
         public SourceText GetTextSynchronously(CancellationToken cancellationToken)
