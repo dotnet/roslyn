@@ -27,7 +27,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
-            if (context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute) is not { } factAttribute)
+            context.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute, out var factAttribute);
+            context.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.BenchmarkDotNetAttributesBenchmarkAttribute, out var benchmarkAttribute);
+            if (factAttribute is null && benchmarkAttribute is null)
             {
                 return;
             }
@@ -48,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var semanticModel = context.GetSemanticModel(tree);
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(node, context.CancellationToken);
                 if (declaredSymbol is IMethodSymbol method
-                    && method.IsXUnitTestMethod(knownTestAttributes, factAttribute))
+                    && method.IsBenchmarkOrXUnitTestMethod(knownTestAttributes, benchmarkAttribute, factAttribute))
                 {
                     context.ReportSuppression(Suppression.Create(Rule, diagnostic));
                 }

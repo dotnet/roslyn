@@ -686,11 +686,11 @@ namespace Analyzer.Utilities.Extensions
                 !method.Parameters[0].Type.IsValueType;
         }
 
-        public static bool IsXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        public static bool IsBenchmarkOrXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol? benchmarkAttribute, INamedTypeSymbol? xunitFactAttribute)
         {
             foreach (var attribute in method.GetAttributes())
             {
-                if (attribute.AttributeClass.IsXUnitTestAttribute(knownTestAttributes, xunitFactAttribute))
+                if (attribute.AttributeClass.IsBenchmarkOrXUnitTestAttribute(knownTestAttributes, benchmarkAttribute, xunitFactAttribute))
                     return true;
             }
 

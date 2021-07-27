@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     context.RegisterCodeFix(
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
                                 $"Add '#nullable enable' to public API",
-                                c => GetFix(document, c)),
+                                c => GetFixAsync(document, c)),
                             diagnostic);
                 }
             }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> GetFixAsync(TextDocument publicSurfaceAreaDocument, CancellationToken cancellationToken)
         {
             SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddNullableEnable(sourceText);
