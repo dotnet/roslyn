@@ -524,5 +524,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ValueTracking_TrackValueSource = 491,
 
         InheritanceMargin_GetInheritanceMemberItems = 492,
+
+        UnusedReferences_GetUnusedReferences = 493,
+
     }
 }
