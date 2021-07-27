@@ -41,5 +41,8 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string CloudCache = "Roslyn.CloudCache";
         public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
         public const string RazorLspEditorFeatureFlag = "Razor.LSP.Editor";
+        public const string InheritanceMargin = "Roslyn.InheritanceMargin";
+        public const string LspPullDiagnosticsFeatureFlag = "Lsp.PullDiagnostics";
+        public const string ProgressionForceLegacySearch = "Roslyn.ProgressionForceLegacySearch";
     }
 }

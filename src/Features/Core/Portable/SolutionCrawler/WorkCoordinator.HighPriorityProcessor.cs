@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, backOffTimeSpan, shutdownToken)
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
@@ -92,9 +92,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
+                        if (!_processor._documentTracker.SupportsDocumentTracking
+                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace)
+                        {
+                            Debug.Fail($"Unexpected use of '{nameof(ExportIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
+                        }
+
                         // check whether given item is for active document, otherwise, nothing to do here
-                        if (_processor._documentTracker == null ||
-                            _processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
+                        if (_processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
                         {
                             return;
                         }
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationToken cancellationToken)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
-                        var documentId = _processor._documentTracker?.TryGetActiveDocument();
+                        var documentId = _processor._documentTracker.TryGetActiveDocument();
                         if (documentId != null)
                         {
                             if (_workItemQueue.TryTake(documentId, out workItem, out cancellationToken))

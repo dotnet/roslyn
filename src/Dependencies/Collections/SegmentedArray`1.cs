@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Collections
     /// collection uses segmented arrays to avoid placing objects on the Large Object Heap.
     /// </summary>
     /// <typeparam name="T">The type of elements stored in the array.</typeparam>
-    internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>
+    internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>, IEquatable<SegmentedArray<T>>
     {
         /// <summary>
         /// The number of elements in each page of the segmented array of type <typeparamref name="T"/>.
@@ -172,6 +172,22 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public Enumerator GetEnumerator()
             => new(this);
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SegmentedArray<T> other
+                && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return _items.GetHashCode();
+        }
+
+        public bool Equals(SegmentedArray<T> other)
+        {
+            return _items == other._items;
+        }
 
         int IList.Add(object? value)
         {
