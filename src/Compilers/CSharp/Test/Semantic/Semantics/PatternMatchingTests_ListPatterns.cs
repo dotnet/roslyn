@@ -1448,6 +1448,7 @@ class X
         _ = a is ([>0]) and ([>=0]);
         _ = a is [>0] and [<0];       // 5
         _ = a is [>0] and [>=0];
+        _ = a is {Length:-1};         // 6
     } 
 }
 ";
@@ -1467,7 +1468,10 @@ class X
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is ([>0]) and ([<0])").WithArguments("int[]").WithLocation(13, 13),
                 // (15,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [>0] and [<0];       // 5
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13)
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13),
+                // (17,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is {Length:-1};         // 6
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13)
                 );
         }
 
@@ -2051,6 +2055,69 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(10, 18));
         }
 
+        [Fact]
+        public void Subsumption_08()
+        {
+            var src = @"
+class C
+{
+    void Test(object[] a)
+    {
+        switch (a)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]:
+                    break;
+        }
+        switch (a)
+        {
+            case [string, ..]:
+            case [.., not string]:
+            case [var unreachable]:
+                    break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(10, 18),
+                // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
+        }
+
+        [Fact]
+        public void Subsumption_09()
+        {
+            var src = @"
+C.Test(new[] { 42, -1, 0, 42 });
+
+class C
+{
+    public static void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [_, > 0, ..]: 
+                System.Console.Write(1);
+                break;
+            case [.., <= 0, _]: 
+                System.Console.Write(2);
+                break;
+            default:
+                System.Console.Write(3);
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
         [Theory]
         [CombinatorialData]
         public void Subsumption_Slice_00(
@@ -2069,7 +2136,10 @@ class C
                 "[..[1,..[],2,3]]",
                 "[..[..[],1,2,3]]",
                 "[..[1,..[2,3]]]",
-                "[..[..[1,2],3]]")]
+                "[..[..[1,2],3]]",
+                "[1, ..[2], 3]",
+                "[1, ..[2, ..[3]]]",
+                "[1, ..[2, ..[], 3]]")]
             string case1,
             [CombinatorialValues(
                 "[1,2,3]",
@@ -2086,7 +2156,10 @@ class C
                 "[..[1,..[],2,3]]",
                 "[..[..[],1,2,3]]",
                 "[..[1,..[2,3]]]",
-                "[..[..[1,2],3]]")]
+                "[..[..[1,2],3]]",
+                "[1, ..[2], 3]",
+                "[1, ..[2, ..[3]]]",
+                "[1, ..[2, ..[], 3]]")]
             string case2)
         {
             var src = @"
@@ -2108,6 +2181,55 @@ class C
                 // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(10, 18)
                 );
+        }
+
+        [Fact]
+        public void Subsumption_Slice_01()
+        {
+            var src = @"
+class C
+{
+    public static void Test(System.Span<int> a)
+    {
+        switch (a)
+        {
+            case [var v]: break;
+            case [..[var v]]: break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [..[var v]]: break;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[var v]]").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void Exhaustiveness_01()
+        {
+            var src = @"
+class C
+{
+    public static void Test(int[] a)
+    {
+        _ = a switch
+        {
+            [ .., >= 0 ] => 1,
+            [ < 0 ] => 2,
+            { Length: 0 or > 1 } => 3,
+        };
+
+        _ = a switch
+        {
+            [ .., >= 0 ] => 1,
+            [] => 2,
+            [ ..[ .., < 0 ] ] => 3,
+        };
+    }
+}" + TestSources.GetSubArray;
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -35,9 +39,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (offset == 0)
                 return values;
             var intervals = ((NumericValueSet<int, IntTC>)values)._intervals;
-            var result = intervals.SelectAsArray((t, offset) => (safeAdd(t.first, offset), safeAdd(t.last, offset)), offset);
-            return new NumericValueSet<int, IntTC>(result);
-            static int safeAdd(int a, int b) => a == int.MaxValue ? a : a + b;
+            var builder = ArrayBuilder<(int first, int last)>.GetInstance();
+            foreach ((int first, int last) in intervals)
+            {
+                int lower = safeAdd(first, offset);
+                int upper = safeAdd(last, offset);
+                builder.Add((lower, upper));
+                if (upper == int.MaxValue)
+                    break;
+            }
+            return new NumericValueSet<int, IntTC>(builder.ToImmutableAndFree());
+
+            static int safeAdd(int a, int b)
+            {
+                return (a, b) switch
+                {
+                    ( > 0, > 0) when b > (int.MaxValue - a) => int.MaxValue,
+                    ( < 0, < 0) when b < (int.MinValue - a) => int.MinValue,
+                    _ => a + b
+                };
+            }
         }
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)

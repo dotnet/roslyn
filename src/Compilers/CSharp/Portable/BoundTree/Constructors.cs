@@ -647,14 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BoundDagTemp ForOriginalInput(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type!, source: null);
     }
 
-    internal partial class BoundDagPropertyEvaluation
-    {
-        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, BoundDagTemp input, bool hasErrors = false)
-            : this(syntax, property, isLengthOrCount: false, input, hasErrors)
-        {
-        }
-    }
-
     internal partial class BoundCompoundAssignmentOperator
     {
         public BoundCompoundAssignmentOperator(SyntaxNode syntax,

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -341,11 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!receiverType.IsErrorType());
-
             indexerAccess = null;
             patternSymbol = null;
             lengthProperty = null;
-
             bool found;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
@@ -1460,6 +1459,7 @@ done:
                 PatternSyntax pattern = p.Pattern;
                 BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
+                bool isLengthOrCount = false;
                 if (expr == null)
                 {
                     if (!hasErrors)
@@ -1473,10 +1473,18 @@ done:
                 {
                     member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
                     memberType = member.Type;
+                    if (memberType.SpecialType == SpecialType.System_Int32 &&
+                        member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName, ContainingType: TypeSymbol containingType } symbol)
+                    {
+                        var discardedDiagnostics = BindingDiagnosticBag.Discarded;
+                        isLengthOrCount = symbol.Equals(((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, discardedDiagnostics, syntax: node))?.AssociatedSymbol) ||
+                                          TryPerformPatternIndexerLookup(node, containingType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, discardedDiagnostics) &&
+                                          symbol.Equals(lengthProperty);
+                    }
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundPropertySubpattern(p, member, boundPattern));
+                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
 
             return builder.ToImmutableAndFree();

@@ -7897,25 +7897,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertySubpattern : BoundSubpattern
     {
-        public BoundPropertySubpattern(SyntaxNode syntax, BoundPropertySubpatternMember? member, BoundPattern pattern, bool hasErrors = false)
+        public BoundPropertySubpattern(SyntaxNode syntax, BoundPropertySubpatternMember? member, bool isLengthOrCount, BoundPattern pattern, bool hasErrors = false)
             : base(BoundKind.PropertySubpattern, syntax, pattern, hasErrors || member.HasErrors() || pattern.HasErrors())
         {
 
             RoslynDebug.Assert(pattern is object, "Field 'pattern' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Member = member;
+            this.IsLengthOrCount = isLengthOrCount;
         }
 
 
         public BoundPropertySubpatternMember? Member { get; }
+
+        public bool IsLengthOrCount { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertySubpattern(this);
 
-        public BoundPropertySubpattern Update(BoundPropertySubpatternMember? member, BoundPattern pattern)
+        public BoundPropertySubpattern Update(BoundPropertySubpatternMember? member, bool isLengthOrCount, BoundPattern pattern)
         {
-            if (member != this.Member || pattern != this.Pattern)
+            if (member != this.Member || isLengthOrCount != this.IsLengthOrCount || pattern != this.Pattern)
             {
-                var result = new BoundPropertySubpattern(this.Syntax, member, pattern, this.HasErrors);
+                var result = new BoundPropertySubpattern(this.Syntax, member, isLengthOrCount, pattern, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11385,7 +11388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundPropertySubpatternMember? member = (BoundPropertySubpatternMember?)this.Visit(node.Member);
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            return node.Update(member, pattern);
+            return node.Update(member, node.IsLengthOrCount, pattern);
         }
         public override BoundNode? VisitPropertySubpatternMember(BoundPropertySubpatternMember node)
         {
@@ -15779,6 +15782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitPropertySubpattern(BoundPropertySubpattern node, object? arg) => new TreeDumperNode("propertySubpattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("member", null, new TreeDumperNode[] { Visit(node.Member, null) }),
+            new TreeDumperNode("isLengthOrCount", node.IsLengthOrCount, null),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

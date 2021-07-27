@@ -244,6 +244,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestShift_01()
+        {
+            int first = int.MaxValue - 15;
+            int last = int.MaxValue - 10;
+            IValueSet values = makeRange(5, 10).Union(makeRange(first, last));
+            IValueSet shifted1 = Shift(values, 11);
+            IValueSet shifted2 = Shift(values, int.MaxValue);
+            Assert.Equal($"[{5 + 11}..{10 + 11}],[{first + 11}..{int.MaxValue}]", shifted1.ToString());
+            Assert.Equal($"[{int.MaxValue}..{int.MaxValue}]", shifted2.ToString());
+
+            static IValueSet makeRange(int first, int last)
+                => ForInt.Related(GreaterThanOrEqual, first).Intersect(ForInt.Related(LessThanOrEqual, last));
+        }
+
+        [Fact]
         public void TestAny_01()
         {
             for (int i = 0; i < 100; i++)

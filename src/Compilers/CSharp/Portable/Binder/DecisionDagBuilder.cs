@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
             output = valueAsITuple;
 
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, OriginalInput(valueAsITuple, getLengthProperty));
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, isLengthOrCount: true, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(new Tests.One(lengthEvaluation));
             var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
             tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp)));
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
-                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput))
+                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
                     {
                         Debug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
@@ -553,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Tests.AndSequence.Create(tests);
 
-            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input)
+            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount = false)
             {
                 if (member is null)
                     return false;
@@ -568,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (member.Symbol)
                 {
                     case PropertySymbol property:
-                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, OriginalInput(input, property));
+                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, isLengthOrCount, OriginalInput(input, property));
                         break;
                     case FieldSymbol field:
                         evaluation = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
@@ -1064,15 +1065,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
-                // TODO: Set BoundDagPropertyEvaluation.IsLengthOrCount for indexable types
                 else if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                 {
                     Debug.Assert(input.Type.SpecialType == SpecialType.System_Int32);
-                    (_, BoundDagTemp? lengthTemp, int offset) = GetCanonicalInput(e);
+                    (BoundDagTemp _, BoundDagTemp? lengthTemp, int offset) = GetCanonicalInput(e);
                     if (lengthTemp is not null)
                     {
                         Debug.Assert(values.ContainsKey(lengthTemp));
-                        var lengthValues = ValueSetFactory.Shift(fromTestPassing, offset);
+                        // If this is a length test inside a slice, we infer a new set of length values for the outer list.
+                        IValueSet lengthValues = ValueSetFactory.Shift(fromTestPassing, offset);
                         values = values.SetItem(lengthTemp, lengthValues.Intersect(values[lengthTemp]));
                     }
 
@@ -1184,6 +1185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (BoundDagTemp s2Input, _, int s2Offset) = GetCanonicalInput(s2);
                             if (s1Input.Equals(s2Input))
                             {
+                                // This happens when we have a length test in a slice pattern, in which case we align
+                                // the values to the current offset and continue. This is because we will update the
+                                // outer list length values based on a nested test but that hasn't happened yet.
                                 Debug.Assert(whenTrueValues is not null);
                                 Debug.Assert(whenFalseValues is not null);
                                 whenTrueValues = ValueSetFactory.Shift(whenTrueValues, s1Offset - s2Offset);
@@ -1196,7 +1200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
                             (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                            if (s1Input.Equals(s2Input))
+                            Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                            Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
+                            if (s1Input.Equals(s2Input) &&
+                                // We don't want to pair two indices within the same pattern.
+                                s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                             {
                                 Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
                                 if (s1Index == s2Index)
@@ -1212,14 +1220,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         return;
                                     }
 
+                                    // Compute the length value that would make these two indices point to the same element.
                                     int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
                                     if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
                                     {
+                                        // If the length is known to be exact, the two can definitely point to the same element.
                                         break;
                                     }
                                     if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                     {
-                                        trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                        // Otherwise, we inject a test in the success branch to split the exact value.
+                                        trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp) { WasCompilerGenerated = true });
                                         break;
                                     }
                                 }
@@ -1481,7 +1492,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private static ImmutableArray<DagState> Successor(DagState state)
             {
-
                 if (state.TrueBranch != null && state.FalseBranch != null)
                 {
                     return ImmutableArray.Create(state.FalseBranch, state.TrueBranch);
@@ -1888,8 +1898,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? trueOther : trueDecisionPermitsTrueOther ? this : False.Instance;
-                    whenFalse = falseDecisionImpliesTrueOther ? trueOther : falseDecisionPermitsTrueOther ? this : False.Instance;
+                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(trueOther, this) : trueDecisionPermitsTrueOther ? this : False.Instance;
+                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(trueOther, this) : falseDecisionPermitsTrueOther ? this : False.Instance;
+
+                    static Tests makeOrSequence(Tests t1, Tests t2)
+                    {
+                        var builder = ArrayBuilder<Tests>.GetInstance(2);
+                        builder.Add(t1);
+                        builder.Add(t2);
+                        return OrSequence.Create(builder);
+                    }
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
