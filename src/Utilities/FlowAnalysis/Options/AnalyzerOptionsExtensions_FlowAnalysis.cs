@@ -117,9 +117,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             PointsToAnalysisKind defaultValue,
             CancellationToken cancellationToken)
-        => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetPointsToAnalysisKindOption(rule, tree, compilation, defaultValue, cancellationToken)
-            : defaultValue;
+            => TryGetSyntaxTreeForOption(symbol, out var tree)
+                ? options.GetPointsToAnalysisKindOption(rule, tree, compilation, defaultValue, cancellationToken)
+                : defaultValue;
 
         public static PointsToAnalysisKind GetPointsToAnalysisKindOption(
             this AnalyzerOptions options,
