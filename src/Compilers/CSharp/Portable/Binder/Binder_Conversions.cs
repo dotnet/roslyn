@@ -565,12 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLambda boundLambda;
                 if (delegateType is { })
                 {
-                    if (destination.IsNonGenericExpressionType())
+                    bool isExpressionTree = destination.IsNonGenericExpressionType();
+                    if (isExpressionTree)
                     {
                         delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
                         delegateType.AddUseSiteInfo(ref useSiteInfo);
                     }
-                    boundLambda = unboundLambda.Bind(delegateType);
+                    boundLambda = unboundLambda.Bind(delegateType, isExpressionTree);
                 }
                 else
                 {
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 _ = unboundLambda.InferDelegateType(ref discardedUseSiteInfo);
 #endif
-                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
                 diagnostics.AddRange(boundLambda.Diagnostics);
                 return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
             }

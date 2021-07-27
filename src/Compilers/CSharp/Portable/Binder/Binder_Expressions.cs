@@ -4306,7 +4306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(node, useSiteInfo);
                 // Attempting to make the conversion caches the diagnostics and the bound state inside
                 // the unbound lambda. Fetch the result from the cache.
-                BoundLambda boundLambda = unboundLambda.Bind(type);
+                Debug.Assert(!type.IsGenericOrNonGenericExpressionType(out _));
+                BoundLambda boundLambda = unboundLambda.Bind(type, isExpressionTree: false);
 
                 if (!conversion.IsImplicit || !conversion.IsValid)
                 {

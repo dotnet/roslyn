@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.BindingFailed)
             {
-                var bindingResult = anonymousFunction.Bind(delegateType);
+                var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);
                 Debug.Assert(ErrorFacts.PreventsSuccessfulDelegateConversion(bindingResult.Diagnostics.Diagnostics));
                 diagnostics.AddRange(bindingResult.Diagnostics);
                 return;
