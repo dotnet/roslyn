@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
-        SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
+        SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node);
         SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
@@ -405,6 +405,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
+        SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
+        SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);

@@ -137,6 +137,11 @@
         <target state="translated">Conflicto(s) detectado(s).</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_container_async">
+        <source>Make container 'async'</source>
+        <target state="new">Make container 'async'</target>
+        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
@@ -204,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">alias externo</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -414,7 +419,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

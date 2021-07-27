@@ -19,11 +19,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
 
             Dim libraries = BuildLibraries(allReferences)
             Dim targets = BuildTargets(targetFramework, allReferences)
+            Dim project = BuildProject(targetFramework)
 
             Dim projectAssets As ProjectAssetsFile = New ProjectAssetsFile With {
                 .Version = version,
                 .Targets = targets,
-                .Libraries = libraries
+                .Libraries = libraries,
+                .Project = project
             }
 
             Return projectAssets
@@ -87,6 +89,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
                 Function(reference)
                     Return String.Empty
                 End Function)
+        End Function
+
+        Private Function BuildProject(targetFramework As String) As ProjectAssetsProject
+            ' Frameworks won't always specify a set of dependencies.
+            ' This ensures the project asset reader does not error in these cases.
+            Return New ProjectAssetsProject With {
+                 .Frameworks = New Dictionary(Of String, ProjectAssetsProjectFramework) From {
+                    {targetFramework, New ProjectAssetsProjectFramework}
+                 }
+            }
         End Function
     End Module
 End Namespace

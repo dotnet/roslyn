@@ -114,6 +114,7 @@ $CountMissingSymbols = {
       $totalRetries = 0
 
       while ($totalRetries -lt $using:MaxRetry) {
+
         # Save the output and get diagnostic output
         $output = & $dotnetSymbolExe --symbols --modules $WindowsPdbVerificationParam $TargetServerParam $FullPath -o $SymbolsPath --diagnostics | Out-String
 
@@ -132,20 +133,28 @@ $CountMissingSymbols = {
         elseif (Test-Path $SymbolPath) {
           return 'Module'
         }
-        elseif ($output.Contains("503 Service Unavailable")) {
-          # If we got a 503 error, we should retry.
+        else
+        {
           $totalRetries++
-        }
-        else {
-          return $null
         }
       }
       
       return $null
     }
 
-    $SymbolsOnMSDL = & $FirstMatchingSymbolDescriptionOrDefault $FileName '--microsoft-symbol-server' $SymbolsPath $WindowsPdbVerificationParam
-    $SymbolsOnSymWeb = & $FirstMatchingSymbolDescriptionOrDefault $FileName '--internal-server' $SymbolsPath $WindowsPdbVerificationParam
+    $FileGuid = New-Guid
+    $ExpandedSymbolsPath = Join-Path -Path $SymbolsPath -ChildPath $FileGuid
+
+    $SymbolsOnMSDL = & $FirstMatchingSymbolDescriptionOrDefault `
+        -FullPath $FileName `
+        -TargetServerParam '--microsoft-symbol-server' `
+        -SymbolsPath "$ExpandedSymbolsPath-msdl" `
+        -WindowsPdbVerificationParam $WindowsPdbVerificationParam
+    $SymbolsOnSymWeb = & $FirstMatchingSymbolDescriptionOrDefault `
+        -FullPath $FileName `
+        -TargetServerParam '--internal-server' `
+        -SymbolsPath "$ExpandedSymbolsPath-symweb" `
+        -WindowsPdbVerificationParam $WindowsPdbVerificationParam
 
     Write-Host -NoNewLine "`t Checking file " $FileName "... "
   
@@ -208,6 +217,7 @@ function CheckSymbolsAvailable {
     Remove-Item $ExtractPath -Force  -Recurse -ErrorAction SilentlyContinue
   }
 
+  $TotalPackages = 0
   $TotalFailures = 0
   $DupedSymbols = 0
 
@@ -229,6 +239,8 @@ function CheckSymbolsAvailable {
         Write-Host
         return
       }
+
+      $TotalPackages++
 
       Start-Job -ScriptBlock $CountMissingSymbols -ArgumentList @($FullName,$WindowsPdbVerificationParam) | Out-Null
 
@@ -255,11 +267,11 @@ function CheckSymbolsAvailable {
 
   if ($TotalFailures -gt 0 -or $DupedSymbols -gt 0) {
     if ($TotalFailures -gt 0) {
-      Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "Symbols missing for $TotalFailures packages"
+      Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "Symbols missing for $TotalFailures/$TotalPackages packages"
     }
 
     if ($DupedSymbols -gt 0) {
-      Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "$DupedSymbols packages had duplicated symbol files"
+      Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "$DupedSymbols/$TotalPackages packages had duplicated symbol files and could not be extracted"
     }
     
     ExitWithExitCode 1

@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
-        <target state="new">New line preferences</target>
+        <target state="translated">改行設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_Field_Members">

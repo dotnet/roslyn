@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             if (index != 0)
                 Assert.NotNull(equivalenceKey);
 
-            var test = new VerifyCS.Test
+            options ??= new OptionsCollection(LanguageNames.CSharp);
+
+            await new VerifyCS.Test
             {
                 TestCode = text,
                 FixedCode = expected,
@@ -57,11 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 CodeActionIndex = index,
                 CodeActionEquivalenceKey = equivalenceKey,
                 ExactActionSetOffered = actions,
-            };
-
-            if (options != null)
-                test.Options.AddRange(options);
-            await test.RunAsync();
+                Options = { options },
+            }.RunAsync();
         }
 
         #region update containing member tests
@@ -145,6 +144,46 @@ class Test
 }
 ";
             var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int b)
+{
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
+        {
+            var text = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+namespace N;
+
 class Test
 {
     void Method()
@@ -2278,7 +2317,8 @@ internal struct NewStruct
         return new NewStruct(value.a, value.a);
     }
 }";
-            var test = new VerifyCS.Test
+
+            await new VerifyCS.Test
             {
                 TestCode = text,
                 FixedCode = expected,
@@ -2349,11 +2389,9 @@ internal struct NewStruct
     // /0/Test0.cs(49,45): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(49, 45, 49, 46).WithArguments("(int a, int a).a", "(int a, int a).a"),
                     }
-                }
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                },
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -3352,7 +3390,7 @@ partial class Other
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -3373,10 +3411,8 @@ partial class Other
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = Scope.ContainingType.ToString(),
                 TestHost = host,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion update containing project tests
@@ -3511,7 +3547,7 @@ partial class Other
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 CodeActionIndex = 2,
                 CodeActionEquivalenceKey = Scope.ContainingProject.ToString(),
@@ -3524,10 +3560,8 @@ partial class Other
                 {
                     Sources = { expected1, expected2 },
                 },
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion
@@ -3638,7 +3672,7 @@ partial class Other
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 CodeActionIndex = 3,
                 CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
@@ -3667,10 +3701,8 @@ partial class Other
                         }
                     },
                 },
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -3777,7 +3809,7 @@ partial class Other
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 CodeActionIndex = 3,
                 CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
@@ -3798,10 +3830,8 @@ partial class Other
                         ["DependencyProject"] = { Sources = { expected2 } }
                     },
                 },
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion

@@ -910,7 +910,7 @@ op_BitwiseOr
         End Sub
 
         <Fact>
-        Public Sub OperatorMapping_BothSignedAndUnsignedShift()
+        Public Sub OperatorMapping_BothSignedAndUnsignedShift_01()
 
             Dim ilSource =
             <![CDATA[
@@ -1000,6 +1000,143 @@ op_BitwiseOr
     IL_000f:  ldloc.0
     IL_0010:  ret
   } // end of method C::op_RightShift
+
+  .method public hidebysig static int32  Main() cil managed
+  {
+    .entrypoint
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init ([0] int32 V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method C::Main
+
+} // end of class C
+]]>
+
+            Dim compilationDef =
+<compilation name="BothSignedAndUnsignedShift">
+    <file name="a.vb"><![CDATA[
+Option Strict On
+
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim c As New C()
+        c = (New C << 1) >> 2 << 3
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+                             expectedOutput:=
+            <![CDATA[
+op_LeftShift
+op_RightShift
+op_LeftShift
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub OperatorMapping_BothSignedAndUnsignedShift_02()
+
+            Dim ilSource =
+            <![CDATA[
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  br.s       IL_0008
+
+    IL_0008:  ret
+  } // end of method C::.ctor
+
+  .method public hidebysig specialname static 
+          class C  op_UnsignedLeftShift(class C x,
+                                int32 y) cil managed
+  {
+    // Code size       17 (0x11)
+    .maxstack  1
+    .locals init ([0] class C V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      "op_UnsignedLeftShift"
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  ldarg.0
+    IL_000c:  stloc.0
+    IL_000d:  br.s       IL_000f
+
+    IL_000f:  ldloc.0
+    IL_0010:  ret
+  } // end of method C::op_UnsignedLeftShift
+
+  .method public hidebysig specialname static 
+          class C  op_LeftShift(class C x,
+                                int32 y) cil managed
+  {
+    // Code size       17 (0x11)
+    .maxstack  1
+    .locals init ([0] class C V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      "op_LeftShift"
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  ldarg.0
+    IL_000c:  stloc.0
+    IL_000d:  br.s       IL_000f
+
+    IL_000f:  ldloc.0
+    IL_0010:  ret
+  } // end of method C::op_LeftShift
+
+  .method public hidebysig specialname static 
+          class C  op_RightShift(class C x,
+                                 int32 y) cil managed
+  {
+    // Code size       17 (0x11)
+    .maxstack  1
+    .locals init ([0] class C V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      "op_RightShift"
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  ldarg.0
+    IL_000c:  stloc.0
+    IL_000d:  br.s       IL_000f
+
+    IL_000f:  ldloc.0
+    IL_0010:  ret
+  } // end of method C::op_RightShift
+
+  .method public hidebysig specialname static 
+          class C  op_UnsignedRightShift(class C x,
+                                 int32 y) cil managed
+  {
+    // Code size       17 (0x11)
+    .maxstack  1
+    .locals init ([0] class C V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      "op_UnsignedRightShift"
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  ldarg.0
+    IL_000c:  stloc.0
+    IL_000d:  br.s       IL_000f
+
+    IL_000f:  ldloc.0
+    IL_0010:  ret
+  } // end of method C::op_UnsignedRightShift
 
   .method public hidebysig static int32  Main() cil managed
   {
