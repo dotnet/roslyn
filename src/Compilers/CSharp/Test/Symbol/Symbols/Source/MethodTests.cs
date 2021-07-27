@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -49,8 +48,14 @@ class A {
         public void NoParameterlessCtorForStruct()
         {
             var text = "struct A { A() {} }";
-            var comp = CreateCompilation(text);
-            Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A").WithArguments("parameterless struct constructors", "10.0").WithLocation(1, 12),
+                // (1,12): error CS8938: The parameterless struct constructor must be 'public'.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
         }
 
         [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]

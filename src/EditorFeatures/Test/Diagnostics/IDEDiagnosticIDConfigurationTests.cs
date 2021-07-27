@@ -420,6 +420,12 @@ dotnet_diagnostic.IDE0120.severity = %value%
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
 
+# IDE0160
+dotnet_diagnostic.IDE0160.severity = %value%
+
+# IDE0161
+dotnet_diagnostic.IDE0161.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -992,8 +998,14 @@ No editorconfig based code style option
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
 
-# IDE0150
-No editorconfig based code style option
+# IDE0150, PreferNullCheckOverTypeCheck
+csharp_style_prefer_null_check_over_type_check = true
+
+# IDE0160, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
+
+# IDE0161, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

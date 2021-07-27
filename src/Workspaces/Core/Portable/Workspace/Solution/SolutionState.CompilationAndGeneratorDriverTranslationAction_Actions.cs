@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;

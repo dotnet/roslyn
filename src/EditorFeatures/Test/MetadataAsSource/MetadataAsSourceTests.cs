@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -396,6 +398,86 @@ Namespace N
         Public Sub New()
     End Class
 End Namespace");
+        }
+
+        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestTypeInFileScopedNamespace1()
+        {
+            var metadataSource = "namespace N { public class C {} }";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
+
+            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
+
+            await context.GenerateAndVerifySourceAsync("N.C",
+                $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+namespace N;
+
+public class [|C|]
+{{
+    public C();
+}}");
+        }
+
+        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestTypeInFileScopedNamespace2()
+        {
+            var metadataSource = "namespace N { public class C {} }";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "9");
+
+            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
+
+            await context.GenerateAndVerifySourceAsync("N.C",
+                $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+namespace N
+{{
+    public class [|C|]
+    {{
+        public C();
+    }}
+}}");
+        }
+
+        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestTypeInFileScopedNamespace3()
+        {
+            var metadataSource = "namespace N { public class C {} }";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
+
+            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent)));
+
+            await context.GenerateAndVerifySourceAsync("N.C",
+                $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+namespace N
+{{
+    public class [|C|]
+    {{
+        public C();
+    }}
+}}");
         }
 
         [WorkItem(546223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546223")]

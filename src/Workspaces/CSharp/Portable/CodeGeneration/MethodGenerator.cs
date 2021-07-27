@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class MethodGenerator
     {
-        internal static NamespaceDeclarationSyntax AddMethodTo(
-            NamespaceDeclarationSyntax destination,
+        internal static BaseNamespaceDeclarationSyntax AddMethodTo(
+            BaseNamespaceDeclarationSyntax destination,
             IMethodSymbol method,
             CodeGenerationOptions options,
             IList<bool> availableIndices)

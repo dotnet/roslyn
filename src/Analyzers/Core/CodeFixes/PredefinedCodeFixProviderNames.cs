@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ChangeToYield = nameof(ChangeToYield);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
+        public const string ConvertNamespace = nameof(ConvertNamespace);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
         public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string RemoveDocCommentNode = nameof(RemoveDocCommentNode);

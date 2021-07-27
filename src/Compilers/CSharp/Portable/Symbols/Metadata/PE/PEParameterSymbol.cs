@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
+            // Current total = 28 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
@@ -144,6 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static readonly ImmutableArray<int> s_defaultStringHandlerAttributeIndexes = ImmutableArray.Create(int.MinValue);
         private ImmutableArray<int> _lazyInterpolatedStringHandlerAttributeIndexes = s_defaultStringHandlerAttributeIndexes;
+
+        /// <summary>
+        /// The index of a CallerArgumentExpression. The value -2 means uninitialized, -1 means
+        /// not found. Otherwise, the index of the CallerArgumentExpression.
+        /// </summary>        
+        private int _lazyCallerArgumentExpressionParameterIndex = -2;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
@@ -657,6 +664,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
                 return value;
+            }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                if (_lazyCallerArgumentExpressionParameterIndex != -2)
+                {
+                    return _lazyCallerArgumentExpressionParameterIndex;
+                }
+
+                var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                bool isCallerArgumentExpression = info.HasValue
+                    && !HasCallerLineNumberAttribute
+                    && !HasCallerFilePathAttribute
+                    && !HasCallerMemberNameAttribute
+                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+
+                if (isCallerArgumentExpression)
+                {
+                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
+                    var parameters = ContainingSymbol.GetParameters();
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                        {
+                            _lazyCallerArgumentExpressionParameterIndex = i;
+                            return i;
+                        }
+                    }
+                }
+
+                _lazyCallerArgumentExpressionParameterIndex = -1;
+                return -1;
             }
         }
 
