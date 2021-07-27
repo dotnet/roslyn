@@ -4851,5 +4851,36 @@ class C
     }
 }", codeActionIndex: 1);
         }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task ExtractLocalFunctionVariableNameShadowing_PriorCSharp8()
+        {
+            var code = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        var f = ""{0}"";
+        [|string.Format(f, """");|]
+    }
+}";
+            var expected = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        var f = ""{0}"";
+        {|Rename:NewMethod|}(f);
+
+        void NewMethod(string f)
+        {
+            string.Format(f, """");
+        }
+    }
+}";
+
+            await TestInRegularAndScript1Async(code, expected, CodeActionIndex, new TestParameters(parseOptions: new CSharpParseOptions(languageVersion: LanguageVersion.CSharp7_3)));
+        }
     }
 }
