@@ -117,26 +117,57 @@ namespace Roslyn.Utilities
             TArg arg,
             CancellationToken cancellationToken)
         {
+            if (func is null)
+                throw new ArgumentNullException(nameof(func));
+            if (transform is null)
+                throw new ArgumentNullException(nameof(transform));
+
             var intermediateResult = func(arg, cancellationToken);
             if (intermediateResult.IsCompletedSuccessfully)
             {
-                return new ValueTask<TResult>(transform(intermediateResult.Result, arg));
+                // Synchronous fast path if 'func' completes synchronously
+                var result = intermediateResult.Result;
+                if (cancellationToken.IsCancellationRequested)
+                    return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
+
+                return new ValueTask<TResult>(transform(result, arg));
             }
             else if (intermediateResult.IsCanceled && cancellationToken.IsCancellationRequested)
             {
+                // Synchronous fast path if 'func' cancels synchronously
                 return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
             }
             else
             {
+                // Asynchronous fallback path
                 return UnwrapAndTransformAsync(intermediateResult, transform, arg, cancellationToken);
             }
 
             static ValueTask<TResult> UnwrapAndTransformAsync(ValueTask<TIntermediate> intermediateResult, Func<TIntermediate, TArg, TResult> transform, TArg arg, CancellationToken cancellationToken)
             {
+                // Apply the transformation function once a result is available. The behavior depends on the final
+                // status of 'intermediateResult' and the 'cancellationToken'.
+                //
+                // | 'intermediateResult'       | 'cancellationToken' | Behavior                                 |
+                // | -------------------------- | ------------------- | ---------------------------------------- |
+                // | Ran to completion          | Not cancelled       | Apply transform                          |
+                // | Ran to completion          | Cancelled           | Cancel result without applying transform |
+                // | Cancelled (matching token) | Cancelled           | Cancel result without applying transform |
+                // | Cancelled (mismatch token) | Not cancelled       | Cancel result without applying transform |
+                // | Cancelled (mismatch token) | Cancelled           | Cancel result without applying transform |
+                // | Direct fault¹              | Not cancelled       | Directly fault (exception is not caught) |
+                // | Direct fault¹              | Cancelled           | Directly fault (exception is not caught) |
+                // | Indirect fault             | Not cancelled       | Fault result without applying transform  |
+                // | Indirect fault             | Cancelled           | Cancel result without applying transform |
+                //
+                // ¹ Direct faults are exceptions thrown from 'func' prior to returning a ValueTask<TIntermediate>
+                //   instances. Indirect faults are exceptions captured by return an instance of
+                //   ValueTask<TIntermediate> which (immediately or eventually) transitions to the faulted state. The
+                //   direct fault behavior is currently handled without calling UnwrapAndTransformAsync.
                 return new ValueTask<TResult>(intermediateResult.AsTask().ContinueWith(
                     task => transform(task.GetAwaiter().GetResult(), arg),
                     cancellationToken,
-                    TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.NotOnCanceled,
+                    TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default));
             }
         }
