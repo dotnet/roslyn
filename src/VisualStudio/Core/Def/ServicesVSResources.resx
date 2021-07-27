@@ -1776,4 +1776,13 @@ I agree to all of the foregoing:</value>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
   </data>
+  <data name="Analyzer_Defaults" xml:space="preserve">
+    <value>Analyzer Defaults</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Visual_Studio_Settings" xml:space="preserve">
+    <value>Visual Studio Settings</value>
+  </data>
 </root>

@@ -77,6 +77,11 @@
         <target state="translated">Toujours pour plus de clarté</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
         <target state="translated">Analyseurs</target>
@@ -510,6 +515,11 @@
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
         <target state="translated">Métadonnées locales</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1245,6 +1255,11 @@
       <trans-unit id="Visual_Studio_2019">
         <source>Visual Studio 2019</source>
         <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
