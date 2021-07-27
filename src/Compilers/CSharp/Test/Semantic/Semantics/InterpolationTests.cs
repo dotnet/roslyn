@@ -10963,6 +10963,74 @@ Expression e = Func<string, string> () => (string o) => $""{o.Length}"";";
 ");
         }
 
+        [Fact, WorkItem(55114, "https://github.com/dotnet/roslyn/issues/55114")]
+        public void AsStringInExpressionTrees_05()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<string, string>> e = o => $""{o.Length}"" + $""literal"";";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      167 (0xa7)
+  .maxstack  7
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""o""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    ""string string.Format(string, object)""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  ldc.i4.2
+  IL_0026:  newarr     ""System.Linq.Expressions.Expression""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""{0}""
+  IL_0032:  ldtoken    ""string""
+  IL_0037:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldloc.0
+  IL_0045:  ldtoken    ""int string.Length.get""
+  IL_004a:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_004f:  castclass  ""System.Reflection.MethodInfo""
+  IL_0054:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_0059:  ldtoken    ""object""
+  IL_005e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0063:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0068:  stelem.ref
+  IL_0069:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_006e:  ldstr      ""literal""
+  IL_0073:  ldtoken    ""string""
+  IL_0078:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_007d:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0082:  ldtoken    ""string string.Concat(string, string)""
+  IL_0087:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_008c:  castclass  ""System.Reflection.MethodInfo""
+  IL_0091:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression.Add(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_0096:  ldc.i4.1
+  IL_0097:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_009c:  dup
+  IL_009d:  ldc.i4.0
+  IL_009e:  ldloc.0
+  IL_009f:  stelem.ref
+  IL_00a0:  call       ""System.Linq.Expressions.Expression<System.Func<string, string>> System.Linq.Expressions.Expression.Lambda<System.Func<string, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_00a5:  pop
+  IL_00a6:  ret
+}
+");
+        }
+
         [Theory]
         [CombinatorialData]
         public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter, [CombinatorialValues(@"$""""", @"$"""" + $""""")] string expression)

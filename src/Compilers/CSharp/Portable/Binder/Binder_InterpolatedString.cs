@@ -214,6 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binaryOperator.IsUnconvertedInterpolatedStringAddition);
             convertedBinaryOperator = null;
 
+            if (InExpressionTree)
+            {
+                return false;
+            }
+
             var interpolatedStringHandlerType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
             if (interpolatedStringHandlerType.IsErrorType())
             {
