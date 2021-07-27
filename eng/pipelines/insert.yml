@@ -87,7 +87,7 @@ steps:
     condition: ne('${{ parameters.createDraftPR }}', '')
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }}")"
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }})"
     displayName: Update autoComplete PR Parameter
     condition: ne('${{ parameters.autoComplete }}', '')
 
