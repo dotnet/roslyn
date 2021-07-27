@@ -5,13 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-
     Partial Friend Class SourceNamedTypeSymbol
 
         ''' <summary>
@@ -1340,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
@@ -1548,31 +1544,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
-
-                        Return _clonedFrom.IsCallerLineNumber
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
-
-                        Return _clonedFrom.IsCallerMemberName
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
 
-                        Return _clonedFrom.IsCallerFilePath
+                Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                    Get
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 
@@ -1622,7 +1612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If IsComEventParameter Then
@@ -1842,7 +1832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then

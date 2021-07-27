@@ -549,7 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)parent;
                         return object.Equals(namespaceDeclaration.Name, node);
 
                     default:

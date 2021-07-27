@@ -497,12 +497,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
-            using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
+            using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
 
             foreach (var edit in edits)
             {
                 SymbolKeyResolution oldResolution;
-                if (edit.Kind == SemanticEditKind.Update)
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Delete)
                 {
                     oldResolution = edit.Symbol.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(oldResolution.Symbol);
@@ -512,8 +512,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     oldResolution = default;
                 }
 
-                var newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(newResolution.Symbol);
+                SymbolKeyResolution newResolution;
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
+                {
+                    newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(newResolution.Symbol);
+                }
+                else
+                {
+                    newResolution = default;
+                }
 
                 resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
             }
@@ -528,7 +536,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (edit.Kind == SemanticEditKind.Insert)
                     {
-                        // Inserts do not need partial type merging.
+                        Contract.ThrowIfNull(newSymbol);
                         addedSymbolsBuilder.Add(newSymbol);
                     }
 
@@ -552,7 +560,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Calculate merged syntax map for each partial type symbol:
 
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>>(symbolKeyComparer);
+            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
 
             var editsByPartialType = edits
                 .Where(edit => edit.PartialType != null)
@@ -560,15 +568,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var partialTypeEdits in editsByPartialType)
             {
-                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null));
+                // Either all edits have syntax map or none has.
+                Debug.Assert(
+                    partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null) ||
+                    partialTypeEdits.All(edit => edit.SyntaxMapTree == null && edit.SyntaxMap == null));
 
-                var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
-                var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                Func<SyntaxNode, SyntaxNode?>? mergedSyntaxMap;
+                if (partialTypeEdits.First().SyntaxMap != null)
+                {
+                    var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
+                    var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                    mergedSyntaxMap = node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node);
+                }
+                else
+                {
+                    mergedSyntaxMap = null;
+                }
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node));
+                mergedSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
             }
 
-            // Deduplicate updates based on new symbol and use merged syntax map calculated above for a given partial type.
+            // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
 
             using var _3 = PooledHashSet<ISymbol>.GetInstance(out var visitedSymbols);
 
@@ -578,12 +598,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (edit.PartialType != null)
                 {
-                    Contract.ThrowIfFalse(edit.Kind == SemanticEditKind.Update);
-
                     var (oldSymbol, newSymbol) = resolvedSymbols[i];
-                    if (visitedSymbols.Add(newSymbol))
+                    if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
-                        mergedEditsBuilder.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, mergedSyntaxMaps[edit.PartialType.Value], preserveLocalVariables: true));
+                        var syntaxMap = mergedSyntaxMaps[edit.PartialType.Value];
+                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
                     }
                 }
             }

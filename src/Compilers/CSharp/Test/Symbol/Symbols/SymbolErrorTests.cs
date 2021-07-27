@@ -10654,24 +10654,29 @@ interface IA
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                // (12,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
-                // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
+                // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-                // (12,13): warning CS0169: The field 'cly.a' is never used
-                //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
-                // (13,13): warning CS0169: The field 'cly.i' is never used
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
+                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
-            );
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
+                //         static int s = 2;    // no error
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
         }
 
         [Fact]
@@ -10692,13 +10697,21 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-    // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
-    //         public S1() {}
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S1").WithLocation(5, 16),
-    // (9,13): error CS0568: Structs cannot contain explicit parameterless constructors
-    //             S2() { }
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(9, 13)
-   );
+                // (5,16): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
+                //         public S1() {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(5, 16),
+                // (9,13): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(9, 13),
+                // (9,13): error CS8938: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8918: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
         }
 
         [Fact]
