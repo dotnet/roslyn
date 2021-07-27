@@ -11925,17 +11925,17 @@ class Test
 {
     public static void Main()
     {
-        var m = Main; // CS0815
-        var d = s => -1; // CS0815
-        var e = (string s) => 0; // CS0815
+        var m = Main;
+        var d = s => -1; // CS8917
+        var e = (string s) => 0;
         var p = null;//CS0815
-        var del = delegate(string a) { return -1; };// CS0815
+        var del = delegate(string a) { return -1; };
         var v = M(); // CS0815
     }
     static void M() {}
 }").VerifyDiagnostics(
                 // (7,17): error CS8917: The delegate type could not be inferred.
-                //         var d = s => -1; // CS0815
+                //         var d = s => -1; // CS8917
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(7, 17),
                 // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var p = null;//CS0815

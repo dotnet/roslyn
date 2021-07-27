@@ -2219,10 +2219,124 @@ class Program
                 // (12,13): error CS0029: Cannot implicitly convert type 'System.Func<string>' to 'System.Func<int>'
                 //         f = d3;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "d3").WithArguments("System.Func<string>", "System.Func<int>").WithLocation(12, 13));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var variables = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Initializer != null);
+            var expectedInfo = new (string?, string?, string?)[]
+            {
+                ("System.Action d1", null, "System.Action"),
+                ("System.Func<System.Int32, System.Object> d2", null, "System.Func<System.Int32, System.Object>"),
+                ("System.Func<System.String> d3", null, "System.Func<System.String>"),
+            };
+            AssertEx.Equal(expectedInfo, variables.Select(v => getVariableInfo(model, v)));
+
+            static (string?, string?, string?) getVariableInfo(SemanticModel model, VariableDeclaratorSyntax variable)
+            {
+                var symbol = model.GetDeclaredSymbol(variable);
+                var typeInfo = model.GetTypeInfo(variable.Initializer!.Value);
+                return (symbol?.ToTestDisplayString(), typeInfo.Type?.ToTestDisplayString(), typeInfo.ConvertedType?.ToTestDisplayString());
+            }
         }
 
         [Fact]
         public void ImplicitlyTypedVariables_07()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var t = (Main, () => { });
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0815: Cannot assign (method group, lambda expression) to an implicitly-typed variable
+                //         var t = (Main, () => { });
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (Main, () => { })").WithArguments("(method group, lambda expression)").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_08()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        (var x1, var y1) = Main;
+        var (x2, y2) = () => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         (var x1, var y1) = Main;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(5, 14),
+                // (5,22): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y1'.
+                //         (var x1, var y1) = Main;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y1").WithArguments("y1").WithLocation(5, 22),
+                // (5,28): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (var x1, var y1) = Main;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "Main").WithLocation(5, 28),
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         var (x2, y2) = () => { };
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 14),
+                // (6,18): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+                //         var (x2, y2) = () => { };
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(6, 18),
+                // (6,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         var (x2, y2) = () => { };
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "() => { }").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_09()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var (x, y) = (Main, () => { });
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                //         var (x, y) = (Main, () => { });
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(5, 14),
+                // (5,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         var (x, y) = (Main, () => { });
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_10()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        (var x1, Action y1) = (Main, null);
+        (Action x2, var y2) = (null, () => { });
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         (var x1, Action y1) = (Main, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 14),
+                // (7,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+                //         (Action x2, var y2) = (null, () => { });
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_11()
         {
             var source =
 @"class Program
@@ -2246,7 +2360,30 @@ class Program
         }
 
         [Fact]
-        public void ImplicitlyTypedVariables_08()
+        public void ImplicitlyTypedVariables_12()
+        {
+            var source =
+@"class Program
+{
+    static void F(ref int i) { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = (ref int x) => x;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(6, 18),
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var d2 = (ref int x) => x;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ref int x) => x").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_13()
         {
             var source =
 @"using System;
