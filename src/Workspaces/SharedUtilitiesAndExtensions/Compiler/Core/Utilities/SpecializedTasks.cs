@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
@@ -83,6 +84,60 @@ namespace Roslyn.Utilities
             else
             {
                 return new ValueTask<T[]>(Task.WhenAll(taskArray.Select(task => task.AsTask())));
+            }
+        }
+
+        /// <summary>
+        /// This helper method provides semantics equivalent to the following, but avoids throwing an intermediate
+        /// <see cref="OperationCanceledException"/> in the case where the asynchronous operation is cancelled.
+        ///
+        /// <code><![CDATA[
+        /// public ValueTask<TResult> MethodAsync(TArg arg, CancellationToken cancellationToken)
+        /// {
+        ///   var intermediate = await func(arg, cancellationToken).ConfigureAwait(false);
+        ///   return transform(intermediate);
+        /// }
+        /// ]]></code>
+        /// </summary>
+        /// <remarks>
+        /// This helper method is only intended for use in cases where profiling reveals substantial overhead related to
+        /// cancellation processing.
+        /// </remarks>
+        /// <typeparam name="TArg">The type of a state variable to pass to <paramref name="func"/> and <paramref name="transform"/>.</typeparam>
+        /// <typeparam name="TIntermediate">The type of intermediate result produced by <paramref name="func"/>.</typeparam>
+        /// <typeparam name="TResult">The type of result produced by <paramref name="transform"/>.</typeparam>
+        /// <param name="func">The intermediate asynchronous operation.</param>
+        /// <param name="transform">The synchronous transformation to apply to the result of <paramref name="func"/>.</param>
+        /// <param name="arg">The state to pass to <paramref name="func"/> and <paramref name="transform"/>.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
+        /// <returns></returns>
+        public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
+            Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
+            Func<TIntermediate, TArg, TResult> transform,
+            TArg arg,
+            CancellationToken cancellationToken)
+        {
+            var intermediateResult = func(arg, cancellationToken);
+            if (intermediateResult.IsCompletedSuccessfully)
+            {
+                return new ValueTask<TResult>(transform(intermediateResult.Result, arg));
+            }
+            else if (intermediateResult.IsCanceled && cancellationToken.IsCancellationRequested)
+            {
+                return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
+            }
+            else
+            {
+                return UnwrapAndTransformAsync(intermediateResult, transform, arg, cancellationToken);
+            }
+
+            static ValueTask<TResult> UnwrapAndTransformAsync(ValueTask<TIntermediate> intermediateResult, Func<TIntermediate, TArg, TResult> transform, TArg arg, CancellationToken cancellationToken)
+            {
+                return new ValueTask<TResult>(intermediateResult.AsTask().ContinueWith(
+                    task => transform(task.GetAwaiter().GetResult(), arg),
+                    cancellationToken,
+                    TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.NotOnCanceled,
+                    TaskScheduler.Default));
             }
         }
 
