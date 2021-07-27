@@ -51,6 +51,15 @@ Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$P
             $windowsDesktopRuntimeVersions += $v
         }
     }
+	
+	# Add target frameworks of the form: netXX
+	$targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
+        $v = $Matches[1]
+        $runtimeVersions += $v
+        if (-not ($IsMacOS -or $IsLinux)) {
+            $windowsDesktopRuntimeVersions += $v
+        }
+	}
 }
 
 Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
