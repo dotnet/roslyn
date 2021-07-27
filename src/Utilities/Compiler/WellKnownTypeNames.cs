@@ -264,7 +264,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
-        public const string SystemRuntimeCompilerServicesRuntimeFeatureVirtualStaticsInInterfaces = "System.Runtime.CompilerServices.RuntimeFeature.VirtualStaticsInInterfaces";
+        public const string SystemRuntimeCompilerServicesRuntimeFeature = "System.Runtime.CompilerServices.RuntimeFeature";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
