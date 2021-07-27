@@ -2931,7 +2931,10 @@ namespace Microsoft.Cci
 
                 if (_debugMetadataOpt != null)
                 {
-                    SerializeMethodDebugInfo(body, methodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
+                    // methodRid is based on this delta but for async state machine debug info we need the "real" row number
+                    // of the method aggregated across generations
+                    var aggregateMethodRid = MetadataTokens.GetRowNumber(GetMethodDefinitionHandle(method));
+                    SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
                 _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
