@@ -114,8 +114,8 @@ steps:
 
       if ("" -ne $Env:ComponentBuildProjectName)
       {
-        Write-Host "Setting component Azdo parameters $($(System.CollectionUri)) and $Env:ComponentBuildProjectName"
-        Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$($(System.CollectionUri))"
+        Write-Host "Setting component Azdo parameters $('$(System.CollectionUri)') and $Env:ComponentBuildProjectName"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
         Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$Env:ComponentBuildProjectName"
       }
 
