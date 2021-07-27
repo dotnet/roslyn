@@ -332,6 +332,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
+        ''' <summary>
+        ''' Returns the parameters of a given method or property.
+        ''' </summary>
+        <Extension()>
+        Friend Function GetParameters(sym As Symbol) As ImmutableArray(Of ParameterSymbol)
+            Select Case sym.Kind
+                Case SymbolKind.Method
+                    Return DirectCast(sym, MethodSymbol).Parameters
+                Case SymbolKind.Property
+                    Return DirectCast(sym, PropertySymbol).Parameters
+                Case Else
+                    Return ImmutableArray(Of ParameterSymbol).Empty
+            End Select
+        End Function
+
         <Extension()>
         Friend Function OfMinimalArity(symbols As IEnumerable(Of NamespaceOrTypeSymbol)) As NamespaceOrTypeSymbol
             Dim minAritySymbol As NamespaceOrTypeSymbol = Nothing
