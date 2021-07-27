@@ -112,7 +112,7 @@ steps:
         Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$VSBranchName"
       }
 
-      if ("" ne $ComponentBuildProjectName)
+      if ("" -ne $ComponentBuildProjectName)
       {
         Write-Host "Setting component Azdo parameters"
         Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
