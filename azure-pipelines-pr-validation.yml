@@ -213,7 +213,7 @@ stages:
         insertToolset: $(InsertToolset)
         clientId: $(ClientId)
         clientSecret: $(ClientSecret)
-        componentBranchName: $(ComponentBranchName)
         vsBranchName: $(VisualStudioBranchName)
         titlePrefix: $(OptionalTitlePrefix)
+        sourceBranch: $(SourceBranchName)
   

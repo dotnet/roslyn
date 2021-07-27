@@ -17,16 +17,18 @@ parameters:
   - name: clientSecret
     type: string
 
-  - name: componentBranchName
-    type: string
   - name: vsBranchName
     type: string
+    default: ''
   - name: componentBuildProjectName
     type: string
     default: ''
   - name: titlePrefix
     type: string
     default: ''
+
+  - name: sourceBranch
+    type: string
 
 steps:
   - checkout: none
@@ -37,31 +39,84 @@ steps:
       command: custom
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
-  # The next two steps define component repo variables for the insertion (if the build lives outside of devdiv).
-  # Unfortunately there are a few limitations regarding variables and pipeline parameters inside ADO pipeline templates.
-  #   1.  It is not possible to define variables in yaml along with steps in templates.
-  #       See https://github.com/MicrosoftDocs/azure-devops-docs/issues/6890#issuecomment-594635314
-  #       The workaround is to define them via scripts as below.
-  #
-  #   2.  Template parameters cannot be tested correctly inside scripts as it just replaces the ${{param}} with the value of the parameter.
-  #       If the parameter is empty, it replaces with nothing which leads to errors in running the script.
-  #       As such, we use a conditional step to test the template parameter and overwrite the template variable.
   - powershell: |
+      $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+      $branchName = ${{ parameters.sourceBranch }}
+      $branchData = $response.branches.$branchName
+      if (!$branchData)
+      {
+        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
+        $branchData = $response.branches.main
+      }
+
+      Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
+      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
-    displayName: Set Template Variables
+
+      Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($branchData.vsBranch)"
+
+      if ($null -ne $branchData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $branchData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $branchData.insertionTitlePrefix)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($branchData.insertionTitlePrefix)"
+      }
+
+      if ($null -ne $branchData.insertToolset)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($branchData.insertToolset)"
+      }
+
+    displayName: Set Variables from PublishData
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$(${{ parameters.createDraftPR }})"
+    displayName: Update createDraftPR Parameter
+    condition: ne('${{ parameters.createDraftPR }}', '')
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }})"
+    displayName: Update autoComplete PR Parameter
+    condition: ne('${{ parameters.autoComplete }}', '')
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$(${{ parameters.titlePrefix }})"
+    displayName: Update titlePrefix Parameter
+    condition: ne('${{ parameters.titlePrefix }}', '')
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$(${{ parameters.insertToolset }})"
+    displayName: Update insertToolset Parameter
+    condition: ne('${{ parameters.insertToolset }}', '')
+
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$(${{ parameters.vsBranchName }})"
+    displayName: Update vsBranchName Parameter
+    condition: ne('${{ parameters.vsBranchName }}', '')
 
   - powershell: |
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$($(System.CollectionUri))"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
-    displayName: Update Template Variables
+    displayName: Update Component Repo Parameters
     condition: ne('${{ parameters.componentBuildProjectName }}', '')
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
       .\RIT\tools\OneOffInsertion.ps1 `
-        -autoComplete "${{ parameters.autoComplete }}" `
+        -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
         -clientId "${{ parameters.clientId }}" `
@@ -70,15 +125,15 @@ steps:
         -componentProjectName "$(Template.ComponentProjectName)" `
         -componentName "Roslyn" `
         -componentGitHubRepoName "dotnet/roslyn" `
-        -componentBranchName "${{ parameters.componentBranchName }}" `
-        -createDraftPR "${{ parameters.createDraftPR }}" `
+        -componentBranchName "$(Template.ComponentBranchName)" `
+        -createDraftPR "$(Template.CreateDraftPR)" `
         -defaultValueSentinel "(default)" `
         -dropPath "(default)" `
         -insertCore "(default)" `
         -insertDevDiv "(default)" `
         -insertionCount "1" `
-        -insertToolset "${{ parameters.insertToolset }}" `
-        -titlePrefix "${{ parameters.titlePrefix }}" `
+        -insertToolset "$(Template.InsertToolset)" `
+        -titlePrefix "$(Template.TitlePrefix)" `
         -titleSuffix "(default)" `
         -queueValidation "true" `
         -requiredValueSentinel "REQUIRED" `
@@ -86,7 +141,7 @@ steps:
         -specificBuild "$(Build.BuildNumber)" `
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
-        -visualStudioBranchName "${{ parameters.vsBranchName }}" `
+        -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
     displayName: 'Run OneOffInsertion.ps1'
 

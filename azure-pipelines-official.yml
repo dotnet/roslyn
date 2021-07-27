@@ -309,31 +309,9 @@ stages:
       vmImage: windows-2019
     steps:
     - powershell: |
-        $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
-        $branchData = $response.branches.$branchName
-        if (!$branchData)
-        {
-          Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
-          $branchData = $response.branches.main
-        }
-        if ($null -ne $branchData.insertionCreateDraftPR)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
-        }
-        if ($null -ne $branchData.insertionTitlePrefix)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.TitlePrefix]$($branchData.insertionTitlePrefix)"
-        }
-        if ($null -ne $branchData.insertToolset)
-        {
-          Write-Host "##vso[task.setvariable variable=Insertion.InsertToolset]$($branchData.insertToolset)"
-        }
-
-        Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
-        Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
-      displayName: Set Insertion Variables
+      displayName: Get Branch Name
 
     - template: eng/pipelines/insert.yml
       parameters:
@@ -346,6 +324,7 @@ stages:
         componentBranchName: $(ComponentBranchName)
         vsBranchName: $(VSBranchName)
         titlePrefix: $(Insertion.TitlePrefix)
+        sourceBranch: "$(ComponentBranchName)"
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
