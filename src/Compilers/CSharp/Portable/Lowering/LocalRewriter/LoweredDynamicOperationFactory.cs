@@ -794,11 +794,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
             Debug.Assert(_factory.CompilationState.ModuleBuilderOpt is { });
             int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
+            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, returnRefKind: RefKind.None, generation);
             return synthesizedType.Construct(delegateSignature);
         }
 
-        internal BoundExpression GetArgumentInfo(
+        private BoundExpression GetArgumentInfo(
             MethodSymbol argumentInfoFactory,
             BoundExpression boundArgument,
             string? name,
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Call(null, argumentInfoFactory, _factory.Literal((int)flags), _factory.Literal(name));
         }
 
-        internal static ImmutableArray<BoundExpression> GetCallSiteArguments(BoundExpression callSiteFieldAccess, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right)
+        private static ImmutableArray<BoundExpression> GetCallSiteArguments(BoundExpression callSiteFieldAccess, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right)
         {
             var result = new BoundExpression[1 + (receiver != null ? 1 : 0) + arguments.Length + (right != null ? 1 : 0)];
             int j = 0;
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.AsImmutableOrNull();
         }
 
-        internal TypeSymbol[] MakeCallSiteDelegateSignature(TypeSymbol callSiteType, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right, TypeSymbol resultType)
+        private TypeSymbol[] MakeCallSiteDelegateSignature(TypeSymbol callSiteType, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right, TypeSymbol resultType)
         {
             var systemObjectType = _factory.SpecialType(SpecialType.System_Object);
             var result = new TypeSymbol[1 + (receiver != null ? 1 : 0) + arguments.Length + (right != null ? 1 : 0) + (resultType.IsVoidType() ? 0 : 1)];

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,14 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             TypeSymbol objectType,
             TypeSymbol intPtrType,
-            TypeSymbol voidReturnTypeOpt,
+            TypeSymbol? voidReturnTypeOpt,
             int parameterCount,
-            BitVector byRefParameters)
-            : base(name, parameterCount, returnsVoid: (object)voidReturnTypeOpt != null)
+            BitVector byRefParameters,
+            RefKind returnRefKind)
+            : base(name, parameterCount, returnsVoid: voidReturnTypeOpt is not null)
         {
             _containingSymbol = containingSymbol;
             _constructor = new DelegateConstructor(this, objectType, intPtrType);
-            _invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt);
+            _invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt, returnRefKind);
         }
 
         public override Symbol ContainingSymbol
@@ -116,8 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<ParameterSymbol> _parameters;
             private readonly TypeSymbol _containingType;
             private readonly TypeSymbol _returnType;
+            private readonly RefKind _returnRefKind;
 
-            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol voidReturnTypeOpt)
+            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol? voidReturnTypeOpt, RefKind returnRefKind)
             {
                 var typeParams = containingType.TypeParameters;
 
@@ -125,15 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
                 _returnType = voidReturnTypeOpt ?? typeParams.Last();
+                _returnRefKind = returnRefKind;
 
-                int parameterCount = typeParams.Length - ((object)voidReturnTypeOpt != null ? 0 : 1);
+                int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(parameterCount);
                 for (int i = 0; i < parameterCount; i++)
                 {
                     // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
-                    var refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
+                    var parameterRefKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
 
-                    parameters.Add(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(typeParams[i]), i, refKind));
+                    parameters.Add(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(typeParams[i]), i, parameterRefKind));
                 }
 
                 _parameters = parameters.ToImmutableAndFree();
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public override DllImportData GetDllImportData()
+            public override DllImportData? GetDllImportData()
             {
                 return null;
             }
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+            internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
             {
                 get { return null; }
             }
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override RefKind RefKind
             {
-                get { return RefKind.None; }
+                get { return _returnRefKind; }
             }
 
             public override TypeWithAnnotations ReturnTypeWithAnnotations
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
-            public override Symbol AssociatedSymbol
+            public override Symbol? AssociatedSymbol
             {
                 get { return null; }
             }

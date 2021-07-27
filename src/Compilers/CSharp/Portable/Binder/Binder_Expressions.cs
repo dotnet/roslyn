@@ -8568,7 +8568,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
-        // Consider using that method directly since it also synthesizes delegates if necessary.
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             RefKind returnRefKind,
             TypeWithAnnotations returnTypeOpt,
@@ -8578,33 +8577,63 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
 
-            if (returnRefKind == RefKind.None &&
-                (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
+            bool returnsVoid = !returnTypeOpt.HasType;
+            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnTypeOpt);
+
+            if (returnsVoid && returnRefKind != RefKind.None)
             {
-                var wkDelegateType = returnTypeOpt.HasType ?
-                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length) :
-                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length);
+                // Invalid return type.
+                return null;
+            }
+
+            if (!typeArguments.All(t => isValidTypeArgument(t.Type)))
+            {
+                // https://github.com/dotnet/roslyn/issues/55217: Support parameter
+                // and return types that are not valid generic type arguments.
+                return null;
+            }
+
+            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
+
+            if (returnRefKind == RefKind.None && !hasByRefParameters)
+            {
+                var wkDelegateType = returnsVoid ?
+                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length) :
+                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length);
 
                 if (wkDelegateType != WellKnownType.Unknown)
                 {
                     var delegateType = Compilation.GetWellKnownType(wkDelegateType);
                     delegateType.AddUseSiteInfo(ref useSiteInfo);
-                    if (returnTypeOpt.HasType)
-                    {
-                        parameterTypes = parameterTypes.Add(returnTypeOpt);
-                    }
-                    if (parameterTypes.Length == 0)
+                    if (typeArguments.Length == 0)
                     {
                         return delegateType;
                     }
-                    if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
+                    if (checkConstraints(Compilation, Conversions, delegateType, typeArguments))
                     {
-                        return delegateType.Construct(parameterTypes);
+                        return delegateType.Construct(typeArguments);
                     }
                 }
             }
 
-            return null;
+            var byRefs = hasByRefParameters ? BitVector.Create(parameterTypes.Length) : default;
+            if (hasByRefParameters)
+            {
+                for (int i = 0; i < parameterRefKinds.Length; i++)
+                {
+                    byRefs[i] = parameterRefKinds[i] != RefKind.None;
+                }
+            }
+
+            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, byRefs, returnsVoid, returnRefKind, generation: 0);
+            return synthesizedType.Construct(typeArguments);
+
+            static bool isValidTypeArgument(TypeSymbol? type)
+            {
+                return type is { } &&
+                    !type.IsPointerOrFunctionPointer() &&
+                    !type.IsRestrictedType();
+            }
 
             static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
             {
