@@ -321,7 +321,6 @@ stages:
         clientId: $(ClientId)
         clientSecret: $(ClientSecret)
         componentBuildProjectName: internal
-        componentBranchName: $(ComponentBranchName)
         vsBranchName: $(VSBranchName)
         titlePrefix: $(Insertion.TitlePrefix)
         sourceBranch: "$(ComponentBranchName)"
