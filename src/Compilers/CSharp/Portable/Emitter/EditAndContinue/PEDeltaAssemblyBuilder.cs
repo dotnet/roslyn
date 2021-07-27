@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _deepTranslator = new CSharpSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object));
         }
 
-        public override int CurrentGenerationOrdinal => _previousGeneration.Ordinal + 1;
+        public override SymbolChanges? EncSymbolChanges => _changes;
+        public override EmitBaseline PreviousGeneration => _previousGeneration;
 
         internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
         {
@@ -173,11 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return true;
         }
 
-        internal EmitBaseline PreviousGeneration
-        {
-            get { return _previousGeneration; }
-        }
-
         internal CSharpDefinitionMap PreviousDefinitions
         {
             get { return _previousDefinitions; }
@@ -240,11 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
         }
 
-        internal SymbolChanges Changes
-        {
-            get { return _changes; }
-        }
-
         public void OnCreatedIndices(DiagnosticBag diagnostics)
         {
             var embeddedTypesManager = this.EmbeddedTypesManagerOpt;
@@ -255,11 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType.AdaptedSymbol), Location.None);
                 }
             }
-        }
-
-        internal override bool IsEncDelta
-        {
-            get { return true; }
         }
     }
 }

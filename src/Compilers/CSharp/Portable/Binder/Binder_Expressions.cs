@@ -388,6 +388,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result?.WithWasConverted();
         }
 
+        private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        {
+            var syntax = expr.Syntax;
+            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var delegateType = expr switch
+            {
+                UnboundLambda unboundLambda => unboundLambda.InferDelegateType(ref useSiteInfo),
+                BoundMethodGroup methodGroup => GetMethodGroupDelegateType(methodGroup, ref useSiteInfo),
+                _ => throw ExceptionUtilities.UnexpectedValue(expr),
+            };
+            diagnostics.Add(syntax, useSiteInfo);
+            if (delegateType is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
+                delegateType = CreateErrorType();
+            }
+            return GenerateConversionForAssignment(delegateType, expr, diagnostics);
+        }
+
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
         {
             var result = this.BindExpressionAllowArgList(node, diagnostics: diagnostics);
@@ -5328,7 +5348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
+                ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor(requireZeroInit: true)) ?
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 

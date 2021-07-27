@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
@@ -19,10 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
-        public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
-        {
-        }
-
         private static CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         protected override void ProcessCompilationUnit(
@@ -38,22 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)
-            {
                 ProcessMemberDeclaration(context, option, memberDeclaration);
-            }
         }
 
         private void ProcessMemberDeclaration(
             SyntaxTreeAnalysisContext context,
             CodeStyleOption2<AccessibilityModifiersRequired> option, MemberDeclarationSyntax member)
         {
-            if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
-            {
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 ProcessMembers(context, option, namespaceDeclaration.Members);
-            }
 
             // If we have a class or struct, recurse inwards.
-            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
+            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
                 member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
                 member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
@@ -99,11 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                     return;
                 }
 
-                var parentKind = member.Parent.Kind();
+                var parentKind = member.GetRequiredParent().Kind();
                 switch (parentKind)
                 {
                     // Check for default modifiers in namespace and outside of namespace
                     case SyntaxKind.CompilationUnit:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
                     case SyntaxKind.NamespaceDeclaration:
                         {
                             // Default is internal
