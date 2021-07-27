@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
     <[UseExportProvider]>
@@ -158,6 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
+
             Return member
         End Function
 
@@ -184,7 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
                     Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New MemberSelectionViewModel(
-                    workspace.GetService(Of IWaitIndicator),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
                     membersViewModel,
                     memberToDependents)
             End Using

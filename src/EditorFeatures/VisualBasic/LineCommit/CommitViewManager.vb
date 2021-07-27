@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
@@ -17,18 +17,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
         Private ReadOnly _textBufferAssociatedViewService As ITextBufferAssociatedViewService
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
-        Private ReadOnly _waitIndicator As IWaitIndicator
+        Private ReadOnly _uiThreadOperationExecutor As IUIThreadOperationExecutor
 
         Public Sub New(view As ITextView,
                        commitBufferManagerFactory As CommitBufferManagerFactory,
                        textBufferAssociatedViewService As ITextBufferAssociatedViewService,
                        textUndoHistoryRegistry As ITextUndoHistoryRegistry,
-                       waitIndicator As IWaitIndicator)
+                       uiThreadOperationExecutor As IUIThreadOperationExecutor)
             _view = view
             _commitBufferManagerFactory = commitBufferManagerFactory
             _textBufferAssociatedViewService = textBufferAssociatedViewService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
-            _waitIndicator = waitIndicator
+            _uiThreadOperationExecutor = uiThreadOperationExecutor
 
             AddHandler _view.Caret.PositionChanged, AddressOf OnCaretPositionChanged
             AddHandler _view.LostAggregateFocus, AddressOf OnLostAggregateFocus
@@ -52,22 +52,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldBuffer = oldSnapshotPoint.Value.Snapshot.TextBuffer
             Dim newBuffer = If(newSnapshotPoint.HasValue, newSnapshotPoint.Value.Snapshot.TextBuffer, Nothing)
 
-            _waitIndicator.Wait(
+            _uiThreadOperationExecutor.Execute(
                 VBEditorResources.Line_commit,
                 VBEditorResources.Committing_line,
-                allowCancel:=True,
+                allowCancellation:=True,
+                showProgress:=False,
                 action:=
-                Sub(waitContext)
+                Sub(context)
                     ' If our buffers changed, then we commit the old one
                     If oldBuffer IsNot newBuffer Then
-                        CommitBufferForCaretMovement(oldBuffer, e, waitContext.CancellationToken)
+                        CommitBufferForCaretMovement(oldBuffer, e, context.UserCancellationToken)
                         Return
                     End If
 
                     ' We're in the same snapshot. Are we on the same line?
                     Dim commitBufferManager = _commitBufferManagerFactory.CreateForBuffer(newBuffer)
-                    If CommitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, waitContext.CancellationToken) Then
-                        CommitBufferForCaretMovement(oldBuffer, e, waitContext.CancellationToken)
+                    If CommitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, context.UserCancellationToken) Then
+                        CommitBufferForCaretMovement(oldBuffer, e, context.UserCancellationToken)
                     End If
                 End Sub)
         End Sub
@@ -112,14 +113,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Private Sub OnLostAggregateFocus(sender As Object, e As EventArgs)
-            _waitIndicator.Wait(
+            _uiThreadOperationExecutor.Execute(
                 "Commit",
                 VBEditorResources.Committing_line,
-                allowCancel:=True,
+                allowCancellation:=True,
+                showProgress:=False,
                 action:=
-                Sub(waitContext)
+                Sub(context)
                     For Each buffer In _view.BufferGraph.GetTextBuffers(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
-                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=waitContext.CancellationToken)
+                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.UserCancellationToken)
                     Next
                 End Sub)
         End Sub

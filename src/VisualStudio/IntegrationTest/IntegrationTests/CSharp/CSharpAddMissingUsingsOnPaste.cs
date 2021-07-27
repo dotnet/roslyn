@@ -85,6 +85,7 @@ class Program
 
             VisualStudio.Editor.Verify.TextContains(@"
 using System;
+using System.Threading.Tasks;
 
 class Program
 {

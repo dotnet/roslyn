@@ -33,22 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> ReferenceHighlighting = new(nameof(FeatureOnOffOptions), nameof(ReferenceHighlighting), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.EnableHighlightReferences" : "TextEditor.%LANGUAGE%.Specific.Reference Highlighting"));
 
-        public static readonly PerLanguageOption2<bool> FormatOnPaste = new(nameof(FeatureOnOffOptions), nameof(FormatOnPaste), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new(nameof(FeatureOnOffOptions), nameof(AutoInsertBlockCommentStartString), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String"));
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
-
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
-
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
 
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(nameof(FeatureOnOffOptions), nameof(RenameTrackingPreview), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
@@ -74,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
         public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
+            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
         public static readonly Option2<int> UseEnhancedColors = new(
@@ -89,16 +78,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
-        public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
+        public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin =
             new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
-                defaultValue: false,
+                defaultValue: null,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
 
+        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
+            nameof(FeatureOnOffOptions), nameof(SkipAnalyzersForImplicitlyTriggeredBuilds), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(SkipAnalyzersForImplicitlyTriggeredBuilds)}"));
     }
 
     [ExportOptionProvider, Shared]
@@ -117,11 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.Outlining,
             FeatureOnOffOptions.KeywordHighlighting,
             FeatureOnOffOptions.ReferenceHighlighting,
-            FeatureOnOffOptions.FormatOnPaste,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
-            FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
@@ -131,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             FeatureOnOffOptions.ShowInheritanceMargin,
-            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
+            FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
     }
 }

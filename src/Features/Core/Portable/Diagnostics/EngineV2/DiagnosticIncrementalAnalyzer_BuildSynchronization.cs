@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(
+        public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
             TaskQueue postBuildAndErrorListRefreshTaskQueue,
@@ -65,14 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var state = stateSet.GetOrCreateProjectState(project.Id);
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
-                        // Save into in-memory cache.
-                        await state.SaveInMemoryCacheAsync(project, result).ConfigureAwait(false);
-
-                        // Save into persistent storage on a separate post-build and post error list refresh task queue.
-                        _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(
-                                nameof(SynchronizeWithBuildAsync),
-                                () => state.SaveAsync(PersistentStorageService, project, result),
-                                cancellationToken);
+                        await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
                     }
 
                     // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
@@ -90,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
                     // Enqueue re-analysis of active document with high-priority right away.
-                    if (_documentTrackingService?.GetActiveDocument(solution) is { } activeDocument)
+                    if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
                     {
                         AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
                     }

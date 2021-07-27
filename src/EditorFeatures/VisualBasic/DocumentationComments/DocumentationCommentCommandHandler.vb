@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            waitIndicator As IWaitIndicator,
+            uiThreadOperationExecutor As IUIThreadOperationExecutor,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
             editorOperationsFactoryService As IEditorOperationsFactoryService)
 
-            MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
+            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String
