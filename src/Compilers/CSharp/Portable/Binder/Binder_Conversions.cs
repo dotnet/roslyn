@@ -565,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLambda boundLambda;
                 if (delegateType is { })
                 {
-                    bool isExpression = destination.IsNonGenericExpressionType();
-                    if (isExpression)
+                    bool isExpressionTree = destination.IsNonGenericExpressionType();
+                    if (isExpressionTree)
                     {
                         delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
                         delegateType.AddUseSiteInfo(ref useSiteInfo);
                     }
-                    boundLambda = unboundLambda.Bind(delegateType, isExpression);
+                    boundLambda = unboundLambda.Bind(delegateType, isExpressionTree);
                 }
                 else
                 {
