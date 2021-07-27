@@ -206,6 +206,10 @@ stages:
     pool:
       vmImage: windows-2019
     steps:
+    - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+      displayName: Setting SourceBranchName variable
+      condition: succeeded()
+      
     - template: eng/pipelines/insert.yml
       parameters:
         createDraftPR: true

@@ -41,7 +41,7 @@ steps:
 
   - powershell: |
       $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
-      $branchName = ${{ parameters.sourceBranch }}
+      $branchName = "${{ parameters.sourceBranch }}"
       $branchData = $response.branches.$branchName
       if (!$branchData)
       {
@@ -87,12 +87,12 @@ steps:
     condition: ne('${{ parameters.createDraftPR }}', '')
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }})"
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }}")"
     displayName: Update autoComplete PR Parameter
     condition: ne('${{ parameters.autoComplete }}', '')
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$(${{ parameters.titlePrefix }})"
+      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('${{ parameters.titlePrefix }}')"
     displayName: Update titlePrefix Parameter
     condition: ne('${{ parameters.titlePrefix }}', '')
 
@@ -102,13 +102,13 @@ steps:
     condition: ne('${{ parameters.insertToolset }}', '')
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$(${{ parameters.vsBranchName }})"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$('${{ parameters.vsBranchName }}')"
     displayName: Update vsBranchName Parameter
     condition: ne('${{ parameters.vsBranchName }}', '')
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$($(System.CollectionUri))"
-      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$(${{ parameters.componentBuildProjectName }})"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('${{ parameters.componentBuildProjectName }}')"
     displayName: Update Component Repo Parameters
     condition: ne('${{ parameters.componentBuildProjectName }}', '')
 
