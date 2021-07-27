@@ -82,35 +82,51 @@ steps:
     displayName: Set Variables from PublishData
 
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$(${{ parameters.createDraftPR }})"
-    displayName: Update createDraftPR Parameter
-    condition: ne('${{ parameters.createDraftPR }}', '')
+      if ("" -ne $CreateDraftPR)
+      {
+        Write-Host "Setting CreateDraftPR to $CreateDraftPR"
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$CreateDraftPR"
+      }
 
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(${{ parameters.autoComplete }})"
-    displayName: Update autoComplete PR Parameter
-    condition: ne('${{ parameters.autoComplete }}', '')
+      if ("" -ne $AutoComplete)
+      {
+        Write-Host "Setting AutoComplete to $AutoComplete"
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$AutoComplete"
+      }
 
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('${{ parameters.titlePrefix }}')"
-    displayName: Update titlePrefix Parameter
-    condition: ne('${{ parameters.titlePrefix }}', '')
+      if ("" -ne $TitlePrefix)
+      {
+        Write-Host "Setting TitlePrefix to $TitlePrefix"
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$TitlePrefix"
+      }
 
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$(${{ parameters.insertToolset }})"
-    displayName: Update insertToolset Parameter
-    condition: ne('${{ parameters.insertToolset }}', '')
+      if ("" -ne $InsertToolset)
+      {
+        Write-Host "Setting InsertToolset to $InsertToolset"
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$InsertToolset"
+      }
 
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$('${{ parameters.vsBranchName }}')"
-    displayName: Update vsBranchName Parameter
-    condition: ne('${{ parameters.vsBranchName }}', '')
+      if ("" -ne $VSBranchName)
+      {
+        Write-Host "Setting VSBranchName to $VSBranchName"
+        Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$VSBranchName"
+      }
 
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
-      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('${{ parameters.componentBuildProjectName }}')"
-    displayName: Update Component Repo Parameters
-    condition: ne('${{ parameters.componentBuildProjectName }}', '')
+      if ("" ne $ComponentBuildProjectName)
+      {
+        Write-Host "Setting component Azdo parameters"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('$ComponentBuildProjectName')"
+      }
+
+    displayName: Set Variables from Input Parameters
+    env:
+      CreateDraftPR: ${{ parameters.createDraftPR }}
+      AutoComplete: ${{ parameters.autoComplete }}
+      TitlePrefix: ${{ parameters.titlePrefix }}
+      InsertToolset: ${{ parameters.insertToolset }}
+      VSBranchName: ${{ parameters.vsBranchName }}
+      ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
