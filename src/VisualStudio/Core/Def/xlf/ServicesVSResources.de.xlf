@@ -2644,34 +2644,8 @@ Zusätzliche Informationen: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), mit der Quellcode aus Binärcode reproduziert werden kann. Indem Sie auf den Decompiler zugreifen und ihn verwenden, erklären Sie sich mit den Lizenzbedingungen von Visual Studio und den nachstehenden Bedingungen für den Decompiler einverstanden. Wenn Sie mit diesen kombinierten Bedingungen nicht einverstanden sind, dürfen Sie nicht auf den Decompiler zugreifen oder ihn verwenden.
-
-Sie erkennen an, dass der Binärcode und der Quellcode möglicherweise durch Urheberrechts- und Markengesetze geschützt sind. Bevor Sie den Decompiler für Binärcode verwenden, müssen Sie zunächst Folgendes sicherstellen:
-(i) Sie müssen sich vergewissern, dass die Lizenzbestimmungen zur Regelung Ihrer Verwendung des Binärcodes keine Klausel enthalten, die das Dekompilieren der Software verbietet, oder
-(ii) Sie müssen die Erlaubnis zur Dekompilierung der Software beim Besitzer der Software einholen.
-
-Ihre Verwendung des Decompilers ist optional. Microsoft übernimmt keinerlei Verantwortung und lehnt jede Haftung für Ihre Nutzung des Decompilers ab, die gegen Gesetze oder Softwarelizenzbedingungen verstößt, die das Dekompilieren der Software verbieten.
-
-Ich stimme allen oben genannten Punkten zu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

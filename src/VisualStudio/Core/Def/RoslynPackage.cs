@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
@@ -52,12 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
     internal sealed class RoslynPackage : AbstractPackage
     {
-        // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
+        // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
         // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
-        // might be saving an "ILSpy" named stream to the same file.
+        // might be saving an "AnalysisScope" named stream to the same file.
         // note: must be <= 31 characters long
-        private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
-        private const byte DecompilerEulaOptionVersion = 1;
+        private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
+        private const byte BackgroundAnalysisScopeOptionVersion = 1;
 
         private VisualStudioWorkspace? _workspace;
         private IComponentModel? _componentModel;
@@ -68,22 +69,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         public RoslynPackage()
         {
             // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
-            AddOptionKey(DecompilerEulaOptionKey);
+            AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
 
-        public bool IsDecompilerEulaAccepted { get; set; }
+        public BackgroundAnalysisScope? AnalysisScope { get; set; }
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
-            if (key == DecompilerEulaOptionKey)
+            if (key == BackgroundAnalysisScopeOptionKey)
             {
-                if (stream.ReadByte() == DecompilerEulaOptionVersion)
+                if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
                 {
-                    IsDecompilerEulaAccepted = stream.ReadByte() == 1;
+                    var hasValue = stream.ReadByte() == 1;
+                    AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
                 }
                 else
                 {
-                    IsDecompilerEulaAccepted = false;
+                    AnalysisScope = null;
                 }
             }
 
@@ -92,10 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void OnSaveOptions(string key, Stream stream)
         {
-            if (key == DecompilerEulaOptionKey)
+            if (key == BackgroundAnalysisScopeOptionKey)
             {
-                stream.WriteByte(DecompilerEulaOptionVersion);
-                stream.WriteByte(IsDecompilerEulaAccepted ? (byte)1 : (byte)0);
+                stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
+                stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
+                stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
             }
 
             base.OnSaveOptions(key, stream);

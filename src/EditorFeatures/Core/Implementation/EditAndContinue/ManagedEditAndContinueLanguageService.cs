@@ -19,19 +19,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
+namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
     [Export(typeof(IManagedEditAndContinueLanguageService))]
-    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
+    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
     {
-        private readonly RemoteEditAndContinueServiceProxy _proxy;
-        private readonly IDebuggingWorkspaceService _debuggingService;
-        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly IManagedEditAndContinueDebuggerService _debuggerService;
+        private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
 
@@ -40,21 +38,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedEditAndContinueLanguageService(
-            VisualStudioWorkspace workspace,
+            Lazy<IHostWorkspaceProvider> workspaceProvider,
             IManagedEditAndContinueDebuggerService debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
-            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
-            _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
-            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+            _workspaceProvider = workspaceProvider;
             _debuggerService = debuggerService;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
         private Solution GetCurrentCompileTimeSolution()
-            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
+        {
+            var workspace = _workspaceProvider.Value.Workspace;
+            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
+        }
+
+        private IDebuggingWorkspaceService GetDebuggingService()
+            => _workspaceProvider.Value.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+
+        private IActiveStatementTrackingService GetActiveStatementTrackingService()
+            => _workspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
         {
@@ -68,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// </summary>
         public async Task StartDebuggingAsync(DebugSessionFlags flags, CancellationToken cancellationToken)
         {
-            _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
             _disabled = (flags & DebugSessionFlags.EditAndContinueDisabled) != 0;
 
             if (_disabled)
@@ -78,10 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
+                var workspace = _workspaceProvider.Value.Workspace;
                 var solution = GetCurrentCompileTimeSolution();
-                var openedDocumentIds = _proxy.Workspace.GetOpenDocumentIds().ToImmutableArray();
+                var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
+                var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(
+                _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
                     _debuggerService,
                     captureMatchingDocuments: openedDocumentIds,
@@ -99,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task EnterBreakStateAsync(CancellationToken cancellationToken)
         {
-            _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
             if (_disabled)
             {
@@ -121,16 +128,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             // Start tracking after we entered break state so that break-state session is active.
             // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await _activeStatementTrackingService.StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
+            await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
         }
 
         public Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
-            _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
             if (!_disabled)
             {
-                _activeStatementTrackingService.EndTracking();
+                GetActiveStatementTrackingService().EndTracking();
             }
 
             return Task.CompletedTask;
@@ -166,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task StopDebuggingAsync(CancellationToken cancellationToken)
         {
-            _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
 
             if (_disabled)
             {
@@ -186,7 +193,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-           => new((documentId, filePath, cancellationToken) => _activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
+        {
+            var service = GetActiveStatementTrackingService();
+            return new((documentId, filePath, cancellationToken) => service.GetSpansAsync(solution, documentId, filePath, cancellationToken));
+        }
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
@@ -231,9 +241,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
+                var activeStatementTrackingService = GetActiveStatementTrackingService();
 
                 var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
-                    _activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
+                    activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
                 var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
                 return span?.ToSourceSpan();
