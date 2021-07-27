@@ -29,24 +29,6 @@
         <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">73</sys:Double>
         <sys:Double x:Key="ButtonHeight">21</sys:Double>
-        <Style x:Key="TreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
-            <Style.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="Grid.ColumnSpan" Value="2"/>
-                </Style>
-            </Style.Resources>
-            <Setter Property="IsSelected" Value="{Binding IsChecked, Mode=TwoWay}"/>
-            <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}"/>
-            <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}"/>
-            <Setter Property="IsExpanded" Value="True"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
         <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
         <Thickness x:Key="messageMargin">0, 9, 0, 0</Thickness>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -76,20 +58,19 @@
                           MaxDropDownHeight="150">
                 <ComboBox.ItemTemplate>
                     <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <imaging:CrispImage 
-                                Grid.Column="0" 
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Width="Auto">
+                            <imaging:CrispImage  
                                 Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
                                 Margin="0 0 5 0" 
-                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
-
-                            <TextBlock Grid.Column="1" Text="{Binding TypeName}" />
-                        </Grid>
+                                Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+                            <TextBlock
+                                Text="{Binding TypeName}"/>
+                            <TextBlock
+                                Text="{Binding DeclarationFile}"
+                                Margin="50 0 0 0"/>
+                        </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -115,7 +96,7 @@
 
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"
-                  Margin="0, 150, 0, 0"
+                  Margin="0, 130, 0, 0"
                   Grid.Row="2"
                   Header="{Binding ElementName=dialog, Path=SelectMembers}">
             <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />

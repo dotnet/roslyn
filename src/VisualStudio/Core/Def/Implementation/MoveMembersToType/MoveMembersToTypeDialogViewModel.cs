@@ -17,27 +17,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 {
     internal class MoveMembersToTypeDialogViewModel : AbstractNotifyPropertyChanged
     {
-
         public StaticMemberSelectionViewModel MemberSelectionViewModel { get; }
 
-        private ISyntaxFacts _syntaxFacts;
-
+        private readonly ISyntaxFacts _syntaxFacts;
 
         public MoveMembersToTypeDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
-            ImmutableArray<string> availableTypes,
+            ImmutableArray<TypeNameItem> availableTypes,
             ISyntaxFacts syntaxFacts,
-            ImmutableArray<string> typeHistory)
+            ImmutableArray<TypeNameItem> typeHistory)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _destinationName = defaultType;
-            AvailableTypes = typeHistory.Select(n => new TypeNameItem(true, n))
-                .Concat(availableTypes.Except(typeHistory).Select(n => new TypeNameItem(false, n)))
-                .ToImmutableArray();
+            AvailableTypes = typeHistory.Concat(availableTypes).ToImmutableArray();
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
+            OnDestinationUpdated();
         }
 
         private void MoveMembersToTypeDialogViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -128,6 +125,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
         {
             get => _isValidName && MemberSelectionViewModel.CheckedMembers.Length > 0;
         }
-
     }
 }

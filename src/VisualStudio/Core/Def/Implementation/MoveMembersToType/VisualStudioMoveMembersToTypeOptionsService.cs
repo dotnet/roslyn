@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -14,9 +15,8 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -25,9 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
     [ExportWorkspaceService(typeof(IMoveMembersToTypeOptionsService), ServiceLayer.Host), Shared]
     internal class VisualStudioMoveMembersToTypeOptionsService : IMoveMembersToTypeOptionsService
     {
-
         private readonly IGlyphService _glyphService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
+        private const int HistorySize = 3;
+
+        public readonly LinkedList<TypeNameItem> History = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,22 +49,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new SymbolViewModel<ISymbol>(member, _glyphService)
                     {
                         // The member user selected will be checked at the beginning.
-                        // members are static, so cannot be abstract
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedNodeSymbol, member),
-                        MakeAbstract = false,
-                        IsMakeAbstractCheckable = false,
-                        IsCheckable = true
                     });
 
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).SelectAsArray(t => t.Name);
+            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token)
+                .SelectMany(t =>
+                {
+                    // for partially declared classes, we may want multiple entries for a single type.
+                    // filter to those actually in a real file, and that are not already in our History list.
+                    return t.Locations
+                        .Where(l => l.IsInSource &&
+                            !History.Any(h => GetFile(l) == h.DeclarationFile && t.Name == h.TypeName))
+                        .Select(l => new TypeNameItem(false, GetFile(l), t.Name));
+                })
+                .ToImmutableArrayOrEmpty();
             var candidateName = selectedType.Name + "Helpers";
-            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(name));
+            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Any(t => t.TypeName == name));
 
             var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -69,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
 
-            var selectMembersViewModel = new MemberSelectionViewModel(
+            var selectMembersViewModel = new StaticMemberSelectionViewModel(
                 _uiThreadOperationExecutor,
                 memberViewModels,
                 memberToDependentsMap);
@@ -78,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
                 defaultTypeName,
                 existingTypeNames,
                 document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                Array.Empty<string>().AsImmutable());
+                History.ToImmutableArrayOrEmpty());
 
             var dialog = new MoveMembersToTypeDialog(viewModel);
 
@@ -92,5 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
             return null;
         }
+
+        private static string GetFile(Location loc) => PathUtilities.GetFileName(loc.SourceTree!.FilePath);
     }
 }

@@ -2,23 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
 {
-
     internal class StaticMemberSelectionViewModel : AbstractNotifyPropertyChanged
     {
-
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
         private readonly ImmutableDictionary<ISymbol, SymbolViewModel<ISymbol>> _symbolToMemberViewMap;
@@ -29,10 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
+            _members = members;
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
-
         }
+
+        public ImmutableArray<SymbolViewModel<ISymbol>> CheckedMembers => Members.WhereAsArray(m => m.IsChecked);
 
         private ImmutableArray<SymbolViewModel<ISymbol>> _members;
         public ImmutableArray<SymbolViewModel<ISymbol>> Members
