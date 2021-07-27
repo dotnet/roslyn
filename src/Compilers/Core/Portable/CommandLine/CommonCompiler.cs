@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis
         {
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
-            bool disableCache = Arguments.ParseOptions.Features.ContainsKey("disable-generator-cache");
+            bool disableCache = Arguments.ParseOptions.Features.ContainsKey("disable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
             if (this.DriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
@@ -759,8 +759,10 @@ namespace Microsoft.CodeAnalysis
 
             string deriveCacheKey()
             {
+                Debug.Assert(!string.IsNullOrWhiteSpace(Arguments.OutputFileName));
+
                 StringBuilder sb = new StringBuilder();
-                sb.Append(Arguments.GetOutputFilePath(GetOutputFileName(input, cancellationToken: default)));
+                sb.Append(Arguments.GetOutputFilePath(Arguments.OutputFileName));
                 foreach (var generator in generators)
                 {
                     // append the generator FQN and the MVID of the assembly it came from, so any changes will invalidate the cache
