@@ -13,19 +13,18 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Language client responsible for handling C# / VB LSP requests in any scenario (both local and codespaces).
+    /// Language client responsible for handling C# / VB / F# LSP requests in any scenario (both local and codespaces).
     /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
     /// It is always activated whenever roslyn is activated.
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.FSharpContentType)]
     [Export(typeof(ILanguageClient))]
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
@@ -35,14 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
-            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider,
+            ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -51,13 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSServerCapabilities();
+            var serverCapabilities = new VSInternalServerCapabilities();
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
             if (isLspEditorEnabled)
             {
-                serverCapabilities = (VSServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+                serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
             }
             else
             {

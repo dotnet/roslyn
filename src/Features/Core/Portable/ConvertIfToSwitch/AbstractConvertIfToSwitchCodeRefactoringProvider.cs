@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = semanticModel.GetOperation(ifStatement);
-            if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
+            if (ifOperation is not IConditionalOperation { Parent: IBlockOperation parentBlock })
             {
                 return;
             }

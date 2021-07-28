@@ -1692,11 +1692,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">Pole WithEvents</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">Přistupující objekt vlastnosti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
         <target state="translated">Klauzule as</target>

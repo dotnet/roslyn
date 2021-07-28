@@ -931,9 +931,9 @@ namespace Microsoft.Cci
             return (uint)result;
         }
 
-        public static string GetMangledName(INamedTypeReference namedType)
+        public static string GetMangledName(INamedTypeReference namedType, int generation)
         {
-            string unmangledName = namedType.Name;
+            string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
 
             return namedType.MangleName
                 ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
@@ -1157,7 +1157,6 @@ namespace Microsoft.Cci
                 isInstanceMethod: (methodReference.CallingConvention & CallingConvention.HasThis) != 0);
 
             SerializeReturnValueAndParameters(encoder, methodReference, methodReference.ExtraParameters);
-
 
             signatureBlob = builder.ToImmutableArray();
             result = metadata.GetOrAddBlob(signatureBlob);
@@ -2091,10 +2090,7 @@ namespace Microsoft.Cci
         private void AddModuleAttributesToTable(CommonPEModuleBuilder module)
         {
             Debug.Assert(this.IsFullMetadata);
-            foreach (ICustomAttribute customAttribute in module.GetSourceModuleAttributes())
-            {
-                AddCustomAttributeToTable(EntityHandle.ModuleDefinition, customAttribute);
-            }
+            AddCustomAttributesToTable(EntityHandle.ModuleDefinition, module.GetSourceModuleAttributes());
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
@@ -2104,10 +2100,7 @@ namespace Microsoft.Cci
             foreach (var parent in parentList)
             {
                 var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
-                foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
-                {
-                    AddCustomAttributeToTable(parentHandle, customAttribute);
-                }
+                AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
@@ -2117,33 +2110,19 @@ namespace Microsoft.Cci
             foreach (var parent in parentList)
             {
                 EntityHandle parentHandle = getDefinitionHandle(parent);
-                foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
-                {
-                    AddCustomAttributeToTable(parentHandle, customAttribute);
-                }
+                AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
-        private void AddCustomAttributesToTable(
-            EntityHandle handle,
-            ImmutableArray<ICustomAttribute> attributes)
+        protected virtual int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
         {
+            int count = 0;
             foreach (var attr in attributes)
             {
-                AddCustomAttributeToTable(handle, attr);
+                count++;
+                AddCustomAttributeToTable(parentHandle, attr);
             }
-        }
-
-        private void AddCustomAttributesToTable(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
-        {
-            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
-            {
-                var ifaceHandle = GetTypeHandle(typeRefWithAttributes.TypeRef);
-                foreach (var customAttribute in typeRefWithAttributes.Attributes)
-                {
-                    AddCustomAttributeToTable(ifaceHandle, customAttribute);
-                }
-            }
+            return count;
         }
 
         private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
@@ -2253,7 +2232,9 @@ namespace Microsoft.Cci
 
                 if ((namespaceTypeRef = exportedType.Type.AsNamespaceTypeReference) != null)
                 {
-                    string mangledTypeName = GetMangledName(namespaceTypeRef);
+                    // exported types are not emitted in EnC deltas (hence generation 0):
+                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+
                     typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
                     typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                     implementation = GetExportedTypeImplementation(namespaceTypeRef);
@@ -2263,7 +2244,10 @@ namespace Microsoft.Cci
                 {
                     Debug.Assert(exportedType.ParentIndex != -1);
 
-                    typeName = GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                    // exported types are not emitted in EnC deltas (hence generation 0):
+                    string mangledTypeName = GetMangledName(nestedRef, generation: 0);
+
+                    typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, nestedRef);
                     typeNamespace = default(StringHandle);
                     implementation = MetadataTokens.ExportedTypeHandle(exportedType.ParentIndex + 1);
                     attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic : TypeAttributes.NestedPublic;
@@ -2434,7 +2418,6 @@ namespace Microsoft.Cci
                     containsMetadata: fileReference.HasMetadata);
             }
         }
-
 
         private void PopulateGenericParameters(
             ImmutableArray<IGenericParameter> sortedGenericParameters)
@@ -2737,7 +2720,11 @@ namespace Microsoft.Cci
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
                 INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
-                string mangledTypeName = GetMangledName(typeDef);
+
+                var moduleBuilder = Context.Module;
+                int generation = moduleBuilder.GetTypeDefinitionGeneration(typeDef);
+
+                string mangledTypeName = GetMangledName(typeDef, generation);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
                 metadata.AddTypeDefinition(
@@ -2809,7 +2796,12 @@ namespace Microsoft.Cci
                     }
 
                     resolutionScope = GetTypeReferenceHandle(scopeTypeRef);
-                    name = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
+
+                    // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
+                    // TODO: https://github.com/dotnet/roslyn/issues/54981
+                    string mangledTypeName = GetMangledName(nestedTypeRef, generation: 0);
+
+                    name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, nestedTypeRef);
                     @namespace = default(StringHandle);
                 }
                 else
@@ -2821,7 +2813,11 @@ namespace Microsoft.Cci
                     }
 
                     resolutionScope = this.GetResolutionScopeHandle(namespaceTypeRef.GetUnit(Context));
-                    string mangledTypeName = GetMangledName(namespaceTypeRef);
+
+                    // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
+                    // TODO: https://github.com/dotnet/roslyn/issues/54981
+                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+
                     name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
                     @namespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                 }
@@ -2935,7 +2931,10 @@ namespace Microsoft.Cci
 
                 if (_debugMetadataOpt != null)
                 {
-                    SerializeMethodDebugInfo(body, methodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
+                    // methodRid is based on this delta but for async state machine debug info we need the "real" row number
+                    // of the method aggregated across generations
+                    var aggregateMethodRid = MetadataTokens.GetRowNumber(GetMethodDefinitionHandle(method));
+                    SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
                 _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);

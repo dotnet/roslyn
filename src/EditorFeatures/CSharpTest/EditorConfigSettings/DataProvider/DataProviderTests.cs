@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            Assert.Equal(29, dataSnapShot.Length);
+            Assert.Equal(30, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
