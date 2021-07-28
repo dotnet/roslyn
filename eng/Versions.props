@@ -90,7 +90,7 @@
     <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>16.9.0-beta1.21055.5</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDotNetBuildTasksFeedVersion>6.0.0-beta.21260.1</MicrosoftDotNetBuildTasksFeedVersion>
+    <MicrosoftDotNetBuildTasksFeedVersion>6.0.0-beta.21319.2</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftExtensionsLoggingVersion>5.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>5.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
@@ -175,7 +175,7 @@
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>16.3.43</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>
-    <MSBuildStructuredLoggerVersion>2.1.133</MSBuildStructuredLoggerVersion>
+    <MSBuildStructuredLoggerVersion>2.1.500</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
