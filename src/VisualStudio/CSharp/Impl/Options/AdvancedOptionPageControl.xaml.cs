@@ -62,9 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp);
             BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, () =>
             {
-                // If the option has not been set by the user, check if the option to enable imports on paste
-                // is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled) ?? false;
+                // This option used to be backed by an experimentation flag but is now enabled by default.
+                // Having the option still a bool? keeps us from running into storage related issues,
+                // but if the option was stored as null we want it to be enabled by default
+                return true;
             });
 
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
