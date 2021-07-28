@@ -106,11 +106,7 @@ public class [|C|]
 
 public class [|C|]
 {{
-    public int Property
-    {{
-        get;
-        set;
-    }}
+    public int Property {{ get; init; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}

@@ -381,11 +381,7 @@ End Class",
 
 public class C
 {{
-    public string [|S|]
-    {{
-        get;
-        protected set;
-    }}
+    public string [|S|] {{ get; protected set; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -401,11 +397,7 @@ public class C
 
 public class C
 {{
-    public string [|S|]
-    {{
-        get;
-        protected set;
-    }}
+    public string [|S|] {{ get; protected set; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -2000,11 +1992,7 @@ public class [|C|]
     public int field1;
 
     [Obsolete]
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     [Obsolete]
     public int prop2
@@ -2092,11 +2080,7 @@ public class [|C|]
     public int field1;
 
     [Obsolete]
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     [Obsolete]
     public int prop2
@@ -2276,11 +2260,7 @@ public class [|C|]
 
     public int field2;
 
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     public int prop2
     {{
@@ -2359,11 +2339,7 @@ public class [|C|]
 
     public int field2;
 
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     public int prop2
     {{
@@ -2504,11 +2480,7 @@ using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -2532,11 +2504,7 @@ using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -2991,10 +2959,7 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop
-    {{
-        get;
-    }}
+    int Prop {{ get; }}
 
     void MOverload();
 
@@ -3020,10 +2985,7 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop
-    {{
-        get;
-    }}
+    int Prop {{ get; }}
 
     void MOverload();
 
@@ -3203,11 +3165,7 @@ using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -3231,11 +3189,7 @@ using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -3947,10 +3901,7 @@ End Structure",
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -3966,10 +3917,7 @@ public struct S
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4020,10 +3968,7 @@ End Structure",
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4039,10 +3984,7 @@ public struct S
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4100,10 +4042,7 @@ End Structure",
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4119,10 +4058,7 @@ public struct S
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4175,10 +4111,7 @@ End Structure",
 
 public readonly struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4194,10 +4127,7 @@ public readonly struct S
 
 public readonly struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
