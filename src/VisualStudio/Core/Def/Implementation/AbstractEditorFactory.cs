@@ -4,7 +4,9 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Contexts;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +24,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -295,6 +297,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
+            Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
+        }
+
+        private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
             // This requires us to place it in the correct project.
@@ -328,45 +335,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
-            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            var rootToFormat = await addedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(rootToFormat);
-            var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
+            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Add access modifier
-            var rootWithAccessModifier = ThreadHelper.JoinableTaskFactory.Run(() =>
+            if (documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language).Value != AccessibilityModifiersRequired.Never)
             {
-                return AbstractAddAccessibilityModifiersCodeFixProvider.GetTransformedSyntaxRootAsync(addedDocument, cancellationToken);
-            });
-
-            addedDocument = addedDocument.WithSyntaxRoot(rootWithAccessModifier);
-            rootToFormat = rootWithAccessModifier;
+                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, cancellationToken).ConfigureAwait(false);
+                rootToFormat = await addedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
             if (!string.IsNullOrEmpty(fileHeaderTemplate))
             {
-                var rootWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
-                {
-                    var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                    var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
-                    return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
+                var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
+                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
+                var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
                         SyntaxGenerator.SyntaxFacts,
                         FileHeaderHelper,
                         newLineTrivia,
                         addedDocument,
-                        cancellationToken);
-                });
+                        cancellationToken).ConfigureAwait(false);
 
                 addedDocument = addedDocument.WithSyntaxRoot(rootWithFileHeader);
                 rootToFormat = rootWithFileHeader;
             }
 
             // Organize using directives
-            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
-            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).AsTask());
+            addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(false);
+            rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Format document
-            var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
+            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
@@ -393,6 +395,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
                 formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
+        }
+
+        private static async Task<Document> AddAccessibilityModifiersAsync(Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+
+            foreach (var declaration in typeDeclarations)
+                AddAccessibilityModifiersHelpers.UpdateDeclaration(semanticModel, editor, declaration, cancellationToken);
+
+            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
     }
 }
