@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">単純なブール式を優先する</target>
+        <target state="translated">簡素化されたブール式を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
