@@ -109,7 +109,8 @@ steps:
         Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$Env:InsertToolset"
       }
 
-      if ("" -ne $Env:VSBranchName)
+      # Workaround for pipeline parameters not supporting optional empty parameters.
+      if ("" -ne $Env:VSBranchName -and "default" -ne $Env:VSBranchName)
       {
         Write-Host "Setting VSBranchName to $Env:VSBranchName"
         Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$Env:VSBranchName"
