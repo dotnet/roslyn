@@ -100,21 +100,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            if (IsContainedInNamespace(node))
+            if (IsContainedDirectlyInNamespace(node))
             {
                 return false;
             }
 
             return true;
 
-            static bool IsContainedInNamespace(SyntaxNode n)
+            static bool IsContainedDirectlyInNamespace(SyntaxNode n)
             {
                 var hasContainer = false;
+                var immediateParent = false;
                 while (n is not null)
                 {
-                    if (n is NamespaceDeclarationSyntax && hasContainer)
+                    if (n is NamespaceDeclarationSyntax && hasContainer && immediateParent)
                     {
                         return true;
+                    }
+                    else
+                    {
+                        immediateParent = false;
                     }
 
                     if (n is BaseMethodDeclarationSyntax
@@ -123,9 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                        or CompilationUnitSyntax)
                     {
                         hasContainer = true;
+                        immediateParent = true;
                     }
 
-                    n = n.Parent;
+                    n = n.Parent!;
                 }
 
                 return false;
