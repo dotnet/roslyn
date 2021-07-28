@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 items.AddRange(GetAlwaysVisibleItems());
                 return items;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
@@ -363,6 +364,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 default:
                     return null;
             }
+        }
+
+        protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
+        {
+            var declaredParameters = declarationSymbol.GetParameters();
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
+                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+            {
+                declaredParameters = primaryConstructor.Parameters;
+            }
+
+            return declaredParameters;
         }
 
         private static readonly CompletionItemRules s_defaultRules =

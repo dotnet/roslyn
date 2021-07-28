@@ -52,6 +52,16 @@
         <target state="translated">引用相等检查偏好 “Is Nothing”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">更偏好简化的对象创建</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">删除不必要的 Import</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">显示 "New" 表达式的提示</target>
@@ -166,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">Import 指令</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">对 import 进行排序</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration);
+                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
 
             // Typing a dot after a numeric expression (numericExpression.) 
             // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -321,11 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = this.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.IsKind(SyntaxKind.AttributeList) &&
-                this.SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                return true;
+                if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } })
+                {
+                    return true;
+                }
+
+                if (SyntaxTree.IsMemberDeclarationContext(
+                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -398,6 +405,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // The 'await' keyword is parsed as an identifier in C# script
                 return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether await should be suggested in a given position.
+        /// </summary>
+        internal bool IsAwaitKeywordContext(int position)
+        {
+            if (IsGlobalStatementContext)
+            {
+                return true;
+            }
+
+            if (IsAnyExpressionContext || IsStatementContext)
+            {
+                foreach (var node in LeftToken.GetAncestors<SyntaxNode>())
+                {
+                    if (node.IsAnyLambdaOrAnonymousMethod())
+                    {
+                        return true;
+                    }
+
+                    if (node.IsKind(SyntaxKind.QueryExpression))
+                    {
+                        return false;
+                    }
+
+                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement))
+                    {
+                        if (lockStatement.Statement != null &&
+                            !lockStatement.Statement.IsMissing &&
+                            lockStatement.Statement.Span.Contains(position))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             }
 
             return false;

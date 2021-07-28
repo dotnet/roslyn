@@ -168,7 +168,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerato
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Collections", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.shproj", "{E919DD77-34F8-4F57-8058-4D3FF4C2B241}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild", "src\Compilers\Core\Rebuild\Rebuild.csproj", "{321F9FED-AACC-42CB-93E5-541D79E099E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{321F9FED-AACC-42CB-93E5-541D79E099E8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "src\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}"
 EndProject

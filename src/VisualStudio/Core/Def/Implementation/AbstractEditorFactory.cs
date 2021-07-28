@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -276,12 +274,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Is this being added from a template?
             if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
             {
-                var waitIndicator = _componentModel.GetService<IWaitIndicator>();
+                var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
                 // TODO(cyrusn): Can this be cancellable?
-                waitIndicator.Wait(
+                uiThreadOperationExecutor.Execute(
                     "Intellisense",
-                    allowCancel: false,
-                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
+                    defaultDescription: "",
+                    allowCancellation: false,
+                    showProgress: false,
+                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.UserCancellationToken));
             }
 
             return VSConstants.S_OK;

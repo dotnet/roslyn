@@ -1352,7 +1352,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing)
+                displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, matchingFilters:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -6340,6 +6340,34 @@ End Class]]></code>.Value
             Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt?.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Day")
+            Await VerifyItemIsAbsentAsync(text, "Value")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Value")
+            Await VerifyItemIsAbsentAsync(text, "Day")
+        End Function
+
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestHidePropertyBackingFieldAndEventsAtExpressionLevel() As Task
@@ -7750,6 +7778,7 @@ End Namespace
             For index = 2 To 8
                 Await VerifyItemExistsAsync(text, "Item" + index.ToString())
             Next
+
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
@@ -7814,11 +7843,11 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function

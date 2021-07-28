@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
     {
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext cotext)
+        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))

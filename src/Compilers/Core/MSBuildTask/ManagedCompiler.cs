@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private enum CompilationKind
         {
             /// <summary>
-            /// Commpilation occurred using the command line tool by normal processes, typically because 
+            /// Compilation occurred using the command line tool by normal processes, typically because 
             /// the customer opted out of the compiler server
             /// </summary>
             Tool,
@@ -55,9 +56,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // If there is a crash, the runtime error is output to stderr and
             // we want MSBuild to print it out regardless of verbosity.
             LogStandardErrorAsError = true;
@@ -488,6 +488,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
@@ -501,7 +507,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                using var logger = new CompilerServerLogger();
+                var requestId = Guid.NewGuid();
+                logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
+
                 string workingDir = CurrentDirectoryToUse();
                 string? tempDir = BuildServerConnection.GetTempPath(workingDir);
 
@@ -509,7 +517,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     HasToolBeenOverridden ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
-                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -520,7 +528,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var clientDir = Path.GetDirectoryName(PathToManagedTool);
                 if (clientDir is null || tempDir is null)
                 {
-                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -535,6 +543,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
                 var responseTask = BuildServerConnection.RunServerCompilationAsync(
+                    requestId,
                     Language,
                     RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                     GetArguments(ToolArguments, responseFileCommands).ToList(),
@@ -546,7 +555,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 responseTask.Wait(_sharedCompileCts.Token);
 
-                ExitCode = HandleResponse(responseTask.Result, pathToTool, responseFileCommands, commandLineCommands, logger);
+                ExitCode = HandleResponse(requestId, responseTask.Result, pathToTool, responseFileCommands, commandLineCommands, logger);
             }
             catch (OperationCanceledException)
             {
@@ -554,9 +563,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                var util = new TaskLoggingHelper(this);
-                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
+                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                Log.LogErrorFromException(e);
                 ExitCode = -1;
             }
             finally
@@ -630,11 +638,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
             if (response is null)
             {
-                LogCompilationMessage(logger, CompilationKind.ToolFallback, "could not launch server");
+                LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, "could not launch server");
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
@@ -648,30 +656,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
                     LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
-                    LogCompilationMessage(logger, CompilationKind.Server, "server processed compilation");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Server, "server processed compilation");
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different protocol version than build task");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different protocol version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different hash version than build task");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
                     var rejectedResponse = (RejectedBuildResponse)response;
-                    LogCompilationMessage(logger, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     var analyzerResponse = (AnalyzerInconsistencyBuildResponse)response;
                     var combinedMessage = string.Join(", ", analyzerResponse.ErrorMessages.ToArray());
-                    LogCompilationMessage(logger, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogCompilationMessage(logger, CompilationKind.ToolFallback, $"server gave an unrecognized response");
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
@@ -689,7 +697,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// These are intended to be processed by automation in the binlog hence do not change the structure of
         /// the messages here.
         /// </summary>
-        private void LogCompilationMessage(ICompilerServerLogger logger, CompilationKind kind, string diagnostic)
+        private void LogCompilationMessage(ICompilerServerLogger logger, Guid requestId, CompilationKind kind, string diagnostic)
         {
             var category = kind switch
             {
@@ -700,14 +708,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 _ => throw new Exception($"Unexpected value {kind}"),
             };
 
-            var message = $"CompilerServer: {category} - {diagnostic}";
-            logger.LogError(message);
+            var message = $"CompilerServer: {category} - {diagnostic} - {requestId}";
             if (kind == CompilationKind.FatalError)
             {
+                logger.LogError(message);
                 Log.LogError(message);
             }
             else
             {
+                logger.Log(message);
                 Log.LogMessage(message);
             }
         }

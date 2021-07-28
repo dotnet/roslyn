@@ -17,6 +17,11 @@
         <target state="translated">Gereksiz İçeri Aktarmaları Kaldır</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">Nesne oluşturmayı basitleştir</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

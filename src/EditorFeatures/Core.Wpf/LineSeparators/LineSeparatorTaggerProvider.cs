@@ -50,14 +50,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         public LineSeparatorTaggerProvider(
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.LineSeparators))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
             _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
         private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
@@ -71,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                new EditorFormatMapChangedEventSource(_editorFormatMap, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                new EditorFormatMapChangedEventSource(_editorFormatMap),
+                TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)

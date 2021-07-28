@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
+                case DeclarationKind.RecordStruct:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -164,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -462,6 +465,7 @@ next:;
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -843,13 +847,14 @@ next:;
             return (TypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
+#nullable enable
         /// <summary>
         /// Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
         /// </summary>
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonTypeEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
+        internal TypeEarlyWellKnownAttributeData? GetEarlyDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
@@ -857,10 +862,10 @@ next:;
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonTypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
+            return (TypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             bool hasAnyDiagnostics;
             CSharpAttributeData boundAttribute;
@@ -870,7 +875,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasComImportAttribute = true;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasComImportAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -885,7 +890,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -900,8 +905,8 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
+                    string? name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -916,7 +921,7 @@ next:;
             {
                 if (obsoleteData != null)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                 }
 
                 return boundAttribute;
@@ -930,7 +935,7 @@ next:;
                     AttributeUsageInfo info = this.DecodeAttributeUsageAttribute(boundAttribute, arguments.AttributeSyntax, diagnose: false);
                     if (!info.IsNull)
                     {
-                        var typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
+                        var typeData = arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>();
                         if (typeData.AttributeUsageInfo.IsNull)
                         {
                             typeData.AttributeUsageInfo = info;
@@ -946,14 +951,38 @@ next:;
                 return null;
             }
 
+            // We want to decode this early because it can influence overload resolution, which could affect attribute binding itself. Consider an attribute with these
+            // constructors:
+            //
+            //   MyAttribute(string s)
+            //   MyAttribute(CustomBuilder c) // CustomBuilder has InterpolatedStringHandlerAttribute on the type
+            //
+            // If it's applied with [MyAttribute($"{1}")], overload resolution rules say that we should prefer the CustomBuilder overload over the string overload. This
+            // is an error scenario regardless (non-constant interpolated string), but it's good to get right as it will affect public API results.
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InterpolatedStringHandlerAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasInterpolatedStringHandlerAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+#nullable disable
 
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_Object || this.DeclaringCompilation.IsAttributeType(this));
 
-            CommonTypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
             if (data != null && !data.AttributeUsageInfo.IsNull)
             {
                 return data.AttributeUsageInfo;
@@ -973,7 +1002,7 @@ next:;
                 var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (CommonTypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    var data = (TypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
@@ -1198,7 +1227,7 @@ next:;
         {
             get
             {
-                CommonTypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+                TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
                 return data != null && data.HasComImportAttribute;
             }
         }
@@ -1253,6 +1282,11 @@ next:;
             }
         }
 
+#nullable enable
+        internal sealed override bool IsInterpolatedStringHandlerType
+            => GetEarlyDecodedWellKnownAttributeData()?.HasInterpolatedStringHandlerAttribute == true;
+#nullable disable
+
         internal sealed override bool ShouldAddWinRTMembers
         {
             get { return false; }
@@ -1290,24 +1324,12 @@ next:;
 
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
-            for (var i = 0; i < members.Length; i++)
+            var fields = this.GetFieldsToEmit();
+            foreach (var field in fields)
             {
-                var m = members[i];
-                if (!m.IsStatic)
+                if (!field.IsStatic)
                 {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
+                    return true;
                 }
             }
 

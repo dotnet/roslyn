@@ -14,7 +14,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\Compilers\Core\Rebuild\Rebuild.csproj" />
+    <ProjectReference Include="..\..\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +26,10 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="BuildValidatorResources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILDAsm.targets" />
 </Project>

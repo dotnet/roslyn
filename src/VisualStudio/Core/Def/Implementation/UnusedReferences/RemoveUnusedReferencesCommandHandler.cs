@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
-using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -34,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private IServiceProvider? _serviceProvider;
 
@@ -42,12 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
-            IVsHierarchyItemManager vsHierarchyItemManager,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
-            _vsHierarchyItemManager = vsHierarchyItemManager;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
 
@@ -185,12 +181,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private ImmutableArray<ReferenceUpdate> GetUnusedReferencesForProject(Solution solution, string projectFilePath, string projectAssetsFile, CancellationToken cancellationToken)
         {
-            ImmutableArray<ReferenceInfo> unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
+            var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
-
-                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
+                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
+                return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences

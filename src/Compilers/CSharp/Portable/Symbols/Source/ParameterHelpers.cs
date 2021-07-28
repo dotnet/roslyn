@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
                         addRefReadOnlyModifier,
                         declarationDiagnostics);
-                }
-);
+                });
         }
 
         public static ImmutableArray<FunctionPointerParameterSymbol> MakeFunctionPointerParameters(
@@ -661,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
         {
-            return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
+            return expression.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true) && expression.InitializerExpressionOpt == null;
         }
 
         internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)

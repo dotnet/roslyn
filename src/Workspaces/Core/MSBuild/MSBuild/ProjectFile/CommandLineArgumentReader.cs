@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,9 +26,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static void ValidateName(string name)
         {
-            if (string.IsNullOrEmpty(name) || name.Contains(char.IsWhiteSpace))
+            if (RoslynString.IsNullOrEmpty(name) || name.Contains(char.IsWhiteSpace))
             {
-                throw new ArgumentException($"Parameter cannot be null, empty, or contain whitespace.", nameof(name));
+                throw new ArgumentException(WorkspaceMSBuildResources.Parameter_cannot_be_null_empty_or_contain_whitespace, nameof(name));
             }
         }
 
@@ -41,11 +39,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _builder.Add($"/{name}");
         }
 
-        protected void Add(string name, string value)
+        protected void Add(string name, string? value)
         {
             ValidateName(name);
 
-            if (string.IsNullOrEmpty(value) || value.Contains(char.IsWhiteSpace))
+            if (RoslynString.IsNullOrEmpty(value) || value.Contains(char.IsWhiteSpace))
             {
                 _builder.Add($"/{name}:\"{value}\"");
             }
@@ -60,9 +58,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Add(name, value.ToString());
         }
 
-        protected void AddIfNotNullOrWhiteSpace(string name, string value)
+        protected void AddIfNotNullOrWhiteSpace(string name, string? value)
         {
-            if (!string.IsNullOrWhiteSpace(value))
+            if (!RoslynString.IsNullOrWhiteSpace(value))
             {
                 Add(name, value);
             }
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected void ReadDelaySign()
         {
             var delaySign = Project.ReadPropertyString(PropertyNames.DelaySign);
-            if (!string.IsNullOrWhiteSpace(delaySign))
+            if (!RoslynString.IsNullOrWhiteSpace(delaySign))
             {
                 AddWithPlusOrMinus("delaysign", Conversions.ToBool(delaySign));
             }
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected void ReadErrorReport()
         {
             var errorReport = Project.ReadPropertyString(PropertyNames.ErrorReport);
-            if (!string.IsNullOrWhiteSpace(errorReport))
+            if (!RoslynString.IsNullOrWhiteSpace(errorReport))
             {
                 Add("errorreport", errorReport.ToLower());
             }
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected void ReadFeatures()
         {
             var features = Project.ReadPropertyString(PropertyNames.Features);
-            if (!string.IsNullOrWhiteSpace(features))
+            if (!RoslynString.IsNullOrWhiteSpace(features))
             {
                 foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
                 {
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var platform = Project.ReadPropertyString(PropertyNames.PlatformTarget);
             var prefer32bit = Project.ReadPropertyBool(PropertyNames.Prefer32Bit);
 
-            if (prefer32bit && (string.IsNullOrWhiteSpace(platform) || string.Equals("anycpu", platform, StringComparison.OrdinalIgnoreCase)))
+            if (prefer32bit && (RoslynString.IsNullOrWhiteSpace(platform) || string.Equals("anycpu", platform, StringComparison.OrdinalIgnoreCase)))
             {
                 platform = "anycpu32bitpreferred";
             }
@@ -271,13 +269,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (signAssembly)
             {
                 var keyFile = Project.ReadPropertyString(PropertyNames.KeyOriginatorFile);
-                if (!string.IsNullOrWhiteSpace(keyFile))
+                if (!RoslynString.IsNullOrWhiteSpace(keyFile))
                 {
                     Add("keyFile", keyFile);
                 }
 
                 var keyContainer = Project.ReadPropertyString(PropertyNames.KeyContainerName);
-                if (!string.IsNullOrWhiteSpace(keyContainer))
+                if (!RoslynString.IsNullOrWhiteSpace(keyContainer))
                 {
                     Add("keycontainer", keyContainer);
                 }

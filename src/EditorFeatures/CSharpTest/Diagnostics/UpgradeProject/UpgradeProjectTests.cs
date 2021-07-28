@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -1000,7 +1001,89 @@ interface I2<out T1>
     static T1 M1([|T1|] x) => x;
 }
 ",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSealedToStringInRecords_CS8912()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""9"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Derived.cs"">
+record [|Derived|] : Base;
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""10"">
+        <Document FilePath=""Base.cs"">
+public record Base
+{
+    public sealed override string ToString() => throw null;
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+                expected: LanguageVersion.CSharp10,
+                new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForTargetTypedNew()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class Test
+{
+    Test t = [|new()|];
+}",
+                LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForGlobalUsing()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+[|global using System;|]
+",
+                LanguageVersion.CSharp10,
+                new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+public interface I1
+{
+    protected void M01();
+}
+
+class C1 : [|I1|]
+{
+    public void M01() {}
+}
+",
+                expected: LanguageVersion.CSharp10,
+                new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForTargetTypedConditional()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class C
+{
+    void M(bool b)
+    {
+        int? i = [|b ? 1 : null|];
+    }
+}",
+                expected: LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }

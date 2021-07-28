@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,15 +17,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract class AbstractInProcLanguageClient : ILanguageClient
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
         private readonly string? _diagnosticsClientName;
-        private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly ILspLoggerFactory _lspLoggerFactory;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private InProcLanguageServer? _languageServer;
+        private LanguageServerTarget? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            VSShell.IAsyncServiceProvider asyncServiceProvider,
+            ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             string? diagnosticsClientName)
         {
@@ -88,14 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
-            _asyncServiceProvider = asyncServiceProvider;
+            _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
         }
-
-        /// <summary>
-        /// Can be overridden by subclasses to control what capabilities this language client has.
-        /// </summary>
-        protected internal abstract VSServerCapabilities GetCapabilities();
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
@@ -122,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
             // since that's the primary offending persister that needs to be addressed.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _ = GetCapabilities();
+            _ = GetCapabilities(new VSClientCapabilities { SupportsVisualStudioExtensions = true });
 
             if (_languageServer is not null)
             {
@@ -132,16 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = await InProcLanguageServer.CreateAsync(
+
+            _languageServer = (LanguageServerTarget)await CreateAsync(
                 this,
                 serverStream,
                 serverStream,
-                _requestDispatcherFactory.CreateRequestDispatcher(),
-                Workspace,
-                _diagnosticService,
-                _listenerProvider,
                 _lspWorkspaceRegistrationService,
-                _asyncServiceProvider,
+                _lspLoggerFactory,
                 _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
 
@@ -176,5 +169,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
             return Task.CompletedTask;
         }
+
+        internal static async Task<ILanguageServerTarget> CreateAsync(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
+            Stream outputStream,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            ILspLoggerFactory lspLoggerFactory,
+            string? clientName,
+            CancellationToken cancellationToken)
+        {
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
+
+            var serverTypeName = languageClient.GetType().Name;
+
+            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            var server = languageClient.Create(
+                jsonRpc,
+                languageClient,
+                lspWorkspaceRegistrationService,
+                logger);
+
+            jsonRpc.StartListening();
+            return server;
+        }
+
+        public ILanguageServerTarget Create(
+            JsonRpc jsonRpc,
+            ICapabilitiesProvider capabilitiesProvider,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            ILspLogger logger)
+        {
+            return new VisualStudioInProcLanguageServer(
+                _requestDispatcherFactory,
+                jsonRpc,
+                capabilitiesProvider,
+                workspaceRegistrationService,
+                _listenerProvider,
+                logger,
+                _diagnosticService,
+                clientName: _diagnosticsClientName,
+                userVisibleServerName: this.Name,
+                telemetryServerTypeName: this.GetType().Name);
+        }
+
+        public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
     }
 }

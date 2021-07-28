@@ -64,6 +64,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             // Perform the paste command before adding imports
             nextCommandHandler();
 
+            if (executionContext.OperationContext.UserCancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, executionContext, optionValue, trackingSpan);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private void ExecuteCommandWorker(
+            PasteCommandArgs args,
+            CommandExecutionContext executionContext,
+            bool? optionValue,
+            ITrackingSpan trackingSpan)
+        {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return;
@@ -91,11 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var enabled = optionValue.HasValue && optionValue.Value
-                || experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled);
+            // Enable by default unless the user has explicitly disabled in the settings
+            var disabled = optionValue.HasValue && !optionValue.Value;
 
-            if (!enabled)
+            if (disabled)
             {
                 return;
             }

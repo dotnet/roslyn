@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -31,16 +33,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<BackTabKeyCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
         ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>
+        ICommandHandler<InsertSnippetCommandArgs>,
+        IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
+        protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
+        protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
 
         public string DisplayName => FeaturesResources.Snippets;
 
-        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, SignatureHelpControllerProvider signatureHelpControllerProvider, IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
+            this.SignatureHelpControllerProvider = signatureHelpControllerProvider;
+            this.EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
             this.ServiceProvider = serviceProvider;
         }
@@ -69,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Insert snippet/show picker only if we don't have a selection: the user probably wants to indent instead
             if (args.TextView.Selection.IsEmpty)
             {
-                if (TryHandleTypedSnippet(args.TextView, args.SubjectBuffer))
+                if (TryHandleTypedSnippet(args.TextView, args.SubjectBuffer, context.OperationContext.UserCancellationToken))
                 {
                     return true;
                 }
@@ -98,6 +105,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             return CommandState.Available;
+        }
+
+        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextCommandHandler)
+        {
+            return nextCommandHandler();
+        }
+
+        public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        {
+            AssertIsForeground();
+            if (AreSnippetsEnabled(args)
+                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
+                && snippetExpansionClient.IsFullMethodCallSnippet)
+            {
+                // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
+                // chain will handle the remaining Smart Break Line operations.
+                snippetExpansionClient.CommitSnippet(leaveCaret: true);
+                args.TextView.Selection.Clear();
+            }
+
+            nextCommandHandler();
         }
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
@@ -236,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return CommandState.Available;
         }
 
-        protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer)
+        protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
@@ -275,12 +303,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            if (!IsSnippetExpansionContext(document, startPosition, CancellationToken.None))
+            if (!IsSnippetExpansionContext(document, startPosition, cancellationToken))
             {
                 return false;
             }
 
-            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(startPosition, endPosition);
+            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(startPosition, endPosition, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)

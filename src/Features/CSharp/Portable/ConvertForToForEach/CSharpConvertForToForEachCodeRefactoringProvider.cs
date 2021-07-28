@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForToForEachCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForToForEach), Shared]
     internal class CSharpConvertForToForEachCodeRefactoringProvider :
         AbstractConvertForToForEachCodeRefactoringProvider<
             StatementSyntax,

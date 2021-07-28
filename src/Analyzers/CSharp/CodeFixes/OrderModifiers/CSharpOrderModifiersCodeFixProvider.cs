@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.OrderModifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.OrderModifiers), Shared]
     internal class CSharpOrderModifiersCodeFixProvider : AbstractOrderModifiersCodeFixProvider
     {
         private const string CS0267 = nameof(CS0267); // The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'

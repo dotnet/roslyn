@@ -57,6 +57,64 @@ my_prop = my_val
             Assert.Equal("/bogus", config.NormalizedDirectory);
         }
 
+        [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
+        public void ConfigWithEscapedValues()
+        {
+            var config = ParseConfigFile(@"is_global = true
+
+[c:/\{f\*i\?le1\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[c:/f\,ile\#2.cs]
+build_metadata.Compile.ToRetrieve = def456
+
+[c:/f\;i\!le\[3\].cs]
+build_metadata.Compile.ToRetrieve = ghi789
+");
+
+            var namedSections = config.NamedSections;
+            Assert.Equal("c:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
+            AssertEx.Equal(
+                new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "abc123") },
+                namedSections[0].Properties
+            );
+
+            Assert.Equal("c:/f\\,ile\\#2.cs", namedSections[1].Name);
+            AssertEx.Equal(
+                new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "def456") },
+                namedSections[1].Properties
+            );
+
+            Assert.Equal("c:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
+            AssertEx.Equal(
+                new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "ghi789") },
+                namedSections[2].Properties
+            );
+        }
+
+        [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
+        public void CanGetSectionsWithSpecialCharacters()
+        {
+            var config = ParseConfigFile(@"is_global = true
+
+[/home/foo/src/\{releaseid\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[/home/foo/src/Pages/\#foo/HomePage.cs]
+build_metadata.Compile.ToRetrieve = def456
+");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+
+            var sectionOptions = set.GetOptionsForSourcePath("/home/foo/src/{releaseid}.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath("/home/foo/src/Pages/#foo/HomePage.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void WindowsPath()
         {

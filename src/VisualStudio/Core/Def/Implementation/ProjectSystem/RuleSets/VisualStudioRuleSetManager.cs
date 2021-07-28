@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -13,17 +13,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioRuleSetManager : IWorkspaceService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly FileChangeWatcher _fileChangeWatcher;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new();
 
         public VisualStudioRuleSetManager(
-            FileChangeWatcher fileChangeWatcher, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
+            IThreadingContext threadingContext,
+            FileChangeWatcher fileChangeWatcher,
+            IAsynchronousOperationListener listener)
         {
+            _threadingContext = threadingContext;
             _fileChangeWatcher = fileChangeWatcher;
-            _foregroundNotificationService = foregroundNotificationService;
             _listener = listener;
         }
 

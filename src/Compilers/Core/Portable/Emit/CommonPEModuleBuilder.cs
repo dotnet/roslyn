@@ -71,10 +71,27 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitOptions = emitOptions;
         }
 
+#nullable enable
         /// <summary>
-        /// EnC generation.
+        /// Symbol changes when emitting EnC delta.
         /// </summary>
-        public abstract int CurrentGenerationOrdinal { get; }
+        public abstract SymbolChanges? EncSymbolChanges { get; }
+
+        /// <summary>
+        /// Previous EnC generation baseline, or null if this is not EnC delta.
+        /// </summary>
+        public abstract EmitBaseline? PreviousGeneration { get; }
+
+        /// <summary>
+        /// True if this module is an EnC update.
+        /// </summary>
+        public bool IsEncDelta => PreviousGeneration != null;
+
+        /// <summary>
+        /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
+        /// </summary>
+        public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;
+#nullable disable
 
         /// <summary>
         /// If this module represents an assembly, name of the assembly used in AssemblyDef table. Otherwise name of the module same as <see cref="ModuleName"/>.
@@ -458,6 +475,28 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(TestData == null);
             TestData = methods;
         }
+
+        public int GetTypeDefinitionGeneration(Cci.INamedTypeDefinition typeDef)
+        {
+            if (PreviousGeneration != null)
+            {
+                var symbolChanges = EncSymbolChanges!;
+                if (symbolChanges.IsReplaced(typeDef))
+                {
+                    // Type emitted with Replace semantics in this delta, it's name should have the current generation ordinal suffix.
+                    return CurrentGenerationOrdinal;
+                }
+
+                var previousTypeDef = symbolChanges.DefinitionMap.MapDefinition(typeDef);
+                if (previousTypeDef != null && PreviousGeneration.GenerationOrdinals.TryGetValue(previousTypeDef, out int lastEmittedOrdinal))
+                {
+                    // Type previously emitted with Replace semantics is now updated in-place. Use the ordinal used to emit the last version of the type.
+                    return lastEmittedOrdinal;
+                }
+            }
+
+            return 0;
+        }
     }
 
     /// <summary>
@@ -605,6 +644,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(_namesOfTopLevelTypes == null);
                 _namesOfTopLevelTypes = names;
             }
+
+            static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
+                // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
@@ -644,11 +687,6 @@ namespace Microsoft.CodeAnalysis.Emit
             DiagnosticBag diagnostics)
         {
             return new MetadataConstant(Translate(type, syntaxNodeOpt, diagnostics), value);
-        }
-
-        private static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
-        {
-            names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
         private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
@@ -965,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
-                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
         }
     }

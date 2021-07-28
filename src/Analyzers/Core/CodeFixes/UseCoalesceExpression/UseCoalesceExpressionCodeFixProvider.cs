@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpression), Shared]
     internal class UseCoalesceExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument, nameof(AnalyzersResources.Use_coalesce_expression))
             {
 
             }

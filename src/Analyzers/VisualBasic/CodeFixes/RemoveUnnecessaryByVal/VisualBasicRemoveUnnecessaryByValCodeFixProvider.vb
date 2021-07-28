@@ -10,15 +10,16 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryByVal), [Shared]>
     Friend Class VisualBasicRemoveUnnecessaryByValCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -30,10 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 context.RegisterCodeFix(New MyCodeAction(
-                    VisualBasicAnalyzersResources.Remove_ByVal,
                     Function(ct) FixAsync(context.Document, diagnostic, ct)),
                     diagnostic)
             Next
+
             Return Task.CompletedTask
         End Function
 
@@ -49,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Private Class MyCodeAction
             Inherits CustomCodeActions.DocumentChangeAction
 
-            Friend Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
+            Friend Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
+                MyBase.New(VisualBasicAnalyzersResources.Remove_ByVal, createChangedDocument, NameOf(VisualBasicAnalyzersResources.Remove_ByVal))
             End Sub
         End Class
     End Class

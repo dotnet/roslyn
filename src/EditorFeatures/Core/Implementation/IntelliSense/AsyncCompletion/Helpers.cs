@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
@@ -145,13 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
             => session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation);
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        // We check both the display text and the display text prefix to account for IntelliCode item providers
-        // that may be using the prefix to include the ★.
-        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★") || completionItem.DisplayTextPrefix.StartsWith("★");
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.

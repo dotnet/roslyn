@@ -49,7 +49,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<DebugSourceDocument, DocumentHandle> _documentIndex = new Dictionary<DebugSourceDocument, DocumentHandle>();
         private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(ImportScopeEqualityComparer.Instance);
 
-        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
+        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int aggregateMethodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
         {
             if (bodyOpt == null)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.Cci
 
                 if (moveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncInfo)
                 {
-                    SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle);
+                    SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle, aggregateMethodRid);
                 }
             }
 
@@ -565,7 +565,7 @@ namespace Microsoft.Cci
 
         #region State Machines
 
-        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod, int aggregateMethodDefRid)
         {
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
             Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
@@ -578,7 +578,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32((uint)asyncInfo.YieldOffsets[i]);
                 writer.WriteUInt32((uint)asyncInfo.ResumeOffsets[i]);
-                writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(moveNextMethod));
+                writer.WriteCompressedInteger(aggregateMethodDefRid);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
@@ -745,8 +745,16 @@ namespace Microsoft.Cci
             DocumentHandle documentHandle;
             DebugSourceInfo info = document.GetSourceInfo();
 
+            var name = document.Location;
+            if (_usingNonSourceDocumentNameEnumerator)
+            {
+                var result = _nonSourceDocumentNameEnumerator.MoveNext();
+                Debug.Assert(result);
+                name = _nonSourceDocumentNameEnumerator.Current;
+            }
+
             documentHandle = _debugMetadataOpt.AddDocument(
-                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                name: _debugMetadataOpt.GetOrAddDocumentName(name),
                 hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
                 hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
                 language: _debugMetadataOpt.GetOrAddGuid(document.Language));
@@ -836,18 +844,19 @@ namespace Microsoft.Cci
         }
 
         ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
-        public const int CompilationOptionsSchemaVersion = 1;
+        private const int CompilationOptionsSchemaVersion = 2;
 
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
         /// to be reconstructed from the pdb
         /// </summary>
-        private void EmbedCompilationOptions(BlobReader? pdbCompilationOptionsReader, CommonPEModuleBuilder module)
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
             var builder = new BlobBuilder();
 
-            if (pdbCompilationOptionsReader is { } reader)
+            if (this.Context.RebuildData is { } rebuildData)
             {
+                var reader = rebuildData.OptionsBlobReader;
                 builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));
             }
             else
@@ -858,6 +867,7 @@ namespace Microsoft.Cci
 
                 WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
                 WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
 
                 if (module.EmitOptions.FallbackSourceFileEncoding != null)
                 {
@@ -883,7 +893,7 @@ namespace Microsoft.Cci
 
                 var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
                 var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
-                if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+                if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
                 {
                     WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
                 }
@@ -927,13 +937,15 @@ namespace Microsoft.Cci
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
             // MVID (Guid, 24 bytes)
-            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            var referenceManager = module.CommonCompilation.GetBoundReferenceManager();
+            foreach (var pair in referenceManager.GetReferencedAssemblyAliases())
             {
-                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                if (referenceManager.GetMetadataReference(pair.AssemblySymbol) is PortableExecutableReference { FilePath: { } } portableReference)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
-                    var peReader = GetReader(reference);
+                    var peReader = pair.AssemblySymbol.GetISymbol() is IAssemblySymbol assemblySymbol
+                        ? assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt
+                        : null;
 
                     // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
@@ -946,8 +958,8 @@ namespace Microsoft.Cci
                     builder.WriteByte(0);
 
                     // Extern alias
-                    if (portableReference.Properties.Aliases.Any())
-                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+                    if (pair.Aliases.Length > 0)
+                        builder.WriteUTF8(string.Join(",", pair.Aliases.OrderBy(StringComparer.Ordinal)));
 
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
@@ -977,14 +989,6 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
-
-            static PEReader GetReader(ISymbol symbol)
-                => symbol switch
-                {
-                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
-                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
-                    _ => null
-                };
         }
     }
 }

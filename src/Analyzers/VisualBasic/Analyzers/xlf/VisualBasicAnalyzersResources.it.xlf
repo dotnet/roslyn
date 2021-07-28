@@ -17,6 +17,11 @@
         <target state="translated">L'istruzione Imports non è necessaria.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">La creazione di oggetti può essere semplificata</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">La parola chiave 'ByVal' non è necessaria e può essere rimossa.</target>

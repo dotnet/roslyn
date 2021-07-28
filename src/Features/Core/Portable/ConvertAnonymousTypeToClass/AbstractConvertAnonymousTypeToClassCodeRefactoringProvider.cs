@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
+namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToClass
 {
     internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         TExpressionSyntax,
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

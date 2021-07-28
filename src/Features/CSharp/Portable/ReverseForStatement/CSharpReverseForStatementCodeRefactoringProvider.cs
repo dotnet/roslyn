@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 {
     using static IntegerUtilities;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReverseForStatement), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument)
+                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument, nameof(CSharpFeaturesResources.Reverse_for_statement))
             {
             }
         }

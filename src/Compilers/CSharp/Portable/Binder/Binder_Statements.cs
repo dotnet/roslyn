@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -624,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ImplicitReturnIsOkay(MethodSymbol method)
         {
-            return method.ReturnsVoid || method.IsIterator || method.IsAsyncReturningTask(this.Compilation);
+            return method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(this.Compilation);
         }
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -844,11 +843,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind;
             ExpressionSyntax value;
             IsInitializerRefKindValid(initializer, initializer, refKind, diagnostics, out valueKind, out value); // The return value isn't important here; we just want the diagnostics and the BindValueKind
-            return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
+            return BindInferredVariableInitializer(diagnostics, value, valueKind, errorSyntax);
         }
 
         // The location where the error is reported might not be the initializer.
-        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, RefKind refKind, CSharpSyntaxNode errorSyntax)
+        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, CSharpSyntaxNode errorSyntax)
         {
             if (initializer == null)
             {
@@ -868,7 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckValue(result, valueKind, diagnostics);
             }
 
-            BoundExpression expression = BindToNaturalType(BindValue(initializer, diagnostics, valueKind), diagnostics);
+            BoundExpression value = BindValue(initializer, diagnostics, valueKind);
+            BoundExpression expression = value.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup ?
+                BindToInferredDelegateType(value, diagnostics) :
+                BindToNaturalType(value, diagnostics);
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -991,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 aliasOpt = null;
 
-                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
+                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var"
                 TypeSymbol initializerType = initializerOpt?.Type;
@@ -1810,6 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
         }
 
+#nullable enable
         internal void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, SyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
         {
@@ -1864,14 +1867,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
-                Debug.Assert(targetType.IsExpressionTree());
+                Debug.Assert(targetType.IsGenericOrNonGenericExpressionType(out _));
                 Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, syntax);
                 return;
             }
 
-            // At this point we know that we have either a delegate type or an expression type for the target.
+            if (reason == LambdaConversionResult.MismatchedReturnType)
+            {
+                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, syntax, id, targetType);
+                return;
+            }
 
-            var delegateType = targetType.GetDelegateType();
+            // At this point we know that we have either a delegate type or an expression type for the target.
 
             // The target type is a valid delegate or expression tree type. Is there something wrong with the
             // parameter list?
@@ -1896,6 +1903,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, syntax, targetType);
                 return;
             }
+
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
 
             // There is a parameter list. Does it have the right number of elements?
 
@@ -2003,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.BindingFailed)
             {
-                var bindingResult = anonymousFunction.Bind(delegateType);
+                var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);
                 Debug.Assert(ErrorFacts.PreventsSuccessfulDelegateConversion(bindingResult.Diagnostics.Diagnostics));
                 diagnostics.AddRange(bindingResult.Diagnostics);
                 return;
@@ -2014,6 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
+#nullable disable
 
         protected static void GenerateImplicitConversionError(BindingDiagnosticBag diagnostics, CSharpCompilation compilation, SyntaxNode syntax,
             Conversion conversion, TypeSymbol sourceType, TypeSymbol targetType, ConstantValue sourceConstantValueOpt = null)
@@ -2261,7 +2272,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
-                            errorCode = fromAddressOf ? ErrorCode.ERR_AddressOfToNonFunctionPointer : ErrorCode.ERR_MethGrpToNonDel;
+                            if (fromAddressOf)
+                            {
+                                errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
+                            }
+                            else if (targetType.SpecialType == SpecialType.System_Delegate)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
+                                return;
+                            }
+                            else
+                            {
+                                errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            }
                             break;
                     }
 
@@ -2364,7 +2387,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnaryOperatorKind.DynamicTrue,
                     BindToNaturalType(expr, diagnostics),
                     ConstantValue.NotAvailable,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
                     boolean)
                 {
@@ -2430,10 +2454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+
             // Consider op_true to be compiler-generated so that it doesn't appear in the semantic model.
             // UNDONE: If we decide to expose the operator in the semantic model, we'll have to remove the
             // WasCompilerGenerated flag (and possibly suppress the symbol in specific APIs).
-            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, resultKind, originalUserDefinedOperators, signature.ReturnType)
+            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, signature.ConstrainedToTypeOpt, resultKind, originalUserDefinedOperators, signature.ReturnType)
             {
                 WasCompilerGenerated = true
             };
@@ -2633,16 +2659,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInAsyncMethod(this.ContainingMemberOrLambda as MethodSymbol);
         }
 
-        protected bool IsTaskReturningAsyncMethod()
+        protected bool IsEffectivelyTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningTask(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningTask(this.Compilation);
         }
 
-        protected bool IsGenericTaskReturningAsyncMethod()
+        protected bool IsEffectivelyGenericTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningGenericTask(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningGenericTask(this.Compilation);
         }
 
         protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
@@ -2745,7 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on a lambda expression of unknown return type.
             if ((object)retType != null)
             {
-                if (retType.IsVoidType() || IsTaskReturningAsyncMethod())
+                if (retType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     if (arg != null)
                     {
@@ -2785,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg == null)
                     {
                         // Error case: non-void-returning or Task<T>-returning method or lambda but just have "return;"
-                        var requiredType = IsGenericTaskReturningAsyncMethod()
+                        var requiredType = IsEffectivelyGenericTaskReturningAsyncMethod()
                             ? retType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single()
                             : retType;
 
@@ -2828,7 +2854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(returnRefKind == RefKind.None);
 
-                if (!IsGenericTaskReturningAsyncMethod())
+                if (!IsEffectivelyGenericTaskReturningAsyncMethod())
                 {
                     conversion = Conversion.NoConversion;
                     badAsyncReturnAlreadyReported = true;
@@ -2865,7 +2891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
+                        if (IsEffectivelyGenericTaskReturningAsyncMethod()
+                            && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
@@ -3154,7 +3181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
-                else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
+                else if (returnType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.
@@ -3282,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
         {
             switch (syntax)
             {
@@ -3292,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3338,12 +3365,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(recordDecl.ParameterList is object);
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             Binder bodyBinder = this.GetBinder(recordDecl);
             Debug.Assert(bodyBinder != null);
 
             BoundExpressionStatement initializer = null;
-            if (recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
             }
@@ -3363,9 +3391,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
         {
-            if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
+            ConstructorInitializerSyntax initializer = constructor.Initializer;
+            if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
             {
                 return null;
             }
@@ -3373,7 +3402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
 
-            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+            bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
+            if (!thisInitializer &&
                 ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
@@ -3381,14 +3411,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
+
+            // The `: this()` initializer is ignored when it is a default value type constructor
+            // and we need to include field initializers into the constructor.
+            bool skipInitializer = includesFieldInitializers
+                && thisInitializer
+                && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
+                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
+                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
@@ -3443,6 +3480,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return ImmutableArray<LabelSymbol>.Empty;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndExternAliasDirective> ExternAliases
+        {
+            get
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// Note, only aliases syntactically declared within the enclosing declaration are included. For example, global aliases
+        /// declared in a different compilation units are not included.
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases
+        {
+            get
+            {
+                return default;
             }
         }
 

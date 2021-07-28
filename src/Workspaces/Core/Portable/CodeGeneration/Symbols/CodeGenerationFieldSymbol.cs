@@ -86,5 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public ISymbol AssociatedSymbol => null;
+
+        public bool IsExplicitlyNamedTupleElement => false;
     }
 }

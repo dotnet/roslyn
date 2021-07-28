@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseDeconstruction), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

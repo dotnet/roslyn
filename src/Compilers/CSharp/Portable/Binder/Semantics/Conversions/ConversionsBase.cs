@@ -4,10 +4,9 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
-        protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+        protected abstract Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -931,8 +930,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.InterpolatedString:
-                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundInterpolatedString)sourceExpression, destination, ref useSiteInfo);
+                case BoundKind.UnconvertedInterpolatedString:
+                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundUnconvertedInterpolatedString)sourceExpression, destination, ref useSiteInfo);
                     if (interpolatedStringConversion.Exists)
                     {
                         return interpolatedStringConversion;
@@ -1246,9 +1245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-#nullable disable
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, bool isTargetExpressionTree)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1264,6 +1262,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)invokeMethod == null || invokeMethod.HasUseSiteError)
             {
                 return LambdaConversionResult.BadTargetType;
+            }
+
+            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            {
+                if (invokeMethod.RefKind != refKind ||
+                    !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return LambdaConversionResult.MismatchedReturnType;
+                }
             }
 
             var delegateParameters = invokeMethod.Parameters;
@@ -1348,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ensure the body can be converted to that delegate type
-            var bound = anonymousFunction.Bind(delegateType);
+            var bound = anonymousFunction.Bind(delegateType, isTargetExpressionTree);
             if (ErrorFacts.PreventsSuccessfulDelegateConversion(bound.Diagnostics.Diagnostics))
             {
                 return LambdaConversionResult.BindingFailed;
@@ -1361,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
-            Debug.Assert(type.IsExpressionTree());
+            Debug.Assert(type.IsGenericOrNonGenericExpressionType(out _));
 
             // SPEC OMISSION:
             // 
@@ -1374,8 +1381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This appears to be a spec omission; the intention is to make old-style anonymous methods not 
             // convertible to expression trees.
 
-            var delegateType = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-            if (!delegateType.IsDelegateType())
+            var delegateType = type.Arity == 0 ? null : type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            if (delegateType is { } && !delegateType.IsDelegateType())
             {
                 return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
             }
@@ -1385,7 +1392,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
             }
 
-            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType);
+            if (delegateType is null)
+            {
+                return LambdaConversionResult.Success;
+            }
+
+            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
         }
 
         public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)
@@ -1393,11 +1405,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
-            if (type.IsDelegateType())
+            if (type.SpecialType == SpecialType.System_Delegate)
             {
-                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
+                return LambdaConversionResult.Success;
             }
-            else if (type.IsExpressionTree())
+            else if (type.IsDelegateType())
+            {
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
+            }
+            else if (type.IsGenericOrNonGenericExpressionType(out bool _))
             {
                 return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
             }
@@ -1417,6 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
+#nullable disable
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

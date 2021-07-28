@@ -52,6 +52,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -146,6 +153,15 @@ namespace Goo {");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"[$$
+namespace Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeNamespaceWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
@@ -166,12 +182,34 @@ namespace Goo {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAttributeBeforeNamespaceAndAfterGlobalUsingWithNoOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"
+global using System;
+
+$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeNamespaceAndAfterUsingWithOpenBracket()
         {
             await VerifyKeywordAsync(
 @"
 using System;
+
+[$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeBeforeNamespaceAndAfterGlobalUsingWithOpenBracket()
+        {
+            await VerifyKeywordAsync(
+@"
+global using System;
 
 [$$
 namespace Goo {}");
@@ -253,12 +291,36 @@ namespace Goo {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterGlobalUsingWithoutOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"
+global using System;
+
+$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInBeforeAttributeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyKeywordAsync(
 @"
 using System;
+
+[$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBeforeAttributeAssemblyAttributeAndAfterGlobalUsingWithoutOpenBracket()
+        {
+            await VerifyKeywordAsync(
+@"
+global using System;
 
 [$$
 [assembly: Whatever]

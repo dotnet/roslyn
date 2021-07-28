@@ -17,6 +17,11 @@
         <target state="translated">Příkaz Imports není potřebný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">Vytváření objektů se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">Klíčové slovo ByVal není zapotřebí a dá se odebrat.</target>

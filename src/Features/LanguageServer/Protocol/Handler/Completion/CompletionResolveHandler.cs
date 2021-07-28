@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
@@ -31,54 +33,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
-        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
-        {
-            Contract.ThrowIfNull(request.Data);
-
-            return ((JToken)request.Data).ToObject<CompletionResolveData>();
-        }
-
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => GetCompletionResolveData(request).TextDocument;
+            => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
             {
+                context.TraceInformation("No associated document found for the provided completion item.");
                 return completionItem;
             }
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var data = GetCompletionResolveData(completionItem);
-
-            CompletionList? list = null;
-
-            // See if we have a cache of the completion list we need
-            if (data.ResultId.HasValue)
+            var cacheEntry = GetCompletionListCacheEntry(completionItem);
+            if (cacheEntry == null)
             {
-                list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
+                // Don't have a cache associated with this completion item, cannot resolve.
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
+                return completionItem;
             }
 
-            if (list == null)
-            {
-                // We don't have a cache, so we need to recompute the list
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-                var completionOptions = await CompletionHandler.GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-
-                list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (list == null)
-                {
-                    return completionItem;
-                }
-            }
+            var list = cacheEntry.CompletionList;
 
             // Find the matching completion item in the completion list
-            var selectedItem = list.Items.FirstOrDefault(
-                i => data.DisplayText == i.DisplayText &&
-                    completionItem.Label.StartsWith(i.DisplayTextPrefix) &&
-                    completionItem.Label.EndsWith(i.DisplayTextSuffix));
-
+            var selectedItem = list.Items.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
             if (selectedItem == null)
             {
                 return completionItem;
@@ -86,10 +65,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
-            if (completionItem is LSP.VSCompletionItem vsCompletionItem)
+            var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
+            if (supportsVSExtensions)
             {
+                var vsCompletionItem = (LSP.VSCompletionItem)completionItem;
                 vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                     .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
+            }
+            else
+            {
+                var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
             }
 
             // We compute the TextEdit resolves for complex text edits (e.g. override and partial
@@ -108,8 +94,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
             }
 
-            completionItem.Detail = description.TaggedParts.GetFullText();
             return completionItem;
+        }
+
+        private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
+        {
+            if (!lspCompletionItem.Label.StartsWith(completionItem.DisplayTextPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            // The prefix matches, consume the matching prefix from the lsp completion item label.
+            var displayTextWithSuffix = lspCompletionItem.Label.Substring(completionItem.DisplayTextPrefix.Length, lspCompletionItem.Label.Length - completionItem.DisplayTextPrefix.Length);
+            if (!displayTextWithSuffix.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            // The suffix matches, consume the matching suffix from the lsp completion item label.
+            var originalDisplayText = displayTextWithSuffix.Substring(0, displayTextWithSuffix.Length - completionItem.DisplayTextSuffix.Length);
+
+            // Now we're left with what should be the original display text for the lsp completion item.
+            // Check to make sure it matches the cached completion item label.
+            return string.Equals(originalDisplayText, completionItem.DisplayText);
         }
 
         // Internal for testing
@@ -156,6 +163,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
 
             return textEdit;
+        }
+
+        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
+            if (resolveData?.ResultId == null)
+            {
+                Contract.Fail("Result id should always be provided when resolving a completion item we returned.");
+                return null;
+            }
+
+            var cacheEntry = _completionListCache.GetCachedCompletionList(resolveData.ResultId.Value);
+            if (cacheEntry == null)
+            {
+                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
+                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
+            }
+
+            return cacheEntry;
         }
     }
 }

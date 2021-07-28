@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLinqQueryToForEachProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach), Shared]
     internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertLinqQueryToForEachProvider<QueryExpressionSyntax, StatementSyntax>
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
@@ -260,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     {
                         return true;
                     }
+
                     if (currentNode is ExpressionSyntax ||
                         currentNode is ArgumentSyntax ||
                         currentNode is ArgumentListSyntax ||

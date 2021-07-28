@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
+                New MyCodeAction(Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
         Private Shared Function HasConflict(
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Next, get the top-most statement of the local declaration
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
-            Dim originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.GetInitializer())
+            Dim originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.GetInitializer(), cancellationToken)
 
             Dim topMostStatementOfLocalDeclaration = If(localDeclaration.HasAncestor(Of ExpressionSyntax),
                                                         localDeclaration.Ancestors().OfType(Of ExpressionSyntax).Last().FirstAncestorOrSelf(Of StatementSyntax)(),
@@ -463,14 +463,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                                               Return newNode _
                                                   .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected))
                                           End Function
+
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Class MyCodeAction
             Inherits CodeAction.DocumentChangeAction
 
-            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
+            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
+                MyBase.New(VBFeaturesResources.Inline_temporary_variable, createChangedDocument, NameOf(VBFeaturesResources.Inline_temporary_variable))
             End Sub
         End Class
     End Class

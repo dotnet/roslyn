@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpProjectFile : ProjectFile
     {
-        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log)
+        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
             : base(loader, project, buildManager, log)
         {
         }
