@@ -672,6 +672,9 @@ class C
                         Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1142,6 +1145,7 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1246,6 +1250,7 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1357,6 +1362,7 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
