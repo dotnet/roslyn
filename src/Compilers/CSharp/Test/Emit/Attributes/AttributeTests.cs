@@ -10043,6 +10043,131 @@ class C { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(5, 7));
         }
 
+        [Fact]
+        public void GenericAttributeProperty_01()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { public T Prop { get; set; } }
+
+[Attr<string>(Prop = ""a"")]
+class Program { }
+";
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+            void verify(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
+                var attrs = program.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>(Prop = \"a\")" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeProperty_02()
+        {
+            var source = @"
+using System;
+class Attr<T1> : Attribute { public object Prop { get; set; } }
+
+class Outer<T2>
+{
+    [Attr<object>(Prop = default(T2))] // 1
+    class Program1 { }
+
+    [Attr<T2>(Prop = default(T2))] // 2, 3
+    class Program2 { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<object>(Prop = default(T2))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
+                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
+        }
+
+        [Fact, WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
+        public void GenericAttributeParameter_01()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { public Attr(T param) { } }
+
+[Attr<string>(""a"")]
+class Program { }
+";
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata);
+
+            verifier.VerifyTypeIL("Program", @"
+.class private auto ansi beforefieldinit Program
+	extends [netstandard]System.Object
+{
+	.custom instance void class Attr`1<string>::.ctor(!0) = (
+		01 00 01 61 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method Program::.ctor
+} // end of class Program
+");
+
+            void verify(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
+                var attrs = program.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
+            }
+
+            void verifyMetadata(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
+                var attrs = program.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeParameter_02()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { public Attr(object param) { } }
+
+class Outer<T2>
+{
+    [Attr<object>(default(T2))] // 1
+    class Program1 { }
+
+    [Attr<T2>(default(T2))] // 2, 3
+    class Program2 { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<object>(Prop = default(T2))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
+                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
+        }
+
         #endregion
     }
 }
