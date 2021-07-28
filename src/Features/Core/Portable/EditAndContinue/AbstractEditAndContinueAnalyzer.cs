@@ -2368,7 +2368,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => oldTypes.SequenceEqual(newTypes, exact, (x, y, exact) => TypesEquivalent(x, y, exact));
 
         protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
-            => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+        {
+            if (exact)
+            {
+                return s_exactSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+            }
+
+            return s_runtimeSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter) ||
+                oldParameter.IsDiscard ||
+                newParameter.IsDiscard;
+        }
 
         protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
             => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -3281,12 +3290,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Compilation newCompilation,
             out bool hasGeneratedAttributeChange,
             out bool hasGeneratedReturnTypeAttributeChange,
+            out bool hasParameterRename,
             CancellationToken cancellationToken)
         {
             var rudeEdit = RudeEditKind.None;
 
             hasGeneratedAttributeChange = false;
             hasGeneratedReturnTypeAttributeChange = false;
+            hasParameterRename = false;
 
             if (oldSymbol.Kind != newSymbol.Kind)
             {
@@ -3294,7 +3305,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (oldSymbol.Name != newSymbol.Name)
             {
-                rudeEdit = RudeEditKind.Renamed;
+                if (oldSymbol is IParameterSymbol && newSymbol is IParameterSymbol)
+                {
+                    hasParameterRename = true;
+                }
+                else
+                {
+                    rudeEdit = RudeEditKind.Renamed;
+                }
 
                 // specialize rude edit for accessors and conversion operators:
                 if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
@@ -3650,11 +3668,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ReportCustomAttributeRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasAttributeChange, out var hasReturnTypeAttributeChange, cancellationToken);
 
-            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, cancellationToken);
+            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out var hasParameterRename, cancellationToken);
             hasAttributeChange |= hasGeneratedAttributeChange;
             hasReturnTypeAttributeChange |= hasGeneratedReturnTypeAttributeChange;
 
-            if (hasAttributeChange || hasReturnTypeAttributeChange)
+            if (hasAttributeChange || hasReturnTypeAttributeChange || hasParameterRename)
             {
                 AddCustomAttributeSemanticEdits(semanticEdits, oldSymbol, newSymbol, topMatch, syntaxMap, hasAttributeChange, hasReturnTypeAttributeChange, cancellationToken);
             }
