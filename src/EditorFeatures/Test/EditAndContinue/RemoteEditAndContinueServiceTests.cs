@@ -135,9 +135,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
 
-            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, reportDiagnostics) =>
+            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
+                AssertEx.Equal(new[] { document1.Id }, captureMatchingDocuments);
+                Assert.False(captureAllMatchingDocuments);
+                Assert.True(reportDiagnostics);
+
                 remoteDebuggeeModuleMetadataProvider = debuggerService;
                 return new DebuggingSessionId(1);
             };
@@ -149,7 +153,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
-                captureMatchingDocuments: false,
+                captureMatchingDocuments: ImmutableArray.Create(document1.Id),
+                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 CancellationToken.None).ConfigureAwait(false);
 
@@ -354,7 +359,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.EndDebuggingSessionAsync(solution, diagnosticUpdateSource, mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;

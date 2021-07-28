@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {
-                return GetSymbolsForNamespaceDeclarationNameContext<NamespaceDeclarationSyntax>();
+                return GetSymbolsForNamespaceDeclarationNameContext<BaseNamespaceDeclarationSyntax>();
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -251,9 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
             // Using an is pattern on an enum is a qualified name, but normal symbol processing works fine
             if (_context.IsEnumTypeMemberAccessContext)
-            {
                 return GetSymbolsOffOfExpression(name);
-            }
 
             if (ShouldBeTreatedAsTypeInsteadOfExpression(name, out var nameBinding, out var container))
                 return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false);
@@ -261,42 +259,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // We're in a name-only context, since if we were an expression we'd be a
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             nameBinding = _context.SemanticModel.GetSymbolInfo(name, _cancellationToken);
-            if (nameBinding.Symbol is INamespaceOrTypeSymbol symbol)
+            if (nameBinding.Symbol is not INamespaceOrTypeSymbol symbol)
+                return default;
+
+            if (_context.IsNameOfContext)
+                return new RecommendedSymbols(_context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol));
+
+            var symbols = _context.SemanticModel.LookupNamespacesAndTypes(
+                position: name.SpanStart,
+                container: symbol);
+
+            if (_context.IsNamespaceDeclarationNameContext)
             {
-                if (_context.IsNameOfContext)
-                {
-                    return new RecommendedSymbols(_context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol));
-                }
-
-                var symbols = _context.SemanticModel.LookupNamespacesAndTypes(
-                    position: name.SpanStart,
-                    container: symbol);
-
-                if (_context.IsNamespaceDeclarationNameContext)
-                {
-                    var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
-                    return new RecommendedSymbols(symbols.WhereAsArray(s => IsNonIntersectingNamespace(s, declarationSyntax)));
-                }
-
-                // Filter the types when in a using directive, but not an alias.
-                // 
-                // Cases:
-                //    using | -- Show namespaces
-                //    using A.| -- Show namespaces
-                //    using static | -- Show namespace and types
-                //    using A = B.| -- Show namespace and types
-                var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
-                if (usingDirective != null && usingDirective.Alias == null)
-                {
-                    return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
-                        ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
-                        : symbols.WhereAsArray(s => s.IsNamespace()));
-                }
-
-                return new RecommendedSymbols(symbols);
+                var declarationSyntax = name.GetAncestorOrThis<BaseNamespaceDeclarationSyntax>();
+                return new RecommendedSymbols(symbols.WhereAsArray(s => IsNonIntersectingNamespace(s, declarationSyntax)));
             }
 
-            return default;
+            // Filter the types when in a using directive, but not an alias.
+            // 
+            // Cases:
+            //    using | -- Show namespaces
+            //    using A.| -- Show namespaces
+            //    using static | -- Show namespace and types
+            //    using A = B.| -- Show namespace and types
+            var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
+            if (usingDirective != null && usingDirective.Alias == null)
+            {
+                return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
+                    ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                    : symbols.WhereAsArray(s => s.IsNamespace()));
+            }
+
+            return new RecommendedSymbols(symbols);
         }
 
         /// <summary>

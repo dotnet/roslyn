@@ -843,11 +843,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind;
             ExpressionSyntax value;
             IsInitializerRefKindValid(initializer, initializer, refKind, diagnostics, out valueKind, out value); // The return value isn't important here; we just want the diagnostics and the BindValueKind
-            return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
+            return BindInferredVariableInitializer(diagnostics, value, valueKind, errorSyntax);
         }
 
         // The location where the error is reported might not be the initializer.
-        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, RefKind refKind, CSharpSyntaxNode errorSyntax)
+        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, CSharpSyntaxNode errorSyntax)
         {
             if (initializer == null)
             {
@@ -867,7 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckValue(result, valueKind, diagnostics);
             }
 
-            BoundExpression expression = BindToNaturalType(BindValue(initializer, diagnostics, valueKind), diagnostics);
+            BoundExpression value = BindValue(initializer, diagnostics, valueKind);
+            BoundExpression expression = value.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup ?
+                BindToInferredDelegateType(value, diagnostics) :
+                BindToNaturalType(value, diagnostics);
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -990,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 aliasOpt = null;
 
-                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
+                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var"
                 TypeSymbol initializerType = initializerOpt?.Type;
@@ -2010,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.BindingFailed)
             {
-                var bindingResult = anonymousFunction.Bind(delegateType);
+                var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);
                 Debug.Assert(ErrorFacts.PreventsSuccessfulDelegateConversion(bindingResult.Diagnostics.Diagnostics));
                 diagnostics.AddRange(bindingResult.Diagnostics);
                 return;
@@ -3306,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
         {
             switch (syntax)
             {
@@ -3316,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3388,9 +3391,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
         {
-            if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
+            ConstructorInitializerSyntax initializer = constructor.Initializer;
+            if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
             {
                 return null;
             }
@@ -3398,7 +3402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
 
-            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+            bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
+            if (!thisInitializer &&
                 ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
@@ -3406,14 +3411,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
+
+            // The `: this()` initializer is ignored when it is a default value type constructor
+            // and we need to include field initializers into the constructor.
+            bool skipInitializer = includesFieldInitializers
+                && thisInitializer
+                && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
+                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
+                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :

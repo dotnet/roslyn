@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we expect, and we'll recompute things.
             allChecksums.Add(SerializationFormatChecksum);
 
-            return Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
+            return Checksum.Create(allChecksums);
         }
 
         internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(

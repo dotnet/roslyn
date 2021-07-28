@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
         public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
+            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
         public static readonly Option2<int> UseEnhancedColors = new(

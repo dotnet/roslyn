@@ -309,15 +309,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async Task<IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>> GetMatchingDocumentsAsync(Solution solution, Func<Project, CompilationOutputs> compilationOutputsProvider, CancellationToken cancellationToken)
+        internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
+            IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            CancellationToken cancellationToken)
         {
-            var projectTasks = solution.Projects.Select(async project =>
+            var projectTasks = documentsByProject.Select(async projectDocumentStates =>
             {
-                using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
-                if (debugInfoReaderProvider == null)
-                {
-                    return Array.Empty<DocumentId?>();
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var (project, documentStates) = projectDocumentStates;
 
                 // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
                 // Source files of these do not even need to be captured in the solution snapshot.
@@ -326,9 +327,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return Array.Empty<DocumentId?>();
                 }
 
+                using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
+                if (debugInfoReaderProvider == null)
+                {
+                    return Array.Empty<DocumentId?>();
+                }
+
                 var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
 
-                var documentTasks = project.State.DocumentStates.States.Values.Select(async documentState =>
+                var documentTasks = documentStates.Select(async documentState =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

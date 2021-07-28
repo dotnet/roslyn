@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertIntoClassWithLayout = 31,
         Move = 32,
         Delete = 33,
-        MethodBodyAdd = 34,
-        MethodBodyDelete = 35,
+        // MethodBodyAdd = 34,
+        // MethodBodyDelete = 35,
         GenericMethodUpdate = 36,
         GenericMethodTriviaUpdate = 37,
         GenericTypeUpdate = 38,
@@ -123,16 +123,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         //AddRecordPositionalParameter = 94,
         //DeleteRecordPositionalParameter = 95,
         ExplicitRecordMethodParameterNamesMustMatch = 96,
-
         NotSupportedByRuntime = 97,
         MakeMethodAsync = 98,
         MakeMethodIterator = 99,
         InsertNotSupportedByRuntime = 100,
         ChangingAttributesNotSupportedByRuntime = 101,
-
         ChangeImplicitMainReturnType = 102,
         ChangingParameterTypes = 103,
         ChangingTypeParameters = 104,
         ChangingConstraints = 105,
+        ChangingReloadableTypeNotSupportedByRuntime = 106,
     }
 }
