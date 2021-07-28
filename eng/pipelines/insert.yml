@@ -59,6 +59,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
       Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('[Skip-SymbolCheck]')"
       Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
