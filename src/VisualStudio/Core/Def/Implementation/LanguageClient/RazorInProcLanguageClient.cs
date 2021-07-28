@@ -78,5 +78,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
             return capabilities;
         }
+
+        /// <summary>
+        /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }
