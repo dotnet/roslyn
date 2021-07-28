@@ -7,12 +7,12 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog" 
-    xmlns:movememberstotype="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType" 
-    d:DataContext="{d:DesignInstance Type=movememberstotype:MoveMembersToTypeDialogViewModel}"
+    xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
+    d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
     vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
-    x:Uid="MoveMembersToTypeDialog"
+    x:Uid="MoveStaticMembersDialog"
     x:Name="dialog"
-    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.MoveMembersToTypeDialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers.MoveStaticMembersDialog"
     x:ClassModifier="internal"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
@@ -23,7 +23,7 @@
     HasDialogFrame="True"
     ShowInTaskbar="False"
     ResizeMode="CanResize"
-    Title="{Binding MoveMembersToTypeDialogTitle, ElementName=dialog}"
+    Title="{Binding MoveStaticMembersDialogTitle, ElementName=dialog}"
     Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <vs:DialogWindow.Resources>
         <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
@@ -46,34 +46,11 @@
                        Margin="{StaticResource verticalLabelMargin}"
                        Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
                        Target="{Binding ElementName=DestinationTextBox}" />
-            <ComboBox x:Uid="DestinationBox"
-                          Name="DestinationBox"
-                          IsEditable="True"
-                          IsReadOnly="False"
-                          AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
-                          Text="{Binding DestinationName, Mode=TwoWay, ValidatesOnDataErrors=True}"
-                          ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
-                          BorderThickness="0" 
-                          Margin="0 0 20 0"
-                          MaxDropDownHeight="150">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
-                        <StackPanel
-                            Orientation="Horizontal"
-                            Width="Auto">
-                            <imaging:CrispImage  
-                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                                Margin="0 0 5 0" 
-                                Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
-                            <TextBlock
-                                Text="{Binding TypeName}"/>
-                            <TextBlock
-                                Text="{Binding DeclarationFile}"
-                                Margin="50 0 0 0"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <TextBox 
+                x:Uid="DestinationBox"
+                Name="DestinationBox"
+                Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
+                Margin="0 0 20 0"/>
 
         </StackPanel>
 

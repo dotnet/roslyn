@@ -4,9 +4,8 @@
 
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
     /// <summary>
     /// Interaction logic for StaticMemberSelection.xaml

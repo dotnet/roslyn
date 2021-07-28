@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
     internal class StaticMemberSelectionViewModel : AbstractNotifyPropertyChanged
     {

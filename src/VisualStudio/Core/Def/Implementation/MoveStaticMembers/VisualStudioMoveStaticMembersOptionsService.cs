@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.MoveMembersToType;
+using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,21 +20,17 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
-    [ExportWorkspaceService(typeof(IMoveMembersToTypeOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioMoveMembersToTypeOptionsService : IMoveMembersToTypeOptionsService
+    [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService), ServiceLayer.Host), Shared]
+    internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersOptionsService
     {
         private readonly IGlyphService _glyphService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
-        private const int HistorySize = 3;
-
-        public readonly LinkedList<TypeNameItem> History = new();
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMoveMembersToTypeOptionsService(
+        public VisualStudioMoveStaticMembersOptionsService(
             IGlyphService glyphService,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
@@ -42,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
-        public MoveMembersToTypeOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
+        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
             var membersInType = selectedType.GetMembers().
                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member) && member.IsStatic);
@@ -58,19 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token)
-                .SelectMany(t =>
-                {
-                    // for partially declared classes, we may want multiple entries for a single type.
-                    // filter to those actually in a real file, and that are not already in our History list.
-                    return t.Locations
-                        .Where(l => l.IsInSource &&
-                            !History.Any(h => GetFile(l) == h.DeclarationFile && t.Name == h.TypeName))
-                        .Select(l => new TypeNameItem(false, GetFile(l), t.Name));
-                })
-                .ToImmutableArrayOrEmpty();
+            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).SelectAsArray(t => t.Name);
             var candidateName = selectedType.Name + "Helpers";
-            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Any(t => t.TypeName == name));
+            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(name));
 
             var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -83,25 +69,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
                 memberViewModels,
                 memberToDependentsMap);
 
-            var viewModel = new MoveMembersToTypeDialogViewModel(selectMembersViewModel,
+            var viewModel = new MoveStaticMembersDialogViewModel(selectMembersViewModel,
                 defaultTypeName,
                 existingTypeNames,
-                document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                History.ToImmutableArrayOrEmpty());
+                document.GetRequiredLanguageService<ISyntaxFactsService>());
 
-            var dialog = new MoveMembersToTypeDialog(viewModel);
+            var dialog = new MoveStaticMembersDialog(viewModel);
 
             var result = dialog.ShowModal();
 
             if (result.GetValueOrDefault())
             {
-                // TODO: Get Options
-                return null;
+                var typeName = viewModel.DestinationName;
+                return new MoveStaticMembersOptions(
+                    typeName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
+                    typeName,
+                    selectMembersViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
             }
 
-            return null;
+            return MoveStaticMembersOptions.Cancelled;
         }
-
-        private static string GetFile(Location loc) => PathUtilities.GetFileName(loc.SourceTree!.FilePath);
     }
 }

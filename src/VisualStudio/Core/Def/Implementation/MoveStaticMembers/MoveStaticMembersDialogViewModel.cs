@@ -5,33 +5,31 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
-    internal class MoveMembersToTypeDialogViewModel : AbstractNotifyPropertyChanged
+    internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
         public StaticMemberSelectionViewModel MemberSelectionViewModel { get; }
 
         private readonly ISyntaxFacts _syntaxFacts;
 
-        public MoveMembersToTypeDialogViewModel(
+        private readonly ImmutableArray<string> _existingNames;
+
+        public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
-            ImmutableArray<TypeNameItem> availableTypes,
-            ISyntaxFacts syntaxFacts,
-            ImmutableArray<TypeNameItem> typeHistory)
+            ImmutableArray<string> existingNames,
+            ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _destinationName = defaultType;
-            AvailableTypes = typeHistory.Concat(availableTypes).ToImmutableArray();
+            _existingNames = existingNames;
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             OnDestinationUpdated();
@@ -49,8 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
         public void OnDestinationUpdated()
         {
-            var isNewType = !AvailableTypes.Any(i => i.TypeName == DestinationName);
-            _isValidName = !isNewType || IsValidType(DestinationName);
+            // TODO change once we allow movement to existing types
+            var isNewType = !_existingNames.Contains(DestinationName);
+            _isValidName = IsValidType(DestinationName);
 
             if (isNewType && _isValidName)
             {
@@ -58,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
                 Message = "[WIP] A new type will be created";
                 ShowMessage = true;
             }
-            else if (!_isValidName)
+            else if (!_isValidName || !isNewType)
             {
                 Icon = KnownMonikers.StatusInvalid;
                 Message = "[WIP] Invalid Type Name";
@@ -96,8 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             get => _destinationName;
             set => SetProperty(ref _destinationName, value);
         }
-
-        public ImmutableArray<TypeNameItem> AvailableTypes { get; }
 
         private ImageMoniker _icon;
         public ImageMoniker Icon

@@ -7,18 +7,18 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.MoveMembersToType
+namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal abstract class AbstractMoveMembersToTypeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IMoveMembersToTypeOptionsService _service;
+        private readonly IMoveStaticMembersOptionsService _service;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
         /// </summary>
-        protected AbstractMoveMembersToTypeRefactoringProvider(IMoveMembersToTypeOptionsService service)
+        protected AbstractMoveStaticMembersRefactoringProvider(IMoveStaticMembersOptionsService service)
             => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.MoveMembersToType
             var selectedType = selectedMember.ContainingType;
             var selectedTypeDeclaration = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
 
-            var action = new MoveMembersToTypeWithDialogCodeAction(document, span, _service, selectedType, selectedTypeDeclaration!, selectedMember: selectedMember);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, span, _service, selectedType, selectedMember: selectedMember);
 
             context.RegisterRefactoring(action, selectedMemberNode.Span);
         }

@@ -8,24 +8,24 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MoveMembersToType;
+using Microsoft.CodeAnalysis.MoveStaticMembers;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveMembersToType
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "[WIP] Move Members To Type"), Shared]
-    internal class CSharpMoveMembersToTypeCodeRefactoringProvider : AbstractMoveMembersToTypeRefactoringProvider
+    internal class CSharpMoveStaticMembersCodeRefactoringProvider : AbstractMoveStaticMembersRefactoringProvider
     {
         /// <summary>
         /// Test purpose only.
         /// </summary>
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public CSharpMoveMembersToTypeCodeRefactoringProvider(IMoveMembersToTypeOptionsService service) : base(service)
+        public CSharpMoveStaticMembersCodeRefactoringProvider(IMoveStaticMembersOptionsService service) : base(service)
         {
         }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveMembersToTypeCodeRefactoringProvider() : this(service: null)
+        public CSharpMoveStaticMembersCodeRefactoringProvider() : this(service: null)
         {
         }
 

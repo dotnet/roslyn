@@ -4,30 +4,28 @@
 
 #nullable disable
 
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
     /// <summary>
     /// Interaction logic for MoveMembersToTypeDialog.xaml
     /// </summary>
-    internal partial class MoveMembersToTypeDialog : DialogWindow
+    internal partial class MoveStaticMembersDialog : DialogWindow
     {
-        public string MoveMembersToTypeDialogTitle => "Test";
+        public string MoveStaticMembersDialogTitle => "[WIP] Move Static Members";
         public string DestinationLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
 
-        public MoveMembersToTypeDialogViewModel ViewModel { get; }
+        public MoveStaticMembersDialogViewModel ViewModel { get; }
         public StaticMemberSelection MemberSelectionControl { get; }
 
-        internal MoveMembersToTypeDialog(MoveMembersToTypeDialogViewModel viewModel)
+        internal MoveStaticMembersDialog(MoveStaticMembersDialogViewModel viewModel)
             : base()
         {
             ViewModel = viewModel;
@@ -48,16 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.CanSubmit)
-            {
-                DialogResult = true;
-            }
+            DialogResult = ViewModel.CanSubmit;
         }
 
         internal readonly struct TestAccessor
         {
-            private readonly MoveMembersToTypeDialog _dialog;
-            public TestAccessor(MoveMembersToTypeDialog dialog)
+            private readonly MoveStaticMembersDialog _dialog;
+            public TestAccessor(MoveStaticMembersDialog dialog)
                 => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;

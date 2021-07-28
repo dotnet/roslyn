@@ -199,11 +199,6 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Implementation\MoveMembersToType\MoveMembersToTypeDialog.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
