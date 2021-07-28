@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../ServicesVSResources.resx">
     <body>
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Carriage_Return_Newline_rn">
         <source>Carriage Return + Newline (\r\n)</source>
-        <target state="new">Carriage Return + Newline (\r\n)</target>
+        <target state="translated">Возврат каретки + символ новой строки (\r\n)</target>
         <note />
       </trans-unit>
       <trans-unit id="Carriage_Return_r">
         <source>Carriage Return (\r)</source>
-        <target state="new">Carriage Return (\r)</target>
+        <target state="translated">Возврат каретки (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
-        <target state="new">Error updating suppressions: {0}</target>
+        <target state="translated">Ошибка при обновлении подавлений: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -567,6 +567,11 @@
         <target state="translated">Пространство имен: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -784,7 +789,7 @@
       </trans-unit>
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
-        <target state="translated">Переопределение элементов</target>
+        <target state="translated">Идет переопределение элементов</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -2629,34 +2634,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">ВАЖНО! Visual Studio включает в себя функцию декомпиляции ("декомпилятор"), позволяющую воспроизводить исходный код из двоичного. Открывая и используя декомпилятор, вы принимаете условия лицензионного соглашения Visual Studio, а также приведенные ниже условия для декомпилятора. Если вы не согласны с какими-либо из этих условий, не открывайте и не используйте декомпилятор.
-
-Вы подтверждаете, что двоичный и исходный код может быть защищен законами об авторских правах и торговых марках. Прежде чем применять декомпилятор на любом двоичном коде, вам следует: 
-(i) убедиться, что условия лицензии, регулирующие использование вами этого двоичного кода, не содержат положение, запрещающее декомпиляцию данного программного обеспечения; или
-(ii) получить разрешение на декомпиляцию этого двоичного кода у владельца соответствующего программного обеспечения.
-
-Вы используете этот декомпилятор по собственной инициативе. Корпорация Майкрософт не несет ответственности за такое использование вами компилятора, которое нарушает любые законы или условия лицензионного соглашения на использование программного обеспечения, запрещающие декомпиляцию этого программного обеспечения.
-
-Я принимаю все указанные выше условия и положения:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Юридическая информация для декомпилятора</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
