@@ -10048,12 +10048,29 @@ class C { }
         {
             var source = @"
 using System;
+using System.Reflection;
+
 class Attr<T> : Attribute { public T Prop { get; set; } }
 
 [Attr<string>(Prop = ""a"")]
-class Program { }
+class Program
+{
+    static void Main()
+    {
+        var attrs = CustomAttributeData.GetCustomAttributes(typeof(Program));
+        foreach (var attr in attrs)
+        {
+            foreach (var arg in attr.NamedArguments)
+            {
+                Console.Write(arg.MemberName);
+                Console.Write("" = "");
+                Console.Write(arg.TypedValue.Value);
+            }
+        }
+    }
+}
 ";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "Prop = a");
             void verify(ModuleSymbol module)
             {
                 var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
@@ -10096,15 +10113,41 @@ class Outer<T2>
         {
             var source = @"
 using System;
+using System.Reflection;
+
 class Attr<T> : Attribute { public Attr(T param) { } }
 
 [Attr<string>(""a"")]
-class Program { }
-";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata);
+class Holder { }
 
-            verifier.VerifyTypeIL("Program", @"
-.class private auto ansi beforefieldinit Program
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var attrs = CustomAttributeData.GetCustomAttributes(typeof(Holder));
+            foreach (var attr in attrs)
+            {
+                foreach (var arg in attr.ConstructorArguments)
+                {
+                    Console.Write(arg.Value);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write(e.GetType().Name);
+        }
+    }
+}
+";
+            // https://github.com/dotnet/roslyn/issues/55190
+            // We expect to be able to reflect on such attributes and read them back in from metadata.
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "CustomAttributeFormatException");
+
+            verifier.VerifyTypeIL("Holder", @"
+.class private auto ansi beforefieldinit Holder
 	extends [netstandard]System.Object
 {
 	.custom instance void class Attr`1<string>::.ctor(!0) = (
@@ -10120,21 +10163,21 @@ class Program { }
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
-	} // end of method Program::.ctor
-} // end of class Program
+	} // end of method Holder::.ctor
+} // end of class Holder
 ");
 
             void verify(ModuleSymbol module)
             {
-                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
-                var attrs = program.GetAttributes();
+                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
+                var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
             }
 
             void verifyMetadata(ModuleSymbol module)
             {
-                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
-                var attrs = program.GetAttributes();
+                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
+                var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
             }
         }
