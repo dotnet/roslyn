@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -25,6 +26,72 @@ End Class
 "
 
             Dim src2 = "
+Class C
+    Shared Sub Main()
+        While True
+            <AS:1>Goo(2)</AS:1>
+        End While
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2)"))
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
+            Dim src1 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>' comment
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         While True
@@ -109,33 +176,47 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
+        ' <summary>
+        ' CreateNewOnMetadataUpdate has no effect in presence of active statements (in break mode).
+        ' </summary>
         <Fact>
-        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
-            Dim src1 = "
+        Public Sub Update_Leaf_Reloadable()
+
+            Dim src1 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         <AS:1>Goo(1)</AS:1>
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>System.Console.WriteLine(a)</AS:0>
     End Sub
 End Class
 "
-            Dim src2 = "
+            Dim src2 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
-        <AS:1>Goo(1)</AS:1>' comment
+        While True
+            <AS:1>Goo(1)</AS:1>
+        End While
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>Console.WriteLine(a + 1)</AS:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+
+            edits.VerifySemantics(active,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"), preserveLocalVariables:=True),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Goo"), preserveLocalVariables:=True)
+                })
         End Sub
 
         <Fact>
@@ -175,7 +256,7 @@ Class C
         <AS:22>Me.value = a</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a</AS:25>
         Return 0
     <AS:26>End Function</AS:26>
@@ -217,7 +298,7 @@ Class C
         <AS:22>Me.value = a*8</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a*8</AS:25>
     <AS:26>End Function</AS:26>
 End Class
@@ -264,7 +345,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(Integer)")))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(a As Integer)")))
         End Sub
 
         <Fact>
@@ -1503,10 +1584,10 @@ End Class
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
@@ -1514,7 +1595,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = 0"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As Integer = 0"))
         End Sub
 
         <Fact>
@@ -1533,18 +1614,17 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.as_clause))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_InitToAsNew()
             Dim src1 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
@@ -1945,7 +2025,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -1990,7 +2070,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -2144,7 +2225,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub
@@ -2225,7 +2306,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub

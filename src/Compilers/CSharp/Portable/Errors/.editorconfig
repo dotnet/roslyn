@@ -1,0 +1,4 @@
+# CSharp code style settings:
+[*.cs]
+# CA1069: Enums should not have duplicate values
+dotnet_diagnostic.CA1069.severity = warning

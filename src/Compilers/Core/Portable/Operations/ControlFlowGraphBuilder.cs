@@ -6352,8 +6352,8 @@ oneMoreTime:
                     IOperation? rewrittenFormatString;
                     if (interpolation.FormatString != null)
                     {
-                        Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
-                        rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult: null);
+                        Debug.Assert(interpolation.FormatString is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                        rewrittenFormatString = VisitRequired(interpolation.FormatString, argument: null);
                     }
                     else
                     {
@@ -6367,8 +6367,8 @@ oneMoreTime:
                 else
                 {
                     var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
-                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult: null);
+                    Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                    var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
                     rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
                 }
 

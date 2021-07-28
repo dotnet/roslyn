@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VBFeaturesResources.resx">
     <body>
@@ -1691,11 +1691,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <source>WithEvents field</source>
         <target state="translated">Champ WithEvents</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">accesseur de propriété</target>
-        <note />
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../ServicesVSResources.resx">
     <body>
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Carriage_Return_Newline_rn">
         <source>Carriage Return + Newline (\r\n)</source>
-        <target state="new">Carriage Return + Newline (\r\n)</target>
+        <target state="translated">Satır Başı + Yeni Satır (\r\n)</target>
         <note />
       </trans-unit>
       <trans-unit id="Carriage_Return_r">
         <source>Carriage Return (\r)</source>
-        <target state="new">Carriage Return (\r)</target>
+        <target state="translated">Satır başı (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
-        <target state="new">Error updating suppressions: {0}</target>
+        <target state="translated">Gizlemeler güncellenirken hata oluştu: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -565,6 +565,11 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Ad alanı: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -2629,34 +2634,8 @@ Ek bilgiler: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Derlemesi ayrılan kaynaklar için gezintiyi etkinleştirme (deneysel)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">ÖNEMLİ: Visual Studio ikili koddan kaynak kodu yeniden üretmeyi sağlayan kaynak koda dönüştürme (“Kaynak Koda Dönüştürücü”) işlevini içerir. Kaynak Koda Dönüştürücü’ye erişerek ve kullanarak, Visual Studio lisans koşullarını ve aşağıdaki Kaynak Koda Dönüştürücü koşullarını kabul etmiş olursunuz. Bu birleşik koşulları kabul etmiyorsanız, Kaynak Koda Dönüştürücü’ye erişmeyin veya kullanmayın.
-
-İkili kodun ve kaynak kodun telif hakkı ve ticari marka yasaları tarafından korunuyor olabileceğini kabul etmiş olursunuz. Kaynak Koda Dönüştürücü’yü herhangi bir ikili kod üzerinde kullanmadan önce:
-(i) ikili kodu kullanımınızı yöneten yasaların yazılımı kaynak koda dönüştürmeyi yasaklayan bir madde içermediğinden emin olmanız; veya
-(ii) yazılım sahibinden ikili kodu kaynak koda dönüştürmek için izin almanız gerekir.
-
-Kaynak Koda Dönüştürücü’yü kullanmak isteğe bağlıdır. Microsoft, yazılımın kaynak koda dönüştürülmesini yasaklayan herhangi bir yasayı veya yazılım lisansı koşulunu ihlal eden kullanımlardan sorumlu değildir ve tüm sorumluluğu reddeder.
-
-Aşağıdakilerin tümünü onaylıyorum:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Derleme Ayırıcı Yasal Bildirim</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Derlemesi ayrılan kaynaklar için gezintiyi etkinleştirme (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

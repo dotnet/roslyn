@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -682,7 +682,7 @@
     <value>'{0}': no suitable method found to override</value>
   </data>
   <data name="ERR_NamespaceUnexpected" xml:space="preserve">
-    <value>A namespace cannot directly contain members such as fields or methods</value>
+    <value>A namespace cannot directly contain members such as fields, methods or statements</value>
   </data>
   <data name="ERR_NoSuchMember" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}'</value>
@@ -1691,9 +1691,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
     <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
   </data>
-  <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
-    <value>Structs cannot contain explicit parameterless constructors</value>
-  </data>
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
   </data>
@@ -1708,9 +1705,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_BadTypeReference" xml:space="preserve">
     <value>'{0}': cannot reference a type through an expression; try '{1}' instead</value>
-  </data>
-  <data name="ERR_FieldInitializerInStruct" xml:space="preserve">
-    <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
     <value>Name of destructor must match name of type</value>
@@ -3743,6 +3737,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
   </data>
+  <data name="ERR_WrongArityAsyncReturn" xml:space="preserve">
+    <value>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</value>
+  </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>
   </data>
@@ -4174,9 +4171,6 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_DeprecatedCollectionInitAddStr" xml:space="preserve">
     <value>The best overloaded Add method '{0}' for the collection initializer element is obsolete. {1}</value>
-  </data>
-  <data name="ERR_IteratorInInteractive" xml:space="preserve">
-    <value>Yield statements may not appear at the top level in interactive code.</value>
   </data>
   <data name="ERR_SecurityAttributeInvalidTarget" xml:space="preserve">
     <value>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</value>
@@ -5320,9 +5314,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAsyncMethodBuilderTaskProperty" xml:space="preserve">
     <value>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</value>
   </data>
-  <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
-    <value>Attributes are not allowed on local function parameters or type parameters</value>
-  </data>
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
     <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
@@ -6448,6 +6439,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTargetTypedConditional" xml:space="preserve">
     <value>target-typed conditional expression</value>
   </data>
+  <data name="ERR_NoImplicitConvTargetTypedConditional" xml:space="preserve">
+    <value>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</value>
+  </data>
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
     <value>'{0}' does not override expected method from 'object'.</value>
   </data>
@@ -6597,6 +6591,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
     <value>positional fields in records</value>
   </data>
+  <data name="IDS_FeatureParameterlessStructConstructors" xml:space="preserve">
+    <value>parameterless struct constructors</value>
+  </data>
+  <data name="IDS_FeatureStructFieldInitializers" xml:space="preserve">
+    <value>struct field initializers</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6615,6 +6615,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
     <value>A function pointer cannot be called with named arguments.</value>
+  </data>
+  <data name="IDS_FeatureFileScopedNamespace" xml:space="preserve">
+    <value>file-scoped namespace</value>
+  </data>
+  <data name="ERR_MultipleFileScopedNamespace" xml:space="preserve">
+    <value>Source file can only contain one file-scoped namespace declaration.</value>
+  </data>
+  <data name="ERR_FileScopedAndNormalNamespace" xml:space="preserve">
+    <value>Source file can not contain both file-scoped and normal namespace declarations.</value>
+  </data>
+  <data name="ERR_FileScopedNamespaceNotBeforeAllMembers" xml:space="preserve">
+    <value>File-scoped namespace must precede all other members in a file.</value>
   </data>
   <data name="WRN_UnreadRecordParameter" xml:space="preserve">
     <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
@@ -6652,6 +6664,48 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
+  <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
+  </data>
+  <data name="ERR_NoConversionForCallerArgumentExpressionParam" xml:space="preserve">
+    <value>CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionParamForUnconsumedLocation" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionParamForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_CallerFilePathPreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</value>
+  </data>
+  <data name="WRN_CallerFilePathPreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</value>
+  </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</value>
+  </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
+  </data>
+  <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</value>
+  </data>
+  <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</value>
+  </data>
   <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
     <value>sealed ToString in record</value>
   </data>
@@ -6660,6 +6714,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
+  </data>
+  <data name="IDS_FeatureImprovedInterpolatedStrings" xml:space="preserve">
+    <value>interpolated string handlers</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnMalformed" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</value>
+    <comment>void and bool are keywords</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnInconsistent" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
   </data>
   <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
     <value>Identifier or a simple member access expected.</value>
@@ -6675,6 +6739,47 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
     <value>A global using directive must precede all non-global using directives.</value>
+  </data>
+  <data name="ERR_NullInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</value>
+  </data>
+  <data name="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</value>
+  </data>
+  <data name="ERR_InvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not a valid parameter name from '{1}'.</value>
+  </data>
+  <data name="ERR_TypeIsNotAnInterpolatedStringHandlerType" xml:space="preserve">
+    <value>'{0}' is not an interpolated string handler type.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter" xml:space="preserve">
+    <value>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title" xml:space="preserve">
+    <value>Parameter to interpolated string handler conversion occurs after handler parameter</value>
+  </data>
+  <data name="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument" xml:space="preserve">
+    <value>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentAttributeMalformed" xml:space="preserve">
+    <value>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString" xml:space="preserve">
+    <value>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified" xml:space="preserve">
+    <value>Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion" xml:space="preserve">
+    <value>An expression tree may not contain an interpolated string handler conversion.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerCreationCannotUseDynamic" xml:space="preserve">
+    <value>An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</value>
+  </data>
+  <data name="ERR_NonPublicParameterlessStructConstructor" xml:space="preserve">
+    <value>The parameterless struct constructor must be 'public'.</value>
   </data>
   <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
     <value>static abstract members in interfaces</value>
@@ -6733,5 +6838,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
+  </data>
+  <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
+    <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
   </data>
 </root>

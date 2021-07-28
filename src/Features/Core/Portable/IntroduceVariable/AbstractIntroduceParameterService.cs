@@ -69,6 +69,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            // Need to special case for highlighting of method types because they are also "contained" within a method,
+            // but it does not make sense to introduce a parameter in that case.
+            if (syntaxFacts.IsInNamespaceOrTypeContext(expression))
+            {
+                return;
+            }
+
+            // Need to special case for expressions whose direct parent is a MemberAccessExpression since they will
+            // never introduce a parameter that makes sense in that case.
+            if (syntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
+            {
+                return;
+            }
+
             var generator = SyntaxGenerator.GetGenerator(document);
             var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
 
@@ -300,7 +314,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private class MyCodeAction : SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }
