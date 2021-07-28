@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin =
             new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
-                defaultValue: null,
+                defaultValue: true,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(

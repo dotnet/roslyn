@@ -148,9 +148,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
-                             ' If the option has not been set by the user, check if the option Is enabled from experimentation.
-                             ' If so, default to that. Otherwise default to disabled
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin), False)
+                             ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
+                             Return True
                          End Function)
         End Sub
 
