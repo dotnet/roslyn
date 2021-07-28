@@ -516,6 +516,38 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Method_RenameParameter()
+            Dim source0 = "
+Class C
+    Public Function X(a As Integer) As Integer
+        Return a
+    End Function
+End Class
+"
+            Dim source1 = "
+Class C
+    Public Function X(b As Integer) As Integer
+        Return b
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim matcher = New VisualBasicSymbolMatcher(
+                Nothing,
+                compilation1.SourceAssembly,
+                New EmitContext(),
+                compilation0.SourceAssembly,
+                New EmitContext(),
+                Nothing)
+
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
+            Assert.NotNull(other)
+        End Sub
+
+        <Fact>
         Public Sub TupleField_TypeChange()
             Dim source0 = "
 Class C
