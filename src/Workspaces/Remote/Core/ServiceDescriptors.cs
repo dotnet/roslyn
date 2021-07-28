@@ -26,8 +26,8 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Microsoft.CodeAnalysis.ValueTracking;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
