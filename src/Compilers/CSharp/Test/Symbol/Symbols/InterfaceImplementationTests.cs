@@ -939,7 +939,7 @@ public class Derived : Base, Interface
             Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
             Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
-            Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Any());
+            Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Any());
         }
 
         [Fact]
@@ -1010,7 +1010,7 @@ public class Derived : Base, Interface
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
-            var synthesizedExplicitImpls = (from m in derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None) orderby m.MethodKind select m).ToArray();
+            var synthesizedExplicitImpls = (from m in derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods orderby m.MethodKind select m).ToArray();
             Assert.Equal(3, synthesizedExplicitImpls.Length);
             Assert.True(synthesizedExplicitImpls.All(s => ReferenceEquals(derivedClass, s.ContainingType)));
 
@@ -1079,7 +1079,7 @@ class Class : CustomModifierOverridingD, Interface
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
-            var synthesizedExplicitImpls = (from m in @class.GetSynthesizedExplicitImplementations(CancellationToken.None) orderby m.Name select m).ToArray();
+            var synthesizedExplicitImpls = (from m in @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods orderby m.Name select m).ToArray();
             Assert.Equal(2, synthesizedExplicitImpls.Length);
 
             var synthesizedExplicitMethod1Impl = synthesizedExplicitImpls[0];
@@ -1652,7 +1652,7 @@ class C : B, I { }
 
             Assert.Equal(classBMethod, classC.FindImplementationForInterfaceMember(interfaceMethod));
 
-            var synthesizedExplicitImpl = classC.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var synthesizedExplicitImpl = classC.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal(classC, synthesizedExplicitImpl.ContainingType);
             Assert.Equal(interfaceMethod, synthesizedExplicitImpl.ExplicitInterfaceImplementations.Single());
             Assert.Equal(classBMethod, synthesizedExplicitImpl.ImplementingMethod);
@@ -1712,7 +1712,7 @@ class C : B, I { }
 
             Assert.Equal(classBMethod, classC.FindImplementationForInterfaceMember(interfaceMethod));
 
-            Assert.Equal(0, classC.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, classC.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         [Fact]
@@ -1897,7 +1897,7 @@ class D : B, I
             comp2.VerifyDiagnostics();
 
             var derivedType = comp2.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("D");
-            var bridgeMethod = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var bridgeMethod = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal("NonVirtual", bridgeMethod.ImplementingMethod.Name);
         }
 
@@ -2033,7 +2033,7 @@ public class D : B, I
             Assert.Equal(RefKind.Ref, baseMethod.RefKind);
             Assert.Equal(baseMethod, derivedType.FindImplementationForInterfaceMember(interfaceMethod));
 
-            var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal(baseMethod, synthesized.ImplementingMethod);
             Assert.Equal(interfaceMethod, synthesized.ExplicitInterfaceImplementations.Single());
 
@@ -2705,7 +2705,7 @@ $@"public class A<T> : I
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var derivedType = comp.GetMember<SourceNamedTypeSymbol>(derivedTypeName);
-            Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).IsEmpty);
+            Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).ForwardingMethods.IsEmpty);
 
             var interfaceMember = comp.GetMember<MethodSymbol>(interfaceMemberName);
             var implementingMember = derivedType.FindImplementationForInterfaceMember(interfaceMember);

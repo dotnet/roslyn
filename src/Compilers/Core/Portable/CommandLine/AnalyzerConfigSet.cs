@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis
             // If we have a global config, add any sections that match the full path 
             foreach (var section in _globalConfig.NamedSections)
             {
-                if (normalizedPath.Equals(section.Name, Section.NameComparer))
+                var escapedSectionName = TryUnescapeSectionName(section.Name, out var sectionName);
+                if (escapedSectionName && normalizedPath.Equals(sectionName, Section.NameComparer))
                 {
                     sectionKey.Add(section);
                 }

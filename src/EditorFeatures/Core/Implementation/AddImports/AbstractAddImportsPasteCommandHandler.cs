@@ -114,11 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var enabled = optionValue.HasValue && optionValue.Value
-                || experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled);
+            // Enable by default unless the user has explicitly disabled in the settings
+            var disabled = optionValue.HasValue && !optionValue.Value;
 
-            if (!enabled)
+            if (disabled)
             {
                 return;
             }

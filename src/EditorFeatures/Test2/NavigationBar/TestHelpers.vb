@@ -37,9 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
-                Dim actualItems = Await service.GetItemsAsync(document, Nothing)
-                actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
+                Dim actualItems = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
@@ -56,12 +55,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
-                Dim items = Await service.GetItemsAsync(document, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
+                Dim items = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim model As New NavigationBarModel(items.ToImmutableArray(), VersionStamp.Create(), service)
+                Dim model As New NavigationBarModel(service, items.ToImmutableArray())
                 Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
@@ -89,10 +87,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
-                Dim items = Await service.GetItemsAsync(document, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim items = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
@@ -119,23 +116,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)(), AbstractEditorNavigationBarItemService)
-                Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
+                Dim items = Await service.GetItemsAsync(sourceDocument, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = (Await service.GetSymbolItemNavigationPointAsync(
-                    sourceDocument, DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    CancellationToken.None)).Value
+                Dim navigationPoint = Await service.GetNavigationLocationAsync(
+                    sourceDocument,
+                    rightItem,
+                    DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
+                    snapshot.Version,
+                    cancellationToken:=Nothing)
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
-                Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)
+                Assert.Equal(expectedNavigationDocument.Id, navigationPoint.documentId)
 
                 Dim expectedNavigationPosition = expectedNavigationDocument.CursorPosition.Value
-                Assert.Equal(expectedNavigationPosition, navigationPoint.Position)
-                Assert.Equal(expectedVirtualSpace, navigationPoint.VirtualSpaces)
+                Assert.Equal(expectedNavigationPosition, navigationPoint.position)
+                Assert.Equal(expectedVirtualSpace, navigationPoint.virtualSpace)
             End Using
         End Function
 
@@ -148,32 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 AssertEqual(expectedItem, actualItem, isCaseSensitive)
             Next
-
-            ' Ensure all the actual items that have navigation are distinct
-            Dim navigableItems = actualItems.Select(Function(i) DirectCast(i, WrappedNavigationBarItem).UnderlyingItem).
-                                             OfType(Of RoslynNavigationBarItem.SymbolItem).
-                                             ToList()
-
-            Assert.True(navigableItems.Count() = navigableItems.Distinct(New NavigationBarItemNavigationSymbolComparer(isCaseSensitive)).Count(), "The items were not unique by SymbolID and index.")
         End Sub
-
-        Private Class NavigationBarItemNavigationSymbolComparer
-            Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem)
-
-            Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
-
-            Public Sub New(ignoreCase As Boolean)
-                _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
-            End Sub
-
-            Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem.SymbolItem, y As RoslynNavigationBarItem.SymbolItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).Equals
-                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex = y.NavigationSymbolIndex
-            End Function
-
-            Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem.SymbolItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).GetHashCode
-                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex
-            End Function
-        End Class
 
         Private Sub AssertEqual(expectedItem As ExpectedItem, actualItem As NavigationBarItem, isCaseSensitive As Boolean)
             If expectedItem Is Nothing AndAlso actualItem Is Nothing Then

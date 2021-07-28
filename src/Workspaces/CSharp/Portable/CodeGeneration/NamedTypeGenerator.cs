@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
-        public static NamespaceDeclarationSyntax AddNamedTypeTo(
+        public static BaseNamespaceDeclarationSyntax AddNamedTypeTo(
             ICodeGenerationService service,
-            NamespaceDeclarationSyntax destination,
+            BaseNamespaceDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
             IList<bool> availableIndices,

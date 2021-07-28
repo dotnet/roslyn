@@ -1076,7 +1076,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
+                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing)
+                        && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
                         return false;
@@ -1132,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    CheckRuntimeSupportForSymbolAccess(node, receiver, setMethod, diagnostics);
+                    CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, setMethod, diagnostics);
                 }
             }
 
@@ -1176,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    CheckRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);
+                    CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);
                 }
             }
 
@@ -1198,6 +1199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     diagnostics.AddDependencies(useSiteInfo);
+                }
+
+                return false;
+            }
+
+            static bool isAllowedDespiteReadonly(BoundExpression receiver)
+            {
+                // ok: anonymousType with { Property = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder && receiver.Type.IsAnonymousType)
+                {
+                    return true;
                 }
 
                 return false;
@@ -1247,6 +1259,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal static uint GetInterpolatedStringHandlerConversionEscapeScope(
+            BoundInterpolatedString interpolatedString,
+            uint scopeOfTheContainingExpression)
+        {
+            Debug.Assert(interpolatedString.InterpolationData != null);
+            var data = interpolatedString.InterpolationData.GetValueOrDefault();
+            return GetValEscape(data.Construction, scopeOfTheContainingExpression);
         }
 
         /// <summary>
@@ -2649,6 +2670,11 @@ moreArguments:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
 
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        return GetInterpolatedStringHandlerConversionEscapeScope((BoundInterpolatedString)conversion.Operand, scopeOfTheContainingExpression);
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -2704,6 +2730,15 @@ moreArguments:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
+
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
+                    // location.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // We saved off the safe-to-escape of the argument when we did binding
+                    return ((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape;
 
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
@@ -2849,6 +2884,14 @@ moreArguments:
 
                 case BoundKind.AwaitableValuePlaceholder:
                     if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
@@ -3064,6 +3107,12 @@ moreArguments:
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
+
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        return CheckInterpolatedStringHandlerConversionEscape((BoundInterpolatedString)conversion.Operand, escapeFrom, escapeTo, diagnostics);
+                    }
+
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.AssignmentOperator:
@@ -3326,6 +3375,40 @@ moreArguments:
             foreach (var expression in expressions)
             {
                 if (!CheckValEscape(expression.Syntax, expression, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool CheckInterpolatedStringHandlerConversionEscape(BoundInterpolatedString interpolatedString, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(interpolatedString.InterpolationData is not null);
+
+            // We need to check to see if any values could potentially escape outside the max depth via the handler type.
+            // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
+            // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
+            // escape, or does the opposite. In either case, we need to check.
+
+            CheckValEscape(interpolatedString.Syntax, interpolatedString.InterpolationData.GetValueOrDefault().Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+            foreach (var part in interpolatedString.Parts)
+            {
+                if (part is not BoundCall { Method: { Name: "AppendFormatted" } } call)
+                {
+                    // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
+                    // string arguments and do not require us to be concerned with escape
+                    continue;
+                }
+
+                // The interpolation component is always the first argument to the method, and it was not passed by name
+                // so there can be no reordering.
+                var argument = call.Arguments[0];
+                var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                if (!success)
                 {
                     return false;
                 }

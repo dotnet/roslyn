@@ -1692,11 +1692,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">WithEvents 欄位</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">屬性存取子</target>
-        <note />
-      </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
         <target state="translated">as 子句</target>

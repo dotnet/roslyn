@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
 
-        public static string Option_use_64bit_analysis_process
-            => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
+        public static string Option_run_code_analysis_in_separate_process
+            => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
         public static string Option_Inline_Hints_experimental
             => ServicesVSResources.Inline_Hints_experimental;
@@ -82,15 +82,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_DisplayLineSeparators
             => CSharpVSResources.Show_procedure_line_separators;
 
+        public static string Option_Underline_reassigned_variables
+            => ServicesVSResources.Underline_reassigned_variables;
+
         public static string Option_DontPutOutOrRefOnStruct
-        {
-            get { return CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct; }
-        }
+            => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
 
         public static string Option_EditorHelp
-        {
-            get { return CSharpVSResources.Editor_Help; }
-        }
+            => CSharpVSResources.Editor_Help;
 
         public static string Option_EnableHighlightKeywords
         {
@@ -155,19 +154,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_OptimizeForSolutionSize_Large
-        {
-            get { return CSharpVSResources.Large; }
-        }
+            => CSharpVSResources.Large;
 
         public static string Option_OptimizeForSolutionSize_Regular
-        {
-            get { return CSharpVSResources.Regular; }
-        }
+            => CSharpVSResources.Regular;
 
         public static string Option_OptimizeForSolutionSize_Small
-        {
-            get { return CSharpVSResources.Small; }
-        }
+            => CSharpVSResources.Small;
+
+        public static string Option_Quick_Actions
+            => ServicesVSResources.Quick_Actions;
+
+        public static string Option_Compute_Quick_Actions_asynchronously_experimental
+            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
 
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
@@ -273,6 +272,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Enable_file_logging_for_diagnostics
             => ServicesVSResources.Enable_file_logging_for_diagnostics;
+
+        public static string Option_Skip_analyzers_for_implicitly_triggered_builds
+            => ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds;
 
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
