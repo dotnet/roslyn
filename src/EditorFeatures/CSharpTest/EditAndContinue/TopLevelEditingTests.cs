@@ -8293,6 +8293,43 @@ class C
         #region Constructor, Destructor
 
         [Fact]
+        public void Constructor_Parameter_AddAttribute()
+        {
+            var src1 = @"
+class C
+{
+    private int x = 1;
+
+    public C(int a)
+    {
+    }
+}";
+            var src2 = @"
+class C
+{
+    private int x = 2;
+
+    public C([System.Obsolete]int a)
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [x = 1]@30 -> [x = 2]@30",
+                "Update [int a]@53 -> [[System.Obsolete]int a]@53");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
         [WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_ExternModifier_Add()
         {

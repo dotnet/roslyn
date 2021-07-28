@@ -67,6 +67,7 @@ class C
                     Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                     Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default));
             }
@@ -185,7 +186,8 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -257,7 +259,8 @@ class C
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -532,6 +535,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -586,6 +590,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -641,7 +646,8 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -786,6 +792,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -866,7 +873,9 @@ class C : D
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -990,7 +999,14 @@ class C
                 Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(9, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(10, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(11, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(12, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1076,6 +1092,12 @@ class C
                 Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(9, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(10, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
@@ -1153,6 +1175,8 @@ class C
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -1240,6 +1264,10 @@ class C
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
@@ -1322,6 +1350,10 @@ class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -1399,6 +1431,8 @@ class C
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -2635,7 +2669,9 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4235,7 +4271,8 @@ public class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4323,7 +4360,8 @@ public class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4429,7 +4467,8 @@ public class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4478,7 +4517,8 @@ Console.WriteLine(x());
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
     }
 }
