@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class ConstructorDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of SubNewStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(constructorDeclaration As SubNewStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  constructorDeclaration As SubNewStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)
