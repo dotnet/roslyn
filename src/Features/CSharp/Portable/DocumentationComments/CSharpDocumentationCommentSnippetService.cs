@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 else if (expression is ObjectCreationExpressionSyntax { Type: TypeSyntax exceptionType })
                 {
                     exceptionType = exceptionType.ConvertToSingleLine();
-                    if (!IsExceptionCaughtAndNotRethrown(exceptionType))
+                    if (!IsExceptionCaughtAndNotRethrown(hasUsingSystem, exceptionType))
                     {
                         var exception = exceptionType.ToString();
                         if (seenExceptionTypes.Add(exception))
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             }
         }
 
-        private static bool IsExceptionCaughtAndNotRethrown(TypeSyntax exceptionType)
+        private static bool IsExceptionCaughtAndNotRethrown(bool hasUsingSystem, TypeSyntax exceptionType)
         {
             for (SyntaxNode? current = exceptionType; current != null; current = current?.Parent)
             {
@@ -201,11 +201,28 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                     if (catchClause.Filter != null)
                         continue;
 
+                    // AN empty `catch { }` will always catch everything.
                     if (catchClause.Declaration == null)
-                        continue;
+                        return true;
 
+                    // Poor mans equivalence check since we don't have semantics here.
                     if (SyntaxFactory.AreEquivalent(exceptionType, catchClause.Declaration.Type.ConvertToSingleLine()))
                         return true;
+
+                    if (hasUsingSystem &&
+                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } })
+                    {
+                        return true;
+                    }
+
+                    if (catchClause.Declaration.Type is QualifiedNameSyntax
+                        {
+                            Left: IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } },
+                            Right: IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } },
+                        })
+                    {
+                        return true;
+                    }
                 }
             }
 

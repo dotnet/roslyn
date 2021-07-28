@@ -240,6 +240,7 @@ class C
         [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
         public void TypingCharacter_Constructor_WithExceptions_Caught()
         {
+            // This result is wrong, but we can't do better as long as we only check syntax.
             var code = @"
 using System;
 
@@ -274,6 +275,7 @@ class C
     /// </summary>
     /// <param name=""goo""></param>
     /// <exception cref=""Exception""></exception>
+    /// <exception cref=""ArgumentOutOfRangeException""></exception>
     /// <exception cref=""NullReferenceException""></exception>
     public C(int goo)
     {
