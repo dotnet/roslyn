@@ -62,8 +62,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic)
             BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic,
                          Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled), False)
+                             ' This option used to be backed by an experimentation flag but Is now enabled by default.
+                             ' Having the option still a bool? keeps us from running into storage related issues,
+                             ' but if the option was stored as null we want it to be enabled by default
+                             Return True
                          End Function)
 
             ' Quick Actions
@@ -145,8 +147,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin), False)
+                             ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
+                             Return True
                          End Function)
         End Sub
 
