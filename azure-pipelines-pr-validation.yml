@@ -15,7 +15,7 @@ parameters:
   type: string
 - name: VisualStudioBranchName
   type: string
-  default: ''
+  default: default
 - name: OptionalTitlePrefix
   type: string
   default: '[PR Validation]'
