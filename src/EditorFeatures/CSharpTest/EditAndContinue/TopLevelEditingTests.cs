@@ -5204,8 +5204,8 @@ class B : System.Attribute {}
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
-
         }
+
         [Fact]
         public void Namespace_InsertNested()
         {
@@ -5222,7 +5222,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceDelete()
+        public void Namespace_DeleteNested()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { }";
@@ -5237,7 +5237,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceMove1()
+        public void Namespace_Move()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { } namespace D { }";
@@ -5252,7 +5252,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceReorder1()
+        public void Namespace_Reorder1()
         {
             var src1 = @"namespace C { namespace D { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { } class T { } namespace D { } }";
@@ -5267,7 +5267,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceReorder2()
+        public void Namespace_Reorder2()
         {
             var src1 = @"namespace C { namespace D1 { } namespace D2 { } namespace D3 { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { }                                    class T { } namespace D1 { } namespace D2 { } namespace D3 { } }";
@@ -5279,6 +5279,36 @@ class B : System.Attribute {}
                 "Reorder [namespace E { }]@77 -> @14");
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Namespace_FileScoped_Insert()
+        {
+            var src1 = @"";
+            var src2 = @"namespace C;";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [namespace C;]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
+        }
+
+        [Fact]
+        public void Namespace_FileScoped_Delete()
+        {
+            var src1 = @"namespace C;";
+            var src2 = @"";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [namespace C;]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.namespace_));
         }
 
         #endregion
