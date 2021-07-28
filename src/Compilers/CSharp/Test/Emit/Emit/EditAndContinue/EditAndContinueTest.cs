@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -16,26 +15,23 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    internal partial class MetadataTest : IDisposable
+    internal sealed partial class EditAndContinueTest : IDisposable
     {
         private readonly CSharpCompilationOptions? _options;
         private readonly TargetFramework _targetFramework;
 
         private readonly List<IDisposable> _disposables = new();
-        private readonly List<MetadataReader> _readers = new();
+        private readonly List<GenerationInfo> _generations = new();
 
-        private int _genId = 1;
-        private GenerationInfo? _prevGeneration;
-
-        public MetadataTest(CSharpCompilationOptions? options, TargetFramework? targetFramework)
+        public EditAndContinueTest(CSharpCompilationOptions? options, TargetFramework? targetFramework)
         {
             _options = options;
             _targetFramework = targetFramework ?? TargetFramework.Standard;
         }
 
-        internal MetadataTest AddGeneration(string source)
+        internal EditAndContinueTest AddGeneration(string source, Action<GenerationVerifier> verification)
         {
-            Assert.Null(_prevGeneration);
+            Assert.Empty(_generations);
 
             var compilation = CSharpTestBase.CreateCompilation(source, options: _options, targetFramework: _targetFramework);
 
@@ -43,48 +39,52 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var md = ModuleMetadata.CreateFromImage(bytes);
             _disposables.Add(md);
 
-            var reader = md.MetadataReader;
-            _readers.Add(reader);
-
             var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
 
-            _prevGeneration = new GenerationInfo("initial compilation", _readers, compilation, reader, baseline);
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, baseline, verification));
 
             return this;
         }
 
-        internal MetadataTest AddGeneration(string source, SemanticEditDescription[] edits)
+        internal EditAndContinueTest AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> verification)
         {
-            Assert.NotNull(_prevGeneration);
-            Debug.Assert(_prevGeneration is not null);
+            Assert.NotEmpty(_generations);
 
-            var compilation = _prevGeneration.Compilation.WithSource(source);
+            var prevGeneration = _generations[^1];
 
-            var semanticEdits = GetSemanticEdits(edits, _prevGeneration.Compilation, compilation);
+            var compilation = prevGeneration.Compilation.WithSource(source);
 
-            var diff = compilation.EmitDifference(_prevGeneration.Baseline, semanticEdits);
+            var semanticEdits = GetSemanticEdits(edits, prevGeneration.Compilation, compilation);
+
+            var diff = compilation.EmitDifference(prevGeneration.Baseline, semanticEdits);
 
             var md = diff.GetMetadata();
             _disposables.Add(md);
 
-            var reader = md.Reader;
-            _readers.Add(reader);
-
-            EncValidation.VerifyModuleMvid(_genId, _prevGeneration.MetadataReader, reader);
-
-            _prevGeneration = new GenerationInfo($"generation {_genId++}", _readers, compilation, md.Reader, diff.NextGeneration);
+            _generations.Add(new GenerationInfo(compilation, md.Reader, diff.NextGeneration, verification));
 
             return this;
         }
 
-        internal MetadataTest Verify(Action<GenerationInfo> verification)
+        internal void Verify()
         {
-            Assert.NotNull(_prevGeneration);
-            Debug.Assert(_prevGeneration is not null);
+            Assert.NotEmpty(_generations);
 
-            verification(_prevGeneration);
+            var readers = new List<MetadataReader>();
+            int index = 0;
+            foreach (var generation in _generations)
+            {
+                if (readers.Count > 0)
+                {
+                    EncValidation.VerifyModuleMvid(index, readers[^1], generation.MetadataReader);
+                }
 
-            return this;
+                readers.Add(generation.MetadataReader);
+                var verifier = new GenerationVerifier(index, generation.MetadataReader, readers);
+                generation.Verifier(verifier);
+
+                index++;
+            }
         }
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(SemanticEditDescription[] edits, Compilation oldCompilation, Compilation newCompilation)

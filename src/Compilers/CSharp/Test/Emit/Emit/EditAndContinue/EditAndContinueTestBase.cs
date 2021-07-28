@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
-        private static bool IsDefinition(HandleKind kind)
+        internal static bool IsDefinition(HandleKind kind)
             => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
 
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
@@ -196,13 +196,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
             => CheckNames(readers, methodHandles, (reader, handle) => reader.GetMethodDefinition((MethodDefinitionHandle)handle).Name, handle => handle, expectedNames);
 
-        private static void CheckNames<THandle>(
+        internal static void CheckNames<THandle>(
             IList<MetadataReader> readers,
-            ImmutableArray<THandle> entityHandles,
+            IEnumerable<THandle> entityHandles,
             Func<MetadataReader, Handle, StringHandle> getName,
             Func<THandle, Handle> toHandle,
-            string[] expectedNames)
+            string[] expectedNames,
+            string message = null)
         {
+            // If there is only one reader we don't need to aggregate anything
+            if (readers.Count == 1)
+            {
+                MetadataReader reader = readers[0];
+                AssertEx.Equal(expectedNames, entityHandles.Select(handle => reader.GetString(getName(reader, toHandle(handle)))), message: message);
+                return;
+            }
+
             var aggregator = new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
 
             AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
@@ -210,9 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), out int typeGeneration);
                 var nameHandle = getName(readers[typeGeneration], genEntityHandle);
 
-                var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
-                return readers[nameGeneration].GetString(genNameHandle);
-            }));
+                return readers.GetString(nameHandle);
+
+                //var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
+                //return readers[nameGeneration].GetString(genNameHandle);
+            }), message: message);
         }
 
         internal static string EncLogRowToString(EditAndContinueLogEntry row)
