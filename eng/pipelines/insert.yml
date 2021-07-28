@@ -1,5 +1,5 @@
 parameters:
-  # These are actually a booleans but must be defined as string.
+  # These are actually booleans but must be defined as string.
   # Parameters are evaluated at compile time, but all variables are strings at compile time.
   # So in order to pass a parameter that comes from a variable these must be typed as string.
   - name: createDraftPR
