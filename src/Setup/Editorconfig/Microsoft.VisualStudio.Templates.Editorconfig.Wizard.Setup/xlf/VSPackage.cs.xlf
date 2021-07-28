@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="115">
         <source>editorconfig File (default)</source>
-        <target state="new">editorconfig File (default)</target>
+        <target state="translated">editorconfig File (výchozí)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">
         <source>Create an editorconfig file to persist your editor and code settings.</source>
-        <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
+        <target state="translated">Vytvořte soubor editorconfig, aby se zachovalo vaše nastavení editoru a kódu.</target>
         <note />
       </trans-unit>
       <trans-unit id="117">
         <source>editorconfig File (.NET)</source>
-        <target state="new">editorconfig File (.NET)</target>
+        <target state="translated">editorconfig File (.NET)</target>
         <note />
       </trans-unit>
     </body>

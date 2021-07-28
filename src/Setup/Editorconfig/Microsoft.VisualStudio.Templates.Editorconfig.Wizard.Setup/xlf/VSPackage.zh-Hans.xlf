@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="115">
         <source>editorconfig File (default)</source>
-        <target state="new">editorconfig File (default)</target>
+        <target state="translated">editorconfig 文件(默认)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">
         <source>Create an editorconfig file to persist your editor and code settings.</source>
-        <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
+        <target state="translated">创建一个 editorconfig 文件，以保留编辑器和代码设置。</target>
         <note />
       </trans-unit>
       <trans-unit id="117">
         <source>editorconfig File (.NET)</source>
-        <target state="new">editorconfig File (.NET)</target>
+        <target state="translated">editorconfig 文件(.NET)</target>
         <note />
       </trans-unit>
     </body>
