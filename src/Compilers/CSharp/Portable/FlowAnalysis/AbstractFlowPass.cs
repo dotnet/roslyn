@@ -1150,75 +1150,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? data)
+#nullable enable
+        protected BoundNode? VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? data)
         {
             // If there can be any branching, then we need to treat the expressions
             // as optionally evaluated. Otherwise, we treat them as always evaluated
-            switch (data)
+            (BoundExpression? construction, bool useBoolReturns, bool firstPartIsConditional) = data switch
             {
-                case null:
-                    visitParts();
-                    break;
-                case { HasTrailingHandlerValidityParameter: false, UsesBoolReturns: false, Construction: var construction }:
-                    VisitRvalue(construction);
-                    visitParts();
-                    break;
-                case { UsesBoolReturns: var usesBoolReturns, HasTrailingHandlerValidityParameter: var hasTrailingValidityParameter, Construction: var construction }:
-                    VisitRvalue(construction);
+                null => (null, false, false),
+                { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
+            };
 
-                    if (node.Parts.IsEmpty)
-                    {
-                        break;
-                    }
+            VisitRvalue(construction);
+            bool hasConditionalEvaluation = useBoolReturns || firstPartIsConditional;
+            TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
 
-                    TLocalState beforePartsState;
-                    ReadOnlySpan<BoundExpression> remainingParts;
+            _ = VisitInterpolatedStringHandlerParts(node, useBoolReturns, firstPartIsConditional, ref shortCircuitState);
 
-                    if (hasTrailingValidityParameter)
-                    {
-                        beforePartsState = State.Clone();
-                        remainingParts = node.Parts.AsSpan();
-                    }
-                    else
-                    {
-                        Visit(node.Parts[0]);
-                        beforePartsState = State.Clone();
-                        remainingParts = node.Parts.AsSpan()[1..];
-                    }
-
-                    foreach (var expr in remainingParts)
-                    {
-                        VisitRvalue(expr);
-                        if (usesBoolReturns)
-                        {
-                            Join(ref beforePartsState, ref State);
-                        }
-                    }
-
-                    if (usesBoolReturns)
-                    {
-                        // Already been joined after the last part, just assign
-                        State = beforePartsState;
-                    }
-                    else
-                    {
-                        Debug.Assert(hasTrailingValidityParameter);
-                        Join(ref State, ref beforePartsState);
-                    }
-
-                    break;
+            if (hasConditionalEvaluation)
+            {
+                Debug.Assert(shortCircuitState != null);
+                Join(ref this.State, ref shortCircuitState);
             }
 
             return null;
-
-            void visitParts()
-            {
-                foreach (var expr in node.Parts)
-                {
-                    VisitRvalue(expr);
-                }
-            }
         }
+#nullable disable
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
@@ -2513,7 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
                 }
-                // `a && b(out x) == trueValue`
+                // `a && b(out x) == true`
                 else if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
                 {
                     var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
@@ -2559,17 +2516,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool visitedFirst = false;
             bool hasTrailingHandlerValidityParameter = data.HasTrailingHandlerValidityParameter;
-            TLocalState shortCircuitState = State.Clone();
+            bool hasConditionalEvaluation = data.UsesBoolReturns || hasTrailingHandlerValidityParameter;
+            TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
 
             while (stack.TryPop(out var currentString))
             {
-                visitedFirst |= VisitInterpolatedStringComponentOfBinaryOperator(currentString, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
+                visitedFirst |= VisitInterpolatedStringHandlerParts(currentString, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
             }
 
-            if (data.UsesBoolReturns || hasTrailingHandlerValidityParameter)
+            if (hasConditionalEvaluation)
             {
                 Join(ref State, ref shortCircuitState);
             }
+
+            stack.Free();
         }
 
         protected virtual BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
@@ -2587,8 +2547,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual bool VisitInterpolatedStringComponentOfBinaryOperator(BoundInterpolatedString node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState shortCircuitState)
+        protected virtual bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState? shortCircuitState)
         {
+            Debug.Assert(shortCircuitState != null || (!usesBoolReturns && !firstPartIsConditional));
             if (node.Parts.IsEmpty)
             {
                 return false;
@@ -2612,6 +2573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(part);
                 if (usesBoolReturns)
                 {
+                    Debug.Assert(shortCircuitState != null);
                     Join(ref shortCircuitState, ref State);
                 }
             }

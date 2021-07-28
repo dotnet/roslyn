@@ -4024,9 +4024,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool VisitInterpolatedStringComponentOfBinaryOperator(BoundInterpolatedString node, bool usesBoolReturns, bool firstPartIsUnconditional, ref LocalState shortCircuitState)
+        protected override bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref LocalState shortCircuitState)
         {
-            var result = base.VisitInterpolatedStringComponentOfBinaryOperator(node, usesBoolReturns, firstPartIsUnconditional, ref shortCircuitState);
+            var result = base.VisitInterpolatedStringHandlerParts(node, usesBoolReturns, firstPartIsConditional, ref shortCircuitState);
             SetNotNullResult(node);
             return result;
         }
@@ -9783,14 +9783,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-        {
-            // https://github.com/dotnet/roslyn/issues/54583
-            // Better handle the constructor propogation
-            var result = base.VisitInterpolatedString(node);
-            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return result;
-        }
+        // https://github.com/dotnet/roslyn/issues/54583
+        // Better handle the constructor propogation
+        //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+        //{
+        //}
 
         public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {

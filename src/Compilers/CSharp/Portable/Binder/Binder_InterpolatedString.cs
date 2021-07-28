@@ -306,7 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(appendCalls.Length == stack.Count + 1);
             var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
-            var signature = new BinaryOperatorSignature(BinaryOperatorKind.StringConcatenation, @string, @string, @string);
 
             var bottomOperator = stack.Pop();
             var result = createBinaryOperator(bottomOperator, createInterpolation(bottomOperator.Left, appendCalls[0]), rightIndex: 1);
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = createBinaryOperator(stack.Pop(), result, rightIndex: i);
             }
 
-            return result.Update(BoundBinaryOperator.UncommonData.WithInterpolatedStringHandlerData(data));
+            return result.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
 
             BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, int rightIndex)
                 => new BoundBinaryOperator(
@@ -325,8 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left,
                     createInterpolation(original.Right, appendCalls[rightIndex]),
                     original.ConstantValue,
-                    signature.Method,
-                    signature.ConstrainedToTypeOpt,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
                     originalUserDefinedOperatorsOpt: default,
                     @string,

@@ -3905,6 +3905,12 @@ public class CustomHandler
             Assert.True(semanticInfo.ImplicitConversion.IsInterpolatedStringHandler);
             Assert.Null(semanticInfo.ImplicitConversion.Method);
 
+            if (interpolatedString is BinaryExpressionSyntax)
+            {
+                Assert.False(semanticInfo.ConstantValue.HasValue);
+                AssertEx.Equal("System.String System.String.op_Addition(System.String left, System.String right)", semanticInfo.Symbol.ToTestDisplayString());
+            }
+
             // https://github.com/dotnet/roslyn/issues/54505 Assert IConversionOperation.IsImplicit when IOperation is implemented for interpolated strings.
         }
 
@@ -12010,6 +12016,289 @@ literal: }");
   IL_003c:  callvirt   ""string object.ToString()""
   IL_0041:  call       ""void System.Console.WriteLine(string)""
   IL_0046:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InterpolatedStringsAddedUnderObjectAddition()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+int i4 = 4;
+System.Console.WriteLine($""{i1}"" + $""{i2}"" + $""{i3}"" + i4);";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+value:2
+value:3
+4
+");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (int V_0, //i1
+                int V_1, //i2
+                int V_2, //i3
+                int V_3, //i4
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldc.i4.4
+  IL_0007:  stloc.3
+  IL_0008:  ldloca.s   V_4
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.3
+  IL_000c:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_0011:  ldloca.s   V_4
+  IL_0013:  ldloc.0
+  IL_0014:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_0019:  ldloca.s   V_4
+  IL_001b:  ldloc.1
+  IL_001c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  ldloc.2
+  IL_0024:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0030:  ldloca.s   V_3
+  IL_0032:  call       ""string int.ToString()""
+  IL_0037:  call       ""string string.Concat(string, string)""
+  IL_003c:  call       ""void System.Console.WriteLine(string)""
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ParenthesizedAdditiveExpression_01()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+
+CustomHandler c = ($""{i1}"" + $""{i2}"") + $""{i3}"";
+System.Console.WriteLine(c.ToString());";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:0
+format:
+value:2
+alignment:0
+format:
+value:3
+alignment:0
+format:
+");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (int V_0, //i1
+                int V_1, //i2
+                int V_2, //i3
+                CustomHandler V_3, //c
+                CustomHandler V_4)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldloca.s   V_4
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       ""CustomHandler..ctor(int, int)""
+  IL_000f:  ldloca.s   V_4
+  IL_0011:  ldloc.0
+  IL_0012:  box        ""int""
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001e:  ldloca.s   V_4
+  IL_0020:  ldloc.1
+  IL_0021:  box        ""int""
+  IL_0026:  ldc.i4.0
+  IL_0027:  ldnull
+  IL_0028:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_002d:  ldloca.s   V_4
+  IL_002f:  ldloc.2
+  IL_0030:  box        ""int""
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldnull
+  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003c:  ldloc.s    V_4
+  IL_003e:  stloc.3
+  IL_003f:  ldloca.s   V_3
+  IL_0041:  constrained. ""CustomHandler""
+  IL_0047:  callvirt   ""string object.ToString()""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  ret
+}");
+        }
+
+        [Fact]
+        public void ParenthesizedAdditiveExpression_02()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+
+CustomHandler c = $""{i1}"" + ($""{i2}"" + $""{i3}"");
+System.Console.WriteLine(c.ToString());";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
+                // CustomHandler c = $"{i1}" + ($"{i2}" + $"{i3}");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{i1}"" + ($""{i2}"" + $""{i3}"")").WithArguments("string", "CustomHandler").WithLocation(6, 19)
+            );
+        }
+
+        [Theory]
+        [InlineData(@"$""{1}"", $""{2}""")]
+        [InlineData(@"$""{1}"" + $"""", $""{2}"" + $""""")]
+        public void TupleDeclaration_01(string initializer)
+        {
+            var code = @"
+(CustomHandler c1, CustomHandler c2) = (" + initializer + @");
+System.Console.Write(c1.ToString());
+System.Console.WriteLine(c2.ToString());";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:0
+format:
+value:2
+alignment:0
+format:
+");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  4
+  .locals init (CustomHandler V_0, //c1
+                CustomHandler V_1, //c2
+                CustomHandler V_2,
+                CustomHandler V_3)
+  IL_0000:  ldloca.s   V_3
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_3
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldnull
+  IL_0013:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0018:  ldloc.3
+  IL_0019:  stloc.2
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  call       ""CustomHandler..ctor(int, int)""
+  IL_0023:  ldloca.s   V_3
+  IL_0025:  ldc.i4.2
+  IL_0026:  box        ""int""
+  IL_002b:  ldc.i4.0
+  IL_002c:  ldnull
+  IL_002d:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0032:  ldloc.3
+  IL_0033:  ldloc.2
+  IL_0034:  stloc.0
+  IL_0035:  stloc.1
+  IL_0036:  ldloca.s   V_0
+  IL_0038:  constrained. ""CustomHandler""
+  IL_003e:  callvirt   ""string object.ToString()""
+  IL_0043:  call       ""void System.Console.Write(string)""
+  IL_0048:  ldloca.s   V_1
+  IL_004a:  constrained. ""CustomHandler""
+  IL_0050:  callvirt   ""string object.ToString()""
+  IL_0055:  call       ""void System.Console.WriteLine(string)""
+  IL_005a:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(@"$""{1}"", $""{2}""")]
+        [InlineData(@"$""{1}"" + $"""", $""{2}"" + $""""")]
+        public void TupleDeclaration_02(string initializer)
+        {
+            var code = @"
+(CustomHandler c1, CustomHandler c2) t = (" + initializer + @");
+System.Console.Write(t.c1.ToString());
+System.Console.WriteLine(t.c2.ToString());";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:0
+format:
+value:2
+alignment:0
+format:
+");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      104 (0x68)
+  .maxstack  6
+  .locals init (System.ValueTuple<CustomHandler, CustomHandler> V_0, //t
+                CustomHandler V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""CustomHandler..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldc.i4.1
+  IL_000e:  box        ""int""
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldnull
+  IL_0015:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  ldloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldc.i4.1
+  IL_001f:  call       ""CustomHandler..ctor(int, int)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldc.i4.2
+  IL_0027:  box        ""int""
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldnull
+  IL_002e:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0033:  ldloc.1
+  IL_0034:  call       ""System.ValueTuple<CustomHandler, CustomHandler>..ctor(CustomHandler, CustomHandler)""
+  IL_0039:  ldloca.s   V_0
+  IL_003b:  ldflda     ""CustomHandler System.ValueTuple<CustomHandler, CustomHandler>.Item1""
+  IL_0040:  constrained. ""CustomHandler""
+  IL_0046:  callvirt   ""string object.ToString()""
+  IL_004b:  call       ""void System.Console.Write(string)""
+  IL_0050:  ldloca.s   V_0
+  IL_0052:  ldflda     ""CustomHandler System.ValueTuple<CustomHandler, CustomHandler>.Item2""
+  IL_0057:  constrained. ""CustomHandler""
+  IL_005d:  callvirt   ""string object.ToString()""
+  IL_0062:  call       ""void System.Console.WriteLine(string)""
+  IL_0067:  ret
 }
 ");
         }

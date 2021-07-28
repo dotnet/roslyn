@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isUnconvertedInterpolatedStringAddition: true,
                     interpolatedStringHandlerData: null);
 
-            public static UncommonData WithInterpolatedStringHandlerData(InterpolatedStringHandlerData data)
+            public static UncommonData InterpolatedStringHandlerAddition(InterpolatedStringHandlerData data)
                 => new UncommonData(
                     constantValue: null,
                     method: null,
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private UncommonData(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, bool isUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData? interpolatedStringHandlerData)
             {
+                Debug.Assert(interpolatedStringHandlerData is null || !isUnconvertedInterpolatedStringAddition);
                 ConstantValue = constantValue;
                 Method = method;
                 ConstrainedToType = constrainedToType;
