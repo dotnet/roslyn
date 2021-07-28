@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">Реализацию "GetHashCode" можно упростить.</target>
+        <target state="translated">Реализацию GetHashCode можно упростить.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
