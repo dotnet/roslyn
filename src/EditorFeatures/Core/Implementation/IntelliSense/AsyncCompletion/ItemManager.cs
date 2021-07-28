@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var filterReason = Helpers.GetFilterReason(data.Trigger);
 
             // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
-            // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompeltionSource.
+            // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
             var snapshotForDocument = TryGetInitialTriggerLocation(data, out var intialTriggerLocation)
                 ? intialTriggerLocation.Snapshot
                 : data.Snapshot;
