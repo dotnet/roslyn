@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     Friend Class VisualBasicDocumentationCommentSnippetService
         Inherits AbstractDocumentationCommentSnippetService(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
-        Public Overrides ReadOnly Property DocumentationCommentCharacter As String = ""
-        Protected Overrides ReadOnly Property ExteriorTriviaText As String = ""
+        Public Overrides ReadOnly Property DocumentationCommentCharacter As String = "'"
+        Protected Overrides ReadOnly Property ExteriorTriviaText As String = "'''"
         Protected Overrides ReadOnly Property AddIndent As Boolean = False
 
         <ImportingConstructor>
