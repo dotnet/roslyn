@@ -274,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Název se dá zjednodušit.</target>
+        <target state="translated">Název může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
