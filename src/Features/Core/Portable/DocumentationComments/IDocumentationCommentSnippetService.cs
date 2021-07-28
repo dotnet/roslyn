@@ -17,24 +17,24 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         string DocumentationCommentCharacter { get; }
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
+            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
-            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
+            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
-            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
+            SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
-            SemanticModel model,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(

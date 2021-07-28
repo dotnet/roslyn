@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
     [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-    internal class DocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+    internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
         public override string DocumentationCommentCharacter => "/";
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationCommentSnippetService()
+        public CSharpDocumentationCommentSnippetService()
         {
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
             => true;
 
-        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, SemanticModel model, OptionSet options, CancellationToken cancellationToken)
+        protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
             var list = new List<string>
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                     list.Add("/// <returns></returns>");
                 }
 
-                foreach (var exceptionType in GetExceptions(member, model, options, cancellationToken))
+                foreach (var exceptionType in GetExceptions(member))
                 {
                     list.Add(@$"/// <exception cref=""{exceptionType}""></exception>");
                 }
@@ -148,15 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             return list;
         }
 
-        private static IEnumerable<string> GetExceptions(SyntaxNode member, SemanticModel model, OptionSet options, CancellationToken cancellationToken)
+        private static IEnumerable<string> GetExceptions(SyntaxNode member)
         {
             var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
-            var namespacesInScope = model.GetUsingNamespacesInScope(member);
-            // We generate <exception cref="System.NullReferenceException"> if there is no 'using System;', and generate
-            // <exception cref="NullReferenceException"> if there is a 'using System;'
-            var hasUsingSystem = namespacesInScope.Contains(n => n.ContainingNamespace.IsGlobalNamespace && n.Name == nameof(System));
-            using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
 
+            var usings = member.GetEnclosingUsingDirectives();
+            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } });
+
+            using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
             foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
             {
                 var expression = throwExpressionOrStatement switch
@@ -171,55 +170,42 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                     // `throw null;` throws NullReferenceException at runtime.
                     var exception = hasUsingSystem ? nameof(NullReferenceException) : $"{nameof(System)}.{nameof(NullReferenceException)}";
                     if (seenExceptionTypes.Add(exception))
-                    {
                         yield return exception;
-                    }
                 }
-                else if (expression is not null)
+                else if (expression is ObjectCreationExpressionSyntax { Type: TypeSyntax exceptionType })
                 {
-                    var type = model.GetTypeInfo(expression, cancellationToken).Type;
-                    if (type is not null && !IsExceptionCaughtAndNotRethrown(throwExpressionOrStatement, type, model, cancellationToken))
+                    exceptionType = exceptionType.ConvertToSingleLine();
+                    if (!IsExceptionCaughtAndNotRethrown(exceptionType))
                     {
-                        var exception = type.ToDisplayString();
+                        var exception = exceptionType.ToString();
                         if (seenExceptionTypes.Add(exception))
-                        {
-                            if (namespacesInScope.Contains(n => n.ToDisplayString() == type.ContainingNamespace.ToString()))
-                            {
-                                yield return type.ToDisplayString(s_format).Replace('<', '{').Replace('>', '}');
-                            }
-                            else
-                            {
-                                yield return exception.Replace('<', '{').Replace('>', '}');
-                            }
-                        }
+                            yield return exception.Replace('<', '{').Replace('>', '}');
                     }
                 }
             }
         }
 
-        private static bool IsExceptionCaughtAndNotRethrown(SyntaxNode throwExpressionOrStatement, ITypeSymbol exceptionType, SemanticModel model, CancellationToken cancellationToken)
+        private static bool IsExceptionCaughtAndNotRethrown(TypeSyntax exceptionType)
         {
-            var tryStatement = throwExpressionOrStatement.FirstAncestorOrSelfUntil<TryStatementSyntax>(n => n is CatchClauseSyntax or LocalFunctionStatementSyntax or MemberDeclarationSyntax);
-            if (tryStatement is null || tryStatement.Catches.Count == 0)
+            for (SyntaxNode? current = exceptionType; current != null; current = current?.Parent)
             {
-                return false;
-            }
-
-            foreach (var catchClause in tryStatement.Catches)
-            {
-                if (catchClause.Filter is not null)
+                if (current is not BlockSyntax { Parent: TryStatementSyntax tryStatement } block ||
+                    tryStatement.Block != block ||
+                    block.DescendantNodes().OfType<ThrowStatementSyntax>().Any(t => t.Expression is null))
                 {
-                    // It's possible that exception isn't caught.
                     continue;
                 }
 
-                if (model.GetOperation(catchClause, cancellationToken) is ICatchClauseOperation catchClauseOperation)
+                foreach (var catchClause in tryStatement.Catches)
                 {
-                    if (exceptionType.InheritsFromOrEquals(catchClauseOperation.ExceptionType))
-                    {
-                        var isRethrown = catchClause.DescendantNodes().Any(n => n is ThrowStatementSyntax { Expression: null });
-                        return !isRethrown;
-                    }
+                    if (catchClause.Filter != null)
+                        continue;
+
+                    if (catchClause.Declaration == null)
+                        continue;
+
+                    if (SyntaxFactory.AreEquivalent(exceptionType, catchClause.Declaration.Type.ConvertToSingleLine()))
+                        return true;
                 }
             }
 
