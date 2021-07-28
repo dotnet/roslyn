@@ -2108,6 +2108,22 @@ class Program
             Assert.NotNull(symbolInfo.Symbol);
         }
 
+        // TODO: it's not clear that this test is meaningful.
+        [Fact]
+        public void GenericAttribute_LookupSymbols()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[/*<bind>*/Attr1<string>/*</bind>*/]
+class C { }";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.Contains(@"Attr1<T>", symbols.ListToSortedString());
+        }
+
+
         #endregion
     }
 }

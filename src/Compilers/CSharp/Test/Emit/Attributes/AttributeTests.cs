@@ -10055,7 +10055,6 @@ class C3 { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
         }
 
-        // [ConditionalFact(typeof(CoreClrOnly))]
         [Fact]
         public void GenericAttribute_AbstractStatic_01()
         {
@@ -10102,8 +10101,86 @@ class C1
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: "C.M");
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributeOnLambda()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+class C
+{
+    void M()
+    {
+        Func<string, string> x = [Attr<int>] (string x) => x;
+        x(""a"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, symbolValidator: validateMetadata, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verifier.VerifyDiagnostics();
+
+            void validateMetadata(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<M>b__0_0");
+                var attrs = lambda.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.Int32>" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeSimilarToWellKnownAttribute()
+        {
+            var source = @"
+using System;
+class ObsoleteAttribute<T> : Attribute { }
+
+class C
+{
+    [Obsolete<int>]
+    void M0() { }
+
+    void M1() => M0();
+
+    [Obsolete]
+    void M2() { }
+
+    void M3() => M2(); // 1
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,18): warning CS0612: 'C.M2()' is obsolete
+                //     void M3() => M2(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void GenericAttributesConsumeFromVB()
+        {
+            var csSource = @"
+using System;
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+public class C { }
+";
+            var comp = CreateCompilation(csSource);
+
+            var vbSource = @"
+Public Class D
+    Inherits C
+End Class
+";
+            var comp2 = CreateVisualBasicCompilation(vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp.EmitToImageReference()));
+            var d = comp2.GetMember<INamedTypeSymbol>("D");
+            var attrs = d.BaseType.GetAttributes();
+            Assert.Equal(1, attrs.Length);
+            Assert.Equal("Attr(Of System.Int32)", attrs[0].AttributeClass.ToTestDisplayString());
         }
 
         [Fact]
