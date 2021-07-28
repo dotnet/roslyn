@@ -23,7 +23,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         #region Usings
 
         [Fact]
-        public void UsingDelete1()
+        public void Using_Global_Insert()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+";
+            var src2 = @"
+global using D = System.Diagnostics;
+global using System.Collections;
+using System.Collections.Generic;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [global using D = System.Diagnostics;]@2",
+                "Insert [global using System.Collections;]@40");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Delete1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -37,7 +57,7 @@ using System.Diagnostics;
         }
 
         [Fact]
-        public void UsingDelete2()
+        public void Using_Delete2()
         {
             var src1 = @"
 using D = System.Diagnostics;
@@ -57,7 +77,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingInsert()
+        public void Using_Insert()
         {
             var src1 = @"
 using System.Collections.Generic;
@@ -77,7 +97,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate1()
+        public void Using_Update1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -98,7 +118,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate2()
+        public void Using_Update2()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -119,7 +139,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate3()
+        public void Using_Update3()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -140,7 +160,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingReorder1()
+        public void Using_Reorder1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -159,7 +179,7 @@ using System.Diagnostics;
         }
 
         [Fact]
-        public void UsingInsertDelete1()
+        public void Using_InsertDelete1()
         {
             var src1 = @"
 namespace N
@@ -189,7 +209,7 @@ namespace M
         }
 
         [Fact]
-        public void UsingInsertDelete2()
+        public void Using_InsertDelete2()
         {
             var src1 = @"
 namespace N
