@@ -339,9 +339,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Add access modifier
-            if (documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language).Value != AccessibilityModifiersRequired.Never)
+            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
+            if (accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
             {
-                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, cancellationToken).ConfigureAwait(false);
+                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(false);
                 rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -396,7 +397,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             });
         }
 
-        private static async Task<Document> AddAccessibilityModifiersAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<Document> AddAccessibilityModifiersAsync(
+            Document document, AccessibilityModifiersRequired option, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -404,11 +406,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
+            var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
+
             foreach (var declaration in typeDeclarations)
             {
+                if (!service.ShouldUpdateAccessibilityModifier(syntaxFacts, declaration, option, out _))
+                    continue;
+
                 var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                if (type != null)
-                    AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
+                if (type == null)
+                    continue;
+
+                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
             }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
