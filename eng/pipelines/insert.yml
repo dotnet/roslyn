@@ -16,6 +16,11 @@ parameters:
     type: string
   - name: clientSecret
     type: string
+  - name: publishDataURI
+    type: string
+  - name: publishDataAccessToken
+    type: string
+    default: ''
 
   - name: vsBranchName
     type: string
@@ -40,7 +45,8 @@ steps:
       arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
 
   - powershell: |
-      $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+      $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
+      $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
       $branchName = "${{ parameters.sourceBranch }}"
       $branchData = $response.branches.$branchName
       if (!$branchData)
@@ -49,6 +55,7 @@ steps:
         $branchData = $response.branches.main
       }
 
+      Write-Host $authorization
       Write-Host $response
       Write-Host $branchData
       Write-Host $branchName
@@ -86,6 +93,8 @@ steps:
       }
 
     displayName: Set Variables from PublishData
+    env:
+      PublishDataAccessToken: ${{ parameters.publishDataAccessToken }}
 
   - powershell: |
       # Overwrite template variables with values passed into this template as parameters

@@ -230,4 +230,5 @@ stages:
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
+        publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
   
