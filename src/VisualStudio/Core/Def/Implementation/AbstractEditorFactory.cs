@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     var loaderName = GetWinFormsLoaderName(vsHierarchy);
-                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
+                    var designerService = (IVSMDDesignerService)Microsoft.VisualStudio.Shell.PackageUtilities.QueryService<SVSMDDesignerService>(_oleServiceProvider);
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
                     if (designerLoader is null)
                     {
@@ -335,15 +335,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
-            var rootToFormat = await addedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(rootToFormat);
+            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Add access modifier
             if (documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language).Value != AccessibilityModifiersRequired.Never)
             {
                 addedDocument = await AddAccessibilityModifiersAsync(addedDocument, cancellationToken).ConfigureAwait(false);
-                rootToFormat = await addedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // Apply file header preferences
