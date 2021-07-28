@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string InsertFullMethodCall = "Roslyn.InsertFullMethodCall";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string OOPServerGC = "Roslyn.OOPServerGC";
+        public const string LspTextSyncEnabled = "Roslyn.LspTextSyncEnabled";
         public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
         public const string SourceGeneratorsEnableOpeningInWorkspace = "Roslyn.SourceGeneratorsEnableOpeningInWorkspace";
         public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
