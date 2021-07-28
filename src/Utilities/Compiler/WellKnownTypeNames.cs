@@ -62,6 +62,9 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
+        public const string MicrosoftExtensionsLoggingILogger = "Microsoft.Extensions.Logging.ILogger";
+        public const string MicrosoftExtensionsLoggingLoggerExtensions = "Microsoft.Extensions.Logging.LoggerExtensions";
+        public const string MicrosoftExtensionsLoggingLoggerMessage = "Microsoft.Extensions.Logging.LoggerMessage";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
@@ -264,7 +267,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
-        public const string SystemRuntimeCompilerServicesRuntimeFeatureVirtualStaticsInInterfaces = "System.Runtime.CompilerServices.RuntimeFeature.VirtualStaticsInInterfaces";
+        public const string SystemRuntimeCompilerServicesRuntimeFeature = "System.Runtime.CompilerServices.RuntimeFeature";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
