@@ -12,10 +12,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     internal static class AddAccessibilityModifiersHelpers
     {
         public static void UpdateDeclaration(
-            SemanticModel semanticModel, SyntaxEditor editor,
-            SyntaxNode declaration, CancellationToken cancellationToken)
+            SyntaxEditor editor, ISymbol symbol, SyntaxNode declaration)
         {
-            var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
             Contract.ThrowIfNull(symbol);
 
             var preferredAccessibility = GetPreferredAccessibility(symbol);

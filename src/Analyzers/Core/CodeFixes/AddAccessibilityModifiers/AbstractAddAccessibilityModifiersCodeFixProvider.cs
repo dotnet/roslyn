@@ -53,8 +53,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             {
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var declarator = MapToDeclarator(declaration);
-                AddAccessibilityModifiersHelpers.UpdateDeclaration(
-                    semanticModel, editor, declarator, cancellationToken);
+                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+                Contract.ThrowIfNull(symbol);
+                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, symbol, declaration);
             }
         }
 

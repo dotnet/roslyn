@@ -405,7 +405,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             foreach (var declaration in typeDeclarations)
-                AddAccessibilityModifiersHelpers.UpdateDeclaration(semanticModel, editor, declaration, cancellationToken);
+            {
+                var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+                if (type != null)
+                    AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
+            }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
