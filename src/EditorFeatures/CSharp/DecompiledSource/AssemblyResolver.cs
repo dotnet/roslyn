@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         public Task<PEFile> ResolveAsync(IAssemblyReference name)
         {
-            return Task.Run(() => Resolve(name));
+            return Task.FromResult(Resolve(name));
         }
 
         public Task<PEFile> ResolveModuleAsync(PEFile mainModule, string moduleName)
         {
-            return Task.Run(() => ResolveModule(mainModule, moduleName));
+            return Task.FromResult(ResolveModule(mainModule, moduleName));
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Could be non-static if instance data is accessed")]
