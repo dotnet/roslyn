@@ -16,19 +16,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// A queue to batch up flush requests and ensure that we don't issue then more often than every <see
         /// cref="FlushAllDelayMS"/>.
         /// </summary>
-        private readonly AsyncBatchingDelay _flushQueue;
+        private readonly AsyncBatchingWorkQueue _flushQueue;
 
         private void EnqueueFlushTask()
         {
-            _flushQueue.RequeueWork();
+            _flushQueue.AddWork();
         }
 
-        private Task FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
+        private async ValueTask FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
         {
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            await PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
         }
 
         private Task FlushWritesOnCloseAsync()

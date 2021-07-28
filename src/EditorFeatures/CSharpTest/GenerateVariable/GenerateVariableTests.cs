@@ -8891,6 +8891,139 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestExtendedPropertyPatternInIsPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah.[|X|]: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah.X: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, int z) X { get; internal set; }
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestConstantPatternInPropertyPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah: [|MissingConstant|] })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+",
+@"
+class C
+{
+    private const Blah MissingConstant;
+
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah: MissingConstant })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestConstantPatternInExtendedPropertyPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    C SomeC { get; set; }
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeC.SomeBlah: [|MissingConstant|] })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+",
+@"
+class C
+{
+    private const Blah MissingConstant;
+
+    C SomeC { get; set; }
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeC.SomeBlah: MissingConstant })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern9()

@@ -23,6 +23,7 @@ Module Module1
             For i = 0 To 3000
                 code.Append("""asdf"" + ")
             Next
+
             code.AppendLine(<![CDATA["last"
     End Sub
 End Module]]>.Value)

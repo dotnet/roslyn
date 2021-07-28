@@ -201,6 +201,9 @@
   <data name="FeatureName_InheritanceMargin" xml:space="preserve">
     <value>Inheritance margin</value>
   </data>
+  <data name="FeatureName_ValueTracking" xml:space="preserve">
+    <value>Value Tracking</value>
+  </data>
   <data name="FeatureName_UnusedReferenceAnalysis" xml:space="preserve">
     <value>Unused reference analysis</value>
   </data>

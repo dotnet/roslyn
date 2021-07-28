@@ -7,16 +7,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -219,9 +222,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
+            var provider = GetCompletionProvider(completionService, roslynItem);
+            if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
-                provider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
+                customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // The edit updates the snapshot however other extensions may make changes there.
                     // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
                     var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var formattingService = currentDocument?.GetRequiredLanguageService<IEditorFormattingService>();
+                    var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
 
                     if (currentDocument != null && formattingService != null)
                     {
@@ -284,6 +288,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+
+            if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
+            {
+                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    // Make sure the notification isn't sent on UI thread.
+                    await TaskScheduler.Default;
+                    _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
+                });
+            }
 
             if (includesCommitCharacter)
             {

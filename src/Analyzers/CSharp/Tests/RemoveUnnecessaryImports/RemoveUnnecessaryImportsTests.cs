@@ -411,6 +411,45 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNestedUnusedUsings_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Collections.Generic;
+using System.Linq;|}|]
+
+namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+",
+                FixedCode =
+@"namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -502,6 +541,55 @@ class F
 {
     DateTime d;
 }");
+        }
+
+        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNestedUsedUsings2_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Collections.Generic;
+using System.Linq;|}|]
+
+namespace N;
+
+[|using System;
+{|IDE0005:using System.Collections.Generic;|}|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+
+class F
+{
+    DateTime d;
+}",
+                FixedCode =
+@"namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+
+class F
+{
+    DateTime d;
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]

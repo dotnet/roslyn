@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -22,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.Kind() == SyntaxKind.AttributeList)
+                token.GetRequiredParent().Kind() == SyntaxKind.AttributeList)
             {
-                var attributeList = token.Parent;
+                var attributeList = token.GetRequiredParent();
                 var parentSyntax = attributeList.Parent;
                 switch (parentSyntax)
                 {
-                    case CompilationUnitSyntax _:
-                    case NamespaceDeclarationSyntax _:
+                    case CompilationUnitSyntax:
+                    case BaseNamespaceDeclarationSyntax:
                     // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
                     // [$$
                     // class Goo {
