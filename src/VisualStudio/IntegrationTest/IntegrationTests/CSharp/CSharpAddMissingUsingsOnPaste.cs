@@ -60,7 +60,7 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-        public void VerifyDisabledWithNull()
+        public void VerifyEnabledWithNull()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Example.cs", contents: @"
