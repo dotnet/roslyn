@@ -162,7 +162,7 @@ steps:
         -insertionCount "1" `
         -insertToolset "$(Template.InsertToolset)" `
         -titlePrefix "$(Template.TitlePrefix)" `
-        -titleSuffix "(default)" `
+        -titleSuffix "$(Template.TitleSuffix)" `
         -queueValidation "true" `
         -requiredValueSentinel "REQUIRED" `
         -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
