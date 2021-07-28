@@ -1404,6 +1404,10 @@ class C
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
             CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "F");
+            CheckNames(readers, reader2.GetParameterDefNames(), "", "arg");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C");
+            CheckNames(readers, diff2.EmitResult.UpdatedMethods, "F");
 
             CheckEncLogDefinitions(reader2,
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), // C.F2
