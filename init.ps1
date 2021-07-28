@@ -104,7 +104,7 @@ try {
     $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
-    $MicroBuildPackageSource = 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+    $MicroBuildPackageSource = 'https://pkgs.dev.azure.com/devdiv/_packaging/MicroBuildToolset%40Local/nuget/v3/index.json'
     if ($Signing) {
         Write-Host "Installing MicroBuild signing plugin" -ForegroundColor $HeaderColor
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Signing -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
