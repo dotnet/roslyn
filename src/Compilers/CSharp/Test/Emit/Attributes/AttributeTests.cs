@@ -10027,20 +10027,127 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeFunctionPointer()
+        public void GenericAttributeRestrictedTypeArgument()
         {
             var source = @"
 using System;
 class Attr<T> : Attribute { }
 
-[Attr<delegate*<int, void>>] // 1
-class C { }
+[Attr<int*>] // 1
+class C1 { }
+
+[Attr<delegate*<int, void>>] // 2
+class C2 { }
+
+[Attr<TypedReference>] // 3
+class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
-                // [Attr<delegate*<int, void>>] // 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(5, 7));
+                // (5,7): error CS0306: The type 'int*' may not be used as a type argument
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
+                // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        // [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
+        public void GenericAttribute_AbstractStatic_01()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { }
+
+class Attr2Base : Attribute
+{
+    public virtual void M() { }
+}
+class Attr2<T> : Attr2Base where T : I1
+{
+    public override void M()
+    {
+        T.M();
+    }
+}
+
+interface I1
+{
+    static abstract void M();
+}
+
+interface I2 : I1 { }
+
+class C : I1
+{
+    public static void M()
+    {
+        Console.Write(""C.M"");
+    }
+}
+
+[Attr1<C>]
+[Attr2<C>]
+class C1
+{
+    public static void Main()
+    {
+        var attr2 = (Attr2Base)Attribute.GetCustomAttribute(typeof(C), typeof(Attr2Base));
+        attr2.M();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: "C.M");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttribute_AbstractStatic_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { }
+class Attr2<T> : Attribute where T : I1 { }
+
+interface I1
+{
+    static abstract void M();
+}
+
+interface I2 : I1 { }
+
+class C : I1
+{
+    public static void M() { }
+}
+
+[Attr1<I1>]
+[Attr2<I1>]
+class C1 { }
+
+[Attr1<I2>]
+[Attr2<I2>]
+class C2 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract void M();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M").WithLocation(8, 26),
+                // (13,11): error CS8929: 'C.M()' cannot implement interface member 'I1.M()' in type 'C' because the target runtime doesn't support static abstract members in interfaces.
+                // class C : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("C.M()", "I1.M()", "C").WithLocation(13, 11),
+                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // [Attr2<I1>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("Attr2<T>", "I1", "T", "I1").WithLocation(19, 8),
+                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // [Attr2<I2>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("Attr2<T>", "I1", "T", "I2").WithLocation(23, 8));
         }
 
         [Fact]
@@ -10200,15 +10307,15 @@ class Outer<T2>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [Attr<object>(Prop = default(T2))] // 1
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
+                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<object>(default(T2))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
                 // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
-                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
-                // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [Attr<T2>(Prop = default(T2))] // 2, 3
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
+                // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<T2>(default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 15));
         }
 
         #endregion
