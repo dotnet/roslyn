@@ -132,6 +132,7 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=false
+                   /p:IgnoreIbcMergeErrors=true
                    /p:PreReleaseVersionLabel=pr-validation
       condition: succeeded()
 

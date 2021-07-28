@@ -7,22 +7,20 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
+namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
     [Export(typeof(IManagedHotReloadLanguageService))]
-    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
+    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
@@ -50,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly RemoteEditAndContinueServiceProxy _proxy;
+        private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly DebuggerService _debuggerService;
@@ -61,12 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedHotReloadLanguageService(
-            VisualStudioWorkspace workspace,
+            Lazy<IHostWorkspaceProvider> workspaceProvider,
             IManagedHotReloadService hotReloadService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
-            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            _workspaceProvider = workspaceProvider;
             _debuggerService = new DebuggerService(hotReloadService);
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
@@ -80,7 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private Solution GetCurrentCompileTimeSolution()
-            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
+        {
+            var workspace = _workspaceProvider.Value.Workspace;
+            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
+        }
 
         public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
         {
@@ -92,9 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                var openedDocumentIds = _proxy.Workspace.GetOpenDocumentIds().ToImmutableArray();
+                var workspace = _workspaceProvider.Value.Workspace;
+                var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
+                var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(
+                _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
                     _debuggerService,
                     captureMatchingDocuments: openedDocumentIds,

@@ -2634,34 +2634,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">逆コンパイルされたソースへのナビゲーションを有効にする (試験段階)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、Visual Studio のライセンス条項とデコンパイラに関する以下の条項に同意したことになります。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
-
-バイナリ コードとソース コードが著作権と商標に関する法律によって保護されている可能性があることに同意します。バイナリ コードに対してデコンパイラを使用する前に、次のことを行う必要があります:
-(i) バイナリ コードの使用を管理するライセンス条項にソフトウェアのデコンパイルを禁止する規定が含まれていないことを確認する。または
-(ii) バイナリ コードをデコンパイルするための許可をソフトウェアの所有者から取得する。
-
-デコンパイラの使用は任意です。ソフトウェアの逆コンパイルを禁止する法律またはソフトウェア ライセンス条項に違反するデコンパイラの使用に関して、Microsoft は一切責任を負わず、一切保証いたしません。
-
-上記の内容にすべて同意します:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">デコンパイラの法的通知</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">逆コンパイルされたソースへのナビゲーションを有効にする (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
