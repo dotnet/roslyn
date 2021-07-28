@@ -160,16 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Signals the extension that the language server failed to initialize.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> which completes when additional actions that need to be performed when the server fails to initialize are done.</returns>
-        public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
-            return Task.CompletedTask;
-        }
-
         internal static async Task<ILanguageServerTarget> CreateAsync(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
@@ -221,5 +211,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
+
+        public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        {
+            var initializationFailureContext = new InitializationFailureContext();
+            initializationFailureContext.FailureMessage = string.Format(ServicesVSResources.Language_client_initialization_failed,
+                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
+            return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
+        }
+
+        public abstract bool ShowNotificationOnInitializeFailed { get; }
     }
 }

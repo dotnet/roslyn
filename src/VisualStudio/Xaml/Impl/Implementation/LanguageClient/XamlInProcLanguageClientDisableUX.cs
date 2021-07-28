@@ -61,5 +61,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
             return capabilities;
         }
+
+        /// <summary>
+        /// Failures are catastrophic as liveshare guests will not have language features without this server.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }
