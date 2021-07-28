@@ -227,6 +227,11 @@
         <target state="translated">Kommentare</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Enthaltender Member</target>
@@ -897,6 +902,11 @@
         <target state="translated">Member nach oben ziehen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Nur Refactoring</target>
@@ -965,6 +975,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Code Analysis ausführen für "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1185,11 +1200,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">Der Schweregrad wird aktualisiert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">64-Bit-Prozess für die Codeanalyse verwenden (Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">

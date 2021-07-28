@@ -1502,9 +1502,6 @@ Additional information: {1}</value>
   <data name="Bitness64" xml:space="preserve">
     <value>64-bit</value>
   </data>
-  <data name="Use_64_bit_process_for_code_analysis_requires_restart" xml:space="preserve">
-    <value>Use 64-bit process for code analysis (requires restart)</value>
-  </data>
   <data name="Extract_Base_Class" xml:space="preserve">
     <value>Extract Base Class</value>
   </data>
@@ -1761,5 +1758,14 @@ Additional information: {1}</value>
   </data>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
+  </data>
+  <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
+    <value>Run code analysis in separate process (requires restart)</value>
+  </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
   </data>
 </root>

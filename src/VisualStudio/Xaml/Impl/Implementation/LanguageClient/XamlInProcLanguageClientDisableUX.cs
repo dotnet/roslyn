@@ -57,8 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var capabilities = isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
 
             // Only turn on CodeAction support for client scenarios. Hosts will get non-LSP lightbulbs automatically.
-            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } };
-            capabilities.CodeActionsResolveProvider = true;
+            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor }, ResolveProvider = true };
 
             return capabilities;
         }

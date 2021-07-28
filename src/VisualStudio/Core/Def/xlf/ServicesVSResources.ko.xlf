@@ -227,6 +227,11 @@
         <target state="translated">설명</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">포함하는 멤버</target>
@@ -897,6 +902,11 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">리팩터링만</target>
@@ -965,6 +975,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1185,11 +1200,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">심각도를 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">코드 분석에 64비트 프로세스 사용(다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
