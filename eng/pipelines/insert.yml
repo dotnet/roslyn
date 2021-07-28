@@ -49,6 +49,10 @@ steps:
         $branchData = $response.branches.main
       }
 
+      Write-Host $response
+      Write-Host $branchData
+      Write-Host $branchName
+
       # Set our template variables to reasonable defaults
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
