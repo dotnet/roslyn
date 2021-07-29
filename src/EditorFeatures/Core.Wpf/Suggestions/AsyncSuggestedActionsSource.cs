@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,13 +19,14 @@ using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSourceExperimental
+        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
         {
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
@@ -36,20 +38,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
             }
 
-            public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
+            public async Task GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+                try
+                {
+                    await GetSuggestedActionsWorkerAsync(
+                        requestedActionCategories, range, collectors, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Always ensure that all the collectors are marked as complete so we don't hang the UI.
+                    foreach (var collector in collectors)
+                        collector.Complete();
+                }
+            }
 
+            private async Task GetSuggestedActionsWorkerAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                CancellationToken cancellationToken)
+            {
+                AssertIsForeground();
                 using var state = SourceState.TryAddReference();
                 if (state is null)
-                    yield break;
+                    return;
 
                 var workspace = state.Target.Workspace;
                 if (workspace is null)
-                    yield break;
+                    return;
 
                 var selection = TryGetCodeRefactoringSelection(state, range);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -58,22 +80,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document is null)
-                        yield break;
+                        return;
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in highPriSet)
-                        yield return set;
+                    await GetSuggestedActionsAsync(
+                        requestedActionCategories, range, state, selection, document,
+                        collectors.FirstOrDefault(c => c.Priority == DefaultOrderings.Highest),
+                        CodeActionRequestPriority.High, cancellationToken).ConfigureAwait(false);
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in lowPriSet)
-                        yield return set;
+                    await GetSuggestedActionsAsync(
+                        requestedActionCategories, range, state, selection, document,
+                        collectors.FirstOrDefault(c => c.Priority == DefaultOrderings.Default),
+                        CodeActionRequestPriority.Normal, cancellationToken).ConfigureAwait(false);
                 }
+            }
+
+            private async Task GetSuggestedActionsAsync(
+                ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
+                ReferenceCountedDisposable<State> state, TextSpan? selection, Document document,
+                ISuggestedActionSetCollector? collector, CodeActionRequestPriority priority, CancellationToken cancellationToken)
+            {
+                if (collector == null)
+                    return;
+
+                var allSets = GetCodeFixesAndRefactoringsAsync(
+                    state, requestedActionCategories, document, range, selection, _ => null,
+                    priority, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                await foreach (var set in allSets)
+                    collector.Add(set);
+
+                collector.Complete();
             }
 
             private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
