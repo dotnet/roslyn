@@ -8616,7 +8616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0: 1)) : default;
+            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0 : 1)) : default;
             if (hasByRefParameters)
             {
                 for (int i = 0; i < parameterRefKinds.Length; i++)
