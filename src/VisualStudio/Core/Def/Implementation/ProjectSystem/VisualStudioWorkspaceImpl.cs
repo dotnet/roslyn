@@ -417,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                foreach (var (_, projects) in this._projectSystemNameToProjectsMap)
+                foreach (var (_, projects) in _projectSystemNameToProjectsMap)
                 {
                     foreach (var project in projects)
                     {

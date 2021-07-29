@@ -14,9 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 {
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
-            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
-            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, ClientName)
+            ILspLoggerFactory lspLoggerFactory)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
-            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;
@@ -80,5 +78,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
             return capabilities;
         }
+
+        /// <summary>
+        /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

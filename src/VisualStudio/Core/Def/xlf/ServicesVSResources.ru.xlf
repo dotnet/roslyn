@@ -492,6 +492,11 @@
         <target state="translated">Вид</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Динамический анализ (расширение VSIX)</target>
@@ -570,6 +575,11 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Пространство имен: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -2639,34 +2649,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">ВАЖНО! Visual Studio включает в себя функцию декомпиляции ("декомпилятор"), позволяющую воспроизводить исходный код из двоичного. Открывая и используя декомпилятор, вы принимаете условия лицензионного соглашения Visual Studio, а также приведенные ниже условия для декомпилятора. Если вы не согласны с какими-либо из этих условий, не открывайте и не используйте декомпилятор.
-
-Вы подтверждаете, что двоичный и исходный код может быть защищен законами об авторских правах и торговых марках. Прежде чем применять декомпилятор на любом двоичном коде, вам следует: 
-(i) убедиться, что условия лицензии, регулирующие использование вами этого двоичного кода, не содержат положение, запрещающее декомпиляцию данного программного обеспечения; или
-(ii) получить разрешение на декомпиляцию этого двоичного кода у владельца соответствующего программного обеспечения.
-
-Вы используете этот декомпилятор по собственной инициативе. Корпорация Майкрософт не несет ответственности за такое использование вами компилятора, которое нарушает любые законы или условия лицензионного соглашения на использование программного обеспечения, запрещающие декомпиляцию этого программного обеспечения.
-
-Я принимаю все указанные выше условия и положения:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Юридическая информация для декомпилятора</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

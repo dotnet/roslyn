@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string id,
             EnforceOnBuild enforceOnBuild,
             LocalizableString title,
-            LocalizableString messageFormat,
+            LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool isConfigurable = true,
             LocalizableString? description = null)
 #pragma warning disable RS0030 // Do not used banned APIs
             => new(
-                    id, title, messageFormat,
+                    id, title, messageFormat ?? title,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,

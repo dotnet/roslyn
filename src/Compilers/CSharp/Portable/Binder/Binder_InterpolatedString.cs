@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool tryBindAsHandlerType([NotNullWhen(true)] out BoundInterpolatedString? result)
             {
                 result = null;
-                if (unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
+
+                if (InExpressionTree || unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
                 {
                     return false;
                 }

@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (container.IsKind(SyntaxKind.IncompleteMember, out IncompleteMemberSyntax? incompleteMember))
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
 
-                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
             }
 
@@ -710,16 +710,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree.IsScript() || syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
                 return false;
-            }
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);
+            if (token == default)
+                return false;
 
-            var declaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+            var declaration = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
+            if (declaration?.NamespaceKeyword == token)
+                return true;
 
-            return declaration != null && (declaration.Name.Span.IntersectsWith(position) || declaration.NamespaceKeyword == token);
+            return declaration?.Name.Span.IntersectsWith(position) == true;
         }
 
         public static bool IsPartialTypeDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, [NotNullWhen(true)] out TypeDeclarationSyntax? declarationSyntax)
@@ -1959,12 +1961,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-#if false
-            if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
-            {
-                return false;
-            }
-#endif
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);

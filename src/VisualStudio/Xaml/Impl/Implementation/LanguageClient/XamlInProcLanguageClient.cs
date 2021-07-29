@@ -12,13 +12,12 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Experimentation;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -38,9 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider,
+            ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
         }
 
@@ -52,10 +51,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
-            var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
+            var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
 
             return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
+        }
+
+        /// <summary>
+        /// Failures are only catastrophic when this server is providing intellisense features.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
+
+        private bool IsXamlLspIntelliSenseEnabled()
+        {
+            var experimentationService = Workspace.Services.GetRequiredService<CodeAnalysis.Experiments.IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
         }
     }
 }

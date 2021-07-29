@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
-            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
-            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+            _signatureHelpControllerProvider = signatureHelpControllerProvider;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            this._allArgumentProviders = argumentProviders;
+            _allArgumentProviders = argumentProviders;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
