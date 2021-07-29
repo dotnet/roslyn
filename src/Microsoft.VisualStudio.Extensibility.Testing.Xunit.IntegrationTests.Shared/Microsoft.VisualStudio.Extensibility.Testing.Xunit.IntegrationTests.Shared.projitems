@@ -11,5 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractIdeIntegrationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IdeTheoryTest.cs" />
   </ItemGroup>
 </Project>

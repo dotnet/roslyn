@@ -40,12 +40,12 @@ namespace Xunit.Threading
             }
         }
 
-        private IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo theoryAttribute)
+        internal static IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo theoryAttribute)
         {
-            var minVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IdeFactAttribute.MinVersion));
+            var minVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IIdeSettingsAttribute.MinVersion));
             minVersion = minVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2012 : minVersion;
 
-            var maxVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IdeFactAttribute.MaxVersion));
+            var maxVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IIdeSettingsAttribute.MaxVersion));
             maxVersion = maxVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2022 : maxVersion;
 
             for (var version = minVersion; version <= maxVersion; version++)
