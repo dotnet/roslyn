@@ -125,6 +125,7 @@ stages:
                    /p:DotnetPublishUsingPipelines=false
                    /p:IgnoreIbcMergeErrors=true
                    /p:PreReleaseVersionLabel=pr-validation
+                   /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
