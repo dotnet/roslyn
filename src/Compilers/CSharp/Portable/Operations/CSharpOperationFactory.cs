@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
-            } while (currentBinary is not null);
+            } while (currentBinary is not null and not BoundBinaryOperator { InterpolatedStringHandlerData: not null });
 
             Debug.Assert(interpolatedData == null || interpolatedData.GetValueOrDefault().PositionInfo.Length == stack.Count + 1);
 
