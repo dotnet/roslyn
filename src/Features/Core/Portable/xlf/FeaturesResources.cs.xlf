@@ -155,6 +155,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Aktivní příkaz je odstraněný z jeho původní metody. Pro pokračování musíte vzít zpátky změny nebo restartovat ladicí relaci.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">Očekávaná úloha vrací {0}.</target>

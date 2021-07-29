@@ -155,6 +155,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Un'istruzione attiva è stata rimossa dal metodo originale. Annullare le modifiche per continuare oppure riavviare la sessione di debug.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">L'attività attesa restituisce '{0}'</target>

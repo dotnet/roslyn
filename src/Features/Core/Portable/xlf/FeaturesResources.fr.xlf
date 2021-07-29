@@ -155,6 +155,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Une instruction active a été supprimée de sa méthode d'origine. Annulez vos modifications si vous voulez continuer ou redémarrez la session de débogage.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">La tâche attendue retourne '{0}'</target>

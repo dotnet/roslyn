@@ -618,10 +618,6 @@
   <data name="Change_to_cast" xml:space="preserve">
     <value>Change to cast</value>
   </data>
-  <data name="Make_container_async" xml:space="preserve">
-    <value>Make container 'async'</value>
-    <comment>{Locked="async"} "async" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="record_" xml:space="preserve">
     <value>record</value>
   </data>

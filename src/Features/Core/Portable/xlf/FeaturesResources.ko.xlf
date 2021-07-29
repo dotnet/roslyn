@@ -155,6 +155,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">원래 메서드에서 활성 문이 제거되었습니다. 변경 내용을 취소하고 계속하거나 디버깅 세션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">대기된 작업에서 '{0}'이(가) 반환됨</target>

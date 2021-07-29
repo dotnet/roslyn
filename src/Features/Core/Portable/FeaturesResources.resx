@@ -955,6 +955,9 @@ This version used in: {2}</value>
   <data name="Add_missing_param_nodes" xml:space="preserve">
     <value>Add missing param nodes</value>
   </data>
+  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
+    <value>Asynchronously waits for the task to finish.</value>
+  </data>
   <data name="Make_containing_scope_async" xml:space="preserve">
     <value>Make containing scope async</value>
   </data>

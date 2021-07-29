@@ -173,7 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
                     If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
                                         SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
-
                         Return True
                     End If
 

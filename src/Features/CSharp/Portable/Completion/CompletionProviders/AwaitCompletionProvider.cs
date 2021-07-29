@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
-        private protected override string AsyncKeywordTextWithSpace => "async ";
-
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
@@ -47,26 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
                 _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
             };
-        }
-
-        private protected override bool ShouldMakeContainerAsync(SyntaxToken token)
-        {
-            var declaration = GetAsyncSupportingDeclaration(token);
-            return declaration is not null && !declaration.GetModifiers().Any(SyntaxKind.AsyncKeyword);
-        }
-
-        private protected override CompletionItem GetCompletionItem(SyntaxToken token)
-        {
-            var shouldMakeContainerAsync = ShouldMakeContainerAsync(token);
-            var text = SyntaxFacts.GetText(SyntaxKind.AwaitKeyword);
-            return CommonCompletionItem.Create(
-                displayText: text,
-                displayTextSuffix: "",
-                rules: CompletionItemRules.Default,
-                Glyph.Keyword,
-                description: RecommendedKeyword.CreateDisplayParts(text, string.Empty),
-                inlineDescription: shouldMakeContainerAsync ? CSharpFeaturesResources.Make_container_async : null,
-                isComplexTextEdit: shouldMakeContainerAsync);
         }
 
         private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)

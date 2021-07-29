@@ -7,6 +7,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -23,8 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
 
-        Private Protected Overrides ReadOnly Property AsyncKeywordTextWithSpace As String = "Async "
-
         Private Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
             Select Case declaration.Kind()
                 Case SyntaxKind.FunctionBlock,
@@ -38,24 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End Select
 
             Throw ExceptionUtilities.Unreachable
-        End Function
-
-        Private Protected Overrides Function ShouldMakeContainerAsync(token As SyntaxToken) As Boolean
-            Dim declaration = GetAsyncSupportingDeclaration(token)
-            Return declaration IsNot Nothing AndAlso Not declaration.GetModifiers().Any(SyntaxKind.AsyncKeyword)
-        End Function
-
-        Private Protected Overrides Function GetCompletionItem(token As SyntaxToken) As CompletionItem
-            Dim shouldMakeAsync = ShouldMakeContainerAsync(token)
-            Dim text = SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
-            Return CommonCompletionItem.Create(
-                displayText:=text,
-                displayTextSuffix:="",
-                rules:=CompletionItemRules.[Default],
-                glyph:=Glyph.Keyword,
-                description:=RecommendedKeyword.CreateDisplayParts(text, VBFeaturesResources.Asynchronously_waits_for_the_task_to_finish),
-                inlineDescription:=If(shouldMakeAsync, VBFeaturesResources.Make_container_Async, Nothing),
-                isComplexTextEdit:=shouldMakeAsync)
         End Function
 
         Private Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode

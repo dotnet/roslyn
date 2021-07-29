@@ -92,11 +92,6 @@
         <target state="translated">Alterar '{0}' para herdável</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_container_Async">
-        <source>Make container 'Async'</source>
-        <target state="new">Make container 'Async'</target>
-        <note>{Locked="Async"} "Async" is a VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Make_private_field_ReadOnly_when_possible">
         <source>Make private field ReadOnly when possible</source>
         <target state="translated">Fazer com que o campo privado seja ReadOnly quando possível</target>
@@ -970,11 +965,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">Especifica a ordem de classificação para uma cláusula Classificar Por em uma consulta. O menor elemento aparecerá primeiro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Assincronamente aguarda a conclusão da tarefa.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,20 +21,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// </summary>
     internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     {
-        private protected abstract string AsyncKeywordTextWithSpace { get; }
-
-        private protected abstract CompletionItem GetCompletionItem(SyntaxToken token);
-
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
         private protected abstract int GetSpanStart(SyntaxNode declaration);
 
         private protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
-
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private protected abstract bool ShouldMakeContainerAsync(SyntaxToken token);
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -55,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var completionItem = GetCompletionItem(syntaxContext.TargetToken);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+            var completionItem = GetCompletionItem(syntaxContext.TargetToken, generator, syntaxKinds, syntaxFacts);
             context.AddItem(completionItem);
         }
 
@@ -77,13 +72,38 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
-            builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), AsyncKeywordTextWithSpace));
+            builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
             builder.Add(new TextChange(item.Span, item.DisplayText));
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
             return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableArray()));
+        }
+
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        private protected bool ShouldMakeContainerAsync(SyntaxToken token, SyntaxGenerator generator)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        {
+            var declaration = GetAsyncSupportingDeclaration(token);
+            return declaration is not null && !generator.GetModifiers(declaration).IsAsync;
+        }
+
+        private CompletionItem GetCompletionItem(SyntaxToken token, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)
+        {
+            var shouldMakeContainerAsync = ShouldMakeContainerAsync(token, generator);
+            var text = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
+            return CommonCompletionItem.Create(
+                displayText: text,
+                displayTextSuffix: "",
+                rules: CompletionItemRules.Default,
+                Glyph.Keyword,
+                description: RecommendedKeyword.CreateDisplayParts(text, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
+                inlineDescription: shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null,
+                isComplexTextEdit: shouldMakeContainerAsync);
         }
     }
 }
