@@ -338,14 +338,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Add access modifier
-            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
-            if (accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
-            {
-                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(false);
-                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            }
-
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
             if (!string.IsNullOrEmpty(fileHeaderTemplate))
@@ -366,6 +358,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Organize using directives
             addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(false);
             rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Add access modifier
+            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
+            if (addedDocument.Project.Language == LanguageNames.CSharp &&
+                accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
+            {
+                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(false);
+                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
