@@ -4956,7 +4956,7 @@ class Program
             edits.VerifyEdits(
                 "Update [b]@38 -> [_]@38");
 
-            // Techncailly not a discard, but a rename
+            // Technically not a discard, but a rename
             GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
@@ -4971,6 +4971,21 @@ class Program
             edits.VerifyEdits(
                 "Update [int a]@35 -> [_]@35",
                 "Update [int b]@42 -> [_]@38");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard3()
+        {
+            var src1 = "var x = new Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new Func<int, int, int>((_, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a]@35 -> [_]@35",
+                "Update [b]@38 -> [_]@38");
 
             GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }

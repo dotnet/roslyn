@@ -2368,7 +2368,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => oldTypes.SequenceEqual(newTypes, exact, (x, y, exact) => TypesEquivalent(x, y, exact));
 
         protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
-            => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+        {
+            if (exact)
+            {
+                return s_exactSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+            }
+
+            // A lambda parameter that is a discard has no type information, so the equivalence check will fail
+            // but we allow changing to/from discards so realistically if a parameter is a discard then anything goes.
+            return s_runtimeSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter) ||
+                oldParameter.IsDiscard ||
+                newParameter.IsDiscard;
+        }
 
         protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
             => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -3663,7 +3674,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             hasAttributeChange |= hasGeneratedAttributeChange;
             hasReturnTypeAttributeChange |= hasGeneratedReturnTypeAttributeChange;
 
-            if (hasAttributeChange || hasReturnTypeAttributeChange || hasParameterRename)
+            if (hasParameterRename)
+            {
+                Debug.Assert(newSymbol is IParameterSymbol);
+                AddParameterUpdateSemanticEdit(semanticEdits, (IParameterSymbol)newSymbol, syntaxMap, cancellationToken);
+            }
+            else if (hasAttributeChange || hasReturnTypeAttributeChange)
             {
                 AddCustomAttributeSemanticEdits(semanticEdits, oldSymbol, newSymbol, topMatch, syntaxMap, hasAttributeChange, hasReturnTypeAttributeChange, cancellationToken);
             }
@@ -3698,7 +3714,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // attributes applied on return type of a delegate are applied to both Invoke and BeginInvoke methods
                     semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newDelegateInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
-                    AddDelegateBeginInvokeEdit(newDelegateType);
+                    AddDelegateBeginInvokeEdit(semanticEdits, newDelegateType, syntaxMap, cancellationToken);
                 }
             }
             else if (newSymbol is INamedTypeSymbol)
@@ -3717,28 +3733,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
             }
-            else if (newSymbol is IParameterSymbol)
+            else if (newSymbol is IParameterSymbol newParameterSymbol)
             {
-                var newContainingSymbol = newSymbol.ContainingSymbol;
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
-
-                // attributes applied on parameters of a delegate are applied to both Invoke and BeginInvoke methods
-                if (newContainingSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } newContainingDelegateType)
-                {
-                    AddDelegateBeginInvokeEdit(newContainingDelegateType);
-                }
+                AddParameterUpdateSemanticEdit(semanticEdits, newParameterSymbol, syntaxMap, cancellationToken);
             }
+        }
 
-            // attribute applied on parameters or return value of a delegate are applied to both Invoke and BeginInvoke methods
-            void AddDelegateBeginInvokeEdit(INamedTypeSymbol delegateType)
+        private static void AddParameterUpdateSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, IParameterSymbol newParameterSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            var newContainingSymbol = newParameterSymbol.ContainingSymbol;
+            semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
+
+            // attributes applied on parameters of a delegate are applied to both Invoke and BeginInvoke methods
+            if (newContainingSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } newContainingDelegateType)
             {
-                Debug.Assert(semanticEdits != null);
+                AddDelegateBeginInvokeEdit(semanticEdits, newContainingDelegateType, syntaxMap, cancellationToken);
+            }
+        }
 
-                var beginInvokeMethod = delegateType.GetMembers("BeginInvoke").FirstOrDefault();
-                if (beginInvokeMethod != null)
-                {
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(beginInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
-                }
+        private static void AddDelegateBeginInvokeEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, INamedTypeSymbol delegateType, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            Debug.Assert(semanticEdits != null);
+
+            var beginInvokeMethod = delegateType.GetMembers("BeginInvoke").FirstOrDefault();
+            if (beginInvokeMethod != null)
+            {
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(beginInvokeMethod, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
             }
         }
 

@@ -300,23 +300,20 @@ class Bad : Bad
             var source0 =
 @"class C
 {
-    static void Main() { }
     static string F(int a) { return a.ToString(); }
 }";
             var source1 =
 @"class C
 {
-    static void Main() { }
     static string F(int x) { return x.ToString(); }
 }";
             var source2 =
 @"class C
 {
-    static void Main() { }
     static string F(int b) { return b.ToString(); }
 }";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -328,8 +325,7 @@ class Bad : Bad
             var reader0 = md0.MetadataReader;
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", "ToString", /*DebuggableAttribute*/".ctor");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor");
             CheckNames(reader0, reader0.GetParameterDefNames(), "a");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -350,26 +346,17 @@ class Bad : Bad
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "F");
-            CheckNames(readers, reader1.GetMemberRefNames(), "ToString");
             CheckNames(readers, reader1.GetParameterDefNames(), "x");
 
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Param, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(7, TableIndex.TypeRef),
-                Handle(8, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
+            CheckEncMapDefinitions(reader1,
+                Handle(1, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(6, TableIndex.MemberRef),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(2, TableIndex.StandAloneSig));
 
             var method2 = compilation2.GetMember<MethodSymbol>("C.F");
 
@@ -387,23 +374,15 @@ class Bad : Bad
             CheckNames(readers, reader2.GetMemberRefNames(), "ToString");
             CheckNames(readers, reader2.GetParameterDefNames(), "b");
 
-            CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader2,
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Param, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader2,
-                Handle(9, TableIndex.TypeRef),
-                Handle(10, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
+            CheckEncMapDefinitions(reader2,
+                Handle(1, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(7, TableIndex.MemberRef),
-                Handle(3, TableIndex.StandAloneSig),
-                Handle(3, TableIndex.AssemblyRef));
+                Handle(3, TableIndex.StandAloneSig));
         }
 
         [CompilerTrait(CompilerFeature.Tuples)]
