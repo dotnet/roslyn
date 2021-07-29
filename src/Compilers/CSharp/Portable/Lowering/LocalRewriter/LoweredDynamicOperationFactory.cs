@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
             return synthesizedType.Construct(delegateSignature);
 
-            // The distinction between by-ref kinds is dropped.
+            // The distinction between by-ref kinds is ignored for dynamic call-sites.
             static RefKind getRefKind(RefKind refKind) => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
         }
 

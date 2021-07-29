@@ -8575,6 +8575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
             Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
 
             bool returnsVoid = !returnTypeOpt.HasType;
@@ -8617,6 +8618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0 : 1)) : default;
+            Debug.Assert(Enumerable.Range(0, refKinds.Capacity).All(i => refKinds[i] == RefKind.None));
+
             if (hasByRefParameters)
             {
                 for (int i = 0; i < parameterRefKinds.Length; i++)

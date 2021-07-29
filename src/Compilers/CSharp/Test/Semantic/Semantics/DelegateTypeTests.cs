@@ -2500,11 +2500,11 @@ class Program
         Report(d);
         Console.WriteLine(d(ref t));
     }
-    static void M2<T>(T t) where T : struct
+    static void M2<U>(U u) where U : struct
     {
-        var d = (ref T t) => t;
+        var d = (ref U u) => u;
         Report(d);
-        Console.WriteLine(d(ref t));
+        Console.WriteLine(d(ref u));
     }
     static void M3(double value)
     {
@@ -2553,24 +2553,24 @@ class Program
   IL_0031:  call       ""void System.Console.WriteLine(object)""
   IL_0036:  ret
 }");
-            verifier.VerifyIL("Program.M2<T>",
+            verifier.VerifyIL("Program.M2<U>",
 @"{
   // Code size       55 (0x37)
   .maxstack  2
-  IL_0000:  ldsfld     ""<>F{00000001}<T, T> Program.<>c__1<T>.<>9__1_0""
+  IL_0000:  ldsfld     ""<>F{00000001}<U, U> Program.<>c__1<U>.<>9__1_0""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldsfld     ""Program.<>c__1<T> Program.<>c__1<T>.<>9""
-  IL_000e:  ldftn      ""T Program.<>c__1<T>.<M2>b__1_0(ref T)""
-  IL_0014:  newobj     ""<>F{00000001}<T, T>..ctor(object, System.IntPtr)""
+  IL_0009:  ldsfld     ""Program.<>c__1<U> Program.<>c__1<U>.<>9""
+  IL_000e:  ldftn      ""U Program.<>c__1<U>.<M2>b__1_0(ref U)""
+  IL_0014:  newobj     ""<>F{00000001}<U, U>..ctor(object, System.IntPtr)""
   IL_0019:  dup
-  IL_001a:  stsfld     ""<>F{00000001}<T, T> Program.<>c__1<T>.<>9__1_0""
+  IL_001a:  stsfld     ""<>F{00000001}<U, U> Program.<>c__1<U>.<>9__1_0""
   IL_001f:  dup
   IL_0020:  call       ""void Program.Report(System.Delegate)""
   IL_0025:  ldarga.s   V_0
-  IL_0027:  callvirt   ""T <>F{00000001}<T, T>.Invoke(ref T)""
-  IL_002c:  box        ""T""
+  IL_0027:  callvirt   ""U <>F{00000001}<U, U>.Invoke(ref U)""
+  IL_002c:  box        ""U""
   IL_0031:  call       ""void System.Console.WriteLine(object)""
   IL_0036:  ret
 }");
@@ -2597,11 +2597,19 @@ class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var variables = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
+            var nodes = tree.GetRoot().DescendantNodes();
+
+            var variables = nodes.OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
             Assert.Equal(3, variables.Length);
             VerifyLocalDelegateType(model, variables[0], "<>F{00000001}<T, T> d", "T <>F{00000001}<T, T>.Invoke(ref T)");
-            VerifyLocalDelegateType(model, variables[1], "<>F{00000001}<T, T> d", "T <>F{00000001}<T, T>.Invoke(ref T)");
+            VerifyLocalDelegateType(model, variables[1], "<>F{00000001}<U, U> d", "U <>F{00000001}<U, U>.Invoke(ref U)");
             VerifyLocalDelegateType(model, variables[2], "<>F{00000001}<System.Double, System.Double> d", "System.Double <>F{00000001}<System.Double, System.Double>.Invoke(ref System.Double)");
+
+            var identifiers = nodes.OfType<InvocationExpressionSyntax>().Where(i => i.Expression is IdentifierNameSyntax id && id.Identifier.Text == "Report").Select(i => i.ArgumentList.Arguments[0].Expression).ToArray();
+            Assert.Equal(3, identifiers.Length);
+            VerifyExpressionType(model, identifiers[0], "<>F{00000001}<T, T> d", "<>F{00000001}<T, T>");
+            VerifyExpressionType(model, identifiers[1], "<>F{00000001}<U, U> d", "<>F{00000001}<U, U>");
+            VerifyExpressionType(model, identifiers[2], "<>F{00000001}<System.Double, System.Double> d", "<>F{00000001}<System.Double, System.Double>");
         }
 
         [Fact]
@@ -3244,6 +3252,131 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 23));
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_15()
+        {
+            var source =
+@"using System;
+unsafe class Program
+{
+    static byte*[] F1() => null;
+    static void F2(byte*[] a) { }
+    static byte*[] F3(ref int i) => null;
+    static void F4(ref byte*[] a) { }
+    static void Main()
+    {
+        Report(int*[] () => null);
+        Report((int*[] a) => { });
+        Report(int*[] (ref int i) => null);
+        Report((ref int*[] a) => { });
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32*[]]
+System.Action`1[System.Int32*[]]
+<>F{00000001}`2[System.Int32,System.Int32*[]]
+<>A{00000001}`1[System.Int32*[]]
+System.Func`1[System.Byte*[]]
+System.Action`1[System.Byte*[]]
+<>F{00000001}`2[System.Int32,System.Byte*[]]
+<>A{00000001}`1[System.Byte*[]]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_16()
+        {
+            var source =
+@"using System;
+unsafe class Program
+{
+    static delegate*<ref int>[] F1() => null;
+    static void F2(delegate*<ref int, void>[] a) { }
+    static delegate*<ref int>[] F3(ref int i) => null;
+    static void F4(ref delegate*<ref int, void>[] a) { }
+    static void Main()
+    {
+        Report(delegate*<int, ref int>[] () => null);
+        Report((delegate*<int, ref int, void>[] a) => { });
+        Report(delegate*<int, ref int>[] (ref int i) => null);
+        Report((ref delegate*<int, ref int, void>[] a) => { });
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[(fnptr)[]]
+System.Action`1[(fnptr)[]]
+<>F{00000001}`2[System.Int32,(fnptr)[]]
+<>A{00000001}`1[(fnptr)[]]
+System.Func`1[(fnptr)[]]
+System.Action`1[(fnptr)[]]
+<>F{00000001}`2[System.Int32,(fnptr)[]]
+<>A{00000001}`1[(fnptr)[]]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_17()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void F1(object x, dynamic y) { }
+    static void F2(IntPtr x, nint y) { }
+    static void F3((int x, int y) t) { }
+    static void F4(object? x, object?[] y) { }
+    static void F5(ref object x, dynamic y) { }
+    static void F6(IntPtr x, ref nint y) { }
+    static void F7(ref (int x, int y) t) { }
+    static void F8(object? x, ref object?[] y) { }
+    static void Main()
+    {
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+        Report(F5);
+        Report(F6);
+        Report(F7);
+        Report(F8);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Action`2[System.Object,System.Object]
+System.Action`2[System.IntPtr,System.IntPtr]
+System.Action`1[System.ValueTuple`2[System.Int32,System.Int32]]
+System.Action`2[System.Object,System.Object[]]
+<>A{00000001}`2[System.Object,System.Object]
+<>A{00000004}`2[System.IntPtr,System.IntPtr]
+<>A{00000001}`1[System.ValueTuple`2[System.Int32,System.Int32]]
+<>A{00000004}`2[System.Object,System.Object[]]
+");
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedLocal, string expectedInvokeMethod)
         {
             var local = (ILocalSymbol)model.GetDeclaredSymbol(variable)!;
@@ -3251,6 +3384,14 @@ class Program
             var delegateType = ((INamedTypeSymbol)local.Type);
             Assert.Equal(Accessibility.Internal, delegateType.DeclaredAccessibility);
             Assert.Equal(expectedInvokeMethod, delegateType.DelegateInvokeMethod.ToTestDisplayString());
+        }
+
+        private static void VerifyExpressionType(SemanticModel model, ExpressionSyntax variable, string expectedSymbol, string expectedType)
+        {
+            var symbol = model.GetSymbolInfo(variable).Symbol;
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+            var type = model.GetTypeInfo(variable).Type;
+            Assert.Equal(expectedType, type.ToTestDisplayString());
         }
 
         [Fact]

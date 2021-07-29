@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKindVector refKinds)
             : base(name, parameterCount, returnsVoid: voidReturnTypeOpt is not null)
         {
+            Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
+
             _containingSymbol = containingSymbol;
             _constructor = new DelegateConstructor(this, objectType, intPtrType);
             _invoke = new InvokeMethod(this, refKinds, voidReturnTypeOpt);
