@@ -1016,6 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (whenFalsePossible && !whenFalseState.IsImpossible && !(whenFalseBuilder.Any() && whenFalseBuilder.Last().IsFullyMatched))
                     whenFalseBuilder.Add(whenFalseState);
             }
+
             whenTrue = whenTrueBuilder.ToImmutableAndFree();
             whenFalse = whenFalseBuilder.ToImmutableAndFree();
         }
@@ -1081,7 +1082,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
-
                 var whenTrueValues = values.SetItem(input, fromTestPassing);
                 var whenFalseValues = values.SetItem(input, fromTestFailing);
                 return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
