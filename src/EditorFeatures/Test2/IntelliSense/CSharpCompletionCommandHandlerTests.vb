@@ -2764,7 +2764,7 @@ class Goo
         End Function
 
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1363210"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValues() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -2834,7 +2834,7 @@ class Program
         End Function
 
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1363210"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
