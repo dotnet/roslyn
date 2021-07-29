@@ -966,18 +966,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool foundExplicitNullTest)
         {
             stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
-            whenTrue = makeNext(whenTrueTests);
-            whenFalse = makeNext(whenFalseTests);
-            return;
-
-            StateForCase makeNext(Tests remainingTests)
-            {
-                return remainingTests.Equals(stateForCase.RemainingTests)
-                    ? stateForCase
-                    : new StateForCase(
-                        stateForCase.Index, stateForCase.Syntax, remainingTests,
-                        stateForCase.Bindings, stateForCase.WhenClause, stateForCase.CaseLabel);
-            }
+            whenTrue = stateForCase.UpdateRemainingTests(whenTrueTests);
+            whenFalse = stateForCase.UpdateRemainingTests(whenFalseTests);
         }
 
         private void SplitCases(
@@ -1808,6 +1798,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override int GetHashCode()
             {
                 return Hash.Combine(RemainingTests.GetHashCode(), Index);
+            }
+
+            public StateForCase UpdateRemainingTests(Tests remainingTests)
+            {
+                return remainingTests.Equals(RemainingTests)
+                    ? this
+                    : new StateForCase(Index, Syntax, remainingTests, Bindings, WhenClause, CaseLabel);
             }
         }
 
