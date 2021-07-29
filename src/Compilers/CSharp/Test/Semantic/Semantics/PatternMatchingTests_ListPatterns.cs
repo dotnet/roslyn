@@ -1449,6 +1449,7 @@ class X
         _ = a is [>0] and [<0];       // 5
         _ = a is [>0] and [>=0];
         _ = a is {Length:-1};         // 6
+        _ = a is [.., >0] and [<0];   // 7
     } 
 }
 ";
@@ -1471,7 +1472,10 @@ class X
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13),
                 // (17,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is {Length:-1};         // 6
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13)
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13),
+                // (18,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [.., >0] and [<0];   // 7
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [.., >0] and [<0]").WithArguments("int[]").WithLocation(18, 13)
                 );
         }
 
@@ -2118,6 +2122,43 @@ class C
             CompileAndVerify(comp, expectedOutput: "2");
         }
 
+        [Fact]
+        public void Subsumption_10()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+    public C F { get; }
+    static void Test(C[] a) 
+    {
+        switch (a)
+        {
+            case [.., {X:> 0, Y:0}]:
+            case [{Y:0, X:> 0}]:
+                break;
+        }
+        switch (a)
+        {
+            case [.., {X:> 0, F.Y: 0}]:
+            case [..[{F.Y: 0, X:> 0}]]:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [{Y:0, X:> 0}]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[{Y:0, X:> 0}]").WithLocation(12, 18),
+                // (18,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [..[{F.Y: 0, X:> 0}]]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[{F.Y: 0, X:> 0}]]").WithLocation(18, 18)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void Subsumption_Slice_00(
@@ -2209,26 +2250,60 @@ class C
         public void Exhaustiveness_01()
         {
             var src = @"
+using System;
 class C
 {
-    public static void Test(int[] a)
+    public static void Test(Span<int> a)
     {
         _ = a switch
         {
-            [ .., >= 0 ] => 1,
-            [ < 0 ] => 2,
-            { Length: 0 or > 1 } => 3,
+            [ .., >= 0 ] => 0,
+            [ < 0 ] => 0,
+            { Length: 0 or > 1 } => 0,
         };
 
         _ = a switch
         {
-            [ .., >= 0 ] => 1,
-            [] => 2,
-            [ ..[ .., < 0 ] ] => 3,
+            [ .., >= 0 ] => 0,
+            [ ..[ .., < 0 ] ] => 0,
+            [] => 0,
         };
     }
-}" + TestSources.GetSubArray;
-            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Exhaustiveness_02()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int X = 0, Y = 0;
+    public static void Test(Span<S> a)
+    {
+        _ = a switch
+        {
+            [.., { Y: <=0, X: <=0 }] => 0,
+            [.., { Y: >=0, X: >=0 }] => 0,
+            [{ Y: >=0, X: <=0 }] => 0,
+            [{ Y: <=0, X: >=0 }] => 0,
+            { Length: 0 or > 1 } => 0,
+        };
+
+        _ = a switch
+        {
+            [.., { Y: <=0, X: <=0 }] => 0,
+            [.., { Y: >=0, X: >=0 }] => 0,
+            [..[.., { Y: >=0, X: <=0 }]] => 0,
+            [..[.., { Y: <=0, X: >=0 }]] => 0,
+            [] => 0,
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
             comp.VerifyEmitDiagnostics();
         }
     }

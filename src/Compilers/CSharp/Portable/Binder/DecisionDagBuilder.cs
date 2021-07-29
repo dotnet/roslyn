@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet? whenTrueValues,
             IValueSet? whenFalseValues,
             SyntaxNode syntax,
-            out Tests trueOther,
+            out Tests lengthTest,
             out bool trueTestPermitsTrueOther,
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
@@ -1171,15 +1171,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             falseTestPermitsTrueOther = true;
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
-
-            trueOther = Tests.True.Instance;
+            lengthTest = Tests.True.Instance;
 
             // if the tests are for unrelated things, there is no implication from one to the other
             if (!test.Input.Equals(other.Input))
             {
                 switch (test.Input.Source, other.Input.Source)
                 {
-                    case (BoundDagPropertyEvaluation { IsLengthOrCount: true } s1, BoundDagPropertyEvaluation { IsLengthOrCount: true } s2):
+                    case (BoundDagPropertyEvaluation { IsLengthOrCount: true } s1,
+                          BoundDagPropertyEvaluation { IsLengthOrCount: true } s2):
                         {
                             (BoundDagTemp s1Input, _, int s1Offset) = GetCanonicalInput(s1);
                             (BoundDagTemp s2Input, _, int s2Offset) = GetCanonicalInput(s2);
@@ -1196,10 +1196,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         return;
-                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                    case (BoundDagEvaluation s1, BoundDagEvaluation s2):
                         {
-                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                            while (s1.Kind != BoundKind.DagIndexerEvaluation ||
+                                   s2.Kind != BoundKind.DagIndexerEvaluation)
+                            {
+                                if (!s1.IsEquivalentTo(s2) ||
+                                    (s1 = s1.Input.Source!) == null ||
+                                    (s2 = s2.Input.Source!) == null)
+                                {
+                                    return;
+                                }
+                            }
+
+                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput((BoundDagIndexerEvaluation)s1);
+                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput((BoundDagIndexerEvaluation)s2);
                             Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
                             Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
                             if (s1Input.Equals(s2Input) &&
@@ -1230,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                     {
                                         // Otherwise, we inject a test in the success branch to split the exact value.
-                                        trueOther = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp) { WasCompilerGenerated = true });
+                                        lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
                                         break;
                                     }
                                 }
@@ -1892,14 +1903,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         whenTrueValues: whenTrueValues,
                         whenFalseValues: whenFalseValues,
                         syntax: test.Syntax,
-                        trueOther: out Tests trueOther,
+                        lengthTest: out Tests lengthTest,
                         trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                         falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(trueOther, this) : trueDecisionPermitsTrueOther ? this : False.Instance;
-                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(trueOther, this) : falseDecisionPermitsTrueOther ? this : False.Instance;
+                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : trueDecisionPermitsTrueOther ? this : False.Instance;
+                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : falseDecisionPermitsTrueOther ? this : False.Instance;
 
                     static Tests makeOrSequence(Tests t1, Tests t2)
                     {
