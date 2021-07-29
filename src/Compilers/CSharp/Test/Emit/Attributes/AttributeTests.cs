@@ -10101,8 +10101,7 @@ class C1
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp);
-            verifier.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
