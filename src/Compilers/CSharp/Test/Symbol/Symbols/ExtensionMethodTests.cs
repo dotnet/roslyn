@@ -1140,9 +1140,9 @@ static class S
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 //         o.E += o.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "o.E").WithArguments("E", "method group").WithLocation(5, 9),
-                // (6,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (6,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
                 //         if (o.E != null)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "o.E").WithArguments("inferred delegate type", "10.0").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "o.E != null").WithArguments("!=", "method group", "<null>").WithLocation(6, 13),
                 // (8,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 //             M(o.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "o.E").WithArguments("1", "method group", "object").WithLocation(8, 15),

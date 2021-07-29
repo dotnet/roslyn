@@ -557,9 +557,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
+            if ((destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType()) &&
+                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
                 BoundLambda boundLambda;
@@ -628,9 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (destination.SpecialType == SpecialType.System_Delegate)
+            if (destination.SpecialType == SpecialType.System_Delegate &&
+                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);

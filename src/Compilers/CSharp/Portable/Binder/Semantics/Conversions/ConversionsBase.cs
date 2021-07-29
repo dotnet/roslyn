@@ -1407,18 +1407,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.SpecialType == SpecialType.System_Delegate)
             {
-                return LambdaConversionResult.Success;
+                if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return LambdaConversionResult.Success;
+                }
             }
             else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
             }
-            else if (type.IsGenericOrNonGenericExpressionType(out bool _))
+            else if (type.IsGenericOrNonGenericExpressionType(out bool isGenericType))
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                if (isGenericType || IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                }
             }
 
             return LambdaConversionResult.BadTargetType;
+        }
+
+        internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
+        {
+            return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
