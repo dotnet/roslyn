@@ -1238,7 +1238,7 @@ class Program
         // when the parameters or return type are not valid type arguments.
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
-        public void InvalidTypeArguments_01()
+        public void InvalidTypeArguments()
         {
             var source =
 @"unsafe class Program
