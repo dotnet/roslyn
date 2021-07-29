@@ -19,6 +19,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -879,7 +880,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
-        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement referencedSource)
+        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement projectElement, XElement referencedSource)
         {
             var compilation = CreateCompilation(workspace, referencedSource);
 
@@ -895,7 +896,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 includeXmlDocComments = true;
             }
 
-            return MetadataReference.CreateFromImage(compilation.EmitToArray(), new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+                && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+            var image = compilation.EmitToArray();
+            var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            if (referencesOnDisk)
+            {
+                AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
+            }
+
+            return metadataReference;
         }
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
@@ -960,7 +971,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(workspace, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(workspace, element, metadataReferenceFromSource));
             }
 
             return references;

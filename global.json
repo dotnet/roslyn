@@ -1,18 +1,16 @@
 {
   "sdk": {
-    "version": "6.0.100-preview.3.21202.5",
-    "allowPrerelease": true,
-    "rollForward": "major"
+    "version": "6.0.100-preview.6.21355.2"
   },
   "tools": {
-    "dotnet": "6.0.100-preview.3.21202.5",
+    "dotnet": "6.0.100-preview.6.21355.2",
     "vs": {
-      "version": "16.8"
+      "version": "16.10"
     },
-    "xcopy-msbuild": "16.8.0-preview2.1"
+    "xcopy-msbuild": "16.10.0-preview2"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "6.0.0-beta.21303.2",
-    "Microsoft.DotNet.Helix.Sdk": "6.0.0-beta.21303.2"
+    "Microsoft.DotNet.Arcade.Sdk": "6.0.0-beta.21377.2",
+    "Microsoft.DotNet.Helix.Sdk": "6.0.0-beta.21377.2"
   }
 }

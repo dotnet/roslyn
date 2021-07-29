@@ -164,27 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             // and then pass that out.  This should not be a problem in practice as PipeReader internally intelligently
             // uses and pools reasonable sized buffers, preventing us from exacerbating the GC or causing LOH
             // allocations.
-            return await AsPrebufferedStreamAsync(pipe.Reader, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<Stream> AsPrebufferedStreamAsync(PipeReader pipeReader, CancellationToken cancellationToken = default)
-        {
-            while (true)
-            {
-                // Read and immediately report all bytes as "examined" so that the next ReadAsync call will block till more bytes come in.
-                // The goal here is to force the PipeReader to buffer everything internally (even if it were to exceed its natural writer threshold limit).
-                var readResult = await pipeReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-                pipeReader.AdvanceTo(readResult.Buffer.Start, readResult.Buffer.End);
-
-                if (readResult.IsCompleted)
-                {
-                    // After having buffered and "examined" all the bytes, the stream returned from PipeReader.AsStream() would fail
-                    // because it may not "examine" all bytes at once.
-                    // Instead, we'll create our own Stream over just the buffer itself, and recycle the buffers when the stream is disposed
-                    // the way the stream returned from PipeReader.AsStream() would have.
-                    return new ReadOnlySequenceStream(readResult.Buffer, reader => ((PipeReader)reader!).Complete(), pipeReader);
-                }
-            }
+            return await pipe.Reader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public sealed override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
