@@ -82,7 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             bool predicate(SyntaxNode n)
             {
-                if (n is BaseMethodDeclarationSyntax or AccessorDeclarationSyntax or BlockSyntax or GlobalStatementSyntax)
+                if (n is BaseMethodDeclarationSyntax or
+                    AccessorDeclarationSyntax or
+                    BlockSyntax or
+                    GlobalStatementSyntax)
                 {
                     return true;
                 }

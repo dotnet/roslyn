@@ -9188,13 +9188,13 @@ class Node<K, T> where T : new()
         public async Task Script_ArgumentException()
         {
             var code = @"using System;
-static void GetNonVirtualMethod<TDelegate>( Type type, string name)
+public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
 {
     Type delegateType = typeof(TDelegate);
      var invoke = [|delegateType|].GetMethod(""Invoke"");
 }";
             var expected = @"using System;
-static void GetNonVirtualMethod<TDelegate>( Type type, string name)
+public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
 {
     Type delegateType = typeof(TDelegate);
     var invoke = GetDelegateType(delegateType).GetMethod(""Invoke"");

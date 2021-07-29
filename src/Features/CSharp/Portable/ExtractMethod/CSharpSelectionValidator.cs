@@ -206,20 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            /*var rootGlobalStatement = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is GlobalStatementSyntax);
-            var commonRootContainer = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is TypeDeclarationSyntax);
-
-            if (commonRootContainer is null && rootGlobalStatement is null)
-            {
-                return new SelectionInfo
-                {
-                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),
-                    OriginalSpan = adjustedSpan,
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }*/
-
             if (!commonRoot.ContainedInValidType())
             {
                 return new SelectionInfo
