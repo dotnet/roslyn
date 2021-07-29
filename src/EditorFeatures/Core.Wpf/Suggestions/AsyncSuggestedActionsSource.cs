@@ -19,8 +19,9 @@ using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -45,16 +46,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+                using var _ = ArrayBuilder<ISuggestedActionSetCollector>.GetInstance(out var completedCollectors);
                 try
                 {
                     await GetSuggestedActionsWorkerAsync(
-                        requestedActionCategories, range, collectors, cancellationToken).ConfigureAwait(false);
+                        requestedActionCategories, range, collectors, completedCollectors, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     // Always ensure that all the collectors are marked as complete so we don't hang the UI.
                     foreach (var collector in collectors)
-                        collector.Complete();
+                    {
+                        if (!completedCollectors.Contains(collector))
+                            collector.Complete();
+                    }
                 }
             }
 
@@ -62,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 ImmutableArray<ISuggestedActionSetCollector> collectors,
+                ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
@@ -85,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
                     await GetSuggestedActionsAsync(
-                        requestedActionCategories, range, state, selection, document,
-                        collectors.FirstOrDefault(c => c.Priority == DefaultOrderings.Highest),
+                        requestedActionCategories, range, state, selection, document, completedCollectors,
+                        collectors.FirstOrDefault(c => c.Priority == VisualStudio.Utilities.DefaultOrderings.Highest),
                         CodeActionRequestPriority.High, cancellationToken).ConfigureAwait(false);
 
                     await GetSuggestedActionsAsync(
-                        requestedActionCategories, range, state, selection, document,
-                        collectors.FirstOrDefault(c => c.Priority == DefaultOrderings.Default),
+                        requestedActionCategories, range, state, selection, document, completedCollectors,
+                        collectors.FirstOrDefault(c => c.Priority == VisualStudio.Utilities.DefaultOrderings.Default),
                         CodeActionRequestPriority.Normal, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -99,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
                 ReferenceCountedDisposable<State> state, TextSpan? selection, Document document,
+                ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
                 ISuggestedActionSetCollector? collector, CodeActionRequestPriority priority, CancellationToken cancellationToken)
             {
                 if (collector == null)
@@ -112,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     collector.Add(set);
 
                 collector.Complete();
+                completedCollectors.Add(collector);
             }
 
             private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
