@@ -29,7 +29,6 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     queueName: BuildPool.Windows.10.Amd64.Open
-    buildArguments: "/p:Features=run-nullable-analysis=never"
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
