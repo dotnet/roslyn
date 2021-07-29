@@ -123,10 +123,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
+            if (!item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                // They should always be available from items provided by Roslyn CompletionSource.
+                // Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
