@@ -49,26 +49,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public void SelectDependents()
         {
             var checkedMembers = Members
-              .WhereAsArray(member => member.IsChecked);
+                .WhereAsArray(member => member.IsChecked);
 
             var result = _uiThreadOperationExecutor.Execute(
-                    title: ServicesVSResources.Pull_Members_Up,
-                    defaultDescription: ServicesVSResources.Calculating_dependents,
-                    allowCancellation: true,
-                    showProgress: true,
-                    context =>
+                title: ServicesVSResources.Pull_Members_Up,
+                defaultDescription: ServicesVSResources.Calculating_dependents,
+                allowCancellation: true,
+                showProgress: true,
+                context =>
+                {
+                    foreach (var member in Members)
                     {
-                        foreach (var member in Members)
-                        {
-                            _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
-                        }
-                    });
+                        _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
+                    }
+                });
 
             if (result == UIThreadOperationStatus.Completed)
             {
                 foreach (var member in checkedMembers)
                 {
-                    var membersToSelected = FindDependentsRecursively(member.Symbol).SelectAsArray(symbol => _symbolToMemberViewMap[symbol]);
+                    var membersToSelected = FindDependents(member.Symbol).SelectAsArray(symbol => _symbolToMemberViewMap[symbol]);
                     SelectMembers(membersToSelected);
                 }
             }
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             }
         }
 
-        private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)
+        private ImmutableHashSet<ISymbol> FindDependents(ISymbol member)
         {
             var queue = new Queue<ISymbol>();
             // Under situation like two methods call each other, this hashset is used to 

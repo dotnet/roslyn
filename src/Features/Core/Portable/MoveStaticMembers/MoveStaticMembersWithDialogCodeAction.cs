@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly Document _document;
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
-        private readonly IMoveStaticMembersOptionsService _service;
+        private IMoveStaticMembersOptionsService _service;
 
         public TextSpan Span { get; }
-        public override string Title => "[WIP] Move Members to Type...";
+        public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
         public MoveStaticMembersWithDialogCodeAction(
             Document document,
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            var optionsService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
-            return optionsService.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMember);
+            _service ??= _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
+            return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMember);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var members = memberNodes
                 .Select(node => root.GetCurrentNode(node))
-                .Where(node => node != null)
+                .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
 
             // get back type declaration in the newly created file

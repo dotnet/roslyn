@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
     /// </summary>
     internal partial class MoveStaticMembersDialog : DialogWindow
     {
-        public string MoveStaticMembersDialogTitle => "[WIP] Move Static Members";
+        public string MoveStaticMembersDialogTitle => ServicesVSResources.Move_static_members_to_another_type_colon;
         public string DestinationLabelText => ServicesVSResources.Type_Name;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;

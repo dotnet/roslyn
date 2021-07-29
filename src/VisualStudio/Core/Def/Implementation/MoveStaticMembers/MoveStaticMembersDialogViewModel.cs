@@ -54,13 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             if (isNewType && _isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = "[WIP] A new type will be created";
+                Message = ServicesVSResources.A_new_type_will_be_created;
                 ShowMessage = true;
             }
             else if (!_isValidName || !isNewType)
             {
                 Icon = KnownMonikers.StatusInvalid;
-                Message = "[WIP] Invalid Type Name";
+                Message = ServicesVSResources.Invalid_type_name;
                 ShowMessage = true;
             }
             else

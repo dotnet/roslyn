@@ -5,8 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
-    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog" 
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" 
     xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
     d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
     vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
@@ -16,7 +15,7 @@
     x:ClassModifier="internal"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
-    Height="498"
+    Height="398"
     Width="500"
     MinHeight="298"
     MinWidth="210"
@@ -41,41 +40,51 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="0">
-            <Label x:Uid="DestinationLabel" 
-                       x:Name="DestinationLabel"
-                       Margin="{StaticResource verticalLabelMargin}"
-                       Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
-                       Target="{Binding ElementName=DestinationTextBox}" />
+            <Label 
+                x:Uid="DestinationLabel" 
+                x:Name="DestinationLabel"
+                Margin="{StaticResource verticalLabelMargin}"
+                Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
+                Target="{Binding ElementName=DestinationTextBox}" />
             <TextBox 
                 x:Uid="DestinationBox"
                 Name="DestinationBox"
+                AutomationProperties.Name="DestinationName"
                 Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
                 Margin="0 0 20 0"/>
 
         </StackPanel>
 
-        <StackPanel Grid.Row="1">
-            <StackPanel Orientation="Horizontal"  
-                        Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Margin="{StaticResource messageMargin}">
-                <imaging:CrispImage Name="MessageIcon"
+        <StackPanel 
+            Grid.Row="1"
+            Orientation="Horizontal"  
+            Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
+            Margin="{StaticResource messageMargin}">
+            <imaging:CrispImage Name="MessageIcon"
                                     Moniker="{Binding Icon}" 
                                     Height="16"
                                     Width="16"
                                     VerticalAlignment="Top" />
 
-                <vs:LiveTextBlock x:Name="MessageText"
+            <vs:LiveTextBlock x:Name="MessageText"
                            Text="{Binding Message}"
                            Margin="7, 0, 0, 0"
                            Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-            </StackPanel>
         </StackPanel>
 
-        <GroupBox x:Uid="MemberSelectionGroupBox"
-                  x:Name="MemberSelectionGroupBox"
-                  Margin="0, 130, 0, 0"
-                  Grid.Row="2"
-                  Header="{Binding ElementName=dialog, Path=SelectMembers}">
+        <GroupBox 
+            x:Uid="MemberSelectionGroupBox"
+            x:Name="MemberSelectionGroupBox"
+            Margin="0, 20, 0, 0"
+            Grid.Row="2"
+            Header="{Binding ElementName=dialog, Path=SelectMembers}"
+            BorderThickness="1">
+            <GroupBox.Style>
+                <Style TargetType="GroupBox">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                </Style>
+            </GroupBox.Style>
+
             <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>
         <StackPanel Grid.Row="3"
