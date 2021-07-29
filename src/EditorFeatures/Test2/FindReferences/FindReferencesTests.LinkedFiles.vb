@@ -258,9 +258,13 @@ namespace {|Definition:System|}
                 Assert.NotNull(document)
 
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
-                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
 
-                Assert.Equal(2, references.Count())
+                ' Should find two definitions, one in each file.
+                Dim references = (Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)).ToList()
+                Assert.Equal(2, references.Count)
+
+                Dim documents = references.Select(Function(r) workspace.CurrentSolution.GetDocument(r.Definition.Locations.Single().SourceTree))
+                Assert.Equal(2, documents.Count)
             End Using
         End Function
     End Class
