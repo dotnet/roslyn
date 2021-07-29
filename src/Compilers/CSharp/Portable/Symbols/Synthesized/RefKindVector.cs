@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,9 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             set
             {
                 index *= 2;
-                int v = (int)value;
-                _bits[index] = (v & 0x1) != 0;
-                _bits[index + 1] = (v & 0x2) != 0;
+                (_bits[index + 1], _bits[index]) = value switch
+                {
+                    RefKind.None => (false, false),
+                    RefKind.Ref => (false, true),
+                    RefKind.Out => (true, false),
+                    RefKind.RefReadOnly => (true, true),
+                    _ => throw ExceptionUtilities.UnexpectedValue(value)
+                };
             }
         }
 

@@ -2515,8 +2515,8 @@ class Program
     static void Main()
     {
         M1(41);
-        M2(42.5f);
-        M2(43.5);
+        M2(42f);
+        M2(43d);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -2528,9 +2528,9 @@ class Program
 @"<>F{00000001}`2[System.Int32,System.Int32]
 41
 <>F{00000001}`2[System.Single,System.Single]
-42.5
+42
 <>F{00000001}`2[System.Double,System.Double]
-43.5
+43
 ");
             verifier.VerifyIL("Program.M1<T>",
 @"{
@@ -2626,7 +2626,7 @@ class Program
         var a = new A();
         M1(a, 41);
         var b = new B();
-        M2(b, 42.5f);
+        M2(b, 42f);
         Console.WriteLine((a._f, b._f));
     }
 }
@@ -2647,7 +2647,7 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42.5)");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)
