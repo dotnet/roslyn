@@ -6,30 +6,17 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     <ExportLanguageService(GetType(IDocumentationCommentSnippetService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class DocumentationCommentSnippetService
+    Friend Class VisualBasicDocumentationCommentSnippetService
         Inherits AbstractDocumentationCommentSnippetService(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
-        Public Overrides ReadOnly Property DocumentationCommentCharacter As String
-            Get
-                Return "'"
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ExteriorTriviaText As String
-            Get
-                Return "'''"
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property AddIndent As Boolean
-            Get
-                Return False
-            End Get
-        End Property
+        Public Overrides ReadOnly Property DocumentationCommentCharacter As String = "'"
+        Protected Overrides ReadOnly Property ExteriorTriviaText As String = "'''"
+        Protected Overrides ReadOnly Property AddIndent As Boolean = False
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -150,6 +137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             If SupportsDocumentationCommentReturnsClause(member) Then
                 list.Add("''' <returns></returns>")
             End If
+
+            ' TODO: Add `<exception>`s
 
             Return list
         End Function
