@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.XmlTextLiteralToken:
                 case SyntaxKind.XmlTextLiteralNewLineToken:
                 case SyntaxKind.XmlEntityLiteralToken:
-                    //case SyntaxKind.Unknown:
                     return true;
                 default:
                     return false;
@@ -209,6 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
                 case SyntaxKind.UnderscoreToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
                     return true;
                 default:
                     return false;
