@@ -12149,6 +12149,30 @@ value:3
         }
 
         [Fact]
+        public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
+        {
+            var code = @"
+object o1;
+object o2;
+object o3;
+_ = $""{o1 = null}"" + $""{o2 = null}"" + $""{o3 = null}"" + 1;
+o1.ToString();
+o2.ToString();
+o3.ToString();
+";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) });
+            comp.VerifyDiagnostics(
+                // (7,1): error CS0165: Use of unassigned local variable 'o2'
+                // o2.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "o2").WithArguments("o2").WithLocation(7, 1),
+                // (8,1): error CS0165: Use of unassigned local variable 'o3'
+                // o3.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "o3").WithArguments("o3").WithLocation(8, 1)
+            );
+        }
+
+        [Fact]
         public void ParenthesizedAdditiveExpression_01()
         {
             var code = @"
