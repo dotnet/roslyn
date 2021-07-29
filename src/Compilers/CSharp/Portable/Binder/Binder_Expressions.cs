@@ -8616,16 +8616,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var byRefs = hasByRefParameters ? BitVector.Create(parameterTypes.Length) : default;
+            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0: 1)) : default;
             if (hasByRefParameters)
             {
                 for (int i = 0; i < parameterRefKinds.Length; i++)
                 {
-                    byRefs[i] = parameterRefKinds[i] != RefKind.None;
+                    refKinds[i] = parameterRefKinds[i];
                 }
             }
+            if (returnRefKind != RefKind.None)
+            {
+                refKinds[parameterTypes.Length] = returnRefKind;
+            }
 
-            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, byRefs, returnsVoid, returnRefKind, generation: 0);
+            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, refKinds, returnsVoid, generation: 0);
             return synthesizedType.Construct(typeArguments);
 
             static bool isValidTypeArgument(TypeSymbol? type)

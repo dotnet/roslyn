@@ -160,17 +160,17 @@ static class Utils
             yield return getData("T F<T>() => default;", "(new Program()).F", "F", null);
             yield return getData("void F<T>(T t) { }", "(new Program()).F<string>", "F", "System.Action<System.String>");
             yield return getData("void F<T>(T t) { }", "(new Program()).F", "F", null);
-            yield return getData("static ref int F() => throw null;", "F", "F", "<>F<System.Int32>");
-            yield return getData("static ref readonly int F() => throw null;", "F", "F", "<>F<System.Int32>");
+            yield return getData("static ref int F() => throw null;", "F", "F", "<>F{00000001}<System.Int32>");
+            yield return getData("static ref readonly int F() => throw null;", "F", "F", "<>F{00000003}<System.Int32>");
             yield return getData("static void F() { }", "F", "F", "System.Action");
             yield return getData("static void F(int x, int y) { }", "F", "F", "System.Action<System.Int32, System.Int32>");
-            yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", "<>F<System.Int32>");
-            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>F<System.Int32>");
-            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>F<System.Int32>");
+            yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>");
-            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
+            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", "<>F<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
 
             object?[] getData(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType) =>
                 new object?[] { methodDeclaration, methodGroupExpression, expectedType is null ? getExpectedDiagnostics(methodGroupExpression, methodGroupOnly) : null, expectedType };
@@ -276,12 +276,12 @@ $@"class Program
             yield return getData("x => ref args[0]", null);
             yield return getData("(x, y) => { }", null);
             yield return getData("() => 1", "System.Func<System.Int32>");
-            yield return getData("() => ref args[0]", "<>F<System.String>");
+            yield return getData("() => ref args[0]", "<>F{00000001}<System.String>");
             yield return getData("() => { }", "System.Action");
             yield return getData("(int x, int y) => { }", "System.Action<System.Int32, System.Int32>");
-            yield return getData("(out int x, int y) => { x = 0; }", "<>A{00000001}<System.Int32, System.Int32>");
-            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
-            yield return getData("(int x, in int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("(out int x, int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("(int x, in int y) => { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => _1", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -314,12 +314,12 @@ $@"class Program
         {
             yield return getData("delegate { }", null);
             yield return getData("delegate () { return 1; }", "System.Func<System.Int32>");
-            yield return getData("delegate () { return ref args[0]; }", "<>F<System.String>");
+            yield return getData("delegate () { return ref args[0]; }", "<>F{00000001}<System.String>");
             yield return getData("delegate () { }", "System.Action");
             yield return getData("delegate (int x, int y) { }", "System.Action<System.Int32, System.Int32>");
-            yield return getData("delegate (out int x, int y) { x = 0; }", "<>A{00000001}<System.Int32, System.Int32>");
-            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
-            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("delegate (out int x, int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { return _1; }", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -2654,8 +2654,8 @@ static class E
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldftn      ""ref int A.F1()""
-  IL_0007:  newobj     ""<>F<int>..ctor(object, System.IntPtr)""
-  IL_000c:  callvirt   ""ref int <>F<int>.Invoke()""
+  IL_0007:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""ref int <>F{00000001}<int>.Invoke()""
   IL_0011:  ldarg.1
   IL_0012:  stind.i4
   IL_0013:  ret
@@ -2666,8 +2666,8 @@ static class E
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldftn      ""ref float E.F2(B)""
-  IL_0007:  newobj     ""<>F<float>..ctor(object, System.IntPtr)""
-  IL_000c:  callvirt   ""ref float <>F<float>.Invoke()""
+  IL_0007:  newobj     ""<>F{00000001}<float>..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""ref float <>F{00000001}<float>.Invoke()""
   IL_0011:  ldarg.1
   IL_0012:  stind.r4
   IL_0013:  ret
@@ -2677,8 +2677,8 @@ static class E
             var model = comp.GetSemanticModel(tree);
             var variables = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
             Assert.Equal(2, variables.Length);
-            VerifyLocalDelegateType(model, variables[0], "<>F<System.Int32> d", "ref System.Int32 <>F<System.Int32>.Invoke()");
-            VerifyLocalDelegateType(model, variables[1], "<>F<System.Single> d", "ref System.Single <>F<System.Single>.Invoke()");
+            VerifyLocalDelegateType(model, variables[0], "<>F{00000001}<System.Int32> d", "ref System.Int32 <>F{00000001}<System.Int32>.Invoke()");
+            VerifyLocalDelegateType(model, variables[1], "<>F{00000001}<System.Single> d", "ref System.Single <>F{00000001}<System.Single>.Invoke()");
         }
 
         [Fact]
@@ -2703,9 +2703,9 @@ class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"<>A{00000001}`2[System.Int32,System.Int32]
-<>A{00000002}`2[System.Int32,System.Int32]
+<>A{00000004}`2[System.Int32,System.Int32]
 <>A{00000001}`2[System.Single,System.Int32]
-<>A{00000002}`2[System.Single,System.Int32]
+<>A{00000004}`2[System.Single,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -2721,15 +2721,15 @@ class Program
   IL_0019:  dup
   IL_001a:  stsfld     ""<>A{00000001}<int, int> Program.<>c.<>9__0_0""
   IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>A{00000002}<int, int> Program.<>c.<>9__0_1""
+  IL_0024:  ldsfld     ""<>A{00000004}<int, int> Program.<>c.<>9__0_1""
   IL_0029:  dup
   IL_002a:  brtrue.s   IL_0043
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""void Program.<>c.<Main>b__0_1(int, ref int)""
-  IL_0038:  newobj     ""<>A{00000002}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>A{00000004}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
-  IL_003e:  stsfld     ""<>A{00000002}<int, int> Program.<>c.<>9__0_1""
+  IL_003e:  stsfld     ""<>A{00000004}<int, int> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
   IL_0048:  ldsfld     ""<>A{00000001}<float, int> Program.<>c.<>9__0_2""
   IL_004d:  dup
@@ -2741,15 +2741,15 @@ class Program
   IL_0061:  dup
   IL_0062:  stsfld     ""<>A{00000001}<float, int> Program.<>c.<>9__0_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
-  IL_006c:  ldsfld     ""<>A{00000002}<float, int> Program.<>c.<>9__0_3""
+  IL_006c:  ldsfld     ""<>A{00000004}<float, int> Program.<>c.<>9__0_3""
   IL_0071:  dup
   IL_0072:  brtrue.s   IL_008b
   IL_0074:  pop
   IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_007a:  ldftn      ""void Program.<>c.<Main>b__0_3(float, ref int)""
-  IL_0080:  newobj     ""<>A{00000002}<float, int>..ctor(object, System.IntPtr)""
+  IL_0080:  newobj     ""<>A{00000004}<float, int>..ctor(object, System.IntPtr)""
   IL_0085:  dup
-  IL_0086:  stsfld     ""<>A{00000002}<float, int> Program.<>c.<>9__0_3""
+  IL_0086:  stsfld     ""<>A{00000004}<float, int> Program.<>c.<>9__0_3""
   IL_008b:  call       ""void Program.Report(System.Delegate)""
   IL_0090:  ret
 }");
@@ -2777,8 +2777,8 @@ class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Func`1[System.Int32]
-<>F`1[System.Int32]
-<>F`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -2794,25 +2794,25 @@ class Program
   IL_0019:  dup
   IL_001a:  stsfld     ""System.Func<int> Program.<>c.<>9__1_0""
   IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>F<int> Program.<>c.<>9__1_1""
+  IL_0024:  ldsfld     ""<>F{00000001}<int> Program.<>c.<>9__1_1""
   IL_0029:  dup
   IL_002a:  brtrue.s   IL_0043
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__1_1()""
-  IL_0038:  newobj     ""<>F<int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
-  IL_003e:  stsfld     ""<>F<int> Program.<>c.<>9__1_1""
+  IL_003e:  stsfld     ""<>F{00000001}<int> Program.<>c.<>9__1_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
-  IL_0048:  ldsfld     ""<>F<int> Program.<>c.<>9__1_2""
+  IL_0048:  ldsfld     ""<>F{00000003}<int> Program.<>c.<>9__1_2""
   IL_004d:  dup
   IL_004e:  brtrue.s   IL_0067
   IL_0050:  pop
   IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__1_2()""
-  IL_005c:  newobj     ""<>F<int>..ctor(object, System.IntPtr)""
+  IL_005c:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
   IL_0061:  dup
-  IL_0062:  stsfld     ""<>F<int> Program.<>c.<>9__1_2""
+  IL_0062:  stsfld     ""<>F{00000003}<int> Program.<>c.<>9__1_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
   IL_006c:  ret
 }");
@@ -2843,49 +2843,64 @@ class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Func`1[System.Int32]
-<>F`1[System.Int32]
-<>F`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      109 (0x6d)
+  // Code size       52 (0x34)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int> Program.<>c.<>9__1_0""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001f
-  IL_0008:  pop
-  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_000e:  ldftn      ""int Program.<>c.<Main>b__1_0()""
-  IL_0014:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Func<int> Program.<>c.<>9__1_0""
-  IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>F<int> Program.<>c.<>9__1_1""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_0043
-  IL_002c:  pop
-  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__1_1()""
-  IL_0038:  newobj     ""<>F<int>..ctor(object, System.IntPtr)""
-  IL_003d:  dup
-  IL_003e:  stsfld     ""<>F<int> Program.<>c.<>9__1_1""
-  IL_0043:  call       ""void Program.Report(System.Delegate)""
-  IL_0048:  ldsfld     ""<>F<int> Program.<>c.<>9__1_2""
-  IL_004d:  dup
-  IL_004e:  brtrue.s   IL_0067
-  IL_0050:  pop
-  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__1_2()""
-  IL_005c:  newobj     ""<>F<int>..ctor(object, System.IntPtr)""
-  IL_0061:  dup
-  IL_0062:  stsfld     ""<>F<int> Program.<>c.<>9__1_2""
-  IL_0067:  call       ""void Program.Report(System.Delegate)""
-  IL_006c:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""int Program.F1()""
+  IL_0007:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""ref int Program.F2()""
+  IL_0018:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""ref readonly int Program.F3()""
+  IL_0029:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ret
 }");
         }
 
         [Fact]
         public void SynthesizedDelegateTypes_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int i = 0;
+    static int F1() => i;
+    static ref int F2() => ref i;
+    static ref readonly int F3() => ref i;
+    static void Main()
+    {
+        var d1 = F1;
+        var d2 = F2;
+        var d3 = F3;
+        Report(d1);
+        Report(d2);
+        Report(d3);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_07()
         {
             var source =
 @"using System;
@@ -2903,13 +2918,10 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE: The first delegate type should be distinct from the other two.
-            // Does the resulting code actually work? If the first two delegates are identical,
-            // the behavior of at least one of the two must be incorrect.
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"<>F{00000001}`2[System.Int32,System.Int32]
-<>F{00000001}`2[System.Int32,System.Int32]
-<>F{00000001}`2[System.Int32,System.Int32]
+<>F{00000005}`2[System.Int32,System.Int32]
+<>F{0000000d}`2[System.Int32,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -2925,32 +2937,32 @@ class Program
   IL_0019:  dup
   IL_001a:  stsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_0""
   IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_1""
+  IL_0024:  ldsfld     ""<>F{00000005}<int, int> Program.<>c.<>9__0_1""
   IL_0029:  dup
   IL_002a:  brtrue.s   IL_0043
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__0_1(ref int)""
-  IL_0038:  newobj     ""<>F{00000001}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>F{00000005}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
-  IL_003e:  stsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_1""
+  IL_003e:  stsfld     ""<>F{00000005}<int, int> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
-  IL_0048:  ldsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_2""
+  IL_0048:  ldsfld     ""<>F{0000000d}<int, int> Program.<>c.<>9__0_2""
   IL_004d:  dup
   IL_004e:  brtrue.s   IL_0067
   IL_0050:  pop
   IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__0_2(ref int)""
-  IL_005c:  newobj     ""<>F{00000001}<int, int>..ctor(object, System.IntPtr)""
+  IL_005c:  newobj     ""<>F{0000000d}<int, int>..ctor(object, System.IntPtr)""
   IL_0061:  dup
-  IL_0062:  stsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_2""
+  IL_0062:  stsfld     ""<>F{0000000d}<int, int> Program.<>c.<>9__0_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
   IL_006c:  ret
 }");
         }
 
         [Fact]
-        public void SynthesizedDelegateTypes_07()
+        public void SynthesizedDelegateTypes_08()
         {
             var source =
 @"#pragma warning disable 414
@@ -2971,12 +2983,11 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE: The delegate types should be all be distinct.
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
 <>A{00000001}`1[System.Int32]
-<>A{00000001}`1[System.Int32]
-<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -2992,15 +3003,15 @@ class Program
   IL_0019:  dup
   IL_001a:  stsfld     ""System.Action<int> Program.<>c.<>9__1_0""
   IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_1""
+  IL_0024:  ldsfld     ""<>A{00000002}<int> Program.<>c.<>9__1_1""
   IL_0029:  dup
   IL_002a:  brtrue.s   IL_0043
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""void Program.<>c.<Main>b__1_1(out int)""
-  IL_0038:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
-  IL_003e:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_1""
+  IL_003e:  stsfld     ""<>A{00000002}<int> Program.<>c.<>9__1_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
   IL_0048:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
   IL_004d:  dup
@@ -3012,22 +3023,22 @@ class Program
   IL_0061:  dup
   IL_0062:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
-  IL_006c:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_3""
+  IL_006c:  ldsfld     ""<>A{00000003}<int> Program.<>c.<>9__1_3""
   IL_0071:  dup
   IL_0072:  brtrue.s   IL_008b
   IL_0074:  pop
   IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_007a:  ldftn      ""void Program.<>c.<Main>b__1_3(in int)""
-  IL_0080:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_0080:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
   IL_0085:  dup
-  IL_0086:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_3""
+  IL_0086:  stsfld     ""<>A{00000003}<int> Program.<>c.<>9__1_3""
   IL_008b:  call       ""void Program.Report(System.Delegate)""
   IL_0090:  ret
 }");
         }
 
         [Fact]
-        public void SynthesizedDelegateTypes_08()
+        public void SynthesizedDelegateTypes_09()
         {
             var source =
 @"#pragma warning disable 414
@@ -3051,64 +3062,76 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE: The delegate types should be all be distinct.
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
 <>A{00000001}`1[System.Int32]
-<>A{00000001}`1[System.Int32]
-<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      145 (0x91)
+  // Code size       69 (0x45)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<int> Program.<>c.<>9__1_0""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001f
-  IL_0008:  pop
-  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_000e:  ldftn      ""void Program.<>c.<Main>b__1_0(int)""
-  IL_0014:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Action<int> Program.<>c.<>9__1_0""
-  IL_001f:  call       ""void Program.Report(System.Delegate)""
-  IL_0024:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_1""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_0043
-  IL_002c:  pop
-  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0032:  ldftn      ""void Program.<>c.<Main>b__1_1(out int)""
-  IL_0038:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
-  IL_003d:  dup
-  IL_003e:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_1""
-  IL_0043:  call       ""void Program.Report(System.Delegate)""
-  IL_0048:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
-  IL_004d:  dup
-  IL_004e:  brtrue.s   IL_0067
-  IL_0050:  pop
-  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0056:  ldftn      ""void Program.<>c.<Main>b__1_2(ref int)""
-  IL_005c:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
-  IL_0061:  dup
-  IL_0062:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
-  IL_0067:  call       ""void Program.Report(System.Delegate)""
-  IL_006c:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_3""
-  IL_0071:  dup
-  IL_0072:  brtrue.s   IL_008b
-  IL_0074:  pop
-  IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_007a:  ldftn      ""void Program.<>c.<Main>b__1_3(in int)""
-  IL_0080:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
-  IL_0085:  dup
-  IL_0086:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_3""
-  IL_008b:  call       ""void Program.Report(System.Delegate)""
-  IL_0090:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M1(int)""
+  IL_0007:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void Program.M2(out int)""
+  IL_0018:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""void Program.M3(ref int)""
+  IL_0029:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ldnull
+  IL_0034:  ldftn      ""void Program.M4(in int)""
+  IL_003a:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_003f:  call       ""void Program.Report(System.Delegate)""
+  IL_0044:  ret
 }");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_10()
+        {
+            var source =
+@"#pragma warning disable 414
+using System;
+class Program
+{
+    static void M1(int i) { }
+    static void M2(out int i) { i = 0; }
+    static void M3(ref int i) { }
+    static void M4(in int i) { }
+    static void Main()
+    {
+        var d1 = M1;
+        var d2 = M2;
+        var d3 = M3;
+        var d4 = M4;
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
+<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
+");
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
-        public void SynthesizedDelegateTypes_09()
+        public void SynthesizedDelegateTypes_11()
         {
             var source =
 @"class Program
@@ -3140,7 +3163,7 @@ class Program
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
-        public void SynthesizedDelegateTypes_10()
+        public void SynthesizedDelegateTypes_12()
         {
             var source =
 @"using System;
@@ -3168,7 +3191,7 @@ class Program
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
-        public void SynthesizedDelegateTypes_11()
+        public void SynthesizedDelegateTypes_13()
         {
             var source =
 @"ref struct S<T> { }
@@ -3193,7 +3216,7 @@ class Program
         }
 
         [Fact]
-        public void SynthesizedDelegateTypes_12()
+        public void SynthesizedDelegateTypes_14()
         {
             var source =
 @"class Program

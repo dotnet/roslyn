@@ -764,38 +764,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BitVector byRefs;
+            RefKindVector byRefs;
             if (hasByRefs)
             {
-                byRefs = BitVector.Create(1 + (loweredReceiver != null ? 1 : 0) + loweredArguments.Length + (loweredRight != null ? 1 : 0));
+                byRefs = RefKindVector.Create(1 + (loweredReceiver != null ? 1 : 0) + loweredArguments.Length + (loweredRight != null ? 1 : 0) + (returnsVoid ? 0 : 1));
 
                 int j = 1;
                 if (loweredReceiver != null)
                 {
-                    byRefs[j++] = receiverRefKind != RefKind.None;
+                    byRefs[j++] = getRefKind(receiverRefKind);
                 }
 
                 if (!refKinds.IsDefault)
                 {
                     for (int i = 0; i < refKinds.Length; i++, j++)
                     {
-                        if (refKinds[i] != RefKind.None)
-                        {
-                            byRefs[j] = true;
-                        }
+                        byRefs[j] = getRefKind(refKinds[i]);
                     }
+                }
+
+                if (!returnsVoid)
+                {
+                    byRefs[j++] = RefKind.None;
                 }
             }
             else
             {
-                byRefs = default(BitVector);
+                byRefs = default(RefKindVector);
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
             Debug.Assert(_factory.CompilationState.ModuleBuilderOpt is { });
             int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, returnRefKind: RefKind.None, generation);
+            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
             return synthesizedType.Construct(delegateSignature);
+
+            // The distinction between by-ref kinds is dropped.
+            static RefKind getRefKind(RefKind refKind) => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
         }
 
         private BoundExpression GetArgumentInfo(

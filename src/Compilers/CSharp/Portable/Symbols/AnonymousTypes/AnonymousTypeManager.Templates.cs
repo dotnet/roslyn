@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
         {
-            private readonly BitVector _byRefs;
+            private readonly RefKindVector _byRefs;
             private readonly ushort _parameterCount;
             private readonly bool _returnsVoid;
             private readonly int _generation;
 
-            public SynthesizedDelegateKey(int parameterCount, BitVector byRefs, bool returnsVoid, int generation)
+            public SynthesizedDelegateKey(int parameterCount, RefKindVector byRefs, bool returnsVoid, int generation)
             {
                 _parameterCount = (ushort)parameterCount;
                 _returnsVoid = returnsVoid;
@@ -163,12 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitVector byRefParameters, bool returnsVoid, RefKind returnRefKind, int generation)
+        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, RefKindVector refKinds, bool returnsVoid, int generation)
         {
             // parameterCount doesn't include return type
-            Debug.Assert(byRefParameters.IsNull || parameterCount == byRefParameters.Capacity);
+            Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (returnsVoid ? 0 : 1));
 
-            var key = new SynthesizedDelegateKey(parameterCount, byRefParameters, returnsVoid, generation);
+            var key = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
 
             SynthesizedDelegateValue result;
             if (this.SynthesizedDelegates.TryGetValue(key, out result))
@@ -184,8 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Compilation.GetSpecialType(SpecialType.System_IntPtr),
                 returnsVoid ? Compilation.GetSpecialType(SpecialType.System_Void) : null,
                 parameterCount,
-                byRefParameters,
-                returnRefKind);
+                refKinds);
             return this.SynthesizedDelegates.GetOrAdd(key, new SynthesizedDelegateValue(this, synthesizedDelegate)).Delegate;
         }
 

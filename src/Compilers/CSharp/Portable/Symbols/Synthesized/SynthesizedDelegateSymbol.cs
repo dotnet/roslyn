@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -28,13 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol intPtrType,
             TypeSymbol? voidReturnTypeOpt,
             int parameterCount,
-            BitVector byRefParameters,
-            RefKind returnRefKind)
+            RefKindVector refKinds)
             : base(name, parameterCount, returnsVoid: voidReturnTypeOpt is not null)
         {
             _containingSymbol = containingSymbol;
             _constructor = new DelegateConstructor(this, objectType, intPtrType);
-            _invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt, returnRefKind);
+            _invoke = new InvokeMethod(this, refKinds, voidReturnTypeOpt);
         }
 
         public override Symbol ContainingSymbol
@@ -117,27 +115,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly TypeSymbol _returnType;
             private readonly RefKind _returnRefKind;
 
-            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol? voidReturnTypeOpt, RefKind returnRefKind)
+            internal InvokeMethod(SynthesizedDelegateSymbol containingType, RefKindVector refKinds, TypeSymbol? voidReturnTypeOpt)
             {
                 var typeParams = containingType.TypeParameters;
 
                 _containingType = containingType;
 
-                // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
-                _returnType = voidReturnTypeOpt ?? typeParams.Last();
-                _returnRefKind = returnRefKind;
-
                 int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(parameterCount);
                 for (int i = 0; i < parameterCount; i++)
                 {
-                    // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
-                    var parameterRefKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
-
+                    var parameterRefKind = refKinds.IsNull ? RefKind.None : refKinds[i];
                     parameters.Add(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(typeParams[i]), i, parameterRefKind));
                 }
 
                 _parameters = parameters.ToImmutableAndFree();
+
+                // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
+                _returnType = voidReturnTypeOpt ?? typeParams[parameterCount];
+                _returnRefKind = (refKinds.IsNull || voidReturnTypeOpt is { }) ? RefKind.None : refKinds[parameterCount];
             }
 
             public override string Name
