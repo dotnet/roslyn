@@ -159,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Margin = new Thickness(left, top: 0, right, bottom: 0),
             };
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             // gets pixel distance of baseline to top of the font height
             var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
 
