@@ -50,8 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                             string description,
                                             AnalyzerConfigOptions editorConfigOptions,
                                             OptionSet visualStudioOptions,
-                                            OptionUpdater updater)
-            : base(description, updater)
+                                            OptionUpdater updater,
+                                            SettingLocation location)
+            : base(description, updater, location)
         {
             _option = option;
             _editorConfigOptions = editorConfigOptions;
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public override void SetValue(object value)
         {
             Value = (T)value;
+            Location = Location with { LocationKind = LocationKind.EditorConfig };
             Updater.QueueUpdate(_option, value);
         }
 

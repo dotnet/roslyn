@@ -33,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             {
                 new ColumnState2(ColumnDefinitions.Formatting.Category, isVisible: false, width: 0, groupingPriority: 1),
                 new ColumnState2(ColumnDefinitions.Formatting.Description, isVisible: true, width: 0),
-                new ColumnState2(ColumnDefinitions.Formatting.Value, isVisible: true, width: 0)
+                new ColumnState2(ColumnDefinitions.Formatting.Value, isVisible: true, width: 0),
+                new ColumnState2(ColumnDefinitions.Formatting.Location, isVisible: true, width: 0)
             };
 
         protected override string[] GetFixedColumns()
@@ -41,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             {
                 ColumnDefinitions.Formatting.Category,
                 ColumnDefinitions.Formatting.Description,
-                ColumnDefinitions.Formatting.Value
+                ColumnDefinitions.Formatting.Value,
+                ColumnDefinitions.Formatting.Location
             };
     }
 }

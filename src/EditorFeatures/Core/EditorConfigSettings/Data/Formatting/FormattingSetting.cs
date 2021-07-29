@@ -14,10 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         protected OptionUpdater Updater { get; }
         protected string? Language { get; }
 
-        protected FormattingSetting(string description, OptionUpdater updater, string? language = null)
+        protected FormattingSetting(string description, OptionUpdater updater, SettingLocation location, string? language = null)
         {
             Description = description ?? throw new ArgumentNullException(nameof(description));
             Updater = updater;
+            Location = location;
             Language = language;
         }
 
@@ -28,25 +29,33 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract void SetValue(object value);
         public abstract object? GetValue();
         public abstract bool IsDefinedInEditorConfig { get; }
+        public SettingLocation Location { get; protected set; }
 
         public static PerLanguageFormattingSetting<TOption> Create<TOption>(PerLanguageOption2<TOption> option,
                                                                             string description,
                                                                             AnalyzerConfigOptions editorConfigOptions,
                                                                             OptionSet visualStudioOptions,
-                                                                            OptionUpdater updater)
+                                                                            OptionUpdater updater,
+                                                                            string fileName)
             where TOption : notnull
         {
-            return new PerLanguageFormattingSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater);
+
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<TOption>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            return new PerLanguageFormattingSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater, location);
         }
 
         public static FormattingSetting<TOption> Create<TOption>(Option2<TOption> option,
                                                                  string description,
                                                                  AnalyzerConfigOptions editorConfigOptions,
                                                                  OptionSet visualStudioOptions,
-                                                                 OptionUpdater updater)
+                                                                 OptionUpdater updater,
+                                                                 string fileName)
             where TOption : struct
         {
-            return new FormattingSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater);
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<TOption>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            return new FormattingSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater, location);
         }
     }
 }

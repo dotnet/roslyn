@@ -16,6 +16,7 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View.ColumnDefnitions
 {
+
     [Export(typeof(ITableColumnDefinition))]
     [Name(Value)]
     internal class FormattingValueColumnDefinition : TableColumnDefinitionBase
