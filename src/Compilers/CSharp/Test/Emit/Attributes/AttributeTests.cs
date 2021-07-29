@@ -10291,7 +10291,7 @@ class Outer<T2>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
         }
 
-        [Fact, WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
         public void GenericAttributeParameter_01()
         {
             var source = @"
