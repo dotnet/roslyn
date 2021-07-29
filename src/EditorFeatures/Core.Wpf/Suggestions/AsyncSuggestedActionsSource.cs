@@ -88,38 +88,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (document is null)
                         return;
 
-                    // Compute and return the high pri set of fixes and refactorings first so the user
-                    // can act on them immediately without waiting on the regular set.
-                    await GetSuggestedActionsAsync(
-                        requestedActionCategories, range, state, selection, document, completedCollectors,
-                        collectors.FirstOrDefault(c => c.Priority == VisualStudio.Utilities.DefaultOrderings.Highest),
-                        CodeActionRequestPriority.High, cancellationToken).ConfigureAwait(false);
+                    // Collectors are in priority order.  So just walk them from highest to lowest.
+                    foreach (var collector in collectors)
+                    {
+                        var priority = collector.Priority switch
+                        {
+                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                            _ => (CodeActionRequestPriority?)null,
+                        };
 
-                    await GetSuggestedActionsAsync(
-                        requestedActionCategories, range, state, selection, document, completedCollectors,
-                        collectors.FirstOrDefault(c => c.Priority == VisualStudio.Utilities.DefaultOrderings.Default),
-                        CodeActionRequestPriority.Normal, cancellationToken).ConfigureAwait(false);
+                        if (priority != null)
+                        {
+                            var allSets = GetCodeFixesAndRefactoringsAsync(
+                                state, requestedActionCategories, document, range, selection, _ => null,
+                                priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                            await foreach (var set in allSets)
+                                collector.Add(set);
+                        }
+
+                        collector.Complete();
+                        completedCollectors.Add(collector);
+                    }
                 }
-            }
-
-            private async Task GetSuggestedActionsAsync(
-                ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
-                ReferenceCountedDisposable<State> state, TextSpan? selection, Document document,
-                ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
-                ISuggestedActionSetCollector? collector, CodeActionRequestPriority priority, CancellationToken cancellationToken)
-            {
-                if (collector == null)
-                    return;
-
-                var allSets = GetCodeFixesAndRefactoringsAsync(
-                    state, requestedActionCategories, document, range, selection, _ => null,
-                    priority, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-
-                await foreach (var set in allSets)
-                    collector.Add(set);
-
-                collector.Complete();
-                completedCollectors.Add(collector);
             }
 
             private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
