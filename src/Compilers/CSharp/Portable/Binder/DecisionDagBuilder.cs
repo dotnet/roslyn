@@ -536,9 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                        continue;
                     }
-                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    else
+                    {
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    }
                 }
             }
 
