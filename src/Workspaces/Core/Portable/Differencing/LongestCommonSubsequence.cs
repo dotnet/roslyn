@@ -279,9 +279,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             // make sure we finish the enumeration as it returns the allocated buffers to the pool
-            if (varrays.MoveNext())
+            while (varrays.MoveNext())
             {
-                throw ExceptionUtilities.Unreachable;
             }
         }
 
