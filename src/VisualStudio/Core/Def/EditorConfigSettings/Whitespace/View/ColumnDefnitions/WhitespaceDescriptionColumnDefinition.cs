@@ -13,11 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 {
     [Export(typeof(ITableColumnDefinition))]
     [Name(Description)]
-    internal class FormattingDescriptionColumnDefinition : TableColumnDefinitionBase
+    internal class WhitespaceDescriptionColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingDescriptionColumnDefinition()
+        public WhitespaceDescriptionColumnDefinition()
         {
         }
 

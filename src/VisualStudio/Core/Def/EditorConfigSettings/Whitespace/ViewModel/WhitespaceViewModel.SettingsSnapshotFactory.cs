@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel
 {
-    internal partial class FormattingViewModel
+    internal partial class WhitespaceViewModel
     {
         internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<FormattingSetting, SettingsEntriesSnapshot>
         {

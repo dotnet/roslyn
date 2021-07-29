@@ -123,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     throw new InvalidOperationException("Unable to get formatter settings");
                 }
 
-                var viewModel = new FormattingViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new FormattingSettingsView(viewModel);
+                var viewModel = new WhitespaceViewModel(dataProvider, _controlProvider, _tableMangerProvider);
+                return new WhitespaceSettingsView(viewModel);
             }
 
             ISettingsEditorView GetCodeStyleView()

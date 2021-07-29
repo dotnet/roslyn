@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
     /// <summary>
     /// Interaction logic for FormattingSettingsView.xaml
     /// </summary>
-    internal partial class FormattingSettingsView : UserControl, ISettingsEditorView
+    internal partial class WhitespaceSettingsView : UserControl, ISettingsEditorView
     {
         private readonly IWpfSettingsEditorViewModel _viewModel;
 
-        public FormattingSettingsView(IWpfSettingsEditorViewModel viewModel)
+        public WhitespaceSettingsView(IWpfSettingsEditorViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;

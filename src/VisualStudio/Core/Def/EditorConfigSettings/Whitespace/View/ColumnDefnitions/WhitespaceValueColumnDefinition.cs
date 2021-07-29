@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(Value)]
-    internal class FormattingValueColumnDefinition : TableColumnDefinitionBase
+    internal class WhitespaceValueColumnDefinition : TableColumnDefinitionBase
     {
         private readonly IEnumerable<IEnumSettingViewModelFactory> _factories;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingValueColumnDefinition([ImportMany] IEnumerable<IEnumSettingViewModelFactory> factories)
+        public WhitespaceValueColumnDefinition([ImportMany] IEnumerable<IEnumSettingViewModelFactory> factories)
         {
             _factories = factories;
         }
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 
             if (setting.Type == typeof(bool))
             {
-                content = new FormattingBoolSettingView(setting);
+                content = new WhitespaceBoolSettingView(setting);
                 return true;
             }
 

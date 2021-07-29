@@ -12,12 +12,12 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel
 {
-    internal partial class FormattingViewModel : SettingsViewModelBase<
+    internal partial class WhitespaceViewModel : SettingsViewModelBase<
         FormattingSetting,
-        FormattingViewModel.SettingsSnapshotFactory,
-        FormattingViewModel.SettingsEntriesSnapshot>
+        WhitespaceViewModel.SettingsSnapshotFactory,
+        WhitespaceViewModel.SettingsEntriesSnapshot>
     {
-        public FormattingViewModel(ISettingsProvider<FormattingSetting> data,
+        public WhitespaceViewModel(ISettingsProvider<FormattingSetting> data,
                                    IWpfTableControlProvider controlProvider,
                                    ITableManagerProvider tableMangerProvider)
             : base(data, controlProvider, tableMangerProvider)

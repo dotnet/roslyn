@@ -12,11 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
     /// <summary>
     /// Interaction logic for WhitespaceValueSettingControl.xaml
     /// </summary>
-    internal partial class FormattingBoolSettingView : UserControl
+    internal partial class WhitespaceBoolSettingView : UserControl
     {
         private readonly FormattingSetting _setting;
 
-        public FormattingBoolSettingView(FormattingSetting setting)
+        public WhitespaceBoolSettingView(FormattingSetting setting)
         {
             InitializeComponent();
             RootCheckBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);

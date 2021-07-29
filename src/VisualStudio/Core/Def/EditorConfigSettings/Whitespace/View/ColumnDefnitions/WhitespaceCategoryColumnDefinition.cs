@@ -14,24 +14,24 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View.ColumnDefnitions
 {
     [Export(typeof(IDefaultColumnGroup))]
-    [Name(nameof(FormattingCategoryGroupingSet))]    // Required, name of the default group
+    [Name(nameof(WhitespaceCategoryGroupingSet))]    // Required, name of the default group
     [GroupColumns(Category)] // Required, the names of the columns in the grouping
-    internal class FormattingCategoryGroupingSet : IDefaultColumnGroup
+    internal class WhitespaceCategoryGroupingSet : IDefaultColumnGroup
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingCategoryGroupingSet()
+        public WhitespaceCategoryGroupingSet()
         {
         }
     }
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(Category)]
-    internal class FormattingCategoryColumnDefinition : TableColumnDefinitionBase
+    internal class WhitespaceCategoryColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingCategoryColumnDefinition()
+        public WhitespaceCategoryColumnDefinition()
         {
         }
 
