@@ -380,6 +380,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                     }
                     break;
+                case BoundBinaryOperator unconvertedBinaryOperator:
+                    {
+                        result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
@@ -2999,10 +3004,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (kind.IsInterpolatedStringHandler)
                 {
-                    Debug.Assert(argument is BoundUnconvertedInterpolatedString);
+                    Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall((BoundUnconvertedInterpolatedString)argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, receiverEscapeScope, diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, receiverEscapeScope, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
