@@ -152,10 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
             {
-                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
                 return new BoundConversion(
                     syntax,
-                    BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
+                    BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast && !wasCompilerGenerated,
