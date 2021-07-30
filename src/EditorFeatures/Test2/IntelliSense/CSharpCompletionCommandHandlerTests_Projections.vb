@@ -72,7 +72,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory(Skip:="https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1363210"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreationExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
