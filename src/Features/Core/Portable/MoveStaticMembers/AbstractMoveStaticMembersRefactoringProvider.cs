@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Features.RQName.Nodes;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
@@ -25,26 +28,38 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             var (document, span, cancellationToken) = context;
 
-            var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
-            if (selectedMemberNode == null)
+            var memberDeclaration = await GetSelectedNodeAsync(context).ConfigureAwait(false);
+            if (memberDeclaration == null)
             {
                 return;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
-            if (selectedMember == null || selectedMember.ContainingType == null || !selectedMember.IsStatic)
+            if (semanticModel == null)
+            {
+                return;
+            }
+
+            var selectedType = semanticModel.GetEnclosingNamedType(span.Start, cancellationToken);
+            if (selectedType == null)
+            {
+                return;
+            }
+
+            var selectedMembers = selectedType.GetMembers()
+                .WhereAsArray(m => m.IsStatic &&
+                    MemberAndDestinationValidator.IsMemberValid(m) &&
+                    m.DeclaringSyntaxReferences.Any(sr => memberDeclaration.FullSpan.Contains(sr.Span)));
+            if (selectedMembers.IsEmpty)
             {
                 return;
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var selectedType = selectedMember.ContainingType;
-            var selectedTypeDeclaration = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
 
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, _service, selectedType, selectedMember: selectedMember);
+            var action = new MoveStaticMembersWithDialogCodeAction(document, span, _service, selectedType, selectedMember: selectedMembers[0]);
 
-            context.RegisterRefactoring(action, selectedMemberNode.Span);
+            context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
         }
     }
 }

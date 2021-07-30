@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 Return methodMember
             Else
                 ' Gets field members, which are not methods
-                Return Await context.TryGetRelevantNodeAsync(Of VariableDeclaratorSyntax).ConfigureAwait(False)
+                Return Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
             End If
         End Function
     End Module
