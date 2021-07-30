@@ -16,10 +16,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Formatting
 {
-    internal class CSharpFormattingSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
+    internal class CSharpWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
     {
-        public CSharpFormattingSettingsProvider(string FileName, OptionUpdater updaterService, Workspace workspace)
-            : base(FileName, updaterService, workspace)
+        public CSharpWhitespaceSettingsProvider(string filePath, OptionUpdater updaterService, Workspace workspace)
+            : base(filePath, updaterService, workspace)
         {
             Update();
         }
