@@ -126,8 +126,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             foreach (var edit in edits)
             {
-                // We only care about EditKind.Insert and EditKind.Delete, since they encompass all
-                // changes to the document. All other EditKinds are ignored.
                 switch (edit.Kind)
                 {
                     case EditKind.Insert:
@@ -141,6 +139,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         Contract.ThrowIfTrue(editKindWithoutDelete == SemanticTokenEditKind.Delete, "There cannot be two deletions at the same position.");
                         Contract.ThrowIfTrue(editKindWithoutDelete == SemanticTokenEditKind.Update, "There cannot be a deletion and update at the same position.");
                         indexToEditKinds[edit.OldIndex] = editKindWithoutDelete == SemanticTokenEditKind.None ? SemanticTokenEditKind.Delete : SemanticTokenEditKind.Update;
+                        break;
+                    case EditKind.Update:
+                        // EditKind.Update indicates that the index of the token may have changed. We can usually safely ignore these updates,
+                        // except in one case where an update interferes with an insert. For example, given the following edits:
+                        //    Insert (3) ['A'] (i.e. insert token 'A' at index 3 in the new token set)
+                        //    Update (3->2) ['B'] (i.e. move token 'B', now technically at index 4 due to the insertion above, to index 2)
+                        // We need to acknowledge the update here or else token 'A' will be out of position, since 'B' needs to move position
+                        // from after 'A' to before 'A'.
+
+                        indexToEditKinds.TryGetValue(edit.OldIndex, out var oldEditKind);
+                        if (edit.OldIndex > edit.NewIndex && oldEditKind == SemanticTokenEditKind.Insert)
+                        {
+                            // Remove the outdated token
+                            indexToEditKinds[edit.OldIndex] = SemanticTokenEditKind.Update;
+
+                            // Insert the updated token
+                            indexToEditKinds.TryGetValue(edit.NewIndex, out var newEditKind);
+                            indexToEditKinds[edit.NewIndex] = newEditKind == SemanticTokenEditKind.None ? SemanticTokenEditKind.Insert : SemanticTokenEditKind.Update;
+                        }
+
                         break;
                 }
             }
