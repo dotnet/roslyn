@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
-            if (!entry.TryGetValue(Value, out FormattingSetting setting))
+            if (!entry.TryGetValue(Value, out WhitespaceSetting setting))
             {
                 content = null;
                 return false;

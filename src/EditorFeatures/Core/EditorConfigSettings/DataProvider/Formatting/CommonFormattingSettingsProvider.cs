@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Formatting
 {
-    internal class CommonFormattingSettingsProvider : SettingsProviderBase<FormattingSetting, OptionUpdater, IOption2, object>
+    internal class CommonFormattingSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
     {
         public CommonFormattingSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
             : base(fileName, settingsUpdater, workspace)
@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Format
             AddRange(defaultOptions);
         }
 
-        private IEnumerable<FormattingSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<WhitespaceSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            yield return FormattingSetting.Create(FormattingOptions2.UseTabs, EditorFeaturesResources.Use_Tabs, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return FormattingSetting.Create(FormattingOptions2.TabSize, EditorFeaturesResources.Tab_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return FormattingSetting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return FormattingSetting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return FormattingSetting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(FormattingOptions2.UseTabs, EditorFeaturesResources.Use_Tabs, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(FormattingOptions2.TabSize, EditorFeaturesResources.Tab_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, editorConfigOptions, visualStudioOptions, updater, FileName);
         }
     }
 }

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal sealed class FormattingSetting<T> : FormattingSetting
+    internal sealed class WhitespaceSetting<T> : WhitespaceSetting
         where T : notnull
     {
         public override bool IsDefinedInEditorConfig => _options.TryGetEditorConfigOption<T>(_option, out _);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         private readonly AnalyzerConfigOptions _options;
         private readonly OptionSet _visualStudioOptions;
 
-        public FormattingSetting(Option2<T> option,
+        public WhitespaceSetting(Option2<T> option,
                                  string description,
                                  AnalyzerConfigOptions options,
                                  OptionSet visualStudioOptions,

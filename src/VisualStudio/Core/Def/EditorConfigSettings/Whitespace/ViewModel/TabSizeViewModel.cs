@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 {
     internal class TabSizeViewModel : EnumSettingViewModel<TabSizeSettings>
     {
-        private readonly FormattingSetting _setting;
+        private readonly WhitespaceSetting _setting;
 
-        public TabSizeViewModel(FormattingSetting setting)
+        public TabSizeViewModel(WhitespaceSetting setting)
         {
             _setting = setting;
         }

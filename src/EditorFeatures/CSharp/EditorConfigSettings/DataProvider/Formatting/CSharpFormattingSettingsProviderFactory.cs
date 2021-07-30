@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Formatting
 {
-    internal class CSharpFormattingSettingsProviderFactory : ILanguageSettingsProviderFactory<FormattingSetting>
+    internal class CSharpFormattingSettingsProviderFactory : ILanguageSettingsProviderFactory<WhitespaceSetting>
     {
         private readonly Workspace _workspace;
 
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             _workspace = workspace;
         }
 
-        public ISettingsProvider<FormattingSetting> GetForFile(string filePath)
+        public ISettingsProvider<WhitespaceSetting> GetForFile(string filePath)
         {
             var updaterService = new OptionUpdater(_workspace, filePath);
             return new CSharpFormattingSettingsProvider(filePath, updaterService, _workspace);

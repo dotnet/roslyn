@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal sealed class PerLanguageFormattingSetting<T> : FormattingSetting
+    internal sealed class PerLanguageWhitespaceSetting<T> : WhitespaceSetting
         where T : notnull
     {
         private bool _isValueSet;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         private readonly AnalyzerConfigOptions _editorConfigOptions;
         private readonly OptionSet _visualStudioOptions;
 
-        public PerLanguageFormattingSetting(PerLanguageOption2<T> option,
+        public PerLanguageWhitespaceSetting(PerLanguageOption2<T> option,
                                             string description,
                                             AnalyzerConfigOptions editorConfigOptions,
                                             OptionSet visualStudioOptions,

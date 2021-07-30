@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
     /// </summary>
     internal partial class WhitespaceBoolSettingView : UserControl
     {
-        private readonly FormattingSetting _setting;
+        private readonly WhitespaceSetting _setting;
 
-        public WhitespaceBoolSettingView(FormattingSetting setting)
+        public WhitespaceBoolSettingView(WhitespaceSetting setting)
         {
             InitializeComponent();
             RootCheckBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);

@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
         }
 
-        public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
+        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
         {
             return new TabSizeViewModel(setting);
         }

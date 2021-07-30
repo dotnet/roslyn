@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             _key = new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp);
         }
 
-        public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
+        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
         {
             return new NewLineViewModel(setting);
         }
@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 
     internal class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
     {
-        private readonly FormattingSetting _setting;
+        private readonly WhitespaceSetting _setting;
 
-        public NewLineViewModel(FormattingSetting setting)
+        public NewLineViewModel(WhitespaceSetting setting)
         {
             _setting = setting;
         }

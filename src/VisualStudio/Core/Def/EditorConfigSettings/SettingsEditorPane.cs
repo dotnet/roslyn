@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             ISettingsEditorView GetFormattingView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<FormattingSetting>(_fileName);
+                var dataProvider = _settingsDataProviderService.GetSettingsProvider<WhitespaceSetting>(_fileName);
                 if (dataProvider is null)
                 {
                     throw new InvalidOperationException("Unable to get formatter settings");
