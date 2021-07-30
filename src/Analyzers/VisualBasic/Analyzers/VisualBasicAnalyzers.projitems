@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\VisualBasicAddRequiredParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\VisualBasicConvertAnonymousTypeToTupleDiagnosticAnalyzer.vb" />
