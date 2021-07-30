@@ -351,8 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (isAnoymousDelegate)
             {
-                var name = $"<anonymous delegate>";
-                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, name));
+                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
             }
             else
             {
