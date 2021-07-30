@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal readonly struct InferredLambdaReturnType
     {
         internal readonly int NumExpressions;
+        internal readonly bool IsExplicitType;
         internal readonly bool HadExpressionlessReturn;
         internal readonly RefKind RefKind;
         internal readonly TypeWithAnnotations TypeWithAnnotations;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InferredLambdaReturnType(
             int numExpressions,
+            bool isExplicitType,
             bool hadExpressionlessReturn,
             RefKind refKind,
             TypeWithAnnotations typeWithAnnotations,
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<AssemblySymbol> dependencies)
         {
             NumExpressions = numExpressions;
+            IsExplicitType = isExplicitType;
             HadExpressionlessReturn = hadExpressionlessReturn;
             RefKind = refKind;
             TypeWithAnnotations = typeWithAnnotations;
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
-        internal InferredLambdaReturnType InferredReturnType { get; private set; }
+        internal InferredLambdaReturnType InferredReturnType { get; }
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
@@ -105,12 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo.AddDependencies(InferredReturnType.Dependencies);
             }
 
-            if (nullableState == null)
+            if (nullableState == null || InferredReturnType.IsExplicitType)
             {
                 return InferredReturnType.TypeWithAnnotations;
             }
             else
             {
+                Debug.Assert(!UnboundLambda.HasExplicitReturnType(out _, out _));
                 Debug.Assert(conversions != null);
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
@@ -159,12 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             BoundLambda node, Binder binder, TypeSymbol? delegateType, bool isAsync, ConversionsBase conversions)
         {
+            Debug.Assert(!node.UnboundLambda.HasExplicitReturnType(out _, out _));
             return InferReturnTypeImpl(returnTypes, node, binder, delegateType, isAsync, conversions, node.UnboundLambda.WithDependencies);
         }
 
         internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             UnboundLambda node, Binder binder, TypeSymbol? delegateType, bool isAsync, ConversionsBase conversions)
         {
+            Debug.Assert(!node.HasExplicitReturnType(out _, out _));
             return InferReturnTypeImpl(returnTypes, node, binder, delegateType, isAsync, conversions, node.WithDependencies);
         }
 
@@ -199,9 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo);
             int numExpressions = types.Count;
             types.Free();
-            return new InferredLambdaReturnType(numExpressions, hasReturnWithoutArgument, refKind, bestType,
-                                                useSiteInfo.Diagnostics.AsImmutableOrEmpty(),
-                                                useSiteInfo.AccumulatesDependencies ? useSiteInfo.Dependencies.AsImmutableOrEmpty() : ImmutableArray<AssemblySymbol>.Empty);
+            return new InferredLambdaReturnType(
+                numExpressions,
+                isExplicitType: false,
+                hasReturnWithoutArgument, refKind, bestType,
+                useSiteInfo.Diagnostics.AsImmutableOrEmpty(),
+                useSiteInfo.AccumulatesDependencies ? useSiteInfo.Dependencies.AsImmutableOrEmpty() : ImmutableArray<AssemblySymbol>.Empty);
         }
 
         private static TypeWithAnnotations CalculateReturnType(
@@ -342,14 +351,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             Binder binder,
             bool withDependencies,
-            ImmutableArray<SyntaxList<AttributeListSyntax>> attributes,
+            RefKind returnRefKind,
+            TypeWithAnnotations returnType,
+            ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes,
             ImmutableArray<RefKind> refKinds,
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
             ImmutableArray<bool> discardsOpt,
             bool isAsync,
             bool isStatic)
-            : this(syntax, new PlainUnboundLambdaState(binder, attributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true), withDependencies, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
+            : this(syntax, new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true), withDependencies, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -388,8 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             => Data.InferDelegateType(ref useSiteInfo);
 
-        public BoundLambda Bind(NamedTypeSymbol delegateType)
-            => SuppressIfNeeded(Data.Bind(delegateType));
+        public BoundLambda Bind(NamedTypeSymbol delegateType, bool isExpressionTree)
+            => SuppressIfNeeded(Data.Bind(delegateType, isExpressionTree));
 
         public BoundLambda BindForErrorRecovery()
             => SuppressIfNeeded(Data.BindForErrorRecovery());
@@ -401,6 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
 
         public bool HasSignature { get { return Data.HasSignature; } }
+        public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
+            => Data.HasExplicitReturnType(out refKind, out returnType);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -426,8 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
-            Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda>? _bindingCache;
+            Constraint = "Avoid " + nameof(ConcurrentDictionary<(NamedTypeSymbol, bool), BoundLambda>) + " which has a large default size, but this cache is normally small.")]
+        private ImmutableDictionary<(NamedTypeSymbol Type, bool IsExpressionLambda), BoundLambda>? _bindingCache;
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -443,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeCache)
             {
-                _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(Symbols.SymbolEqualityComparer.ConsiderEverything);
+                _bindingCache = ImmutableDictionary<(NamedTypeSymbol Type, bool IsExpressionLambda), BoundLambda>.Empty.WithComparers(BindingCacheComparer.Instance);
                 _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
             }
 
@@ -478,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool ParameterIsDiscard(int index);
         public abstract SyntaxList<AttributeListSyntax> ParameterAttributes(int index);
         public abstract bool HasSignature { get; }
+        public abstract bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType);
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
@@ -505,13 +519,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns the inferred return type, or null if none can be inferred.
-        public BoundLambda Bind(NamedTypeSymbol delegateType)
+        public BoundLambda Bind(NamedTypeSymbol delegateType, bool isTargetExpressionTree)
         {
-            BoundLambda? result;
-            if (!_bindingCache!.TryGetValue(delegateType, out result))
+            bool inExpressionTree = Binder.InExpressionTree || isTargetExpressionTree;
+
+            if (!_bindingCache!.TryGetValue((delegateType, inExpressionTree), out BoundLambda? result))
             {
-                result = ReallyBind(delegateType);
-                result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, delegateType, result);
+                result = ReallyBind(delegateType, inExpressionTree);
+                result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, (delegateType, inExpressionTree), result);
             }
 
             return result;
@@ -556,71 +571,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invokeMethod.ReturnTypeWithAnnotations;
         }
 
-        private bool DelegateNeedsReturn(MethodSymbol? invokeMethod)
-        {
-            if (invokeMethod is null || invokeMethod.ReturnsVoid)
-            {
-                return false;
-            }
-
-            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.Binder.Compilation))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         internal NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
 
-            var compilation = Binder.Compilation;
+            if (!HasExplicitlyTypedParameterList)
+            {
+                return null;
+            }
+
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
             for (int i = 0; i < ParameterCount; i++)
             {
-                parameterRefKindsBuilder.Add(HasExplicitlyTypedParameterList ? RefKind(i) : default);
-                parameterTypesBuilder.Add(HasExplicitlyTypedParameterList ? ParameterTypeWithAnnotations(i) : TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object)));
+                parameterRefKindsBuilder.Add(RefKind(i));
+                parameterTypesBuilder.Add(ParameterTypeWithAnnotations(i));
             }
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
-            var lambdaSymbol = new LambdaSymbol(
-                Binder,
-                compilation,
-                Binder.ContainingMemberOrLambda,
-                _unboundLambda,
-                parameterTypes,
-                parameterRefKinds,
-                refKind: default,
-                returnType: default);
-            var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
-            var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, BindingDiagnosticBag.Discarded);
-            var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
-            BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
-            var inferredReturnType = BoundLambda.InferReturnType(
-                returnTypes,
-                _unboundLambda,
-                lambdaBodyBinder,
-                delegateType: null,
-                isAsync: IsAsync,
-                Binder.Conversions);
-
-            if (HasExplicitlyTypedParameterList && (inferredReturnType.TypeWithAnnotations.HasType || returnTypes.Count == 0))
+            if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
-                return Binder.GetMethodGroupOrLambdaDelegateType(
-                    inferredReturnType.RefKind,
-                    inferredReturnType.TypeWithAnnotations,
-                    parameterRefKinds,
+                var lambdaSymbol = new LambdaSymbol(
+                    Binder,
+                    Binder.Compilation,
+                    Binder.ContainingMemberOrLambda,
+                    _unboundLambda,
                     parameterTypes,
-                    ref useSiteInfo);
+                    parameterRefKinds,
+                    refKind: default,
+                    returnType: default);
+                var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, BindingDiagnosticBag.Discarded);
+                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
+                BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
+                var inferredReturnType = BoundLambda.InferReturnType(
+                    returnTypes,
+                    _unboundLambda,
+                    lambdaBodyBinder,
+                    delegateType: null,
+                    isAsync: IsAsync,
+                    Binder.Conversions);
+
+                returnType = inferredReturnType.TypeWithAnnotations;
+                returnRefKind = inferredReturnType.RefKind;
+
+                if (!returnType.HasType && returnTypes.Count > 0)
+                {
+                    return null;
+                }
             }
 
-            return null;
+            return Binder.GetMethodGroupOrLambdaDelegateType(
+                returnRefKind,
+                returnType.Type?.IsVoidType() == true ? default : returnType,
+                parameterRefKinds,
+                parameterTypes,
+                ref useSiteInfo);
         }
 
-        private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
+        private BoundLambda ReallyBind(NamedTypeSymbol delegateType, bool inExpressionTree)
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
 
@@ -640,7 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For simplicity, reuse is limited to expression-bodied lambdas. In those cases,
             // we reuse the bound expression and apply any conversion to the return value
             // since the inferred return type was not used when binding for return inference.
-            if (refKind == CodeAnalysis.RefKind.None &&
+            // We don't reuse the body if we're binding in an expression tree, because we didn't
+            // know that we were binding for an expression tree when originally binding the lambda
+            // for return inference.
+            if (!inExpressionTree &&
+                refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
                 GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
                 (lambdaSymbol = returnInferenceLambda.Symbol).RefKind == refKind &&
@@ -654,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
-                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
@@ -692,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics.DiagnosticBag);
             if (reachableEndpoint)
             {
-                if (DelegateNeedsReturn(invokeMethod))
+                if (Binder.MethodOrLambdaRequiresValue(lambdaSymbol, this.Binder.Compilation))
                 {
                     // Not all code paths return a value in {0} of type '{1}'
                     diagnostics.Add(ErrorCode.ERR_AnonymousReturnExpected, lambdaSymbol.DiagnosticLocation, this.MessageID.Localize(), delegateType);
@@ -707,18 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !returnType.Type.IsNonGenericTaskType(compilation) &&
-                    !returnType.Type.IsGenericTaskType(compilation))
+                    !lambdaSymbol.IsAsyncEffectivelyReturningTask(compilation) &&
+                    !lambdaSymbol.IsAsyncEffectivelyReturningGenericTask(compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);
                 }
-            }
-
-            if (IsAsync)
-            {
-                Debug.Assert(lambdaSymbol.IsAsync);
-                lambdaSymbol.ReportAsyncParameterErrors(diagnostics, lambdaSymbol.DiagnosticLocation);
             }
 
             var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default)
@@ -747,8 +755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var invokeMethod = DelegateInvokeMethod(delegateType);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind);
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
-            return CreateLambdaSymbol(containingSymbol, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
+            ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, out _);
+            return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, refKind);
         }
 
         private void ValidateUnsafeParameters(BindingDiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
@@ -781,10 +789,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds)
         {
-            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType: default, refKind: CodeAnalysis.RefKind.None);
-            var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
-            BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
-            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, _unboundLambda, lambdaBodyBinder, delegateType, lambdaSymbol.IsAsync, lambdaBodyBinder.Conversions);
+            bool hasExplicitReturnType = HasExplicitReturnType(out var refKind, out var returnType);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind);
+            InferredLambdaReturnType inferredReturnType;
+            if (hasExplicitReturnType)
+            {
+                // The InferredLambdaReturnType fields other than RefKind and ReturnType
+                // are only used when actually inferring a type, not when the type is explicit.
+                inferredReturnType = new InferredLambdaReturnType(
+                    numExpressions: 0,
+                    isExplicitType: true,
+                    hadExpressionlessReturn: false,
+                    refKind,
+                    returnType,
+                    ImmutableArray<DiagnosticInfo>.Empty,
+                    ImmutableArray<AssemblySymbol>.Empty);
+            }
+            else
+            {
+                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
+                BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
+                inferredReturnType = BoundLambda.InferReturnType(returnTypes, _unboundLambda, lambdaBodyBinder, delegateType, lambdaSymbol.IsAsync, lambdaBodyBinder.Conversions);
+                // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
+                refKind = inferredReturnType.RefKind;
+                returnType = inferredReturnType.TypeWithAnnotations;
+                if (!returnType.HasType)
+                {
+                    bool forErrorRecovery = delegateType is null;
+                    returnType = (forErrorRecovery && returnTypes.Count == 0)
+                        ? TypeWithAnnotations.Create(this.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
+                        : TypeWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
+                }
+                returnTypes.Free();
+            }
+
             var result = new BoundLambda(
                 _unboundLambda.Syntax,
                 _unboundLambda,
@@ -795,18 +833,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
-            // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
-            var returnType = inferredReturnType.TypeWithAnnotations;
-            if (!returnType.HasType)
+            if (!hasExplicitReturnType)
             {
-                bool forErrorRecovery = delegateType is null;
-                returnType = (forErrorRecovery && returnTypes.Count == 0)
-                    ? TypeWithAnnotations.Create(this.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
-                    : TypeWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
+                lambdaSymbol.SetInferredReturnType(refKind, returnType);
             }
 
-            lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
-            returnTypes.Free();
             return result;
         }
 
@@ -824,6 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   refKind);
             var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
             return (lambdaSymbol, block, lambdaBodyBinder, diagnostics);
         }
 
@@ -901,11 +933,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync)
             {
+                GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds, out var taskLikeReturnTypeOpt);
+                if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
+                {
+                    return Empty;
+                }
+                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, taskLikeReturnTypeOpt);
+            }
+
+            public static void GetFields(
+                NamedTypeSymbol? delegateType,
+                bool isAsync,
+                out ImmutableArray<TypeWithAnnotations> parameterTypes,
+                out ImmutableArray<RefKind> parameterRefKinds,
+                out NamedTypeSymbol? taskLikeReturnTypeOpt)
+            {
                 // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
                 // in such case we would want something trivial with no parameters
-                var parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
-                var parameterRefKinds = ImmutableArray<RefKind>.Empty;
-                NamedTypeSymbol? taskLikeReturnTypeOpt = null;
+                parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+                parameterRefKinds = ImmutableArray<RefKind>.Empty;
+                taskLikeReturnTypeOpt = null;
                 MethodSymbol? invoke = DelegateInvokeMethod(delegateType);
                 if (invoke is not null)
                 {
@@ -937,13 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-
-                if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
-                {
-                    return Empty;
-                }
-
-                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, taskLikeReturnTypeOpt);
             }
         }
 
@@ -996,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GuessBestBoundLambda(_bindingCache!)
                 ?? rebind(GuessBestBoundLambda(_returnInferenceCache!))
-                ?? rebind(ReallyInferReturnType(null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty));
+                ?? rebind(ReallyInferReturnType(delegateType: null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty));
 
             // Rebind a lambda to push target conversions through the return/result expressions
             [return: NotNullIfNotNull("lambda")] BoundLambda? rebind(BoundLambda? lambda)
@@ -1004,8 +1044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambda is null)
                     return null;
                 var delegateType = (NamedTypeSymbol?)lambda.Type;
-                var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
-                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds);
+                ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, out _);
+                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds);
             }
         }
 
@@ -1019,6 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKind = inferredReturnType.RefKind;
             if (!returnType.HasType)
             {
+                Debug.Assert(!inferredReturnType.IsExplicitType);
                 var invokeMethod = DelegateInvokeMethod(delegateType);
                 returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind);
                 if (!returnType.HasType || returnType.Type.ContainsTypeParameter())
@@ -1039,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ToReadOnlyAndFree(),
                 lambdaBodyBinder,
                 delegateType,
-                new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty, ImmutableArray<AssemblySymbol>.Empty))
+                new InferredLambdaReturnType(inferredReturnType.NumExpressions, isExplicitType: inferredReturnType.IsExplicitType, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty, ImmutableArray<AssemblySymbol>.Empty))
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
         }
 
@@ -1217,10 +1258,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return nx - ny;
         }
+
+        private sealed class BindingCacheComparer : IEqualityComparer<(NamedTypeSymbol Type, bool IsExpressionTree)>
+        {
+            public static readonly BindingCacheComparer Instance = new BindingCacheComparer();
+
+            public bool Equals([AllowNull] (NamedTypeSymbol Type, bool IsExpressionTree) x, [AllowNull] (NamedTypeSymbol Type, bool IsExpressionTree) y)
+                => x.IsExpressionTree == y.IsExpressionTree && Symbol.Equals(x.Type, y.Type, TypeCompareKind.ConsiderEverything);
+
+            public int GetHashCode([DisallowNull] (NamedTypeSymbol Type, bool IsExpressionTree) obj)
+                => Hash.Combine(obj.Type, obj.IsExpressionTree.GetHashCode());
+        }
     }
 
     internal sealed class PlainUnboundLambdaState : UnboundLambdaState
     {
+        private readonly RefKind _returnRefKind;
+        private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<SyntaxList<AttributeListSyntax>> _parameterAttributes;
         private readonly ImmutableArray<string> _parameterNames;
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
@@ -1231,6 +1285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal PlainUnboundLambdaState(
             Binder binder,
+            RefKind returnRefKind,
+            TypeWithAnnotations returnType,
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes,
             ImmutableArray<string> parameterNames,
             ImmutableArray<bool> parameterIsDiscardOpt,
@@ -1241,6 +1297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool includeCache)
             : base(binder, includeCache)
         {
+            _returnRefKind = returnRefKind;
+            _returnType = returnType;
             _parameterAttributes = parameterAttributes;
             _parameterNames = parameterNames;
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
@@ -1253,6 +1311,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool HasNames { get { return !_parameterNames.IsDefault; } }
 
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }
+
+        public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
+        {
+            refKind = _returnRefKind;
+            returnType = _returnType;
+            return _returnType.HasType;
+        }
 
         public override bool HasExplicitlyTypedParameterList { get { return !_parameterTypesWithAnnotations.IsDefault; } }
 
@@ -1321,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)

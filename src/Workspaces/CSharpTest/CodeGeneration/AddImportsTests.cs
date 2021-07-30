@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     });
                 doc = doc.WithSyntaxRoot(root);
             }
+
             return doc;
         }
 

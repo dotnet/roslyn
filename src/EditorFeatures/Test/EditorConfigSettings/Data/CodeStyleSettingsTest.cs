@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var option = CreateBoolOption(defaultValue);
             var editorConfigOptions = new TestAnalyzerConfigOptions();
             var visualStudioOptions = new TestOptionSet<bool>(option.DefaultValue);
-            var setting = CodeStyleSetting.Create(option, description: "TestDesciption", editorConfigOptions, visualStudioOptions, updater: null!);
+            var setting = CodeStyleSetting.Create(option, description: "TestDesciption", editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                                                   valueDescriptions: Enum.GetNames(typeof(DayOfWeek)),
                                                   editorConfigOptions,
                                                   visualStudioOptions,
-                                                  updater: null!);
+                                                  updater: null!,
+                                                  fileName: null!);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool @default = false)
         {
             var option = CodeStyleOption2<bool>.Default;
-            option.Value = @default;
+            option = (CodeStyleOption2<bool>)((ICodeStyleOption)option).WithValue(@default);
             return new Option2<CodeStyleOption2<bool>>(feature: "TestFeature",
                                                        name: "TestOption",
                                                        defaultValue: option);
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             where T : notnull, Enum
         {
             var option = CodeStyleOption2<T>.Default;
-            option.Value = @default;
+            option = (CodeStyleOption2<T>)((ICodeStyleOption)option).WithValue(@default);
             return new Option2<CodeStyleOption2<T>>(feature: "TestFeature",
                                                     name: "TestOption",
                                                     defaultValue: option);

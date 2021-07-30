@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">alias extern</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -300,21 +300,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Selezione non valida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">La selezione non contiene un token valido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">La selezione non è valida per eseguire l'estrazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Non esiste un nodo radice comune per l'estrazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -419,7 +404,7 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">record</target>
         <note />
       </trans-unit>
       <trans-unit id="record_struct">

@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">extern 별칭</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -300,21 +300,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">잘못된 선택 항목입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">선택 항목에 유효한 토큰이 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">추출을 수행할 선택 항목이 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -419,7 +404,7 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">레코드</target>
         <note />
       </trans-unit>
       <trans-unit id="record_struct">

@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">外部別名</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -300,21 +300,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">無效的選取範圍。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">選取範圍沒有包含有效的語彙基元。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">沒有可執行擷取的有效選取範圍。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">沒有根節點可供擷取。</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -419,7 +404,7 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">記錄</target>
         <note />
       </trans-unit>
       <trans-unit id="record_struct">

@@ -160,8 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
         {
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration);
-
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
@@ -175,10 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (unit.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
+                        Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

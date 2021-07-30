@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -21,20 +18,27 @@ namespace Microsoft.CodeAnalysis.Editor
         public int Indent { get; }
         public ImmutableArray<NavigationBarItem> ChildItems { get; }
 
-        public ImmutableArray<TextSpan> Spans { get; internal set; }
-        internal ImmutableArray<ITrackingSpan> TrackingSpans { get; set; } = ImmutableArray<ITrackingSpan>.Empty;
+        /// <summary>
+        /// The tracking spans in the owning document corresponding to this nav bar item.  If the user's
+        /// caret enters one of these spans, we'll select that item in the nav bar (except if they're in
+        /// an item's span that is nested within this).  Tracking spans allow us to know where things are
+        /// as the users edits while the computation for the latest items might be going on.
+        /// </summary>
+        /// <remarks>This can be empty for items whose location is in another document.</remarks>
+        public ImmutableArray<ITrackingSpan> TrackingSpans { get; }
 
-        // Legacy constructor for TypeScript.
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public NavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem>? childItems = null, int indent = 0, bool bolded = false, bool grayed = false)
-            : this(text, glyph, spans.ToImmutableArrayOrEmpty(), childItems.ToImmutableArrayOrEmpty(), indent, bolded, grayed)
-        {
-        }
+        /// <summary>
+        /// The tracking span in the owning document corresponding to where to navigate to if the user
+        /// selects this item in the drop down.
+        /// </summary>
+        /// <remarks>This can be <see langword="null"/> for items whose location is in another document.</remarks>
+        public ITrackingSpan? NavigationTrackingSpan { get; }
 
         public NavigationBarItem(
             string text,
             Glyph glyph,
-            ImmutableArray<TextSpan> spans,
+            ImmutableArray<ITrackingSpan> trackingSpans,
+            ITrackingSpan? navigationTrackingSpan,
             ImmutableArray<NavigationBarItem> childItems = default,
             int indent = 0,
             bool bolded = false,
@@ -42,17 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Text = text;
             this.Glyph = glyph;
-            this.Spans = spans;
+            this.TrackingSpans = trackingSpans;
+            this.NavigationTrackingSpan = navigationTrackingSpan;
             this.ChildItems = childItems.NullToEmpty();
             this.Indent = indent;
             this.Bolded = bolded;
             this.Grayed = grayed;
         }
 
-        internal void InitializeTrackingSpans(ITextSnapshot textSnapshot)
-        {
-            this.TrackingSpans = this.Spans.SelectAsArray(s => textSnapshot.CreateTrackingSpan(s.ToSpan(), SpanTrackingMode.EdgeExclusive));
-            this.ChildItems.Do(i => i.InitializeTrackingSpans(textSnapshot));
-        }
+        internal static ImmutableArray<ITrackingSpan> GetTrackingSpans(ITextSnapshot textSnapshot, ImmutableArray<TextSpan> spans)
+            => spans.NullToEmpty().SelectAsArray(static (s, ts) => GetTrackingSpan(ts, s), textSnapshot);
+
+        internal static ITrackingSpan GetTrackingSpan(ITextSnapshot textSnapshot, TextSpan textSpan)
+            => textSnapshot.CreateTrackingSpan(textSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
     }
 }

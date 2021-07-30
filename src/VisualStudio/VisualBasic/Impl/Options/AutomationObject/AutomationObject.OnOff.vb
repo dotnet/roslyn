@@ -69,15 +69,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property FormatOnPaste As Boolean
-            Get
-                Return GetBooleanOption(FeatureOnOffOptions.FormatOnPaste)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.FormatOnPaste, value)
-            End Set
-        End Property
-
         Public Property PrettyListing As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.PrettyListing)
@@ -120,6 +111,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As Integer)
                 SetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences, value)
+            End Set
+        End Property
+
+        Public Property SkipAnalyzersForImplicitlyTriggeredBuilds As Integer
+            Get
+                Return If(GetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds), 1, 0)
+            End Get
+            Set(value As Integer)
+                SetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, value <> 0)
             End Set
         End Property
     End Class

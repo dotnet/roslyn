@@ -79,8 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 VisualStudioWorkspaceImpl workspace,
                 IDiagnosticService diagnosticService,
                 ITableManagerProvider provider,
-                IErrorList errorList) :
-                base(workspace, provider)
+                IErrorList errorList)
+                : base(workspace, provider)
             {
                 _errorList = errorList;
 
@@ -104,15 +104,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-                base(workspace, provider)
+            internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+                : base(workspace, provider)
             {
                 AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, diagnosticService, IdentifierString));
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
-                base(workspace, provider)
+            internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
+                : base(workspace, provider)
             {
                 AddInitialTableSource(workspace.CurrentSolution, new BuildTableDataSource(workspace, errorSource));
             }

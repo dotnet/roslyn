@@ -55,6 +55,22 @@ record R;";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStruct()
+        {
+            var code =
+@"//$$
+record struct R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_RecordWithPositionalParameters()
         {
             var code =
@@ -68,6 +84,24 @@ record R(string S, int I);";
 /// <param name=""S""></param>
 /// <param name=""I""></param>
 record R(string S, int I);";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStructWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record struct R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -126,6 +160,139 @@ class C
     /// <param name=""goo""></param>
     /// <returns></returns>
     int M<T>(int goo) { return 0; }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Method_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""goo""></param>
+    /// <returns></returns>
+    /// <exception cref=""Exception""></exception>
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""System.NullReferenceException""></exception>
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions_Caught()
+        {
+            // This result is wrong, but we can't do better as long as we only check syntax.
+            var code = @"
+using System;
+
+class C
+{
+    //$$
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected = @"
+using System;
+
+class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""ArgumentOutOfRangeException""></exception>
+    /// <exception cref=""NullReferenceException""></exception>
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -1516,6 +1683,20 @@ record R;";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStruct()
+        {
+            var code = "record struct R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_RecordWithPositionalParameters()
         {
             var code = "record R$$(string S, int I);";
@@ -1527,6 +1708,22 @@ record R;";
 /// <param name=""S""></param>
 /// <param name=""I""></param>
 record R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStructWithPositionalParameters()
+        {
+            var code = "record struct R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyInsertCommentCommand(code, expected);
         }

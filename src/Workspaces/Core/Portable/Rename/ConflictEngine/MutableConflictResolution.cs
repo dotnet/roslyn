@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (ErrorMessage != null)
                 return new ConflictResolution(ErrorMessage);
 
-            var documentIds = this._renamedSpansTracker.DocumentIds.Concat(
+            var documentIds = _renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
 
             var relatedLocations = this.RelatedLocations.ToImmutableArray();
 
-            var documentToModifiedSpansMap = this._renamedSpansTracker.GetDocumentToModifiedSpansMap();
-            var documentToComplexifiedSpansMap = this._renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
+            var documentToModifiedSpansMap = _renamedSpansTracker.GetDocumentToModifiedSpansMap();
+            var documentToComplexifiedSpansMap = _renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
             var documentToRelatedLocationsMap = this.RelatedLocations.GroupBy(loc => loc.DocumentId).ToImmutableDictionary(
                 g => g.Key, g => g.ToImmutableArray());
 

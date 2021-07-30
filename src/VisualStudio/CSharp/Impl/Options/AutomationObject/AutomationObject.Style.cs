@@ -237,6 +237,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
+        public string Style_PreferNullCheckOverTypeCheck
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, value); }
+        }
+
         public string Style_PreferConditionalExpressionOverAssignment
         {
             get { return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment); }
@@ -391,6 +397,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer); }
             set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
+        }
+
+        public string Style_NamespaceDeclarations
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations); }
+            set { SetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations, value); }
         }
     }
 }

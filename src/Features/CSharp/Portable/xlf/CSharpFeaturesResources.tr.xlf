@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">dış diğer ad</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -300,21 +300,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Geçersiz seçim.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Seçim, geçerli bir belirteç içermiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Ayıklamayı gerçekleştirme için geçerli seçim yok.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Ayıklama için ortak kök düğümü yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -419,7 +404,7 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">kayıt</target>
         <note />
       </trans-unit>
       <trans-unit id="record_struct">

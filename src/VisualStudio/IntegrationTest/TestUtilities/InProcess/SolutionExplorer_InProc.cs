@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,8 +30,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal class SolutionExplorer_InProc : InProcComponent
     {
         private readonly SendKeys_InProc _sendKeys;
-        private Solution2 _solution;
-        private string _fileName;
+        private Solution2? _solution;
+        private string? _fileName;
 
         private static readonly Lazy<IDictionary<string, string>> _csharpProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeCSharpProjectTemplates);
         private static readonly Lazy<IDictionary<string, string>> _visualBasicProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeVisualBasicProjectTemplates);
@@ -116,6 +114,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             get
             {
+                Contract.ThrowIfNull(_solution);
+                Contract.ThrowIfNull(_fileName);
+
                 var solutionFullName = _solution.FullName;
 
                 return string.IsNullOrEmpty(solutionFullName)
@@ -191,6 +192,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
             }
+
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
         }
@@ -209,6 +211,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new ArgumentException(nameof(solutionElementString));
             }
+
             CreateSolution(solutionName);
 
             foreach (var projectElement in solutionElement.Elements("Project"))
@@ -245,6 +248,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var projectPath = Path.Combine(DirectoryName, projectName);
             var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
 
+            Contract.ThrowIfNull(_solution);
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
             foreach (var documentElement in projectElement.Elements("Document"))
             {
@@ -271,7 +275,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var result = threadingService.ExecuteSynchronously(async () =>
                 {
                     var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                    return await configuredProject!.Services.PackageReferences!.AddAsync(packageName, version).ConfigureAwait(false);
                 });
             }
             else
@@ -291,7 +295,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 threadingService.ExecuteSynchronously(async () =>
                 {
                     var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                    await configuredProject!.Services.PackageReferences!.RemoveAsync(packageName).ConfigureAwait(false);
                 });
             }
             else
@@ -311,6 +315,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
                 throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
             }
+
             reference.Remove();
         }
 
@@ -322,6 +327,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 CloseSolution(saveExistingSolutionIfExists);
             }
+
             dte.Solution.Open(path);
 
             _solution = (EnvDTE80.Solution2)dte.Solution;
@@ -350,6 +356,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
 
+            Contract.ThrowIfNull(_solution);
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
         }
 
@@ -361,12 +368,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
             File.WriteAllText(projectFilePath, projectFileContent);
 
+            Contract.ThrowIfNull(_solution);
             _solution.AddFromFile(projectFilePath);
         }
 
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
+            Contract.ThrowIfNull(_solution);
+
             if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
                _csharpProjectTemplates.Value.TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
@@ -511,7 +521,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
             }
 
-            public event EventHandler AfterCloseSolution;
+            public event EventHandler? AfterCloseSolution;
 
             public void Dispose()
             {
@@ -574,9 +584,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         private EnvDTE.Project GetProject(string nameOrFileName)
-            => _solution.Projects.OfType<EnvDTE.Project>().First(p
-                => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
+        {
+            Contract.ThrowIfNull(_solution);
+            return _solution.Projects.OfType<EnvDTE.Project>().First(
+                p => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
+                    || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
+        }
 
         /// <summary>
         /// Update the given file if it already exists in the project, otherwise add a new file to the project.
@@ -585,7 +598,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <param name="fileName">The name of the file to update or add.</param>
         /// <param name="contents">The contents of the file to overwrite if the file already exists or set if the file it created. Empty string is used if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated/created.</param>
-        public void UpdateOrAddFile(string projectName, string fileName, string contents = null, bool open = false)
+        public void UpdateOrAddFile(string projectName, string fileName, string? contents = null, bool open = false)
         {
             var project = GetProject(projectName);
             if (project.ProjectItems.Cast<EnvDTE.ProjectItem>().Any(x => x.Name == fileName))
@@ -605,7 +618,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <param name="fileName">The name of the file to update or add.</param>
         /// <param name="contents">The contents of the file to overwrite. Empty string is used if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void UpdateFile(string projectName, string fileName, string contents = null, bool open = false)
+        public void UpdateFile(string projectName, string fileName, string? contents = null, bool open = false)
         {
             void SetText(string text)
             {
@@ -646,7 +659,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <param name="fileName">The name of the file to add.</param>
         /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
         /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
+        public void AddFile(string projectName, string fileName, string? contents = null, bool open = false)
         {
             var project = GetProject(projectName);
             var projectDirectory = Path.GetDirectoryName(project.FullName);
@@ -771,13 +784,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
             internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
 
-            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
-            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
-            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
-            public event Action OnActiveProjectConfigurationChange;
-            public event Action OnUpdateSolutionCancel;
-            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
-            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
+            public event UpdateSolutionDoneEvent? OnUpdateSolutionDone;
+            public event UpdateSolutionBeginEvent? OnUpdateSolutionBegin;
+            public event UpdateSolutionStartUpdateEvent? OnUpdateSolutionStartUpdate;
+            public event Action? OnActiveProjectConfigurationChange;
+            public event Action? OnUpdateSolutionCancel;
+            public event UpdateProjectConfigDoneEvent? OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigBeginEvent? OnUpdateProjectConfigBegin;
 
             internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
             {
@@ -797,6 +810,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -830,6 +844,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -875,6 +890,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -970,6 +986,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private EnvDTE.ProjectItem GetProjectItem(string projectName, string relativeFilePath)
         {
+            Contract.ThrowIfNull(_solution);
             var projects = _solution.Projects.Cast<EnvDTE.Project>();
             var project = projects.FirstOrDefault(x => x.Name == projectName);
 
@@ -982,11 +999,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var fullFilePath = Path.Combine(projectPath, relativeFilePath);
 
             var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
-            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
+            var document = projectItems.FirstOrDefault(d => d.get_FileNames(1).Equals(fullFilePath));
 
             if (document == null)
             {
-                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.get_FileNames(1)))}.");
             }
 
             return document;
@@ -1011,6 +1028,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {
+            Contract.ThrowIfNull(_solution);
             var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
             var projectPath = Path.GetDirectoryName(project.FullName);
             return Path.Combine(projectPath, relativeFilePath);
@@ -1018,6 +1036,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ReloadProject(string projectRelativePath)
         {
+            Contract.ThrowIfNull(_solution);
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
             var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
@@ -1044,8 +1063,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void UnloadProject(string projectName)
         {
+            Contract.ThrowIfNull(_solution);
             var projects = _solution.Projects;
-            EnvDTE.Project project = null;
+            EnvDTE.Project? project = null;
             for (var i = 1; i <= projects.Count; i++)
             {
                 project = projects.Item(i);
@@ -1064,6 +1084,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
 
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            Contract.ThrowIfNull(item);
+
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
         }
@@ -1074,6 +1096,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
 
             var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            Contract.ThrowIfNull(item);
+
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
         }
@@ -1084,6 +1108,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
 
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            Contract.ThrowIfNull(item);
 
             return item.UIHierarchyItems
                 .Cast<EnvDTE.UIHierarchyItem>()
@@ -1097,6 +1122,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
 
             var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            Contract.ThrowIfNull(item);
 
             return item.UIHierarchyItems
                 .Cast<EnvDTE.UIHierarchyItem>()
@@ -1104,11 +1130,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .ToArray();
         }
 
-        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+        private static EnvDTE.UIHierarchyItem? FindItemAtPath(
             EnvDTE.UIHierarchyItems currentItems,
             string[] path)
         {
-            EnvDTE.UIHierarchyItem item = null;
+            EnvDTE.UIHierarchyItem? item = null;
             foreach (var name in path)
             {
                 item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
@@ -1124,7 +1150,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return item;
         }
 
-        private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
+        private static EnvDTE.UIHierarchyItem? FindFirstItemRecursively(
             EnvDTE.UIHierarchyItems currentItems,
             string itemName)
         {

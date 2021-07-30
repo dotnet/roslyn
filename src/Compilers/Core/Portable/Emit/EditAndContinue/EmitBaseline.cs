@@ -204,14 +204,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal: 0,
                 encId: default,
                 hasPortablePdb: hasPortableDebugInformation,
+                generationOrdinals: new Dictionary<Cci.IDefinition, int>(),
                 typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
                 methodsAdded: new Dictionary<Cci.IMethodDefinition, int>(),
+                firstParamRowMap: new Dictionary<MethodDefinitionHandle, int>(),
                 propertiesAdded: new Dictionary<Cci.IPropertyDefinition, int>(),
                 eventMapAdded: new Dictionary<int, int>(),
                 propertyMapAdded: new Dictionary<int, int>(),
                 methodImplsAdded: new Dictionary<MethodImplKey, int>(),
+                customAttributesAdded: new Dictionary<EntityHandle, ImmutableArray<int>>(),
                 tableEntriesAdded: s_emptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
@@ -254,14 +257,21 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly Guid EncId;
 
+        /// <summary>
+        /// The latest generation number of each symbol added via <see cref="SemanticEditKind.Replace"/> edit.
+        /// </summary>
+        internal readonly IReadOnlyDictionary<Cci.IDefinition, int> GenerationOrdinals;
+
         internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, int> TypesAdded;
         internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
         internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, int> FieldsAdded;
         internal readonly IReadOnlyDictionary<Cci.IMethodDefinition, int> MethodsAdded;
+        internal readonly IReadOnlyDictionary<MethodDefinitionHandle, int> FirstParamRowMap;
         internal readonly IReadOnlyDictionary<Cci.IPropertyDefinition, int> PropertiesAdded;
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
+        internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
 
@@ -309,14 +319,17 @@ namespace Microsoft.CodeAnalysis.Emit
             int ordinal,
             Guid encId,
             bool hasPortablePdb,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -369,14 +382,17 @@ namespace Microsoft.CodeAnalysis.Emit
             EncId = encId;
             HasPortablePdb = hasPortablePdb;
 
+            GenerationOrdinals = generationOrdinals;
             TypesAdded = typesAdded;
             EventsAdded = eventsAdded;
             FieldsAdded = fieldsAdded;
             MethodsAdded = methodsAdded;
+            FirstParamRowMap = firstParamRowMap;
             PropertiesAdded = propertiesAdded;
             EventMapAdded = eventMapAdded;
             PropertyMapAdded = propertyMapAdded;
             MethodImplsAdded = methodImplsAdded;
+            CustomAttributesAdded = customAttributesAdded;
             TableEntriesAdded = tableEntriesAdded;
             BlobStreamLengthAdded = blobStreamLengthAdded;
             StringStreamLengthAdded = stringStreamLengthAdded;
@@ -399,14 +415,17 @@ namespace Microsoft.CodeAnalysis.Emit
             CommonPEModuleBuilder moduleBuilder,
             int ordinal,
             Guid encId,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -430,14 +449,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal,
                 encId,
                 HasPortablePdb,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap,
                 propertiesAdded,
                 eventMapAdded,
                 propertyMapAdded,
                 methodImplsAdded,
+                customAttributesAdded,
                 tableEntriesAdded,
                 blobStreamLengthAdded: blobStreamLengthAdded,
                 stringStreamLengthAdded: stringStreamLengthAdded,
