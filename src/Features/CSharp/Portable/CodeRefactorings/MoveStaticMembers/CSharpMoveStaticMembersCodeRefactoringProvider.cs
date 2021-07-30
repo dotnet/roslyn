@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.MoveStaticMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "[WIP] Move Members To Type"), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveStaticMembers), Shared]
     internal class CSharpMoveStaticMembersCodeRefactoringProvider : AbstractMoveStaticMembersRefactoringProvider
     {
         /// <summary>
