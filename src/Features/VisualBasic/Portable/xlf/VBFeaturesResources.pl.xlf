@@ -967,11 +967,6 @@ Iterator Function(&lt;listaParametrów&gt;) As IEnumerable(Of &lt;T&gt;)</target
         <target state="translated">Określa porządek sortowania dla klauzuli Order By w zapytaniu. Najmniejszy element będzie wyświetlany jako pierwszy.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Asynchronicznie oczekuje na zakończenie zadania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
         <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
         <target state="translated">Ustawia metodę porównywania ciągów określoną w opcji Option Compare na ścisły binarny porządek sortowania.</target>

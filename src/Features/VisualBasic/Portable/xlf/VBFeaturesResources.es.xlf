@@ -967,11 +967,6 @@ Iterator Function(&lt;listaDeParámetros&gt;) As IEnumerable(Of &lt;T&gt;)</targ
         <target state="translated">Especifica el criterio de ordenación de una cláusula Order By en una consulta. Aparece primero el elemento más pequeño.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Espera de forma asincrónica a que termine la tarea.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
         <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
         <target state="translated">Establece el método de comparación de cadenas especificado en Option Compare en un criterio de ordenación binario estricto.</target>
