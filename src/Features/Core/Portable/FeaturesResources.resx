@@ -471,7 +471,7 @@
   <data name="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the library name of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
-  </data>    
+  </data>
   <data name="Updating_the_alias_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the alias of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
@@ -2901,5 +2901,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Changing_constraints_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing constraints of {0} requires restarting the application.</value>
+  </data>
+  <data name="No_common_root_node_for_extraction" xml:space="preserve">
+    <value>No common root node for extraction.</value>
+  </data>
+  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
+    <value>No valid selection to perform extraction.</value>
+  </data>
+  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
+    <value>Selection does not contain a valid token.</value>
+  </data>
+  <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
+    <value>Selection not contained inside a type.</value>
   </data>
 </root>
