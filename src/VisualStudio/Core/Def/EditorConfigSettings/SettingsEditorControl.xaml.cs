@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
     /// </summary>
     internal partial class SettingsEditorControl : UserControl
     {
-        private readonly ISettingsEditorView _formattingView;
+        private readonly ISettingsEditorView _whitespaceView;
         private readonly ISettingsEditorView _codeStyleView;
         private readonly ISettingsEditorView _analyzerSettingsView;
         private readonly Workspace _workspace;
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         public static string CodeStyle => ServicesVSResources.Code_Style;
         public static string Analyzers => ServicesVSResources.Analyzers;
 
-        public SettingsEditorControl(ISettingsEditorView formattingView,
+        public SettingsEditorControl(ISettingsEditorView whitespaceView,
                                      ISettingsEditorView codeStyleView,
                                      ISettingsEditorView analyzerSettingsView,
                                      Workspace workspace,
@@ -47,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _filepath = filepath;
             _threadingContext = threadingContext;
             _textUpdater = new EditorTextUpdater(editorAdaptersFactoryService, textLines);
-            _formattingView = formattingView;
-            FormattingTab.Content = _formattingView.SettingControl;
+            _whitespaceView = whitespaceView;
+            WhitespaceTab.Content = _whitespaceView.SettingControl;
             _codeStyleView = codeStyleView;
             CodeStyleTab.Content = _codeStyleView.SettingControl;
             _analyzerSettingsView = analyzerSettingsView;
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
-                var updatedText = await _formattingView.UpdateEditorConfigAsync(originalText).ConfigureAwait(false);
+                var updatedText = await _whitespaceView.UpdateEditorConfigAsync(originalText).ConfigureAwait(false);
                 updatedText = await _codeStyleView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
                 updatedText = await _analyzerSettingsView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
                 _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
@@ -83,14 +83,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         internal IWpfTableControl[] GetTableControls()
             => new[]
             {
-                _formattingView.TableControl,
+                _whitespaceView.TableControl,
                 _codeStyleView.TableControl,
                 _analyzerSettingsView.TableControl,
             };
 
         internal void OnClose()
         {
-            _formattingView.OnClose();
+            _whitespaceView.OnClose();
             _codeStyleView.OnClose();
             _analyzerSettingsView.OnClose();
         }

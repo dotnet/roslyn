@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             // hook up our panel
             _control = new SettingsEditorControl(
-                GetFormattingView(),
+                GetWhitespaceView(),
                 GetCodeStyleView(),
                 GetAnalyzerView(),
                 _workspace,
@@ -115,12 +115,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                 new EventHandler(OnViewCode), new EventHandler(OnQueryViewCode));
             }
 
-            ISettingsEditorView GetFormattingView()
+            ISettingsEditorView GetWhitespaceView()
             {
                 var dataProvider = _settingsDataProviderService.GetSettingsProvider<WhitespaceSetting>(_fileName);
                 if (dataProvider is null)
                 {
-                    throw new InvalidOperationException("Unable to get formatter settings");
+                    throw new InvalidOperationException("Unable to get whitespace settings");
                 }
 
                 var viewModel = new WhitespaceViewModel(dataProvider, _controlProvider, _tableMangerProvider);

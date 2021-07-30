@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
     {
         private readonly Workspace _workspace;
         private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
-        private ISettingsProviderFactory<WhitespaceSetting> _formattingProvider;
+        private ISettingsProviderFactory<WhitespaceSetting> _whitespaceProvider;
         private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
 
         public SettingsAggregator(Workspace workspace)
         {
             _workspace = workspace;
             _workspace.WorkspaceChanged += UpdateProviders;
-            _formattingProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
+            _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
             _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
             _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectChanged:
-                    _formattingProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
+                    _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
                     _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
                     break;
                 default:
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
 
             if (typeof(TData) == typeof(WhitespaceSetting))
             {
-                return (ISettingsProvider<TData>)_formattingProvider.GetForFile(fileName);
+                return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
             }
 
             if (typeof(TData) == typeof(CodeStyleSetting))

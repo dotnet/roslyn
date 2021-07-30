@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -31,19 +31,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         protected override IEnumerable<ColumnState2> GetInitialColumnStates()
             => new[]
             {
-                new ColumnState2(ColumnDefinitions.Formatting.Category, isVisible: false, width: 0, groupingPriority: 1),
-                new ColumnState2(ColumnDefinitions.Formatting.Description, isVisible: true, width: 0),
-                new ColumnState2(ColumnDefinitions.Formatting.Value, isVisible: true, width: 0),
-                new ColumnState2(ColumnDefinitions.Formatting.Location, isVisible: true, width: 0)
+                new ColumnState2(ColumnDefinitions.Whitespace.Category, isVisible: false, width: 0, groupingPriority: 1),
+                new ColumnState2(ColumnDefinitions.Whitespace.Description, isVisible: true, width: 0),
+                new ColumnState2(ColumnDefinitions.Whitespace.Value, isVisible: true, width: 0),
+                new ColumnState2(ColumnDefinitions.Whitespace.Location, isVisible: true, width: 0)
             };
 
         protected override string[] GetFixedColumns()
             => new[]
             {
-                ColumnDefinitions.Formatting.Category,
-                ColumnDefinitions.Formatting.Description,
-                ColumnDefinitions.Formatting.Value,
-                ColumnDefinitions.Formatting.Location
+                ColumnDefinitions.Whitespace.Category,
+                ColumnDefinitions.Whitespace.Description,
+                ColumnDefinitions.Whitespace.Value,
+                ColumnDefinitions.Whitespace.Location
             };
     }
 }

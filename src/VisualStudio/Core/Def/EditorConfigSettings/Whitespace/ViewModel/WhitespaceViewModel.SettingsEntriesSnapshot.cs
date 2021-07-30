@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,10 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             {
                 content = keyName switch
                 {
-                    ColumnDefinitions.Formatting.Description => result.Description,
-                    ColumnDefinitions.Formatting.Category => result.Category,
-                    ColumnDefinitions.Formatting.Value => result,
-                    ColumnDefinitions.Formatting.Location => GetLocationString(result.Location),
+                    ColumnDefinitions.Whitespace.Description => result.Description,
+                    ColumnDefinitions.Whitespace.Category => result.Category,
+                    ColumnDefinitions.Whitespace.Value => result,
+                    ColumnDefinitions.Whitespace.Location => GetLocationString(result.Location),
                     _ => null,
                 };
 
