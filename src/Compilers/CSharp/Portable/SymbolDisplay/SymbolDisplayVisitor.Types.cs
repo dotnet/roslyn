@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             symbolName ??= symbol.Name;
 
-            var renderSimpleAnoymousDelegate =
+            var renderSimpleAnonymousDelegate =
                 symbol.TypeKind == TypeKind.Delegate &&
                 !symbol.CanBeReferencedByName &&
                 !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
             }
-            else if (renderSimpleAnoymousDelegate)
+            else if (renderSimpleAnonymousDelegate)
             {
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
             }
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (!renderSimpleAnoymousDelegate &&
+            else if (!renderSimpleAnonymousDelegate &&
                      symbol.Arity > 0 &&
                      format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
