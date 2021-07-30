@@ -342,14 +342,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbolName = symbol.Name;
             }
 
-            var isAnoymousDelegate = symbol.TypeKind == TypeKind.Delegate && !symbol.CanBeReferencedByName;
+            var renderSimpleAnoymousDelegate =
+                symbol.TypeKind == TypeKind.Delegate &&
+                !symbol.CanBeReferencedByName &&
+                !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
                 string.IsNullOrEmpty(symbolName))
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
             }
-            else if (isAnoymousDelegate)
+            else if (renderSimpleAnoymousDelegate)
             {
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
             }
@@ -369,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (!isAnoymousDelegate &&
+            else if (!renderSimpleAnoymousDelegate &&
                      symbol.Arity > 0 &&
                      format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
