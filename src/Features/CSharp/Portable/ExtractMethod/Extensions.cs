@@ -103,12 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            if (IsContainedDirectlyInNamespace(node))
-            {
-                return false;
-            }
-
-            return true;
+            return !IsContainedDirectlyInNamespace(node);
 
             static bool IsContainedDirectlyInNamespace(SyntaxNode n)
             {
