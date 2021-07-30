@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
