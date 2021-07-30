@@ -66,5 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             return _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
         }
+
+        /// <summary>
+        /// Failures are catastrophic as liveshare guests will not have language features without this server.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

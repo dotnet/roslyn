@@ -11,21 +11,34 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
     [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-    internal class DocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+    internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
         public override string DocumentationCommentCharacter => "/";
 
         protected override bool AddIndent => true;
         protected override string ExteriorTriviaText => "///";
 
+        private static readonly SymbolDisplayFormat s_format =
+            new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationCommentSnippetService()
+        public CSharpDocumentationCommentSnippetService()
         {
         }
 
@@ -111,10 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 }
             }
 
-            if (member.IsKind(SyntaxKind.MethodDeclaration) ||
-                member.IsKind(SyntaxKind.IndexerDeclaration) ||
-                member.IsKind(SyntaxKind.DelegateDeclaration) ||
-                member.IsKind(SyntaxKind.OperatorDeclaration))
+            if (member.IsKind(
+                    SyntaxKind.MethodDeclaration,
+                    SyntaxKind.IndexerDeclaration,
+                    SyntaxKind.DelegateDeclaration,
+                    SyntaxKind.OperatorDeclaration,
+                    SyntaxKind.ConstructorDeclaration,
+                    SyntaxKind.DestructorDeclaration))
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
@@ -122,9 +138,95 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 {
                     list.Add("/// <returns></returns>");
                 }
+
+                foreach (var exceptionType in GetExceptions(member))
+                {
+                    list.Add(@$"/// <exception cref=""{exceptionType}""></exception>");
+                }
             }
 
             return list;
+        }
+
+        private static IEnumerable<string> GetExceptions(SyntaxNode member)
+        {
+            var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
+
+            var usings = member.GetEnclosingUsingDirectives();
+            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } });
+
+            using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
+            foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
+            {
+                var expression = throwExpressionOrStatement switch
+                {
+                    ThrowExpressionSyntax throwExpression => throwExpression.Expression,
+                    ThrowStatementSyntax throwStatement => throwStatement.Expression,
+                    _ => throw ExceptionUtilities.Unreachable
+                };
+
+                if (expression.IsKind(SyntaxKind.NullLiteralExpression))
+                {
+                    // `throw null;` throws NullReferenceException at runtime.
+                    var exception = hasUsingSystem ? nameof(NullReferenceException) : $"{nameof(System)}.{nameof(NullReferenceException)}";
+                    if (seenExceptionTypes.Add(exception))
+                        yield return exception;
+                }
+                else if (expression is ObjectCreationExpressionSyntax { Type: TypeSyntax exceptionType })
+                {
+                    exceptionType = exceptionType.ConvertToSingleLine();
+                    if (!IsExceptionCaughtAndNotRethrown(hasUsingSystem, exceptionType))
+                    {
+                        var exception = exceptionType.ToString();
+                        if (seenExceptionTypes.Add(exception))
+                            yield return exception.Replace('<', '{').Replace('>', '}');
+                    }
+                }
+            }
+        }
+
+        private static bool IsExceptionCaughtAndNotRethrown(bool hasUsingSystem, TypeSyntax exceptionType)
+        {
+            for (SyntaxNode? current = exceptionType; current != null; current = current?.Parent)
+            {
+                if (current is not BlockSyntax { Parent: TryStatementSyntax tryStatement } block ||
+                    tryStatement.Block != block ||
+                    block.DescendantNodes().OfType<ThrowStatementSyntax>().Any(t => t.Expression is null))
+                {
+                    continue;
+                }
+
+                foreach (var catchClause in tryStatement.Catches)
+                {
+                    if (catchClause.Filter != null)
+                        continue;
+
+                    // AN empty `catch { }` will always catch everything.
+                    if (catchClause.Declaration == null)
+                        return true;
+
+                    // Poor mans equivalence check since we don't have semantics here.
+                    if (SyntaxFactory.AreEquivalent(exceptionType, catchClause.Declaration.Type.ConvertToSingleLine()))
+                        return true;
+
+                    if (hasUsingSystem &&
+                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } })
+                    {
+                        return true;
+                    }
+
+                    if (catchClause.Declaration.Type is QualifiedNameSyntax
+                        {
+                            Left: IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } },
+                            Right: IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } },
+                        })
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected override SyntaxToken GetTokenToRight(
