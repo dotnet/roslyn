@@ -1906,15 +1906,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : trueDecisionPermitsTrueOther ? this : False.Instance;
-                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : falseDecisionPermitsTrueOther ? this : False.Instance;
+                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : trueDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(lengthTest), this);
+                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : falseDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(lengthTest), this);
 
-                    static Tests makeOrSequence(Tests t1, Tests t2)
+                    static Tests makeOrSequence(Tests t1, Tests.One t2)
                     {
+                        if (t1 is True) return t1;
                         var builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(t1);
                         builder.Add(t2);
                         return OrSequence.Create(builder);
+                    }
+                    static Tests makeAndSequence(Tests t1, Tests.One t2)
+                    {
+                        if (t1 is False) return t1;
+                        var builder = ArrayBuilder<Tests>.GetInstance(2);
+                        builder.Add(t1);
+                        builder.Add(t2);
+                        return AndSequence.Create(builder);
                     }
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
