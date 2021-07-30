@@ -451,11 +451,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = arguments[argumentIndex];
 
-                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString operand })
+                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
                 {
                     // Handler conversions are not supported in expression lambdas.
                     Debug.Assert(!_inExpressionLambda);
-                    var interpolationData = operand.InterpolationData.GetValueOrDefault();
+                    var interpolationData = conversion.Operand switch
+                    {
+                        BoundInterpolatedString { InterpolationData: { } d } => d,
+                        BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                        _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
+                    };
                     var creation = (BoundObjectCreationExpression)interpolationData.Construction;
 
                     if (creation.Arguments.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 3 : 2))
