@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
             {
                 workspaceKinds.Add(workspace.Kind);
-                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName, logger);
 
                 if (!documents.IsEmpty)
                 {
