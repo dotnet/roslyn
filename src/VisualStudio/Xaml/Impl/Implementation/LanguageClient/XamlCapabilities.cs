@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             SupportsDiagnosticRequests = true,
             OnTypeRenameProvider = new DocumentOnTypeRenameOptions { WordPattern = OnTypeRenameHandler.NamePattern },
             ExecuteCommandProvider = new ExecuteCommandOptions { Commands = new[] { StringConstants.CreateEventHandlerCommand } },
+            DefinitionProvider = true,
         };
 
         /// <summary>
