@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         private static readonly PatternSyntax s_trueConstantPattern = ConstantPattern(LiteralExpression(TrueLiteralExpression));
         private static readonly PatternSyntax s_falseConstantPattern = ConstantPattern(LiteralExpression(FalseLiteralExpression));
 
-        private static readonly Func<IdentifierNameSyntax, SemanticModel, bool> s_canConvertToSubpattern = CanConvertToSubpattern;
+        private static readonly Func<IdentifierNameSyntax, SemanticModel, bool> s_canConvertToSubpattern =
+            (name, model) => model.GetSymbolInfo(name).Symbol is
+            {
+                IsStatic: false,
+                Kind: SymbolKind.Property or SymbolKind.Field,
+                ContainingType: not { SpecialType: SpecialType.System_Nullable_T }
+            };
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,26 +69,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Use_recursive_patterns,
-                    _ => Task.FromResult(document.WithSyntaxRoot(replacementFunc(root)))));
+                    _ => Task.FromResult(document.WithSyntaxRoot(replacementFunc(root))),
+                    nameof(CSharpFeaturesResources.Use_recursive_patterns)));
         }
 
         private static Func<SyntaxNode, SyntaxNode>? GetReplacementFunc(SyntaxNode? node, SemanticModel model)
-        {
-            return node switch
+            => node switch
             {
-                BinaryExpressionSyntax(LogicalAndExpression) logicalAnd
-                    => CombineLogicalAndOperands(logicalAnd, model),
-                CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } switchLabel
-                    => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, model),
-                SwitchExpressionArmSyntax { WhenClause: { } whenClause } switchArm
-                    => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, model),
-                WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax switchLabel } whenClause
-                    => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, model),
-                WhenClauseSyntax { Parent: SwitchExpressionArmSyntax switchArm } whenClause
-                    => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, model),
+                BinaryExpressionSyntax(LogicalAndExpression) logicalAnd => CombineLogicalAndOperands(logicalAnd, model),
+                CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } switchLabel => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, model),
+                SwitchExpressionArmSyntax { WhenClause: { } whenClause } switchArm => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, model),
+                WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax switchLabel } whenClause => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, model),
+                WhenClauseSyntax { Parent: SwitchExpressionArmSyntax switchArm } whenClause => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, model),
                 _ => null
             };
-        }
 
         private static Func<SyntaxNode, SyntaxNode>? CombineLogicalAndOperands(BinaryExpressionSyntax logicalAnd, SemanticModel model)
         {
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 };
             }
 
-            if (TryGetCommonReceiver(leftReceiver, rightReceiver, model) is var (commonReceiverOpt, leftNames, rightNames))
+            if (TryGetCommonReceiver(leftReceiver, rightReceiver, model) is var (commonReceiver, leftNames, rightNames))
             {
                 return root =>
                 {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
                     // If the common receiver is null, it's an implicit `this` reference in source.
                     // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
-                    var replacement = IsPatternExpression(commonReceiverOpt ?? ThisExpression(), RecursivePattern(leftSubpattern, rightSubpattern));
+                    var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern, rightSubpattern));
                     return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
                 };
             }
@@ -332,30 +333,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 //     Since `&&` is left-associative, it's guaranteed to be the expression that we want.
                 //     For simplicity, we won't descend into any parenthesized expression here.
                 //
-                BinaryExpressionSyntax(LogicalAndExpression) expr
-                    => TryDetermineReceiver(inWhenClause ? expr.Left : expr.Right, model, inWhenClause),
+                BinaryExpressionSyntax(LogicalAndExpression) expr => TryDetermineReceiver(inWhenClause ? expr.Left : expr.Right, model, inWhenClause),
 
                 // If we have an `is` operator, we'll try to combine the existing pattern/type with the other operand.
-                BinaryExpressionSyntax(IsExpression) { Right: NullableTypeSyntax type } expr
-                    => (expr.Left, type.ElementType, false),
-                BinaryExpressionSyntax(IsExpression) { Right: TypeSyntax type } expr
-                    => (expr.Left, type, false),
-                IsPatternExpressionSyntax expr
-                    => (expr.Expression, expr.Pattern, false),
+                BinaryExpressionSyntax(IsExpression) { Right: NullableTypeSyntax type } expr => (expr.Left, type.ElementType, Flipped: false),
+                BinaryExpressionSyntax(IsExpression) { Right: TypeSyntax type } expr => (expr.Left, type, Flipped: false),
+                IsPatternExpressionSyntax expr => (expr.Expression, expr.Pattern, Flipped: false),
 
                 // We treat any other expression as if they were compared to true/false.
                 // For instance, `a.b && !a.c` will be converted to `a is { b: true, c: false }`
-                PrefixUnaryExpressionSyntax(LogicalNotExpression) expr
-                    => (expr.Operand, s_falseConstantPattern, false),
-                var expr => (expr, s_trueConstantPattern, false),
+                PrefixUnaryExpressionSyntax(LogicalNotExpression) expr => (expr.Operand, s_falseConstantPattern, Flipped: false),
+                var expr => (expr, s_trueConstantPattern, Flipped: false),
             };
 
             static (ExpressionSyntax Expression, ExpressionSyntax Constant, bool Flipped)? TryDetermineConstant(BinaryExpressionSyntax node, SemanticModel model)
             {
                 return (node.Left, node.Right) switch
                 {
-                    var (left, right) when model.GetConstantValue(left).HasValue => (right, left, true),
-                    var (left, right) when model.GetConstantValue(right).HasValue => (left, right, false),
+                    var (left, right) when model.GetConstantValue(left).HasValue => (right, left, Flipped: true),
+                    var (left, right) when model.GetConstantValue(right).HasValue => (left, right, Flipped: false),
                     _ => null
                 };
             }
@@ -374,18 +370,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
         private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
-            => SyntaxFactory.RecursivePattern(null, null, PropertyPatternClause(SeparatedList(subpatterns)), null);
+            => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause(SeparatedList(subpatterns)), designation: null);
 
         private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)
-            => SyntaxFactory.RecursivePattern(type, null, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation);
+            => SyntaxFactory.RecursivePattern(type, positionalPatternClause: null, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation);
 
         private static RecursivePatternSyntax RecursivePattern(SubpatternSyntax subpattern)
             => RecursivePattern(type: null, subpattern, designation: null);
 
         /// <summary>
-        /// Obtain the outermost common receiver between two expressions.
+        /// Obtain the outermost common receiver between two expressions.  This can succeed with a null 'CommonReceiver'
+        /// in the case that the common receiver is the 'implicit this'.
         /// </summary>
-        private static (ExpressionSyntax? CommonReceiver, ImmutableArray<IdentifierNameSyntax> LeftNames, ImmutableArray<IdentifierNameSyntax> RightNames)? TryGetCommonReceiver(
+        private static (ExpressionSyntax CommonReceiver, ImmutableArray<IdentifierNameSyntax> LeftNames, ImmutableArray<IdentifierNameSyntax> RightNames)? TryGetCommonReceiver(
             ExpressionSyntax left,
             ExpressionSyntax right,
             SemanticModel model)
@@ -412,9 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
             }
 
-            return (commonReceiver, leftNames.ToImmutable(), rightNames.ToImmutable());
+            return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), rightNames.ToImmutable());
 
-            static bool TryGetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, out ExpressionSyntax? receiver, SemanticModel model)
+            static bool TryGetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, [NotNullWhen(true)] out ExpressionSyntax? receiver, SemanticModel model)
             {
                 receiver = GetInnermostReceiver(node, builder, model);
                 return builder.Any();
@@ -440,20 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
         }
 
-        private static bool CanConvertToSubpattern(IdentifierNameSyntax name, SemanticModel model)
-        {
-            return model.GetSymbolInfo(name).Symbol is
-            {
-                IsStatic: false,
-                Kind: SymbolKind.Property or SymbolKind.Field,
-                ContainingType: not { SpecialType: SpecialType.System_Nullable_T }
-            };
-        }
-
         private static ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, SemanticModel model)
-        {
-            return GetInnermostReceiver(node, model, s_canConvertToSubpattern, builder);
-        }
+            => GetInnermostReceiver(node, model, s_canConvertToSubpattern, builder);
 
         private static ExpressionSyntax? GetInnermostReceiver<TArg>(
             ExpressionSyntax node, TArg arg,
@@ -468,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 {
 
                     case IdentifierNameSyntax name
-                    when canConvertToSubpattern(name, arg):
+                            when canConvertToSubpattern(name, arg):
                         builder?.Add(name);
                         // This is a member reference with an implicit `this` receiver.
                         // We know this is true because we already checked canConvertToSubpattern.
@@ -476,14 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                         return null;
 
                     case MemberBindingExpressionSyntax { Name: IdentifierNameSyntax name }
-                    when canConvertToSubpattern(name, arg):
+                            when canConvertToSubpattern(name, arg):
                         builder?.Add(name);
                         // We only reach here from a parent conditional-access.
                         // Returning null here means that all the names on the right were convertible to a property pattern.
                         return null;
 
                     case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess
-                    when canConvertToSubpattern(name, arg) && !memberAccess.Expression.IsKind(SyntaxKind.BaseExpression):
+                            when canConvertToSubpattern(name, arg) && !memberAccess.Expression.IsKind(SyntaxKind.BaseExpression):
                         builder?.Add(name);
                         // For a simple member access we simply record the name and descend into the expression on the left-hand-side.
                         return GetInnermostReceiver(memberAccess.Expression);
@@ -509,8 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }
