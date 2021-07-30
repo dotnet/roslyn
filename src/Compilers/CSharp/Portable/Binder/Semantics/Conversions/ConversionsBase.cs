@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
-        protected abstract Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+        protected abstract Conversion GetInterpolatedStringConversion(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -931,7 +931,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedInterpolatedString:
-                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundUnconvertedInterpolatedString)sourceExpression, destination, ref useSiteInfo);
+                case BoundKind.BinaryOperator when ((BoundBinaryOperator)sourceExpression).IsUnconvertedInterpolatedStringAddition:
+                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion(destination, ref useSiteInfo);
                     if (interpolatedStringConversion.Exists)
                     {
                         return interpolatedStringConversion;
@@ -1407,18 +1408,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.SpecialType == SpecialType.System_Delegate)
             {
-                return LambdaConversionResult.Success;
+                if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return LambdaConversionResult.Success;
+                }
             }
             else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
             }
-            else if (type.IsGenericOrNonGenericExpressionType(out bool _))
+            else if (type.IsGenericOrNonGenericExpressionType(out bool isGenericType))
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                if (isGenericType || IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                }
             }
 
             return LambdaConversionResult.BadTargetType;
+        }
+
+        internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
+        {
+            return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)

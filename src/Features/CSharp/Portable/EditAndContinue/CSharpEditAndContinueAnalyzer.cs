@@ -1373,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
             {
                 return null;
             }
@@ -1915,6 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:
