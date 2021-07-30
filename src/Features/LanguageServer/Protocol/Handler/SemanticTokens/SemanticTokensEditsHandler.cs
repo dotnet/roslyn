@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     case EditKind.Update:
                         // EditKind.Update indicates that the index of the token may have changed. We can usually safely ignore these updates,
                         // except in one case where an update interferes with an insert. For example, given the following edits:
-                        //    Insert (3) ['A'] (i.e. insert token 'A' at index 3 in the new token set)
+                        //    Insert (3) ['A'] (i.e. insert token 'A' at index 3)
                         //    Update (3->2) ['B'] (i.e. move token 'B', now technically at index 4 due to the insertion above, to index 2)
                         // We need to acknowledge the update here or else token 'A' will be out of position, since 'B' needs to move position
                         // from after 'A' to before 'A'.
