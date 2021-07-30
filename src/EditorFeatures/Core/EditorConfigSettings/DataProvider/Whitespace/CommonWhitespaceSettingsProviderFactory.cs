@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Formatting
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
     internal class CommonWhitespaceSettingsProviderFactory : IWorkspaceSettingsProviderFactory<WhitespaceSetting>
     {

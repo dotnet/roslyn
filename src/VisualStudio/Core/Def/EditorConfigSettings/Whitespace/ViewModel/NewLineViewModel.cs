@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
     internal class NewLineViewModelFactory : IEnumSettingViewModelFactory

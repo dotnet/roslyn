@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
 {
     internal class CSharpWhitespaceSettingsProviderFactory : ILanguageSettingsProviderFactory<WhitespaceSetting>
     {

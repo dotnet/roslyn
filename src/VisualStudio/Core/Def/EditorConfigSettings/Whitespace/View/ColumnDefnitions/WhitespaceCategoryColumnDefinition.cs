@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Formatting;
+using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Whitespace;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View.ColumnDefnitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions
 {
     [Export(typeof(IDefaultColumnGroup))]
     [Name(nameof(WhitespaceCategoryGroupingSet))]    // Required, name of the default group

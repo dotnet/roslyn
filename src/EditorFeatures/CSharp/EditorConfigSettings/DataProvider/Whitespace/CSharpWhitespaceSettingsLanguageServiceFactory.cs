@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
 {
     [ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<WhitespaceSetting>), LanguageNames.CSharp), Shared]
     internal class CSharpWhitespaceSettingsLanguageServiceFactory : ILanguageServiceFactory

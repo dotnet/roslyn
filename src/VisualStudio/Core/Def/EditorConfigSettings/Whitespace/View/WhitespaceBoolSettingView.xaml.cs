@@ -7,7 +7,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View
 {
     /// <summary>
     /// Interaction logic for WhitespaceValueSettingControl.xaml

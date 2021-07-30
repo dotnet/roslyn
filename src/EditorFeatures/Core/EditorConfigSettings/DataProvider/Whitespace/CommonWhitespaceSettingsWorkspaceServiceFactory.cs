@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Formatting
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<WhitespaceSetting>)), Shared]
     internal class CommonWhitespaceSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory

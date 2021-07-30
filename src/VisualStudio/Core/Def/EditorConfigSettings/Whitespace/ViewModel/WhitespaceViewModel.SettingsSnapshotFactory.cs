@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
 {
     internal partial class WhitespaceViewModel
     {
