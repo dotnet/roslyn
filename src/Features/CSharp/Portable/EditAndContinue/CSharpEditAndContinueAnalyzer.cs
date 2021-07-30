@@ -1501,14 +1501,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // The types of the lambdas have to be the same if present.
             // The element selector may be added/removed.
 
-            if (!ParameterTypesEquivalent(oldParameters[0], newParameters[0], exact: false))
+            if (!ParameterTypesEquivalent(oldParameters[0], newParameters[0], exact: false, allowDiscards: false))
             {
                 return false;
             }
 
             if (oldParameters.Length == newParameters.Length && newParameters.Length == 2)
             {
-                return ParameterTypesEquivalent(oldParameters[1], newParameters[1], exact: false);
+                return ParameterTypesEquivalent(oldParameters[1], newParameters[1], exact: false, allowDiscards: false);
             }
 
             return true;

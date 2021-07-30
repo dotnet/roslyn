@@ -2216,12 +2216,17 @@ End Class
             edits.VerifyEdits(
                 "Update [a]@27 -> [b]@27")
 
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "Public Delegate Function D(b As Integer)", "parameter 'a As Integer'"))
+
             edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.BeginInvoke"))
-                })
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9761,10 +9766,16 @@ End Class
             edits.VerifyEdits(
                 "Update [a]@24 -> [b]@24")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9776,10 +9787,16 @@ End Class
             edits.VerifyEdits(
                 "Update [a]@26 -> [b]@26")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9791,10 +9808,16 @@ End Class
             edits.VerifyEdits(
                 "Update [a]@40 -> [b]@40")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Explicit"))
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Explicit"))
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9806,10 +9829,16 @@ End Class
             edits.VerifyEdits(
                 "Update [b]@44 -> [x]@44")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Addition"))
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Addition"))
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9821,10 +9850,16 @@ End Class
             edits.VerifyEdits(
                 "Update [b]@52 -> [x]@52")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.P"))
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.P"))
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -9836,10 +9871,16 @@ End Class
             edits.VerifyEdits(
                 "Update [a]@24 -> [b]@24")
 
-            edits.VerifySemantics(semanticEdits:=
-            {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
-            })
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+                },
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -10030,7 +10071,8 @@ End Class
                 "Update [a]@24 -> [c]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.parameter),
+                Diagnostic(RudeEditKind.Renamed, "c", FeaturesResources.parameter))
         End Sub
 
         <Theory>
