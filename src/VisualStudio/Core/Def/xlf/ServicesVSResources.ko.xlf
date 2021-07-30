@@ -889,7 +889,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">간단한 부울 식을 기본으로 사용</target>
+        <target state="translated">단순화된 부울 식을 기본으로 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">

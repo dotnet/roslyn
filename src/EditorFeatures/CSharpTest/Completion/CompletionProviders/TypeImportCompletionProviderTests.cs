@@ -1748,6 +1748,51 @@ namespace BB
             await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
+        {
+            var markup = @"
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+using Foo;
+
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static MyClass
+        }
+    }
+}";
+
+            await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);
 
