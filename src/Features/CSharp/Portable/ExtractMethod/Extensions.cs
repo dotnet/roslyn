@@ -102,29 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public static bool ContainedInValidType(this SyntaxNode node)
         {
             Contract.ThrowIfNull(node);
-
-            return !IsContainedDirectlyInNamespace(node);
-
-            static bool IsContainedDirectlyInNamespace(SyntaxNode n)
+            var typeContainer = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            if (typeContainer is not null)
             {
-                while (n is not null)
-                {
-                    if (n is BaseMethodDeclarationSyntax
-                       or AccessorDeclarationSyntax
-                       or BlockSyntax
-                       or CompilationUnitSyntax)
-                    {
-                        if (n.Parent is not null && n.Parent is NamespaceDeclarationSyntax)
-                        {
-                            return true;
-                        }
-                    }
+                return true;
+            }
 
-                    n = n.Parent!;
-                }
-
+            var nameSpaceContainer = node.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
+            if (nameSpaceContainer is not null)
+            {
                 return false;
             }
+
+            return true;
         }
 
         public static bool UnderValidContext(this SyntaxToken token)
