@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         [Fact]
         public async Task TestGetCompletions_PromotesNothingWhenNoCommitCharactersAsync()
         {
-            var clientCapabilities = new LSP.VSClientCapabilities
+            var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
                 TextDocument = new LSP.TextDocumentClientCapabilities()
                 {
-                    Completion = new LSP.VSCompletionSetting()
+                    Completion = new LSP.VSInternalCompletionSetting()
                     {
-                        CompletionList = new LSP.VSCompletionListSetting()
+                        CompletionList = new LSP.VSInternalCompletionListSetting()
                         {
                             CommitCharacters = true,
                         }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(),
-                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
                 triggerCharacter: "\0",
                 triggerKind: LSP.CompletionTriggerKind.Invoked);
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities).ConfigureAwait(false);
             Assert.All(results.Items, item => Assert.Null(item.CommitCharacters));
-            var vsCompletionList = Assert.IsAssignableFrom<LSP.VSCompletionList>(results);
+            var vsCompletionList = Assert.IsAssignableFrom<LSP.VSInternalCompletionList>(results);
             Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
         }
 
