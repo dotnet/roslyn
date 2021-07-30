@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHostServerGC: GCSettings.IsServerGC);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
+                _serviceNameMap.Add(name.ToString(isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)

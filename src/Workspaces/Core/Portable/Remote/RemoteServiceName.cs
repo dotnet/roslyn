@@ -43,29 +43,23 @@ namespace Microsoft.CodeAnalysis.Remote
             CustomServiceName = customServiceName;
         }
 
-        public string ToString(bool isRemoteHost64Bit, bool isRemoteHostServerGC)
+        public string ToString(bool isRemoteHostServerGC)
         {
-            return CustomServiceName ?? (WellKnownService, isRemoteHost64Bit, isRemoteHostServerGC) switch
+            return CustomServiceName ?? (WellKnownService, isRemoteHostServerGC) switch
             {
-                (WellKnownServiceHubService.RemoteHost, false, _) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
-                (WellKnownServiceHubService.RemoteHost, true, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
-                (WellKnownServiceHubService.RemoteHost, true, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.RemoteHost, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
+                (WellKnownServiceHubService.RemoteHost, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64 + SuffixServerGC,
 
-                (WellKnownServiceHubService.IntelliCode, false, _) => IntelliCodeServiceName,
-                (WellKnownServiceHubService.IntelliCode, true, false) => IntelliCodeServiceName + Suffix64,
-                (WellKnownServiceHubService.IntelliCode, true, true) => IntelliCodeServiceName + Suffix64 + SuffixServerGC,
-                (WellKnownServiceHubService.Razor, false, _) => RazorServiceName,
-                (WellKnownServiceHubService.Razor, true, false) => RazorServiceName + Suffix64,
-                (WellKnownServiceHubService.Razor, true, true) => RazorServiceName + Suffix64 + SuffixServerGC,
-                (WellKnownServiceHubService.UnitTestingAnalysisService, false, _) => UnitTestingAnalysisServiceName,
-                (WellKnownServiceHubService.UnitTestingAnalysisService, true, false) => UnitTestingAnalysisServiceName + Suffix64,
-                (WellKnownServiceHubService.UnitTestingAnalysisService, true, true) => UnitTestingAnalysisServiceName + Suffix64 + SuffixServerGC,
-                (WellKnownServiceHubService.LiveUnitTestingBuildService, false, _) => LiveUnitTestingBuildServiceName,
-                (WellKnownServiceHubService.LiveUnitTestingBuildService, true, false) => LiveUnitTestingBuildServiceName + Suffix64,
-                (WellKnownServiceHubService.LiveUnitTestingBuildService, true, true) => LiveUnitTestingBuildServiceName + Suffix64 + SuffixServerGC,
-                (WellKnownServiceHubService.UnitTestingSourceLookupService, false, _) => UnitTestingSourceLookupServiceName,
-                (WellKnownServiceHubService.UnitTestingSourceLookupService, true, false) => UnitTestingSourceLookupServiceName + Suffix64,
-                (WellKnownServiceHubService.UnitTestingSourceLookupService, true, true) => UnitTestingSourceLookupServiceName + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.IntelliCode, false) => IntelliCodeServiceName + Suffix64,
+                (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.Razor, false) => RazorServiceName + Suffix64,
+                (WellKnownServiceHubService.Razor, true) => RazorServiceName + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, false) => UnitTestingAnalysisServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, true) => UnitTestingAnalysisServiceName + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, false) => LiveUnitTestingBuildServiceName + Suffix64,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, true) => LiveUnitTestingBuildServiceName + Suffix64 + SuffixServerGC,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, false) => UnitTestingSourceLookupServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, true) => UnitTestingSourceLookupServiceName + Suffix64 + SuffixServerGC,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };

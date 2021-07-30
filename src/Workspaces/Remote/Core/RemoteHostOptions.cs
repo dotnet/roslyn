@@ -41,21 +41,8 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOPServerGC), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
 
-        // Override 64-bit OOP option to force use of a 32-bit process. This option exists as a registry-based
-        // workaround for cases where the new 64-bit mode fails and 32-bit in-process fails to provide a viable
-        // fallback.
-        public static readonly Option2<bool> OOP32BitOverride = new Option2<bool>(
-            FeatureName, nameof(OOP32BitOverride), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP32BitOverride)));
-
-        public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
-            => IsUsingServiceHubOutOfProcess(services) && !services.GetRequiredService<IOptionService>().GetOption(OOP32BitOverride);
-
         public static bool IsServiceHubProcessServerGC(HostWorkspaceServices services)
         {
-            if (!IsServiceHubProcess64Bit(services))
-                return false;
-
             return services.GetRequiredService<IOptionService>().GetOption(OOPServerGC)
                 || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPServerGC) == true;
         }
@@ -63,18 +50,15 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
         /// </summary>
+        /// <remarks>
+        /// Out-of-process execution is enabled if and only if 64-bit OOP is enabled.
+        /// </remarks>
         public static bool IsUsingServiceHubOutOfProcess(HostWorkspaceServices services)
         {
             var optionService = services.GetRequiredService<IOptionService>();
-            if (Environment.Is64BitOperatingSystem && optionService.GetOption(OOP64Bit))
+            if (optionService.GetOption(OOP64Bit))
             {
-                // OOP64Bit is set and supported
-                return true;
-            }
-
-            if (optionService.GetOption(OOP32BitOverride))
-            {
-                // Hidden fallback to 32-bit OOP is set
+                // OOP64Bit is set
                 return true;
             }
 

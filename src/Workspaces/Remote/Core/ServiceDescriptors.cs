@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
         });
 
         internal readonly RemoteSerializationOptions Options;
-        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
+        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
         private readonly string _componentName;
         private readonly Func<string, string> _featureDisplayNameProvider;
 
@@ -107,29 +107,23 @@ namespace Microsoft.CodeAnalysis.Remote
         internal string GetQualifiedServiceName(Type serviceInterface)
             => ServiceNameTopLevelPrefix + _componentName + "." + GetServiceName(serviceInterface);
 
-        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
+        private (ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
             var qualifiedServiceName = GetQualifiedServiceName(serviceInterface);
-            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
-            return (descriptor32, descriptor64, descriptor64ServerGC);
+            return (descriptor64, descriptor64ServerGC);
         }
 
         public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
-            => GetServiceDescriptor(serviceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+            => GetServiceDescriptor(serviceType, isRemoteHostServerGC: GCSettings.IsServerGC);
 
-        public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC)
+        public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHostServerGC)
         {
-            var (descriptor32, descriptor64, descriptor64ServerGC) = _descriptors[serviceType];
-            return (isRemoteHost64Bit, isRemoteHostServerGC) switch
-            {
-                (true, false) => descriptor64,
-                (true, true) => descriptor64ServerGC,
-                _ => descriptor32,
-            };
+            var (descriptor64, descriptor64ServerGC) = _descriptors[serviceType];
+            return isRemoteHostServerGC ? descriptor64ServerGC : descriptor64;
         }
 
         internal static string GetFeatureDisplayName(string qualifiedServiceName)
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote
             internal TestAccessor(ServiceDescriptors serviceDescriptors)
                 => _serviceDescriptors = serviceDescriptors;
 
-            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> Descriptors
+            public ImmutableDictionary<Type, (ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> Descriptors
                 => _serviceDescriptors._descriptors;
         }
     }
