@@ -112,26 +112,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             static bool IsContainedDirectlyInNamespace(SyntaxNode n)
             {
-                var hasContainer = false;
-                var immediateParent = false;
                 while (n is not null)
                 {
-                    if (n is NamespaceDeclarationSyntax && hasContainer && immediateParent)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        immediateParent = false;
-                    }
-
                     if (n is BaseMethodDeclarationSyntax
                        or AccessorDeclarationSyntax
                        or BlockSyntax
                        or CompilationUnitSyntax)
                     {
-                        hasContainer = true;
-                        immediateParent = true;
+                        if (n.Parent is not null && n.Parent is NamespaceDeclarationSyntax)
+                        {
+                            return true;
+                        }
                     }
 
                     n = n.Parent!;
