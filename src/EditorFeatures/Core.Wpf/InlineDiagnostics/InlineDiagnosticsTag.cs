@@ -57,13 +57,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             var idRun = GetRunForId(out var hyperlink);
-
+            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             if (hyperlink is null)
             {
                 block.Inlines.Add(idRun);
             }
             else
             {
+                // If we are in dark mode, then we want to change the color of the link to be lighter than the
+                // default color to meet accessibility standards.
+                if (editorBackground == Color.FromArgb(255, 30, 30, 30))
+                {
+                    hyperlink.Foreground = new SolidColorBrush(Color.FromRgb(3, 194, 252));
+                }
+
                 block.Inlines.Add(hyperlink);
                 hyperlink.RequestNavigate += HandleRequestNavigate;
             }
@@ -96,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             // This is used as a workaround to the moniker issues in blue theme
-            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -151,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 {
                     link = new Hyperlink(id)
                     {
-                        NavigateUri = new Uri(_diagnostic.HelpLink)
+                        NavigateUri = new Uri(_diagnostic.HelpLink),
                     };
                 }
 
