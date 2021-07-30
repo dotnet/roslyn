@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersOptions
+    internal readonly struct MoveStaticMembersOptions
     {
         public bool IsCancelled { get; }
 
@@ -19,26 +19,19 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public ImmutableArray<ISymbol> SelectedMembers { get; }
 
-        public static MoveStaticMembersOptions Cancelled = new();
-
-        /// <summary>
-        /// default constructor corresponds to a cancelled operation
-        /// </summary>
-        public MoveStaticMembersOptions()
-        {
-            IsCancelled = true;
-            FileName = string.Empty;
-            TypeName = string.Empty;
-            NamespaceDisplay = string.Empty;
-            SelectedMembers = ImmutableArray<ISymbol>.Empty;
-        }
+        public static MoveStaticMembersOptions Cancelled = new(
+            string.Empty,
+            string.Empty,
+            ImmutableArray<ISymbol>.Empty,
+            isCancelled: true);
 
         public MoveStaticMembersOptions(
             string fileName,
             string fullTypeName,
-            ImmutableArray<ISymbol> selectedMembers)
+            ImmutableArray<ISymbol> selectedMembers,
+            bool isCancelled = false)
         {
-            IsCancelled = false;
+            IsCancelled = isCancelled;
             FileName = fileName;
             var namespacesAndType = fullTypeName.Split(separator: '.');
             TypeName = namespacesAndType.Last();

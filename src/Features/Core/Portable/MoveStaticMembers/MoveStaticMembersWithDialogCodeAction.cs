@@ -62,7 +62,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var fileBanner = syntaxFacts.GetFileBanner(root);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
-            var memberNodes = moveOptions.SelectedMembers.SelectAsArray(symbol => symbol.Locations.Single().FindNode(cancellationToken));
+            // These symbols should all have (singular) definitions, but in the case that we can't find
+            // any location, we just won't move that particular symbol
+            var memberNodes = moveOptions.SelectedMembers
+                .Select(symbol => symbol.Locations.FirstOrDefault())
+                .WhereNotNull()
+                .SelectAsArray(loc => loc.FindNode(cancellationToken));
             root = root.TrackNodes(memberNodes);
             var sourceDoc = _document.WithSyntaxRoot(root);
 

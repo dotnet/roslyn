@@ -82,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             {
                 var typeName = viewModel.DestinationName;
                 return new MoveStaticMembersOptions(
+                    // TODO: generate unique file name based off of existing folder documents
                     typeName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
                     typeName,
                     selectMembersViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
