@@ -335,8 +335,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
-            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
 
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
@@ -349,27 +349,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         FileHeaderHelper,
                         newLineTrivia,
                         addedDocument,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(true);
 
                 addedDocument = addedDocument.WithSyntaxRoot(rootWithFileHeader);
                 rootToFormat = rootWithFileHeader;
             }
 
             // Organize using directives
-            addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(false);
-            rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(true);
+            rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
 
             // Add access modifier
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
             if (addedDocument.Project.Language == LanguageNames.CSharp &&
                 accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
             {
-                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(false);
-                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(true);
+                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             }
 
             // Format document
-            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
             var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
@@ -401,8 +401,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static async Task<Document> AddAccessibilityModifiersAsync(
             Document document, AccessibilityModifiersRequired option, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
