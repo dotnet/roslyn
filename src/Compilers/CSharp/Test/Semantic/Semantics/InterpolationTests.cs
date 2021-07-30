@@ -11595,7 +11595,7 @@ AppendFormatted");
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldstr      ""literal""
   IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
-  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
   IL_0021:  brtrue.s   IL_0062
   IL_0023:  ldc.i4     0x100
   IL_0028:  ldstr      ""AppendFormatted""
@@ -11617,14 +11617,14 @@ AppendFormatted");
   IL_004d:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0052:  stelem.ref
   IL_0053:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_0067:  ldfld      ""<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
-  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0067:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
   IL_0071:  ldloca.s   V_1
   IL_0073:  ldloc.0
-  IL_0074:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_0074:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
   IL_0079:  ldloc.1
   IL_007a:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
   IL_007f:  ret
@@ -11702,7 +11702,7 @@ AppendFormatted");
   IL_004c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
   IL_0051:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target""
   IL_0056:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
-  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
   IL_0060:  brtrue.s   IL_009d
   IL_0062:  ldc.i4.0
   IL_0063:  ldstr      ""AppendFormatted""
@@ -11724,14 +11724,14 @@ AppendFormatted");
   IL_0088:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_008d:  stelem.ref
   IL_008e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0093:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_00a2:  ldfld      ""<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Target""
-  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0093:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_00a2:  ldfld      ""<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Target""
+  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
   IL_00ac:  ldloca.s   V_1
   IL_00ae:  ldloc.0
-  IL_00af:  callvirt   ""dynamic <>F{00000002}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_00af:  callvirt   ""dynamic <>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
   IL_00b4:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
   IL_00b9:  br.s       IL_00bc
   IL_00bb:  ldc.i4.0
