@@ -186,13 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
 
             var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
-
-            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
-            // https://github.com/dotnet/roslyn/issues/52128
-            if (EditSession.InBreakState)
-            {
-                _telemetry.LogEditSession(editSessionTelemetryData);
-            }
+            _telemetry.LogEditSession(editSessionTelemetryData);
         }
 
         public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
@@ -951,8 +945,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
             {
                 map[SessionId] = debugSessionId;
-                map["SessionCount"] = debugSessionData.EditSessionData.Length;
+                map["SessionCount"] = debugSessionData.EditSessionData.Count(session => session.InBreakState);
                 map["EmptySessionCount"] = debugSessionData.EmptyEditSessionCount;
+                map["HotReloadSessionCount"] = debugSessionData.EditSessionData.Count(session => !session.InBreakState);
+                map["EmptyHotReloadSessionCount"] = debugSessionData.EmptyHotReloadEditSessionCount;
             }));
 
             foreach (var editSessionData in debugSessionData.EditSessionData)
@@ -971,6 +967,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
                     map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
+                    map["InBreakState"] = editSessionData.InBreakState;
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)
