@@ -32,7 +32,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.1.0-beta1.21322.2</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.10.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
-    <VisualStudioEditorNewPackagesVersion>17.0.216-preview</VisualStudioEditorNewPackagesVersion>
+    <VisualStudioEditorNewPackagesVersion>17.0.250-preview-gb41b1061d8</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.3094-g82ddffa096</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
