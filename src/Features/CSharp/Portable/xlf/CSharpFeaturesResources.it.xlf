@@ -137,11 +137,6 @@
         <target state="translated">Sono stati rilevati conflitti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_container_async">
-        <source>Make container 'async'</source>
-        <target state="new">Make container 'async'</target>
-        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Imposta i campi privati come di sola lettura quando possibile</target>
@@ -300,21 +295,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Selezione non valida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">La selezione non contiene un token valido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">La selezione non è valida per eseguire l'estrazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Non esiste un nodo radice comune per l'estrazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">

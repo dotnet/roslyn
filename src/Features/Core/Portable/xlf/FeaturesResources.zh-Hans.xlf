@@ -230,6 +230,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">等待任务返回“{0}”</target>
@@ -945,9 +950,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">嵌套限定符 {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="new">No common root node for extraction.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
         <target state="translated">没有插入方法调用的有效位置。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="new">No valid selection to perform extraction.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2183,6 +2198,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">原始编辑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="new">Selection does not contain a valid token.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="new">Selection not contained inside a type.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

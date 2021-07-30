@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.EventHandling.RaiseEventKeywordRecommender(),
                 New KeywordRecommenders.EventHandling.RemoveHandlerKeywordRecommender(),
                 New KeywordRecommenders.Expressions.AddressOfKeywordRecommender(),
-                New KeywordRecommenders.Expressions.AwaitKeywordRecommender(),
                 New KeywordRecommenders.Expressions.BinaryOperatorKeywordRecommender(),
                 New KeywordRecommenders.Expressions.CastOperatorsKeywordRecommender(),
                 New KeywordRecommenders.Expressions.FromKeywordRecommender(),
