@@ -337,15 +337,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var partKind = GetPartKind(symbol);
 
-            if (symbolName == null)
-            {
-                symbolName = symbol.Name;
-            }
+            symbolName ??= symbol.Name;
 
             var renderSimpleAnoymousDelegate =
                 symbol.TypeKind == TypeKind.Delegate &&
                 !symbol.CanBeReferencedByName &&
                 !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
                 string.IsNullOrEmpty(symbolName))
