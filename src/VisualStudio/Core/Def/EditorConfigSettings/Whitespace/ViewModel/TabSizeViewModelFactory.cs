@@ -4,29 +4,32 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory
+    internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory
     {
+        private readonly OptionKey2 _key;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BinaryOperatorSpacingOptionsViewModelFactory()
+        public TabSizeViewModelFactory()
         {
+            _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
         }
 
         public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
         {
-            return new BinaryOperatorSpacingOptionsViewModel(setting);
+            return new TabSizeViewModel(setting);
         }
 
-        public bool IsSupported(OptionKey2 key)
-            => key.Option.Type == typeof(BinaryOperatorSpacingOptions);
+        public bool IsSupported(OptionKey2 key) => _key == key;
     }
 }
