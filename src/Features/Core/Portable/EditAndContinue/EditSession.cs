@@ -809,20 +809,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
                 }
 
-                if (isBlocked)
-                {
-                    return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
-                }
+                var update = isBlocked ?
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable()) :
+                    new SolutionUpdate(
+                        new ManagedModuleUpdates(
+                            (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                            deltas.ToImmutable()),
+                        nonRemappableRegions.ToImmutable(),
+                        emitBaselines.ToImmutable(),
+                        diagnostics.ToImmutable(),
+                        documentsWithRudeEdits.ToImmutable());
 
-                return new SolutionUpdate(
-                    new ManagedModuleUpdates(
-                        (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
-                        deltas.ToImmutable()),
-                    nonRemappableRegions.ToImmutable(),
-
-                    emitBaselines.ToImmutable(),
-                    diagnostics.ToImmutable(),
-                    documentsWithRudeEdits.ToImmutable());
+                return update;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
