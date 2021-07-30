@@ -7,17 +7,17 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Formatting;
+using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Whitespace;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View.ColumnDefnitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions
 {
     [Export(typeof(ITableColumnDefinition))]
     [Name(Location)]
-    internal class FormattingLocationColumnDefinition : TableColumnDefinitionBase
+    internal class WhitespaceLocationColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingLocationColumnDefinition()
+        public WhitespaceLocationColumnDefinition()
         {
         }
 
