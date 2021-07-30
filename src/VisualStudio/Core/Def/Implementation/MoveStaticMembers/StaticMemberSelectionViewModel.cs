@@ -4,9 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 .WhereAsArray(member => member.IsChecked);
 
             var result = _uiThreadOperationExecutor.Execute(
-                title: ServicesVSResources.Pull_Members_Up,
+                title: ServicesVSResources.Move_static_members_to_another_type_colon,
                 defaultDescription: ServicesVSResources.Calculating_dependents,
                 allowCancellation: true,
                 showProgress: true,
