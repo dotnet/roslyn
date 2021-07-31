@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'выражение default можно упростить</target>
+        <target state="translated">выражение default можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="translated">выражение "new" можно упростить</target>
+        <target state="translated">выражение new можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
