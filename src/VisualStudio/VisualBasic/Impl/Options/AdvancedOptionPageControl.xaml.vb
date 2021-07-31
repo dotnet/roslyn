@@ -66,10 +66,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic)
             BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic,
                          Function()
-                             ' This option used to be backed by an experimentation flag but Is now enabled by default.
+                             ' This option used to be backed by an experimentation flag but Is no longer.
                              ' Having the option still a bool? keeps us from running into storage related issues,
-                             ' but if the option was stored as null we want it to be enabled by default
-                             Return True
+                             ' but if the option was stored as null we want it to respect this default
+                             Return False
                          End Function)
 
             ' Highlighting
