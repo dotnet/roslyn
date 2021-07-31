@@ -517,6 +517,75 @@ namespace Microsoft.CodeAnalysis.AddImport
             return fixesForDiagnosticBuilder.ToImmutableAndFree();
         }
 
+        public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            Document document, TextSpan span, ImmutableArray<string> diagnosticIds,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
+                    document.Project.Solution,
+                    (service, solutionInfo, callbackId, cancellationToken) =>
+                        service.GetUniqueFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticIds, searchReferenceAssemblies, packageSources, cancellationToken),
+                    callbackTarget: symbolSearchService,
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
+            }
+
+            return await GetUniqueFixesAsyncInCurrentProcessAsync(
+                document, span, diagnosticIds,
+                symbolSearchService, searchReferenceAssemblies,
+                packageSources, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsyncInCurrentProcessAsync(
+            Document document,
+            TextSpan span,
+            ImmutableArray<string> diagnosticIds,
+            ISymbolSearchService symbolSearchService,
+            bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
+               .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
+               .ToImmutableArray();
+
+
+            var getFixesForDiagnosticsTasks = diagnostics
+                .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
+                .Select(diagnosticsForSourceSpan => GetFixesForDiagnosticsAsync(
+                        document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
+                        maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken));
+
+            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var fixes);
+            foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
+            {
+                var fixesForDiagnostics = await getFixesForDiagnosticsTask.ConfigureAwait(false);
+
+                foreach (var fixesForDiagnostic in fixesForDiagnostics)
+                {
+                    // When there is more than one potential fix for a missing import diagnostic,
+                    // which is possible when the same class name is present in multiple namespaces,
+                    // we do not want to choose for the user and be wrong. We will not attempt to
+                    // fix this diagnostic and instead leave it for the user to resolve since they
+                    // will have more context for determining the proper fix.
+                    if (fixesForDiagnostic.Fixes.Length == 1)
+                        fixes.Add(fixesForDiagnostic.Fixes[0]);
+                }
+            }
+
+            return fixes.ToImmutable();
+        }
+
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
             Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService? installerService, int maxResults)
