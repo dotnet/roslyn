@@ -73,18 +73,18 @@ static class Utils
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (6,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Delegate'. Did you intend to invoke the method?
                 //         d = Main;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(6, 13),
-                // (7,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Delegate").WithLocation(6, 13),
+                // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         d = () => { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(7, 13),
-                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13),
+                // (8,13): error CS1660: Cannot convert anonymous method to type 'Delegate' because it is not a delegate type
                 //         d = delegate () { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13),
-                // (9,48): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 13),
+                // (9,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(9, 48));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 48));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
@@ -160,17 +160,17 @@ static class Utils
             yield return getData("T F<T>() => default;", "(new Program()).F", "F", null);
             yield return getData("void F<T>(T t) { }", "(new Program()).F<string>", "F", "System.Action<System.String>");
             yield return getData("void F<T>(T t) { }", "(new Program()).F", "F", null);
-            yield return getData("static ref int F() => throw null;", "F", "F", null);
-            yield return getData("static ref readonly int F() => throw null;", "F", "F", null);
+            yield return getData("static ref int F() => throw null;", "F", "F", "<>F{00000001}<System.Int32>");
+            yield return getData("static ref readonly int F() => throw null;", "F", "F", "<>F{00000003}<System.Int32>");
             yield return getData("static void F() { }", "F", "F", "System.Action");
             yield return getData("static void F(int x, int y) { }", "F", "F", "System.Action<System.Int32, System.Int32>");
-            yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", null);
-            yield return getData("static void F(int x, ref int y) { }", "F", "F", null);
-            yield return getData("static void F(int x, in int y) { }", "F", "F", null);
+            yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
-            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", null);
+            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>");
-            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", null);
+            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", "<>F<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
 
             object?[] getData(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType) =>
                 new object?[] { methodDeclaration, methodGroupExpression, expectedType is null ? getExpectedDiagnostics(methodGroupExpression, methodGroupOnly) : null, expectedType };
@@ -276,16 +276,16 @@ $@"class Program
             yield return getData("x => ref args[0]", null);
             yield return getData("(x, y) => { }", null);
             yield return getData("() => 1", "System.Func<System.Int32>");
-            yield return getData("() => ref args[0]", null);
+            yield return getData("() => ref args[0]", "<>F{00000001}<System.String>");
             yield return getData("() => { }", "System.Action");
             yield return getData("(int x, int y) => { }", "System.Action<System.Int32, System.Int32>");
-            yield return getData("(out int x, int y) => { x = 0; }", null);
-            yield return getData("(int x, ref int y) => { x = 0; }", null);
-            yield return getData("(int x, in int y) => { x = 0; }", null);
+            yield return getData("(out int x, int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("(int x, in int y) => { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
-            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { }", null);
+            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => _1", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
-            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => _1", null);
+            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => _1", "<>F<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Int32>");
             yield return getData("static () => 1", "System.Func<System.Int32>");
             yield return getData("async () => { await System.Threading.Tasks.Task.Delay(0); }", "System.Func<System.Threading.Tasks.Task>");
             yield return getData("static async () => { await System.Threading.Tasks.Task.Delay(0); return 0; }", "System.Func<System.Threading.Tasks.Task<System.Int32>>");
@@ -314,16 +314,16 @@ $@"class Program
         {
             yield return getData("delegate { }", null);
             yield return getData("delegate () { return 1; }", "System.Func<System.Int32>");
-            yield return getData("delegate () { return ref args[0]; }", null);
+            yield return getData("delegate () { return ref args[0]; }", "<>F{00000001}<System.String>");
             yield return getData("delegate () { }", "System.Action");
             yield return getData("delegate (int x, int y) { }", "System.Action<System.Int32, System.Int32>");
-            yield return getData("delegate (out int x, int y) { x = 0; }", null);
-            yield return getData("delegate (int x, ref int y) { x = 0; }", null);
-            yield return getData("delegate (int x, in int y) { x = 0; }", null);
+            yield return getData("delegate (out int x, int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>");
+            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>");
+            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
-            yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", null);
+            yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { return _1; }", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
-            yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { return _1; }", null);
+            yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { return _1; }", "<>F<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Int32>");
 
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };
@@ -411,7 +411,7 @@ $@"class Program
             yield return getData("x => x", null);
             yield return getData("() => 1", "System.Func<System.Int32>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => _1", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
-            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => _1", null);
+            yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => _1", "<>F<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Int32>");
             yield return getData("static () => 1", "System.Func<System.Int32>");
 
             static object?[] getData(string expr, string? expectedType) =>
@@ -528,9 +528,6 @@ class Program
                 // (7,47): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d1 = (object x1) => { _ = x1.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(7, 47),
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d2 = (ref object x2) => { _ = x2.Length; };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ref object x2) => { _ = x2.Length; }").WithLocation(8, 23),
                 // (8,51): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d2 = (ref object x2) => { _ = x2.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(8, 51),
@@ -1239,6 +1236,7 @@ class Program
 
         // System.Func<> and System.Action<> cannot be used as the delegate type
         // when the parameters or return type are not valid type arguments.
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [Fact]
         public void InvalidTypeArguments()
         {
@@ -1280,8 +1278,8 @@ class Program
         return (T t, int* p) => { };
     }
 }";
-            // When we synthesize delegate types, and infer a synthesized
-            // delegate type, run the program to report the actual delegate type.
+            // When we synthesize delegate types with parameter types (such as int*) that cannot
+            // be used as type arguments, run the program to report the actual delegate type.
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
                 // (11,16): error CS8917: The delegate type could not be inferred.
@@ -1821,14 +1819,10 @@ static class E
     public static void M(this object o, Action a) { Console.WriteLine(""E.M""); }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //         c.M(Main);      // C#9: E.M(object x, Action y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(7, 13),
-                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //         c.M(() => { }); // C#9: E.M(object x, Action y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13));
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"E.M
+E.M
+");
 
             // Breaking change from C#9 which binds to E.M.
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
@@ -1861,11 +1855,7 @@ static class E
     public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //         c.M(() => 1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13));
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
 
             // Breaking change from C#9 which binds to E.M.
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: @"C.M");
@@ -1904,24 +1894,24 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (14,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (14,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
                 //         FA(F2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F2").WithArguments("inferred delegate type", "10.0").WithLocation(14, 12),
-                // (15,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_BadArgType, "F2").WithArguments("1", "method group", "System.Delegate").WithLocation(14, 12),
+                // (15,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
                 //         FB(F1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F1").WithArguments("inferred delegate type", "10.0").WithLocation(15, 12),
-                // (18,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_BadArgType, "F1").WithArguments("1", "method group", "System.Delegate").WithLocation(15, 12),
+                // (18,18): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         FA(() => 0);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 0").WithArguments("inferred delegate type", "10.0").WithLocation(18, 12),
-                // (19,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "0").WithLocation(18, 18),
+                // (19,15): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
                 //         FB(() => { });
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(19, 12),
-                // (22,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(19, 15),
+                // (22,26): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
                 //         FA(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { return 0; }").WithArguments("inferred delegate type", "10.0").WithLocation(22, 12),
-                // (23,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(22, 26),
+                // (23,12): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
                 //         FB(delegate () { });
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(23, 12));
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(23, 12));
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
 @"FA(Action)
@@ -1959,9 +1949,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,11): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (11,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         F(() => string.Empty);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => string.Empty").WithArguments("inferred delegate type", "10.0").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(11, 17),
+                // (11,17): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         F(() => string.Empty);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "string.Empty").WithArguments("lambda expression").WithLocation(11, 17));
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
 @"F(Expression<Func<int>>): () => 0
@@ -2373,13 +2366,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = F;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(6, 18),
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = (ref int x) => x;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ref int x) => x").WithLocation(7, 18));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2405,6 +2392,25 @@ class Program
 @"System.Func<System.Int32>
 System.Func<System.Int32, System.Object>
 System.Func<System.String>");
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_14()
+        {
+            var source =
+@"delegate void D(string s);
+class Program
+{
+    static void Main()
+    {
+        (D x, var y) = (() => string.Empty, () => string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,19): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         (D x, var y) = (() => string.Empty, () => string.Empty);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(6, 19));
         }
 
         [Fact]
@@ -2474,6 +2480,913 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M1<T>(T t)
+    {
+        var d = (ref T t) => t;
+        Report(d);
+        Console.WriteLine(d(ref t));
+    }
+    static void M2<U>(U u) where U : struct
+    {
+        var d = (ref U u) => u;
+        Report(d);
+        Console.WriteLine(d(ref u));
+    }
+    static void M3(double value)
+    {
+        var d = (ref double d) => d;
+        Report(d);
+        Console.WriteLine(d(ref value));
+    }
+    static void Main()
+    {
+        M1(41);
+        M2(42f);
+        M2(43d);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"<>F{00000001}`2[System.Int32,System.Int32]
+41
+<>F{00000001}`2[System.Single,System.Single]
+42
+<>F{00000001}`2[System.Double,System.Double]
+43
+");
+            verifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       55 (0x37)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>F{00000001}<T, T> Program.<>c__0<T>.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c__0<T> Program.<>c__0<T>.<>9""
+  IL_000e:  ldftn      ""T Program.<>c__0<T>.<M1>b__0_0(ref T)""
+  IL_0014:  newobj     ""<>F{00000001}<T, T>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""<>F{00000001}<T, T> Program.<>c__0<T>.<>9__0_0""
+  IL_001f:  dup
+  IL_0020:  call       ""void Program.Report(System.Delegate)""
+  IL_0025:  ldarga.s   V_0
+  IL_0027:  callvirt   ""T <>F{00000001}<T, T>.Invoke(ref T)""
+  IL_002c:  box        ""T""
+  IL_0031:  call       ""void System.Console.WriteLine(object)""
+  IL_0036:  ret
+}");
+            verifier.VerifyIL("Program.M2<U>",
+@"{
+  // Code size       55 (0x37)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>F{00000001}<U, U> Program.<>c__1<U>.<>9__1_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c__1<U> Program.<>c__1<U>.<>9""
+  IL_000e:  ldftn      ""U Program.<>c__1<U>.<M2>b__1_0(ref U)""
+  IL_0014:  newobj     ""<>F{00000001}<U, U>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""<>F{00000001}<U, U> Program.<>c__1<U>.<>9__1_0""
+  IL_001f:  dup
+  IL_0020:  call       ""void Program.Report(System.Delegate)""
+  IL_0025:  ldarga.s   V_0
+  IL_0027:  callvirt   ""U <>F{00000001}<U, U>.Invoke(ref U)""
+  IL_002c:  box        ""U""
+  IL_0031:  call       ""void System.Console.WriteLine(object)""
+  IL_0036:  ret
+}");
+            verifier.VerifyIL("Program.M3",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>F{00000001}<double, double> Program.<>c.<>9__2_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""double Program.<>c.<M3>b__2_0(ref double)""
+  IL_0014:  newobj     ""<>F{00000001}<double, double>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""<>F{00000001}<double, double> Program.<>c.<>9__2_0""
+  IL_001f:  dup
+  IL_0020:  call       ""void Program.Report(System.Delegate)""
+  IL_0025:  ldarga.s   V_0
+  IL_0027:  callvirt   ""double <>F{00000001}<double, double>.Invoke(ref double)""
+  IL_002c:  call       ""void System.Console.WriteLine(double)""
+  IL_0031:  ret
+}");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes();
+
+            var variables = nodes.OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
+            Assert.Equal(3, variables.Length);
+            VerifyLocalDelegateType(model, variables[0], "<>F{00000001}<T, T> d", "T <>F{00000001}<T, T>.Invoke(ref T)");
+            VerifyLocalDelegateType(model, variables[1], "<>F{00000001}<U, U> d", "U <>F{00000001}<U, U>.Invoke(ref U)");
+            VerifyLocalDelegateType(model, variables[2], "<>F{00000001}<System.Double, System.Double> d", "System.Double <>F{00000001}<System.Double, System.Double>.Invoke(ref System.Double)");
+
+            var identifiers = nodes.OfType<InvocationExpressionSyntax>().Where(i => i.Expression is IdentifierNameSyntax id && id.Identifier.Text == "Report").Select(i => i.ArgumentList.Arguments[0].Expression).ToArray();
+            Assert.Equal(3, identifiers.Length);
+            VerifyExpressionType(model, identifiers[0], "<>F{00000001}<T, T> d", "<>F{00000001}<T, T>");
+            VerifyExpressionType(model, identifiers[1], "<>F{00000001}<U, U> d", "<>F{00000001}<U, U>");
+            VerifyExpressionType(model, identifiers[2], "<>F{00000001}<System.Double, System.Double> d", "<>F{00000001}<System.Double, System.Double>");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M1(A a, int value)
+    {
+        var d = a.F1;
+        d() = value;
+    }
+    static void M2(B b, float value)
+    {
+        var d = b.F2;
+        d() = value;
+    }
+    static void Main()
+    {
+        var a = new A();
+        M1(a, 41);
+        var b = new B();
+        M2(b, 42f);
+        Console.WriteLine((a._f, b._f));
+    }
+}
+class A
+{
+    public int _f;
+    public ref int F1() => ref _f;
+}
+class B
+{
+    public float _f;
+}
+static class E
+{
+    public static ref float F2(this B b) => ref b._f;
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
+            verifier.VerifyIL("Program.M1",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""ref int A.F1()""
+  IL_0007:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""ref int <>F{00000001}<int>.Invoke()""
+  IL_0011:  ldarg.1
+  IL_0012:  stind.i4
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("Program.M2",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""ref float E.F2(B)""
+  IL_0007:  newobj     ""<>F{00000001}<float>..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""ref float <>F{00000001}<float>.Invoke()""
+  IL_0011:  ldarg.1
+  IL_0012:  stind.r4
+  IL_0013:  ret
+}");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var variables = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
+            Assert.Equal(2, variables.Length);
+            VerifyLocalDelegateType(model, variables[0], "<>F{00000001}<System.Int32> d", "ref System.Int32 <>F{00000001}<System.Int32>.Invoke()");
+            VerifyLocalDelegateType(model, variables[1], "<>F{00000001}<System.Single> d", "ref System.Single <>F{00000001}<System.Single>.Invoke()");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report((ref int x, int y) => { });
+        Report((int x, ref int y) => { });
+        Report((ref float x, int y) => { });
+        Report((float x, ref int y) => { });
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"<>A{00000001}`2[System.Int32,System.Int32]
+<>A{00000004}`2[System.Int32,System.Int32]
+<>A{00000001}`2[System.Single,System.Int32]
+<>A{00000004}`2[System.Single,System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      145 (0x91)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>A{00000001}<int, int> Program.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""void Program.<>c.<Main>b__0_0(ref int, int)""
+  IL_0014:  newobj     ""<>A{00000001}<int, int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""<>A{00000001}<int, int> Program.<>c.<>9__0_0""
+  IL_001f:  call       ""void Program.Report(System.Delegate)""
+  IL_0024:  ldsfld     ""<>A{00000004}<int, int> Program.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0032:  ldftn      ""void Program.<>c.<Main>b__0_1(int, ref int)""
+  IL_0038:  newobj     ""<>A{00000004}<int, int>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""<>A{00000004}<int, int> Program.<>c.<>9__0_1""
+  IL_0043:  call       ""void Program.Report(System.Delegate)""
+  IL_0048:  ldsfld     ""<>A{00000001}<float, int> Program.<>c.<>9__0_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0056:  ldftn      ""void Program.<>c.<Main>b__0_2(ref float, int)""
+  IL_005c:  newobj     ""<>A{00000001}<float, int>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""<>A{00000001}<float, int> Program.<>c.<>9__0_2""
+  IL_0067:  call       ""void Program.Report(System.Delegate)""
+  IL_006c:  ldsfld     ""<>A{00000004}<float, int> Program.<>c.<>9__0_3""
+  IL_0071:  dup
+  IL_0072:  brtrue.s   IL_008b
+  IL_0074:  pop
+  IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_007a:  ldftn      ""void Program.<>c.<Main>b__0_3(float, ref int)""
+  IL_0080:  newobj     ""<>A{00000004}<float, int>..ctor(object, System.IntPtr)""
+  IL_0085:  dup
+  IL_0086:  stsfld     ""<>A{00000004}<float, int> Program.<>c.<>9__0_3""
+  IL_008b:  call       ""void Program.Report(System.Delegate)""
+  IL_0090:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int i = 0;
+    static void Main()
+    {
+        Report(int () => i);
+        Report((ref int () => ref i));
+        Report((ref readonly int () => ref i));
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      109 (0x6d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<int> Program.<>c.<>9__1_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""int Program.<>c.<Main>b__1_0()""
+  IL_0014:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<int> Program.<>c.<>9__1_0""
+  IL_001f:  call       ""void Program.Report(System.Delegate)""
+  IL_0024:  ldsfld     ""<>F{00000001}<int> Program.<>c.<>9__1_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__1_1()""
+  IL_0038:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""<>F{00000001}<int> Program.<>c.<>9__1_1""
+  IL_0043:  call       ""void Program.Report(System.Delegate)""
+  IL_0048:  ldsfld     ""<>F{00000003}<int> Program.<>c.<>9__1_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__1_2()""
+  IL_005c:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""<>F{00000003}<int> Program.<>c.<>9__1_2""
+  IL_0067:  call       ""void Program.Report(System.Delegate)""
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int i = 0;
+    static int F1() => i;
+    static ref int F2() => ref i;
+    static ref readonly int F3() => ref i;
+    static void Main()
+    {
+        Report(F1);
+        Report(F2);
+        Report(F3);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       52 (0x34)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""int Program.F1()""
+  IL_0007:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""ref int Program.F2()""
+  IL_0018:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""ref readonly int Program.F3()""
+  IL_0029:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int i = 0;
+    static int F1() => i;
+    static ref int F2() => ref i;
+    static ref readonly int F3() => ref i;
+    static void Main()
+    {
+        var d1 = F1;
+        var d2 = F2;
+        var d3 = F3;
+        Report(d1);
+        Report(d2);
+        Report(d3);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32]
+<>F{00000001}`1[System.Int32]
+<>F{00000003}`1[System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(int (ref int i) => i);
+        Report((ref int (ref int i) => ref i));
+        Report((ref readonly int (ref int i) => ref i));
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"<>F{00000001}`2[System.Int32,System.Int32]
+<>F{00000005}`2[System.Int32,System.Int32]
+<>F{0000000d}`2[System.Int32,System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      109 (0x6d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""int Program.<>c.<Main>b__0_0(ref int)""
+  IL_0014:  newobj     ""<>F{00000001}<int, int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""<>F{00000001}<int, int> Program.<>c.<>9__0_0""
+  IL_001f:  call       ""void Program.Report(System.Delegate)""
+  IL_0024:  ldsfld     ""<>F{00000005}<int, int> Program.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__0_1(ref int)""
+  IL_0038:  newobj     ""<>F{00000005}<int, int>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""<>F{00000005}<int, int> Program.<>c.<>9__0_1""
+  IL_0043:  call       ""void Program.Report(System.Delegate)""
+  IL_0048:  ldsfld     ""<>F{0000000d}<int, int> Program.<>c.<>9__0_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__0_2(ref int)""
+  IL_005c:  newobj     ""<>F{0000000d}<int, int>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""<>F{0000000d}<int, int> Program.<>c.<>9__0_2""
+  IL_0067:  call       ""void Program.Report(System.Delegate)""
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_08()
+        {
+            var source =
+@"#pragma warning disable 414
+using System;
+class Program
+{
+    static int i = 0;
+    static void Main()
+    {
+        Report((int i) => { });
+        Report((out int i) => { i = 0; });
+        Report((ref int i) => { });
+        Report((in int i) => { });
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
+<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      145 (0x91)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<int> Program.<>c.<>9__1_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""void Program.<>c.<Main>b__1_0(int)""
+  IL_0014:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Action<int> Program.<>c.<>9__1_0""
+  IL_001f:  call       ""void Program.Report(System.Delegate)""
+  IL_0024:  ldsfld     ""<>A{00000002}<int> Program.<>c.<>9__1_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0032:  ldftn      ""void Program.<>c.<Main>b__1_1(out int)""
+  IL_0038:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""<>A{00000002}<int> Program.<>c.<>9__1_1""
+  IL_0043:  call       ""void Program.Report(System.Delegate)""
+  IL_0048:  ldsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0056:  ldftn      ""void Program.<>c.<Main>b__1_2(ref int)""
+  IL_005c:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""<>A{00000001}<int> Program.<>c.<>9__1_2""
+  IL_0067:  call       ""void Program.Report(System.Delegate)""
+  IL_006c:  ldsfld     ""<>A{00000003}<int> Program.<>c.<>9__1_3""
+  IL_0071:  dup
+  IL_0072:  brtrue.s   IL_008b
+  IL_0074:  pop
+  IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_007a:  ldftn      ""void Program.<>c.<Main>b__1_3(in int)""
+  IL_0080:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_0085:  dup
+  IL_0086:  stsfld     ""<>A{00000003}<int> Program.<>c.<>9__1_3""
+  IL_008b:  call       ""void Program.Report(System.Delegate)""
+  IL_0090:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_09()
+        {
+            var source =
+@"#pragma warning disable 414
+using System;
+class Program
+{
+    static void M1(int i) { }
+    static void M2(out int i) { i = 0; }
+    static void M3(ref int i) { }
+    static void M4(in int i) { }
+    static void Main()
+    {
+        Report(M1);
+        Report(M2);
+        Report(M3);
+        Report(M4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
+<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
+");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       69 (0x45)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M1(int)""
+  IL_0007:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void Program.M2(out int)""
+  IL_0018:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""void Program.M3(ref int)""
+  IL_0029:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ldnull
+  IL_0034:  ldftn      ""void Program.M4(in int)""
+  IL_003a:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_003f:  call       ""void Program.Report(System.Delegate)""
+  IL_0044:  ret
+}");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_10()
+        {
+            var source =
+@"#pragma warning disable 414
+using System;
+class Program
+{
+    static void M1(int i) { }
+    static void M2(out int i) { i = 0; }
+    static void M3(ref int i) { }
+    static void M4(in int i) { }
+    static void Main()
+    {
+        var d1 = M1;
+        var d2 = M2;
+        var d3 = M3;
+        var d4 = M4;
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Action`1[System.Int32]
+<>A{00000002}`1[System.Int32]
+<>A{00000001}`1[System.Int32]
+<>A{00000003}`1[System.Int32]
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_11()
+        {
+            var source =
+@"class Program
+{
+    unsafe static void Main()
+    {
+        var d1 = int* () => (int*)42;
+        var d2 = (int* p) => { };
+        var d3 = delegate*<void> () => default;
+        var d4 = (delegate*<void> d) => { };
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = int* () => (int*)42;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "int* () => (int*)42").WithLocation(5, 18),
+                // (6,18): error CS8917: The delegate type could not be inferred.
+                //         var d2 = (int* p) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int* p) => { }").WithLocation(6, 18),
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var d3 = delegate*<void> () => default;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "delegate*<void> () => default").WithLocation(7, 18),
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var d4 = (delegate*<void> d) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(delegate*<void> d) => { }").WithLocation(8, 18));
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void SynthesizedDelegateTypes_12()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var d1 = (TypedReference x) => { };
+        var d2 = (int x, RuntimeArgumentHandle y) => { };
+        var d3 = (ArgIterator x) => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = (TypedReference x) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(TypedReference x) => { }").WithLocation(6, 18),
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var d2 = (int x, RuntimeArgumentHandle y) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, RuntimeArgumentHandle y) => { }").WithLocation(7, 18),
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var d3 = (ArgIterator x) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ArgIterator x) => { }").WithLocation(8, 18));
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_13()
+        {
+            var source =
+@"ref struct S<T> { }
+class Program
+{
+    static void F1(int x, S<int> y) { }
+    static S<T> F2<T>() => throw null;
+    static void Main()
+    {
+        var d1 = F1;
+        var d2 = F2<object>;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = F1;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(8, 18),
+                // (9,18): error CS8917: The delegate type could not be inferred.
+                //         var d2 = F2<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2<object>").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_14()
+        {
+            var source =
+@"class Program
+{
+    static ref void F() { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = (ref void () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS1547: Keyword 'void' cannot be used in this context
+                //     static ref void F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(3, 16),
+                // (6,18): error CS8917: The delegate type could not be inferred.
+                //         var d1 = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(6, 18),
+                // (7,19): error CS8917: The delegate type could not be inferred.
+                //         var d2 = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 19),
+                // (7,23): error CS1547: Keyword 'void' cannot be used in this context
+                //         var d2 = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_15()
+        {
+            var source =
+@"using System;
+unsafe class Program
+{
+    static byte*[] F1() => null;
+    static void F2(byte*[] a) { }
+    static byte*[] F3(ref int i) => null;
+    static void F4(ref byte*[] a) { }
+    static void Main()
+    {
+        Report(int*[] () => null);
+        Report((int*[] a) => { });
+        Report(int*[] (ref int i) => null);
+        Report((ref int*[] a) => { });
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[System.Int32*[]]
+System.Action`1[System.Int32*[]]
+<>F{00000001}`2[System.Int32,System.Int32*[]]
+<>A{00000001}`1[System.Int32*[]]
+System.Func`1[System.Byte*[]]
+System.Action`1[System.Byte*[]]
+<>F{00000001}`2[System.Int32,System.Byte*[]]
+<>A{00000001}`1[System.Byte*[]]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_16()
+        {
+            var source =
+@"using System;
+unsafe class Program
+{
+    static delegate*<ref int>[] F1() => null;
+    static void F2(delegate*<ref int, void>[] a) { }
+    static delegate*<ref int>[] F3(ref int i) => null;
+    static void F4(ref delegate*<ref int, void>[] a) { }
+    static void Main()
+    {
+        Report(delegate*<int, ref int>[] () => null);
+        Report((delegate*<int, ref int, void>[] a) => { });
+        Report(delegate*<int, ref int>[] (ref int i) => null);
+        Report((ref delegate*<int, ref int, void>[] a) => { });
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Func`1[(fnptr)[]]
+System.Action`1[(fnptr)[]]
+<>F{00000001}`2[System.Int32,(fnptr)[]]
+<>A{00000001}`1[(fnptr)[]]
+System.Func`1[(fnptr)[]]
+System.Action`1[(fnptr)[]]
+<>F{00000001}`2[System.Int32,(fnptr)[]]
+<>A{00000001}`1[(fnptr)[]]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_17()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void F1(object x, dynamic y) { }
+    static void F2(IntPtr x, nint y) { }
+    static void F3((int x, int y) t) { }
+    static void F4(object? x, object?[] y) { }
+    static void F5(ref object x, dynamic y) { }
+    static void F6(IntPtr x, ref nint y) { }
+    static void F7(ref (int x, int y) t) { }
+    static void F8(object? x, ref object?[] y) { }
+    static void Main()
+    {
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+        Report(F5);
+        Report(F6);
+        Report(F7);
+        Report(F8);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"System.Action`2[System.Object,System.Object]
+System.Action`2[System.IntPtr,System.IntPtr]
+System.Action`1[System.ValueTuple`2[System.Int32,System.Int32]]
+System.Action`2[System.Object,System.Object[]]
+<>A{00000001}`2[System.Object,System.Object]
+<>A{00000004}`2[System.IntPtr,System.IntPtr]
+<>A{00000001}`1[System.ValueTuple`2[System.Int32,System.Int32]]
+<>A{00000004}`2[System.Object,System.Object[]]
+");
+        }
+
+        private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedLocal, string expectedInvokeMethod)
+        {
+            var local = (ILocalSymbol)model.GetDeclaredSymbol(variable)!;
+            Assert.Equal(expectedLocal, local.ToTestDisplayString());
+            var delegateType = ((INamedTypeSymbol)local.Type);
+            Assert.Equal(Accessibility.Internal, delegateType.DeclaredAccessibility);
+            Assert.Equal(expectedInvokeMethod, delegateType.DelegateInvokeMethod.ToTestDisplayString());
+        }
+
+        private static void VerifyExpressionType(SemanticModel model, ExpressionSyntax variable, string expectedSymbol, string expectedType)
+        {
+            var symbol = model.GetSymbolInfo(variable).Symbol;
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+            var type = model.GetTypeInfo(variable).Type;
+            Assert.Equal(expectedType, type.ToTestDisplayString());
         }
 
         [Fact]

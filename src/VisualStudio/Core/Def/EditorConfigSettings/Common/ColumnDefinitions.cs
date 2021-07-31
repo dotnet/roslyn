@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             public const string Location = Prefix + CodeStylePrefix + "location";
         }
 
-        internal static class Formatting
+        internal static class Whitespace
         {
-            private const string FormattingPrefix = "Formatting.";
+            private const string FormattingPrefix = "whitespace.";
             public const string Category = Prefix + FormattingPrefix + "categoryname";
             public const string Description = Prefix + FormattingPrefix + "descriptionname";
             public const string Value = Prefix + FormattingPrefix + "valuename";

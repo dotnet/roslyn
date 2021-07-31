@@ -1678,8 +1678,8 @@ Additional information: {1}</value>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Formatting" xml:space="preserve">
-    <value>Formatting</value>
+  <data name="Whitespace" xml:space="preserve">
+    <value>Whitespace</value>
   </data>
   <data name="Id" xml:space="preserve">
     <value>Id</value>
