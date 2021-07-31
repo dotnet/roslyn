@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
     internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IMoveStaticMembersOptionsService _service;
+        private readonly IMoveStaticMembersOptionsService? _service;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
         /// </summary>
-        protected AbstractMoveStaticMembersRefactoringProvider(IMoveStaticMembersOptionsService service)
+        protected AbstractMoveStaticMembersRefactoringProvider(IMoveStaticMembersOptionsService? service)
             => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

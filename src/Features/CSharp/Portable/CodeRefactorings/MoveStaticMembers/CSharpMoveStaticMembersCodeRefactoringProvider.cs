@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers
         /// Test purpose only.
         /// </summary>
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public CSharpMoveStaticMembersCodeRefactoringProvider(IMoveStaticMembersOptionsService service) : base(service)
+        public CSharpMoveStaticMembersCodeRefactoringProvider(IMoveStaticMembersOptionsService? service) : base(service)
         {
         }
 
