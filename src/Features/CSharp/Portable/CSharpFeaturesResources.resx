@@ -200,15 +200,6 @@
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection.</value>
   </data>
-  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
-    <value>Selection does not contain a valid token.</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction.</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction.</value>
-  </data>
   <data name="Contains_invalid_selection" xml:space="preserve">
     <value>Contains invalid selection.</value>
   </data>
@@ -617,10 +608,6 @@
   </data>
   <data name="Change_to_cast" xml:space="preserve">
     <value>Change to cast</value>
-  </data>
-  <data name="Make_container_async" xml:space="preserve">
-    <value>Make container 'async'</value>
-    <comment>{Locked="async"} "async" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="record_" xml:space="preserve">
     <value>record</value>
