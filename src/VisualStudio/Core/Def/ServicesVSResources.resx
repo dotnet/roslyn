@@ -1675,8 +1675,8 @@ Additional information: {1}</value>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Formatting" xml:space="preserve">
-    <value>Formatting</value>
+  <data name="Whitespace" xml:space="preserve">
+    <value>Whitespace</value>
   </data>
   <data name="Id" xml:space="preserve">
     <value>Id</value>
@@ -1771,5 +1771,14 @@ Additional information: {1}</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="Analyzer_Defaults" xml:space="preserve">
+    <value>Analyzer Defaults</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Visual_Studio_Settings" xml:space="preserve">
+    <value>Visual Studio Settings</value>
   </data>
 </root>

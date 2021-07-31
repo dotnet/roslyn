@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_token),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_does_not_contain_a_valid_token),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_common_root_node_for_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_common_root_node_for_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection

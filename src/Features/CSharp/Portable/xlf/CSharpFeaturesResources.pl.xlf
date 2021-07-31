@@ -137,11 +137,6 @@
         <target state="translated">Wykryto konflikty.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_container_async">
-        <source>Make container 'async'</source>
-        <target state="new">Make container 'async'</target>
-        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Ustawiaj pola prywatne jako tylko do odczytu, gdy to możliwe</target>
@@ -300,21 +295,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Nieprawidłowe zaznaczenie.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Zaznaczenie nie zawiera prawidłowego tokenu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Brak prawidłowego zaznaczenia do wyodrębnienia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Brak wspólnego węzła głównego do wyodrębnienia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
