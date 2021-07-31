@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// except it only returns fix data when there is a single using fix for a given span
         /// </summary>
         Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
-            Document document, TextSpan span, ImmutableArray<string> diagnosticIds
+            Document document, TextSpan span, ImmutableArray<string> diagnosticIds,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
