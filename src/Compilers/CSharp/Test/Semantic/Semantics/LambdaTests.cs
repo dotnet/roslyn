@@ -4690,6 +4690,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
         }
 
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaReturnType_12()
         {
@@ -4814,9 +4815,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,29): error CS1073: Unexpected token 'ref'
                 //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
@@ -4967,9 +4965,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async (ref string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,41): error CS1988: Async methods cannot have ref, in or out parameters
                 //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(8, 41),
