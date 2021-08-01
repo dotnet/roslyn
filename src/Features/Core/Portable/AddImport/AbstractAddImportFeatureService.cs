@@ -559,7 +559,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
                .ToImmutableArray();
 
-
             var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => GetFixesForDiagnosticsAsync(

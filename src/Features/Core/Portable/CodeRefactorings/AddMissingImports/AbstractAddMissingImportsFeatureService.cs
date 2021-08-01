@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
 
             var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
-                document, textSpan, FixableDiagnosticIds, symbolSearchService, 
+                document, textSpan, FixableDiagnosticIds, symbolSearchService,
                 searchReferenceAssemblies: true, packageSources, cancellationToken).ConfigureAwait(false);
 
             // We do not want to add project or framework references without the user's input, so filter those out.
