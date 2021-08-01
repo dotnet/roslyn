@@ -484,135 +484,128 @@ True
             AssertEx.Multiple(
                 () => verifier.VerifyIL("X.Test1", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0029
+  IL_0001:  brfalse.s  IL_0027
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test1.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_0029
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  callvirt   ""int Test1.this[System.Range].get""
-  IL_0025:  ldc.i4.1
-  IL_0026:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  callvirt   ""int Test1.this[System.Range].get""
+  IL_0023:  ldc.i4.1
+  IL_0024:  ceq
+  IL_0026:  ret
+  IL_0027:  ldc.i4.0
   IL_0028:  ret
-  IL_0029:  ldc.i4.0
-  IL_002a:  ret
 }"),
                 () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       44 (0x2c)
+  // Code size       42 (0x2a)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002a
+  IL_0001:  brfalse.s  IL_0028
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test2.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_002a
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  ldc.i4.5
-  IL_0021:  callvirt   ""int Test2.this[System.Range, int].get""
-  IL_0026:  ldc.i4.1
-  IL_0027:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  ldc.i4.5
+  IL_001f:  callvirt   ""int Test2.this[System.Range, int].get""
+  IL_0024:  ldc.i4.1
+  IL_0025:  ceq
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
   IL_0029:  ret
-  IL_002a:  ldc.i4.0
-  IL_002b:  ret
 }"),
                 () => verifier.VerifyIL("X.Test3", @"
 {
-  // Code size       48 (0x30)
+  // Code size       46 (0x2e)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002e
+  IL_0001:  brfalse.s  IL_002c
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test3.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_002e
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  call       ""int[] System.Array.Empty<int>()""
-  IL_0025:  callvirt   ""int Test3.this[System.Range, params int[]].get""
-  IL_002a:  ldc.i4.1
-  IL_002b:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  call       ""int[] System.Array.Empty<int>()""
+  IL_0023:  callvirt   ""int Test3.this[System.Range, params int[]].get""
+  IL_0028:  ldc.i4.1
+  IL_0029:  ceq
+  IL_002b:  ret
+  IL_002c:  ldc.i4.0
   IL_002d:  ret
-  IL_002e:  ldc.i4.0
-  IL_002f:  ret
 }"),
                 () => verifier.VerifyIL("X.Test4", @"
 {
-  // Code size       56 (0x38)
+  // Code size       54 (0x36)
   .maxstack  7
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0036
+  IL_0001:  brfalse.s  IL_0034
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test4.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_0036
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  newarr     ""System.Range""
-  IL_0013:  dup
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  newarr     ""System.Range""
+  IL_0011:  dup
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.0
   IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.0
-  IL_0016:  ldc.i4.0
-  IL_0017:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0023:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0028:  stelem     ""System.Range""
-  IL_002d:  callvirt   ""int Test4.this[params System.Range[]].get""
-  IL_0032:  ldc.i4.1
-  IL_0033:  ceq
+  IL_0015:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  ldc.i4.1
+  IL_001c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0021:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0026:  stelem     ""System.Range""
+  IL_002b:  callvirt   ""int Test4.this[params System.Range[]].get""
+  IL_0030:  ldc.i4.1
+  IL_0031:  ceq
+  IL_0033:  ret
+  IL_0034:  ldc.i4.0
   IL_0035:  ret
-  IL_0036:  ldc.i4.0
-  IL_0037:  ret
 }"),
                 () => verifier.VerifyIL("X.Test5", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       26 (0x1a)
   .maxstack  4
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_001c
+  IL_0001:  brfalse.s  IL_0018
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test5.Count.get""
   IL_0009:  stloc.0
-  IL_000a:  ldloc.0
+  IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
-  IL_000c:  blt.s      IL_001c
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  sub
-  IL_0013:  callvirt   ""int Test5.Slice(int, int)""
-  IL_0018:  ldc.i4.1
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  sub
+  IL_000f:  callvirt   ""int Test5.Slice(int, int)""
+  IL_0014:  ldc.i4.1
+  IL_0015:  ceq
+  IL_0017:  ret
+  IL_0018:  ldc.i4.0
+  IL_0019:  ret
 }")
             );
         }
@@ -1329,7 +1322,7 @@ True
 True
 True
 Length
-False
+True
 Length
 True
 Length
@@ -1348,19 +1341,17 @@ True
 }"),
                 () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       18 (0x12)
-  .maxstack  2
+  // Code size       14 (0xe)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0010
+  IL_0001:  brfalse.s  IL_000c
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int C.Length.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  clt
+  IL_0009:  pop
+  IL_000a:  ldc.i4.1
+  IL_000b:  ret
   IL_000c:  ldc.i4.0
-  IL_000d:  ceq
-  IL_000f:  ret
-  IL_0010:  ldc.i4.0
-  IL_0011:  ret
+  IL_000d:  ret
 }")
             );
         }
@@ -2254,21 +2245,16 @@ class C
 using System;
 class C
 {
-    public static void Test(Span<int> a)
+    public int X = 0, Y = 0;
+    public static void Test(Span<int> a, Span<C> b)
     {
-        _ = a switch
-        {
-            [ .., >= 0 ] => 0,
-            [ < 0 ] => 0,
-            { Length: 0 or > 1 } => 0,
-        };
-
-        _ = a switch
-        {
-            [ .., >= 0 ] => 0,
-            [ ..[ .., < 0 ] ] => 0,
-            [] => 0,
-        };
+        _ = a switch { [.., >=0] or [<0] or { Length: 0 or > 1 } => 0 };
+        _ = a switch { [.., >=0] or [..[.., <0] ] or [] => 0 };
+        _ = a switch { [..[>=0] ] or [<0] or { Length: 0 or > 1 } => 0 };
+        _ = a switch { [..[.., <0]] or [..] => 0 };
+        _ = b switch { [.., { X: >=0, Y: <0}] or [ { Y: >=0, X: <0} ] or
+                       [.., { Y: >=0, X: <0}] or [ { X: >=0, Y: <0} ] or
+                       [.., { X: <=0 }] or [{ X: >0 }] or { Length: 0 or > 1 } => 0 };
     }
 }";
             var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
@@ -2277,39 +2263,6 @@ class C
 
         [Fact]
         public void Exhaustiveness_02()
-        {
-            var src = @"
-using System;
-struct S
-{
-    public int X = 0, Y = 0;
-    public static void Test(Span<S> a)
-    {
-        _ = a switch
-        {
-            [.., { Y: <=0, X: <=0 }] => 0,
-            [.., { Y: >=0, X: >=0 }] => 0,
-            [{ Y: >=0, X: <=0 }] => 0,
-            [{ Y: <=0, X: >=0 }] => 0,
-            { Length: 0 or > 1 } => 0,
-        };
-
-        _ = a switch
-        {
-            [.., { Y: <=0, X: <=0 }] => 0,
-            [.., { Y: >=0, X: >=0 }] => 0,
-            [..[.., { Y: >=0, X: <=0 }]] => 0,
-            [..[.., { Y: <=0, X: >=0 }]] => 0,
-            [] => 0,
-        };
-    }
-}";
-            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void Exhaustiveness_03()
         {
             var src = @"
 using System;

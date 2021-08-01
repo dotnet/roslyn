@@ -61,5 +61,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (random.Next() << 10) ^ random.Next();
             }
         }
+
+        private struct PositiveIntTC : INumericTC<int>
+        {
+            int INumericTC<int>.MinValue => 0;
+
+            int INumericTC<int>.MaxValue => int.MaxValue;
+
+            int INumericTC<int>.Zero => 0;
+
+            public bool Related(BinaryOperatorKind relation, int left, int right)
+            {
+                switch (relation)
+                {
+                    case Equal:
+                        return left == right;
+                    case GreaterThanOrEqual:
+                        return left >= right;
+                    case GreaterThan:
+                        return left > right;
+                    case LessThanOrEqual:
+                        return left <= right;
+                    case LessThan:
+                        return left < right;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
+
+            int INumericTC<int>.Next(int value)
+            {
+                Debug.Assert(value != int.MaxValue);
+                return value + 1;
+            }
+
+            int INumericTC<int>.Prev(int value)
+            {
+                Debug.Assert(value != 0);
+                return value - 1;
+            }
+
+            public int FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0 : constantValue.Int32Value;
+
+            public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
+
+            string INumericTC<int>.ToString(int value) => value.ToString();
+
+            public int Random(Random random)
+            {
+                return (random.Next() << 10) ^ random.Next();
+            }
+        }
     }
 }

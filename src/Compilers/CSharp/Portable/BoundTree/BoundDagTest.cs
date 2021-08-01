@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             if (this == other)
                 return true;
+            if (!this.Input.Equals(other.Input))
+                return false;
 
             switch (this, other)
             {
@@ -70,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result += $") {d.GetOutputTempDebuggerDisplay()} = {d.Input.GetDebuggerDisplay()}";
                     return result;
                 case BoundDagIndexEvaluation i:
+                    return $"{i.GetOutputTempDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
+                case BoundDagIndexerEvaluation i:
                     return $"{i.GetOutputTempDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
                 case BoundDagEvaluation e:
                     return $"{e.GetOutputTempDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";

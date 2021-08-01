@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForType(input.Type);
+                IValueSetFactory fac = ValueSetFactory.ForInput(input);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 

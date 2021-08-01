@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            var fac = ValueSetFactory.ForType(input.Type);
+            var fac = ValueSetFactory.ForInput(input);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (state.IsImpossible)
                     continue;
-                rewrittenCases.Add(state);
+                rewrittenCases.Add(state.RewriteNestedLengthTests());
                 if (state.IsFullyMatched)
                     break;
             }
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
-                            SplitCases(state,
+                            SplitCases(state, d,
                                 out ImmutableArray<StateForCase> whenTrueDecisions,
                                 out ImmutableArray<StateForCase> whenFalseDecisions,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
@@ -972,14 +972,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SplitCases(
             DagState state,
+            BoundDagTest test,
             out ImmutableArray<StateForCase> whenTrue,
             out ImmutableArray<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
-            RoslynDebug.AssertNotNull(state.SelectedTest);
-            var test = state.SelectedTest;
             var statesForCases = state.Cases;
             var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
             var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
@@ -1043,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type);
+                IValueSetFactory? valueFac = ValueSetFactory.ForInput(input);
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible
@@ -1056,29 +1055,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
-                else if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
-                {
-                    Debug.Assert(input.Type.SpecialType == SpecialType.System_Int32);
-                    (BoundDagTemp _, BoundDagTemp? lengthTemp, int offset) = GetCanonicalInput(e);
-                    if (lengthTemp is not null)
-                    {
-                        Debug.Assert(values.ContainsKey(lengthTemp));
-                        // If this is a length test inside a slice, we infer a new set of length values for the outer list.
-                        IValueSet lengthValues = ValueSetFactory.Shift(fromTestPassing, offset);
-                        values = values.SetItem(lengthTemp, lengthValues.Intersect(values[lengthTemp]));
-                    }
-
-                    tempValuesBeforeTest = ValueSetFactory.PositiveIntValues;
-                    fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
-                    fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
-                }
                 var whenTrueValues = values.SetItem(input, fromTestPassing);
                 var whenFalseValues = values.SetItem(input, fromTestFailing);
                 return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
             }
         }
 
-        private static (BoundDagTemp input, BoundDagTemp? lengthTemp, int offset) GetCanonicalInput(BoundDagPropertyEvaluation e)
+        private static (BoundDagTemp? lengthTemp, int offset) GetTopLevelLengthTemp(BoundDagPropertyEvaluation e)
         {
             Debug.Assert(e.IsLengthOrCount);
             int offset = 0;
@@ -1090,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthTemp = slice.LengthTemp;
                 input = slice.Input;
             }
-            return (input, lengthTemp, offset);
+            return (lengthTemp, offset);
         }
 
         private static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) GetCanonicalInput(BoundDagIndexerEvaluation e)
@@ -1164,82 +1147,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             lengthTest = Tests.True.Instance;
 
             // if the tests are for unrelated things, there is no implication from one to the other
-            if (!test.Input.Equals(other.Input))
+            BoundDagTemp input1 = test.Input;
+            BoundDagTemp input2 = other.Input;
+            if (!input1.Equals(input2))
             {
-                switch (test.Input.Source, other.Input.Source)
+                while (true)
                 {
-                    case (BoundDagPropertyEvaluation { IsLengthOrCount: true } s1,
-                          BoundDagPropertyEvaluation { IsLengthOrCount: true } s2):
-                        {
-                            (BoundDagTemp s1Input, _, int s1Offset) = GetCanonicalInput(s1);
-                            (BoundDagTemp s2Input, _, int s2Offset) = GetCanonicalInput(s2);
-                            if (s1Input.Equals(s2Input))
+                    switch (input1.Source, input2.Source)
+                    {
+                        case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
                             {
-                                // This happens when we have a length test in a slice pattern, in which case we align
-                                // the values to the current offset and continue. This is because we will update the
-                                // outer list length values based on a nested test but that hasn't happened yet.
-                                Debug.Assert(whenTrueValues is not null);
-                                Debug.Assert(whenFalseValues is not null);
-                                whenTrueValues = ValueSetFactory.Shift(whenTrueValues, s1Offset - s2Offset);
-                                whenFalseValues = whenTrueValues.Complement();
-                                break;
-                            }
-                        }
-                        return;
-                    case (BoundDagEvaluation s1, BoundDagEvaluation s2):
-                        {
-                            while (s1.Kind != BoundKind.DagIndexerEvaluation ||
-                                   s2.Kind != BoundKind.DagIndexerEvaluation)
-                            {
-                                if (!s1.IsEquivalentTo(s2) ||
-                                    (s1 = s1.Input.Source!) == null ||
-                                    (s2 = s2.Input.Source!) == null)
+                                (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                                (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                                Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                                Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
+                                if (s1Input.Equals(s2Input) &&
+                                    // We don't want to pair two indices within the same pattern.
+                                    s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                                 {
-                                    return;
-                                }
-                            }
-
-                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput((BoundDagIndexerEvaluation)s1);
-                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput((BoundDagIndexerEvaluation)s2);
-                            Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
-                            Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
-                            if (s1Input.Equals(s2Input) &&
-                                // We don't want to pair two indices within the same pattern.
-                                s1LengthTemp.Syntax != s2LengthTemp.Syntax)
-                            {
-                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
-                                if (s1Index == s2Index)
-                                {
-                                    break;
-                                }
-                                if (s1Index < 0 != s2Index < 0)
-                                {
-                                    Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                    var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                    if (lengthValues.IsEmpty)
+                                    Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
+                                    if (s1Index == s2Index)
                                     {
-                                        return;
-                                    }
-
-                                    // Compute the length value that would make these two indices point to the same element.
-                                    int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                    if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                    {
-                                        // If the length is known to be exact, the two can definitely point to the same element.
                                         break;
                                     }
-                                    if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                    if (s1Index < 0 != s2Index < 0)
                                     {
-                                        // Otherwise, we inject a test in the success branch to split the exact value.
-                                        lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
-                                        break;
+                                        Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
+                                        var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                        if (lengthValues.IsEmpty)
+                                        {
+                                            return;
+                                        }
+
+                                        // Compute the length value that would make these two indices point to the same element.
+                                        int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                        {
+                                            // If the length is known to be exact, the two can definitely point to the same element.
+                                            break;
+                                        }
+                                        if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                        {
+                                            // Otherwise, we inject a test in the success branch to split the exact value.
+                                            lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        return;
-                    default:
-                        return;
+                            return;
+                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
+                            input1 = s1.Input;
+                            input2 = s2.Input;
+                            continue;
+                        default:
+                            return;
+                    }
+                    break;
                 }
             }
 
@@ -1806,6 +1770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? this
                     : new StateForCase(Index, Syntax, remainingTests, Bindings, WhenClause, CaseLabel);
             }
+
+            public StateForCase RewriteNestedLengthTests()
+            {
+                return this.UpdateRemainingTests(RemainingTests.RewriteNestedLengthTests());
+            }
         }
 
         /// <summary>
@@ -1829,6 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref bool foundExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
+            public virtual Tests RewriteNestedLengthTests() => this;
             public abstract string Dump(Func<BoundDagTest, string> dump);
 
             /// <summary>
@@ -1931,6 +1901,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
                 public override int GetHashCode() => this.Test.GetHashCode();
+                public override Tests RewriteNestedLengthTests()
+                {
+                    BoundDagTest test = Test;
+                    BoundDagTemp input = test.Input;
+                    if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
+                    {
+                        if (GetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
+                        {
+                            switch (test)
+                            {
+                                case BoundDagValueTest { Value.IsBad: false } t:
+                                    {
+                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                        int lengthValue = t.Value.Int32Value + offset;
+                                        return new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
+                                    }
+                                case BoundDagRelationalTest { Value.IsBad: false } t:
+                                    {
+                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                        int lengthValue = t.Value.Int32Value + offset;
+                                        if (lengthValue <= 0 && t.Relation == BinaryOperatorKind.GreaterThanOrEqual)
+                                            return True.Instance;
+                                        return new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
+                                    }
+                            }
+                        }
+                        else
+                        {
+                            switch (test)
+                            {
+                                case BoundDagRelationalTest { Value.IsBad: false, Relation: BinaryOperatorKind.GreaterThanOrEqual } t:
+                                    {
+                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                        Debug.Assert(t.OperatorKind == BinaryOperatorKind.IntGreaterThanOrEqual);
+                                        int lengthValue = t.Value.Int32Value;
+                                        if (lengthValue <= 0)
+                                            return True.Instance;
+                                        break;
+                                    }
+                            }
+                        }
+                    }
+
+                    return this;
+                }
             }
 
             public sealed class Not : Tests
@@ -1957,6 +1972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return builder;
                 }
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => Create(Negated.RemoveEvaluation(e));
+                public override Tests RewriteNestedLengthTests() => Create(Negated.RewriteNestedLengthTests());
                 public override BoundDagTest ComputeSelectedTest() => Negated.ComputeSelectedTest();
                 public override string Dump(Func<BoundDagTest, string> dump) => $"Not ({Negated.Dump(dump)})";
                 public override void Filter(
@@ -1986,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.RemainingTests = remainingTests;
                 }
                 public abstract Tests Update(ArrayBuilder<Tests> remainingTests);
-                public override void Filter(
+                public sealed override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
                     DagState state,
@@ -2008,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenTrue = Update(trueBuilder);
                     whenFalse = Update(falseBuilder);
                 }
-                public override Tests RemoveEvaluation(BoundDagEvaluation e)
+                public sealed override Tests RemoveEvaluation(BoundDagEvaluation e)
                 {
                     var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
                     foreach (var test in RemainingTests)
@@ -2016,9 +2032,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return Update(builder);
                 }
-                public override bool Equals(object? obj) =>
+                public sealed override Tests RewriteNestedLengthTests()
+                {
+                    var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
+                    foreach (var test in RemainingTests)
+                        builder.Add(test.RewriteNestedLengthTests());
+
+                    return Update(builder);
+                }
+                public sealed override bool Equals(object? obj) =>
                     this == obj || obj is SequenceTests other && this.GetType() == other.GetType() && RemainingTests.SequenceEqual(other.RemainingTests);
-                public override int GetHashCode()
+                public sealed override int GetHashCode()
                 {
                     int length = this.RemainingTests.Length;
                     int value = Hash.Combine(length, this.GetType().GetHashCode());

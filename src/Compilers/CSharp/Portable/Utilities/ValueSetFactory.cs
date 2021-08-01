@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,35 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
         internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
         internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
-
-        internal static readonly IValueSet PositiveIntValues = new NumericValueSet<int, IntTC>(0, int.MaxValue);
-
-        public static IValueSet Shift(IValueSet values, int offset)
-        {
-            if (offset == 0)
-                return values;
-            var intervals = ((NumericValueSet<int, IntTC>)values)._intervals;
-            var builder = ArrayBuilder<(int first, int last)>.GetInstance();
-            foreach ((int first, int last) in intervals)
-            {
-                int lower = safeAdd(first, offset);
-                int upper = safeAdd(last, offset);
-                builder.Add((lower, upper));
-                if (upper == int.MaxValue)
-                    break;
-            }
-            return new NumericValueSet<int, IntTC>(builder.ToImmutableAndFree());
-
-            static int safeAdd(int a, int b)
-            {
-                return (a, b) switch
-                {
-                    ( > 0, > 0) when b > (int.MaxValue - a) => int.MaxValue,
-                    ( < 0, < 0) when b < (int.MinValue - a) => int.MinValue,
-                    _ => a + b
-                };
-            }
-        }
+        internal static readonly IValueSetFactory<int> ForLength = PositiveIntValueSetFactory.Instance;
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
@@ -89,6 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             type = type.EnumUnderlyingTypeOrSelf();
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
+        }
+
+        public static IValueSetFactory? ForInput(BoundDagTemp input)
+        {
+            if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true })
+                return ForLength;
+            return ForType(input.Type);
         }
     }
 }
