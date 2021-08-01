@@ -6,7 +6,7 @@
     <SharedGUID>d7647395-129b-4f45-8c78-10e6f92fc8ad</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared</Import_RootNamespace>
+    <Import_RootNamespace>Xunit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Harness\GlobalServiceProvider.cs" />

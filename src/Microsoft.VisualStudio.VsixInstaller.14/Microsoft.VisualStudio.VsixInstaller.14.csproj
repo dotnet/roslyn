@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
+    <RootNamespace>Microsoft.VisualStudio.VsixInstaller</RootNamespace>
     <OutputType>Exe</OutputType>
     <Platforms>x86</Platforms>
     <IsPackable>false</IsPackable>
