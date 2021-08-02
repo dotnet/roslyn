@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<Solution> UpdateReferencesAsync(
+        public static Task<ImmutableArray<IUpdateReferenceOperation>> GetUpdateReferenceOperationsAsync(
             Solution solution,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
@@ -244,17 +244,17 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
             var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
-            await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
-
-            return solution.Workspace.CurrentSolution;
+            return GetUpdateReferenceOperationsAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken);
         }
 
-        internal static async Task ApplyReferenceUpdatesAsync(
+        internal static async Task<ImmutableArray<IUpdateReferenceOperation>> GetUpdateReferenceOperationsAsync(
             IReferenceCleanupService referenceCleanupService,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
+            var operations = ImmutableArray.CreateBuilder<IUpdateReferenceOperation>();
+
             foreach (var referenceUpdate in referenceUpdates)
             {
                 // If the update action would not change the reference, then
@@ -274,11 +274,14 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                await referenceCleanupService.TryUpdateReferenceAsync(
+                var operation = await referenceCleanupService.GetUpdateReferenceOperationAsync(
                     projectFilePath,
                     referenceUpdate,
                     cancellationToken).ConfigureAwait(true);
+                operations.Add(operation);
             }
+
+            return operations.ToImmutable();
         }
     }
 }

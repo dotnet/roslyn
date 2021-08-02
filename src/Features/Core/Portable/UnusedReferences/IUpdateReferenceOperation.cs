@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
+namespace Microsoft.CodeAnalysis.UnusedReferences
 {
-    internal interface IProjectSystemUpdateReferenceOperation
+    internal interface IUpdateReferenceOperation
     {
         /// <summary>
         /// Applies a reference update operation to the project file.

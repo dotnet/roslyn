@@ -20,19 +20,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     [ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
     {
-        private readonly IProjectSystemReferenceCleanupService _projectSystemReferenceUpdateService;
+        private readonly IProjectSystemReferenceCleanupService2 _projectSystemReferenceUpdateService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioReferenceCleanupService(IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService)
         {
-            _projectSystemReferenceUpdateService = projectSystemReferenceUpdateService;
+            _projectSystemReferenceUpdateService = (IProjectSystemReferenceCleanupService2)projectSystemReferenceUpdateService;
         }
 
         public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
         {
             var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
             return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
+        }
+
+        public async Task<IUpdateReferenceOperation> GetUpdateReferenceOperationAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+        {
+            var projectSystemUpdateReferenceOperation = await _projectSystemReferenceUpdateService.GetUpdateReferenceOperationAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken).ConfigureAwait(true);
+            return new VisualStudioUpdateReferenceOperation(projectSystemUpdateReferenceOperation);
         }
 
         public Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
@@ -167,11 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         {
             var referenceCleanupService = new TestReferenceCleanupService();
 
-            await UnusedReferencesRemover.ApplyReferenceUpdatesAsync(
+            var operations = await UnusedReferencesRemover.GetUpdateReferenceOperationsAsync(
                 referenceCleanupService,
                 string.Empty,
                 referenceUpdates.ToImmutableArray(),
                 CancellationToken.None).ConfigureAwait(false);
+
+            foreach (var operation in operations)
+            {
+                await operation.ApplyAsync(CancellationToken.None);
+            }
 
             return referenceCleanupService.AppliedUpdates.ToImmutableArray();
         }
@@ -206,17 +212,47 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         private class TestReferenceCleanupService : IReferenceCleanupService
         {
             private readonly List<ReferenceUpdate> _appliedUpdates = new();
+
             public IReadOnlyList<ReferenceUpdate> AppliedUpdates => _appliedUpdates;
 
             public Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
             {
                 _appliedUpdates.Add(referenceUpdate);
-                return Task.FromResult(true);
+                return SpecializedTasks.True;
+            }
+
+            public Task<IUpdateReferenceOperation> GetUpdateReferenceOperationAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+            {
+                return Task.FromResult<IUpdateReferenceOperation>(new TestUpdateReferenceOperation(_appliedUpdates, referenceUpdate));
+            }
+
+            private class TestUpdateReferenceOperation : IUpdateReferenceOperation
+            {
+                private readonly List<ReferenceUpdate> _referenceUpdates;
+                private readonly ReferenceUpdate _referenceUpdate;
+
+                public TestUpdateReferenceOperation(List<ReferenceUpdate> referenceUpdates, ReferenceUpdate referenceUpdate)
+                {
+                    _referenceUpdates = referenceUpdates;
+                    _referenceUpdate = referenceUpdate;
+                }
+
+                public Task<bool> ApplyAsync(CancellationToken cancellationToken)
+                {
+                    _referenceUpdates.Add(_referenceUpdate);
+                    return SpecializedTasks.True;
+                }
+
+                public Task<bool> RevertAsync(CancellationToken cancellationToken)
+                {
+                    _referenceUpdates.Remove(_referenceUpdate);
+                    return SpecializedTasks.True;
+                }
             }
         }
     }

@@ -8,26 +8,32 @@ using System.ComponentModel.Design;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
 {
     [Export(typeof(RemoveUnusedReferencesCommandHandler)), Shared]
-    internal sealed class RemoveUnusedReferencesCommandHandler
+    internal sealed partial class RemoveUnusedReferencesCommandHandler
     {
         private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
 
@@ -35,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
@@ -42,10 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
             IUIThreadOperationExecutor threadOperationExecutor,
+            ITextUndoHistoryRegistry undoHistoryRegistry,
             VisualStudioWorkspace workspace)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
             _threadOperationExecutor = threadOperationExecutor;
+            _undoHistoryRegistry = undoHistoryRegistry;
             _workspace = workspace;
 
             _lazyReferenceCleanupService = new(() => workspace.Services.GetRequiredService<IReferenceCleanupService>());
@@ -101,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
         {
-            if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
+            if (_serviceProvider is not null && VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
                 Solution? solution = null;
                 string? projectFilePath = null;
@@ -142,20 +151,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     return;
                 }
 
-                // Since undo/redo is not supported, get confirmation that we should apply these changes.
-                var result = MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.This_action_cannot_be_undone_Do_you_wish_to_continue, MessageDialogCommandSet.YesNo);
-                if (result == MessageDialogCommand.No)
+                // Open the project file so that we can access the UndoManager for it.
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, projectFilePath, Guid.Empty, out _, out _, out _, out var vsTextView);
+
+                OLE.Interop.IOleUndoManager? undoManager = null;
+                var undoSupported = ErrorHandler.Succeeded(vsTextView.GetBuffer(out var vsTextLines))
+                    && ErrorHandler.Succeeded(vsTextLines.GetUndoManager(out undoManager));
+
+                // if undo/redo is not supported, get confirmation that we should apply these changes.
+                if (!undoSupported)
                 {
-                    return;
+                    var result = MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.This_action_cannot_be_undone_Do_you_wish_to_continue, MessageDialogCommandSet.YesNo);
+                    if (result == MessageDialogCommand.No)
+                    {
+                        return;
+                    }
                 }
 
+                UpdateReferencesUndoUnit? _undoUnit = null;
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
+                    _undoUnit = ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
                 });
+
+                if (undoSupported && _undoUnit is not null)
+                {
+                    // Delay adding the UndoUnit in order to wait for the project system to reload the project. If we add
+                    // before the project is reloaded it will clear the UndoManager's history.
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        await System.Threading.Tasks.Task.Delay(5000).ConfigureAwait(false);
+
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        undoManager?.Add(_undoUnit);
+                    });
+                }
             }
 
             return;
+        }
+
+
+        private static bool TryGetText(IVsTextLines vsTextLines, out string text)
+        {
+            text = string.Empty;
+            return ErrorHandler.Succeeded(vsTextLines.GetLastLineIndex(out var lastLineIndex, out var lastIndex))
+                && ErrorHandler.Succeeded(vsTextLines.GetLineText(0, 0, lastLineIndex, lastIndex, out text));
         }
 
         private (Solution?, string?, ImmutableArray<ReferenceUpdate>) GetUnusedReferencesForProjectHierarchy(
@@ -197,10 +239,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return referenceUpdates;
         }
 
-        private void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        private UpdateReferencesUndoUnit ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
-            ThreadHelper.JoinableTaskFactory.Run(
-                () => UnusedReferencesRemover.UpdateReferencesAsync(solution, projectFilePath, referenceUpdates, cancellationToken));
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                var updateOperations = await UnusedReferencesRemover.GetUpdateReferenceOperationsAsync(solution, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
+
+                foreach (var operation in updateOperations)
+                {
+                    await operation.ApplyAsync(cancellationToken).ConfigureAwait(true);
+                }
+
+                return new UpdateReferencesUndoUnit(updateOperations);
+            });
         }
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, [NotNullWhen(returnValue: true)] out string? propertyValue)
