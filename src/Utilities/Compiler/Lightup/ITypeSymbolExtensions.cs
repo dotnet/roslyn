@@ -13,10 +13,16 @@ namespace Analyzer.Utilities.Lightup
         private static readonly Func<ITypeSymbol, NullableAnnotation, ITypeSymbol> s_withNullableAnnotation
             = LightupHelpers.CreateSymbolWithPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation), fallbackResult: Lightup.NullableAnnotation.None);
 
+        private static readonly Func<ITypeSymbol, bool> s_isNativeIntegerType
+            = LightupHelpers.CreateSymbolPropertyAccessor<ITypeSymbol, bool>(typeof(ITypeSymbol), nameof(IsNativeIntegerType), fallbackResult: false);
+
         public static NullableAnnotation NullableAnnotation(this ITypeSymbol typeSymbol)
             => s_nullableAnnotation(typeSymbol);
 
         public static ITypeSymbol WithNullableAnnotation(this ITypeSymbol typeSymbol, NullableAnnotation nullableAnnotation)
             => s_withNullableAnnotation(typeSymbol, nullableAnnotation);
+
+        public static bool IsNativeIntegerType(this ITypeSymbol typeSymbol)
+            => s_isNativeIntegerType(typeSymbol);
     }
 }
