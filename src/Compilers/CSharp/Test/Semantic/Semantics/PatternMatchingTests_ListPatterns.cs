@@ -1537,8 +1537,8 @@ struct S
 
     public static void Main()
     {
-        Console.WriteLine(Test(new()));
-        Console.WriteLine(Test(default));
+        Console.WriteLine(Test(new S()));
+        Console.WriteLine(Test(null));
     }
 }
 ";
