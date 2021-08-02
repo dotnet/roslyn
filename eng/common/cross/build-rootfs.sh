@@ -33,6 +33,7 @@ __AlpinePackages="alpine-base"
 __AlpinePackages+=" build-base"
 __AlpinePackages+=" linux-headers"
 __AlpinePackagesEdgeCommunity=" lldb-dev"
+__AlpinePackagesEdgeMain=" llvm10-libs"
 __AlpinePackagesEdgeMain+=" python3"
 __AlpinePackagesEdgeMain+=" libedit"
 
@@ -73,10 +74,6 @@ __IllumosPackages+=" mit-krb5-1.16.2nb4"
 __IllumosPackages+=" openssl-1.1.1e"
 __IllumosPackages+=" zlib-1.2.11"
 
-# ML.NET dependencies
-__UbuntuPackages+=" libomp5"
-__UbuntuPackages+=" libomp-dev"
-
 __UseMirror=0
 
 __UnprocessedBuildArgs=
@@ -114,8 +111,6 @@ while :; do
             __UbuntuArch=s390x
             __UbuntuRepo="http://ports.ubuntu.com/ubuntu-ports/"
             __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libunwind8-dev//')
-            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp-dev//')
-            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp5//')
             unset __LLDB_Package
             ;;
         x86)
@@ -192,8 +187,6 @@ while :; do
             __CodeName=alpine
             __UbuntuRepo=
             __AlpineVersion=3.9
-            __AlpinePackagesEdgeMain+=" llvm11-libs"
-            __AlpinePackagesEdgeMain+=" clang-libs"
             ;;
         alpine3.13)
             __CodeName=alpine
@@ -204,7 +197,6 @@ while :; do
             __AlpinePackagesEdgeCommunity=
             __AlpinePackages+=$__AlpinePackagesEdgeMain
             __AlpinePackagesEdgeMain=
-            __AlpinePackages+=" llvm10-libs"
             ;;
         freebsd11)
             __FreeBSDBase="11.3-RELEASE"

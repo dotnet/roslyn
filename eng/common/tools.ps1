@@ -42,14 +42,11 @@
 [bool]$useInstalledDotNetCli = if (Test-Path variable:useInstalledDotNetCli) { $useInstalledDotNetCli } else { $true }
 
 # Enable repos to use a particular version of the on-line dotnet-install scripts.
-#    default URL: https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.ps1
+#    default URL: https://dot.net/v1/dotnet-install.ps1
 [string]$dotnetInstallScriptVersion = if (Test-Path variable:dotnetInstallScriptVersion) { $dotnetInstallScriptVersion } else { 'v1' }
 
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
 [bool]$useGlobalNuGetCache = if (Test-Path variable:useGlobalNuGetCache) { $useGlobalNuGetCache } else { !$ci }
-
-# True to exclude prerelease versions Visual Studio during build
-[bool]$excludePrereleaseVS = if (Test-Path variable:excludePrereleaseVS) { $excludePrereleaseVS } else { $false }
 
 # An array of names of processes to stop on script exit if prepareMachine is true.
 $processesToStopOnExit = if (Test-Path variable:processesToStopOnExit) { $processesToStopOnExit } else { @('msbuild', 'dotnet', 'vbcscompiler') }
@@ -104,46 +101,6 @@ function Exec-Process([string]$command, [string]$commandArgs) {
       $process.Kill()
     }
   }
-}
-
-# Take the given block, print it, print what the block probably references from the current set of
-# variables using low-effort string matching, then run the block.
-#
-# This is intended to replace the pattern of manually copy-pasting a command, wrapping it in quotes,
-# and printing it using "Write-Host". The copy-paste method is more readable in build logs, but less
-# maintainable and less reliable. It is easy to make a mistake and modify the command without
-# properly updating the "Write-Host" line, resulting in misleading build logs. The probability of
-# this mistake makes the pattern hard to trust when it shows up in build logs. Finding the bug in
-# existing source code can also be difficult, because the strings are not aligned to each other and
-# the line may be 300+ columns long.
-#
-# By removing the need to maintain two copies of the command, Exec-BlockVerbosely avoids the issues.
-#
-# In Bash (or any posix-like shell), "set -x" prints usable verbose output automatically.
-# "Set-PSDebug" appears to be similar at first glance, but unfortunately, it isn't very useful: it
-# doesn't print any info about the variables being used by the command, which is normally the
-# interesting part to diagnose.
-function Exec-BlockVerbosely([scriptblock] $block) {
-  Write-Host "--- Running script block:"
-  $blockString = $block.ToString().Trim()
-  Write-Host $blockString
-
-  Write-Host "--- List of variables that might be used:"
-  # For each variable x in the environment, check the block for a reference to x via simple "$x" or
-  # "@x" syntax. This doesn't detect other ways to reference variables ("${x}" nor "$variable:x",
-  # among others). It only catches what this function was originally written for: simple
-  # command-line commands.
-  $variableTable = Get-Variable |
-    Where-Object {
-      $blockString.Contains("`$$($_.Name)") -or $blockString.Contains("@$($_.Name)")
-    } |
-    Format-Table -AutoSize -HideTableHeaders -Wrap |
-    Out-String
-  Write-Host $variableTable.Trim()
-
-  Write-Host "--- Executing:"
-  & $block
-  Write-Host "--- Done running script block!"
 }
 
 # createSdkLocationFile parameter enables a file being generated under the toolset directory
@@ -233,42 +190,38 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   return $global:_DotNetInstallDir = $dotnetRoot
 }
 
-function Retry($downloadBlock, $maxRetries = 5) {
-  $retries = 1
-
-  while($true) {
-    try {
-      & $downloadBlock
-      break
-    }
-    catch {
-      Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
-    }
-
-    if (++$retries -le $maxRetries) {
-      $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
-      Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
-      Start-Sleep -Seconds $delayInSeconds
-    }
-    else {
-      Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to download file in $maxRetries attempts."
-      break
-    }
-
-  }
-}
-
 function GetDotNetInstallScript([string] $dotnetRoot) {
   $installScript = Join-Path $dotnetRoot 'dotnet-install.ps1'
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    $uri = "https://dotnet.microsoft.com/download/dotnet/scripts/$dotnetInstallScriptVersion/dotnet-install.ps1"
 
-    Retry({
-      Write-Host "GET $uri"
-      Invoke-WebRequest $uri -OutFile $installScript
-    })
+    $maxRetries = 5
+    $retries = 1
+
+    $uri = "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1"
+
+    while($true) {
+      try {
+        Write-Host "GET $uri"
+        Invoke-WebRequest $uri -OutFile $installScript
+        break
+      }
+      catch {
+        Write-Host "Failed to download '$uri'"
+        Write-Error $_.Exception.Message -ErrorAction Continue
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        throw "Unable to download file in $maxRetries attempts."
+      }
+
+    }
   }
 
   return $installScript
@@ -352,8 +305,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # If the version of msbuild is going to be xcopied,
   # use this version. Version matches a package here:
-  # https://dev.azure.com/dnceng/public/_packaging?_a=package&feed=dotnet-eng&package=RoslynTools.MSBuild&protocolType=NuGet&version=16.10.0-preview2&view=overview
-  $defaultXCopyMSBuildVersion = '16.10.0-preview2'
+  # https://dev.azure.com/dnceng/public/_packaging?_a=package&feed=dotnet-eng&package=RoslynTools.MSBuild&protocolType=NuGet&version=16.8.0-preview3&view=overview
+  $defaultXCopyMSBuildVersion = '16.8.0-preview3'
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
   $vsMinVersionStr = if ($vsRequirements.version) { $vsRequirements.version } else { $vsMinVersionReqdStr }
@@ -418,16 +371,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   }
 
   $msbuildVersionDir = if ([int]$vsMajorVersion -lt 16) { "$vsMajorVersion.0" } else { "Current" }
-
-  $local:BinFolder = Join-Path $vsInstallDir "MSBuild\$msbuildVersionDir\Bin"
-  $local:Prefer64bit = if (Get-Member -InputObject $vsRequirements -Name 'Prefer64bit') { $vsRequirements.Prefer64bit } else { $false }
-  if ($local:Prefer64bit -and (Test-Path(Join-Path $local:BinFolder "amd64"))) {
-    $global:_MSBuildExe = Join-Path $local:BinFolder "amd64\msbuild.exe"
-  } else {
-    $global:_MSBuildExe = Join-Path $local:BinFolder "msbuild.exe"
-  }
-
-  return $global:_MSBuildExe
+  return $global:_MSBuildExe = Join-Path $vsInstallDir "MSBuild\$msbuildVersionDir\Bin\msbuild.exe"
 }
 
 function InitializeVisualStudioEnvironmentVariables([string] $vsInstallDir, [string] $vsMajorVersion) {
@@ -456,13 +400,9 @@ function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
     }
 
     Create-Directory $packageDir
-
     Write-Host "Downloading $packageName $packageVersion"
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Retry({
-      Invoke-WebRequest "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/flat2/$packageName/$packageVersion/$packageName.$packageVersion.nupkg" -OutFile $packagePath
-    })
-
+    Invoke-WebRequest "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/flat2/$packageName/$packageVersion/$packageName.$packageVersion.nupkg" -OutFile $packagePath
     Unzip $packagePath $packageDir
   }
 
@@ -499,17 +439,31 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   if (!(Test-Path $vsWhereExe)) {
     Create-Directory $vsWhereDir
     Write-Host 'Downloading vswhere'
-    Retry({
-      Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
-    })
+    $maxRetries = 5
+    $retries = 1
+
+    while($true) {
+      try {
+        Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+        break
+      }
+      catch{
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to download file in $maxRetries attempts."
+      }
+    }
   }
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
-  $args = @('-latest', '-format', 'json', '-requires', 'Microsoft.Component.MSBuild', '-products', '*')
-
-  if (!$excludePrereleaseVS) {
-    $args += '-prerelease'
-  }
+  $args = @('-latest', '-prerelease', '-format', 'json', '-requires', 'Microsoft.Component.MSBuild', '-products', '*')
 
   if (Get-Member -InputObject $vsRequirements -Name 'version') {
     $args += '-version'
@@ -535,13 +489,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
 
 function InitializeBuildTool() {
   if (Test-Path variable:global:_BuildTool) {
-    # If the requested msbuild parameters do not match, clear the cached variables.
-    if($global:_BuildTool.Contains('ExcludePrereleaseVS') -and $global:_BuildTool.ExcludePrereleaseVS -ne $excludePrereleaseVS) {
-      Remove-Item variable:global:_BuildTool
-      Remove-Item variable:global:_MSBuildExe
-    } else {
-      return $global:_BuildTool
-    }
+    return $global:_BuildTool
   }
 
   if (-not $msbuildEngine) {
@@ -569,7 +517,7 @@ function InitializeBuildTool() {
       ExitWithExitCode 1
     }
 
-    $buildTool = @{ Path = $msbuildPath; Command = ""; Tool = "vs"; Framework = "net472"; ExcludePrereleaseVS = $excludePrereleaseVS }
+    $buildTool = @{ Path = $msbuildPath; Command = ""; Tool = "vs"; Framework = "net472" }
   } else {
     Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unexpected value of -msbuildEngine: '$msbuildEngine'."
     ExitWithExitCode 1
@@ -594,7 +542,7 @@ function GetDefaultMSBuildEngine() {
 
 function GetNuGetPackageCachePath() {
   if ($env:NUGET_PACKAGES -eq $null) {
-    # Use local cache on CI to ensure deterministic build.
+    # Use local cache on CI to ensure deterministic build. 
     # Avoid using the http cache as workaround for https://github.com/NuGet/Home/issues/3116
     # use global cache in dev builds to avoid cost of downloading packages.
     # For directory normalization, see also: https://github.com/NuGet/Home/issues/7968
@@ -670,17 +618,6 @@ function ExitWithExitCode([int] $exitCode) {
     Stop-Processes
   }
   exit $exitCode
-}
-
-# Check if $LASTEXITCODE is a nonzero exit code (NZEC). If so, print a Azure Pipeline error for
-# diagnostics, then exit the script with the $LASTEXITCODE.
-function Exit-IfNZEC([string] $category = "General") {
-  Write-Host "Exit code $LASTEXITCODE"
-  if ($LASTEXITCODE -ne 0) {
-    $message = "Last command failed with exit code $LASTEXITCODE."
-    Write-PipelineTelemetryError -Force -Category $category -Message $message
-    ExitWithExitCode $LASTEXITCODE
-  }
 }
 
 function Stop-Processes() {
@@ -762,10 +699,7 @@ function MSBuild-Core() {
   }
 
   foreach ($arg in $args) {
-    if ($null -ne $arg -and $arg.Trim() -ne "") {
-      if ($arg.EndsWith('\')) {
-        $arg = $arg + "\"
-      }
+    if ($arg -ne $null -and $arg.Trim() -ne "") {
       $cmdArgs += " `"$arg`""
     }
   }
@@ -837,7 +771,7 @@ function Get-Darc($version) {
 
 . $PSScriptRoot\pipeline-logging-functions.ps1
 
-$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\')
+$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $EngRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
 $ArtifactsDir = Join-Path $RepoRoot 'artifacts'
 $ToolsetDir = Join-Path $ArtifactsDir 'toolset'
