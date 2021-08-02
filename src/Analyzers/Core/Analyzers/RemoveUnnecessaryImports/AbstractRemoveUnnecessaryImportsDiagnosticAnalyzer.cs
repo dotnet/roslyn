@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeActions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)

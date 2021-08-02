@@ -127,6 +127,11 @@
         <target state="translated">TODO 주석 검색</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">사용되지 않는 참조 분석</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
         <target state="new">Value Tracking</target>

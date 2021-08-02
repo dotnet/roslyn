@@ -521,11 +521,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
 
-        ValueTracking_Command = 490,
-        ValueTracking_TrackValueSource = 491,
+        UnusedReferences_GetUnusedReferences = 490,
 
-        InheritanceMargin_GetInheritanceMemberItems = 492,
+        ValueTracking_Command = 491,
+        ValueTracking_TrackValueSource = 492,
 
-        LSP_FindDocumentInWorkspace = 493,
+        InheritanceMargin_GetInheritanceMemberItems = 493,
+
+        LSP_FindDocumentInWorkspace = 494,
+
+        SuggestedActions_GetSuggestedActionsAsync = 500,
     }
 }

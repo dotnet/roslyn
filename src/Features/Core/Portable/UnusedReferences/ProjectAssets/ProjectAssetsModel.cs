@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets
+namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
 {
     // These classes model enough of the version 3 project.assets.json file that we can
     // parse out the dependency tree and compilation assemblies that each reference brings

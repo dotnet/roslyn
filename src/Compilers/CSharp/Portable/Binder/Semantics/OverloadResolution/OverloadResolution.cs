@@ -2138,7 +2138,7 @@ outerDefault:
                         var c2 = m2.Result.ConversionForArg(i);
 
                         isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
-                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i].Kind == BoundKind.UnconvertedInterpolatedString);
+                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     }
 
                     if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
@@ -2430,8 +2430,7 @@ outerDefault:
             // C1 is a better conversion than C2 if E is a non-constant interpolated string expression, C1
             // is an interpolated string handler conversion, and C2 is not an interpolated string
             // handler conversion
-            // https://github.com/dotnet/roslyn/issues/54584 Handle binary operators composed only of added interpolated strings
-            if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null })
+            if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {
@@ -3633,7 +3632,7 @@ outerDefault:
                     }
 
                     bool hasInterpolatedStringRefMismatch = false;
-                    if (argument.Kind == BoundKind.UnconvertedInterpolatedString
+                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
                         && parameterRefKind == RefKind.Ref
                         && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
                     {

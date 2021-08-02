@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
+    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        public override string Method => MSLSPMethods.DocumentPullDiagnosticName;
+        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
 
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
-        protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new DiagnosticReport
+        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalDiagnosticReport
             {
                 Diagnostics = diagnostics,
                 ResultId = resultId,
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
+        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => new[] { diagnosticsParams };
 
-        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
+        protected override IProgress<VSInternalDiagnosticReport[]>? GetProgress(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)

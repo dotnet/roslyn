@@ -47,8 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-        private bool? _experimentEnabled = null;
-
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
@@ -87,17 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var optionIsChecked = options.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-            if (_experimentEnabled is null)
-            {
-                var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-                _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin);
-            }
+            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
 
-            var shouldEnableFeature = optionIsChecked == true || (_experimentEnabled == true && optionIsChecked == null);
-            if (!shouldEnableFeature)
+            var shouldDisableFeature = optionValue == false;
+            if (shouldDisableFeature)
             {
                 return;
             }

@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
-using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
@@ -227,9 +226,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
-
-                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
+                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
+                return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences

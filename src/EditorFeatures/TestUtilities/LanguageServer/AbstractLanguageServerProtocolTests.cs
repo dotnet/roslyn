@@ -188,7 +188,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = new ImageElement(glyph.GetImageId()),
+                Icon = ProtocolConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)
@@ -206,7 +206,7 @@ namespace Roslyn.Test.Utilities
             if (projectContext != null)
             {
                 documentIdentifier.ProjectContext =
-                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+                    new LSP.VSProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
             }
 
             return documentIdentifier;
@@ -228,14 +228,14 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.CompletionParams CreateCompletionParams(
             LSP.Location caret,
-            LSP.VSCompletionInvokeKind invokeKind,
+            LSP.VSInternalCompletionInvokeKind invokeKind,
             string triggerCharacter,
             LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new LSP.VSCompletionContext()
+                Context = new LSP.VSInternalCompletionContext()
                 {
                     InvokeKind = invokeKind,
                     TriggerCharacter = triggerCharacter,
@@ -243,7 +243,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        protected static async Task<LSP.VSCompletionItem> CreateCompletionItemAsync(
+        protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
             string label,
             LSP.CompletionItemKind kind,
             string[] tags,
@@ -262,7 +262,7 @@ namespace Roslyn.Test.Utilities
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
                 request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
 
-            var item = new LSP.VSCompletionItem()
+            var item = new LSP.VSInternalCompletionItem()
             {
                 TextEdit = textEdit,
                 InsertText = insertText,
