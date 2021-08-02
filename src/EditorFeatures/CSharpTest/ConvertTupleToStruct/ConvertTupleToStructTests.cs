@@ -148,15 +148,15 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, b: 2);
+        var t1 = new NewStruct(A: 1, B: 2);
     }
 }
 
-internal record struct NewStruct(int a, int b)
+internal record struct NewStruct(int A, int B)
 {
     public static implicit operator (int a, int b)(NewStruct value)
     {
-        return (value.a, value.b);
+        return (value.A, value.B);
     }
 
     public static implicit operator NewStruct((int a, int b) value)
@@ -188,15 +188,15 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, b: 2);
+        var t1 = new NewStruct(A: 1, B: 2);
     }
 }
 
-internal record struct NewStruct(int a, int b)
+internal record struct NewStruct(int A, int B)
 {
     public static implicit operator (int a, int b)(NewStruct value)
     {
-        return (value.a, value.b);
+        return (value.A, value.B);
     }
 
     public static implicit operator NewStruct((int a, int b) value)
@@ -208,7 +208,7 @@ internal record struct NewStruct(int a, int b)
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
+        public async Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
         {
             var text = @"
 class Test
@@ -224,27 +224,12 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, b: 2);
+        var t1 = new NewStruct(A: 1, B: 2);
     }
 }
 
-internal record struct NewStruct
+internal record struct NewStruct(int A, int B)
 {
-    public int A;
-    public int B;
-
-    public NewStruct(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = A;
-        b = B;
-    }
-
     public static implicit operator (int A, int B)(NewStruct value)
     {
         return (value.A, value.B);

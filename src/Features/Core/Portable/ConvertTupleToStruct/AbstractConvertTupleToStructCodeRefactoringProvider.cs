@@ -275,14 +275,19 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                                        .Distinct()
                                        .ToImmutableArray();
 
-            // Get the rule that will name the parameter according to the users preferences for this document
+            // Get the naming rules rule that will name things according to the users preferences for this document
             // (and importantly not any of the documents where we change the call sites, below)
             var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+            var propertyNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+
+            // If we're making a record-struct then we'll generate a primary constructor and its parameters
+            // need to follow the property naming rule.
+            var namingRule = isRecord ? propertyNamingRule : parameterNamingRule;
 
             // Next, generate the full struct that will be used to replace all instances of this
             // tuple type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
-                document, scope, isRecord, structName, capturedTypeParameters, tupleType, parameterNamingRule, cancellationToken).ConfigureAwait(false);
+                document, scope, isRecord, structName, capturedTypeParameters, tupleType, namingRule, cancellationToken).ConfigureAwait(false);
 
             var documentToEditorMap = new Dictionary<Document, SyntaxEditor>();
             var documentsToUpdate = await GetDocumentsToUpdateAsync(
@@ -294,7 +299,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 documentToEditorMap, documentsToUpdate,
                 tupleExprOrTypeNode, tupleType,
                 structName, capturedTypeParameters,
-                containingNamespace, parameterNamingRule, cancellationToken).ConfigureAwait(false);
+                containingNamespace, namingRule, cancellationToken).ConfigureAwait(false);
 
             await GenerateStructIntoContainingNamespaceAsync(
                 document, tupleExprOrTypeNode, namedTypeSymbol,
@@ -780,7 +785,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private static async Task<INamedTypeSymbol> GenerateFinalNamedTypeAsync(
             Document document, Scope scope, bool isRecord, string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
-            INamedTypeSymbol tupleType, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+            INamedTypeSymbol tupleType, NamingRule namingRule, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -797,7 +802,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var (constructor, isPrimaryConstructor) = CreateConstructor(semanticModel, isRecord, structName, fields, generator, parameterNamingRule);
+            var constructor = CreateConstructor(semanticModel, isRecord, structName, fields, generator, namingRule);
 
             // Generate Equals/GetHashCode.  We can defer to our existing language service for this
             // so that we generate the same Equals/GetHashCode that our other IDE features generate.
@@ -812,22 +817,27 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
 
-            members.AddRange(fields);
+            // A record doesn't need fields because we always use a primary constructor
+            if (!isRecord)
+                members.AddRange(fields);
+
             members.Add(constructor);
 
-            // No need to generate Equals/GetHashCode in a record.  The compiler already synthesizes those for us.
+            // No need to generate Equals/GetHashCode/Deconstruct in a record.  The compiler already synthesizes those for us.
             if (!isRecord)
             {
                 members.Add(equalsMethod);
                 members.Add(getHashCodeMethod);
+                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
             }
 
-            // If we have a primary constructor, don't bother making a deconstruct method as the compiler
-            // already synthesizes those for us.
-            if (!isPrimaryConstructor)
-                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+            // In a record we want the conversions to use the primary constructor parameters but in
+            // a normal struct we use the fields
+            var structMembers = isRecord ?
+                ImmutableArray<ISymbol>.CastUp(constructor.Parameters) :
+                ImmutableArray<ISymbol>.CastUp(fields);
 
-            AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
+            AddConversions(generator, members, tupleType, namedTypeWithoutMembers, structMembers);
 
             var namedTypeSymbol = CreateNamedType(
                 semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, members.ToImmutable());
@@ -862,20 +872,23 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private static void AddConversions(
             SyntaxGenerator generator, ArrayBuilder<ISymbol> members,
-            INamedTypeSymbol tupleType, INamedTypeSymbol structType)
+            INamedTypeSymbol tupleType, INamedTypeSymbol structType, ImmutableArray<ISymbol> structMembers)
         {
             const string ValueName = "value";
 
             var valueNode = generator.IdentifierName(ValueName);
-            var arguments = tupleType.TupleElements.SelectAsArray<IFieldSymbol, SyntaxNode>(
+            var structArguments = structMembers.SelectAsArray(
                 field => generator.Argument(
                     generator.MemberAccessExpression(valueNode, field.Name)));
+            var tupleArguments = tupleType.TupleElements.SelectAsArray(
+               field => generator.Argument(
+                   generator.MemberAccessExpression(valueNode, field.Name)));
 
             var convertToTupleStatement = generator.ReturnStatement(
-                generator.TupleExpression(arguments));
+                generator.TupleExpression(structArguments));
 
             var convertToStructStatement = generator.ReturnStatement(
-                generator.ObjectCreationExpression(structType, arguments));
+                generator.ObjectCreationExpression(structType, tupleArguments));
 
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
                 tupleType,
@@ -902,10 +915,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 TypeKind.Struct, structName, typeParameters, members: members, containingAssembly: containingAssembly);
         }
 
-        private static (IMethodSymbol constructor, bool isPrimaryConstructor) CreateConstructor(
+        private static IMethodSymbol CreateConstructor(
             SemanticModel semanticModel, bool isRecord, string className,
             ImmutableArray<IFieldSymbol> fields, SyntaxGenerator generator,
-            NamingRule parameterNamingRule)
+            NamingRule namingRule)
         {
             // For every property, create a corresponding parameter, as well as an assignment
             // statement from that parameter to the property.
@@ -913,16 +926,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var parameters = fields.SelectAsArray(field =>
             {
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    field.Type, GetConstructorParameterName(parameterNamingRule, field.Name));
+                    field.Type, GetConstructorParameterName(namingRule, field.Name));
 
                 parameterToPropMap[parameter.Name] = field;
 
                 return parameter;
             });
-
-            // If we're making a record-struct and the parameters and properties all have the same name, then we can
-            // make a primary constructor here.
-            var isPrimaryConstructor = isRecord && parameterToPropMap.All(kvp => kvp.Key == kvp.Value.Name);
 
             var assignmentStatements = generator.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
@@ -930,9 +939,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default, Accessibility.Public, modifiers: default,
-                className, parameters, assignmentStatements, isPrimaryConstructor: isPrimaryConstructor);
+                className, parameters, assignmentStatements, isPrimaryConstructor: isRecord);
 
-            return (constructor, isPrimaryConstructor);
+            return constructor;
         }
 
         private static string GetConstructorParameterName(NamingRule parameterNamingRule, string name)
