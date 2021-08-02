@@ -34,6 +34,11 @@ steps:
     testRunTitle: net472-$(Agent.JobName)
   condition: succeededOrFailed()
 
+- powershell: test/EqualExceptionLegacy/Test.ps1
+  failOnStderr: false
+  displayName: Test EqualExceptionLegacy
+  condition: succeededOrFailed()
+
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
   displayName: Update pipeline variables based on build outputs
