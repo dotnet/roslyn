@@ -317,6 +317,11 @@
         <target state="translated">'this' 또는 'Me'를 사용하여 속성 액세스를 한정합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">파일 이름 바꾸기(형식이 파일 이름과 일치하지 않음)(_F)</target>

@@ -10,5 +10,6 @@ namespace Microsoft.CodeAnalysis.Features.Intents
     internal static class WellKnownIntents
     {
         public const string GenerateConstructor = nameof(GenerateConstructor);
+        public const string AddConstructorParameter = nameof(AddConstructorParameter);
     }
 }

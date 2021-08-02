@@ -170,6 +170,11 @@ namespace NS
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 4);
         }
 
         [WpfFact]
@@ -201,6 +206,32 @@ namespace NS
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void FileScopedNamespace()
+        {
+            var code = @"using System;
+
+namespace NS;
+
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 1,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 0);
         }
 
         [WpfFact]
@@ -494,6 +525,50 @@ namespace NS
                 code,
                 indentationLine: 11,
                 expectedIndentation: 20);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern_WithPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+            A.B: 1,
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+            AssertSmartIndent(
+                code,
+                indentationLine: 9,
+                expectedIndentation: 12);
         }
 
         [WpfFact]

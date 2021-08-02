@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
-    public partial class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
+    public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     {
         private const int SingleMember = 0;
         private const int SameInterface = 1;

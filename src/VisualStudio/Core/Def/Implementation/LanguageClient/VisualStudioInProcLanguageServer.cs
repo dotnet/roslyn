@@ -89,59 +89,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
         }
 
-        [JsonRpcMethod(MSLSPMethods.TextDocumentCodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSCodeAction> ResolveCodeActionAsync(VSCodeAction vsCodeAction, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(Queue, MSLSPMethods.TextDocumentCodeActionResolveName,
-                vsCodeAction, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(DocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(
-                Queue, MSLSPMethods.DocumentPullDiagnosticName,
+            return RequestDispatcher.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+                Queue, VSInternalMethods.DocumentPullDiagnosticName,
                 diagnosticsParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceDiagnosticReport[]?> GetWorkspacePullDiagnosticsAsync(WorkspaceDocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalWorkspaceDiagnosticReport[]?> GetWorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(
-                Queue, MSLSPMethods.WorkspacePullDiagnosticName,
+            return RequestDispatcher.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]?>(
+                Queue, VSInternalMethods.WorkspacePullDiagnosticName,
                 diagnosticsParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<ActiveProjectContexts?> GetProjectContextsAsync(GetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSMethods.GetProjectContextsName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSProjectContextList?> GetProjectContextsAsync(VSGetProjectContextsParams textDocumentWithContextParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(Queue, MSLSPMethods.ProjectContextsName,
+            return RequestDispatcher.ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList?>(Queue, VSMethods.GetProjectContextsName,
                 textDocumentWithContextParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnAutoInsertResponseItem?> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDocumentOnAutoInsertResponseItem?> GetDocumentOnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>(Queue, MSLSPMethods.OnAutoInsertName,
+            return RequestDispatcher.ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(Queue, VSInternalMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnTypeRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnTypeRenameResponseItem?> GetTypeRenameAsync(DocumentOnTypeRenameParams renameParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LinkedEditingRanges?> GetLinkedEditingRangesAsync(LinkedEditingRangeParams renameParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem?>(Queue, MSLSPMethods.OnTypeRenameName,
+            return RequestDispatcher.ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges?>(Queue, Methods.TextDocumentLinkedEditingRangeName,
                 renameParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
@@ -204,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
         // internal for testing purposes
-        internal async Task ProcessDiagnosticUpdatedBatchAsync(
+        internal async ValueTask ProcessDiagnosticUpdatedBatchAsync(
             IDiagnosticService? diagnosticService, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             if (diagnosticService == null)
