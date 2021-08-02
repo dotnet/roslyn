@@ -389,9 +389,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,20): error CS8917: The delegate type could not be inferred.
+                    // (5,38): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Delegate)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, $"(System.Delegate)({anonymousFunction})").WithLocation(5, 20));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 38));
             }
             else
             {
@@ -474,9 +474,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,20): error CS8917: The delegate type could not be inferred.
+                    // (5,57): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Linq.Expressions.Expression)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, $"(System.Linq.Expressions.Expression)({anonymousFunction})").WithLocation(5, 20));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 57));
             }
             else
             {
@@ -1978,7 +1978,17 @@ class Program
         F(delegate () { return string.Empty; });
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
+                //         F(delegate () { return 0; });
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 0; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(9, 11),
+                // (10,11): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
+                //         F(delegate () { return string.Empty; });
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return string.Empty; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(10, 11));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (9,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return 0; });
@@ -1986,6 +1996,143 @@ class Program
                 // (10,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return string.Empty; });
                 Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return string.Empty; }").WithLocation(10, 11));
+        }
+
+        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [Fact]
+        public void OverloadResolution_08()
+        {
+            var source =
+@"using System;
+using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        c.F(x => x);
+        c.F((int x) => x);
+    }
+    void F(Delegate d) => Write(""instance, "");
+}
+static class Extensions
+{
+    public static void F(this C c, Func<int, int> f) => Write(""extension, "");
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "extension, extension, ");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "extension, instance, ");
+            CompileAndVerify(source, expectedOutput: "extension, instance, ");
+        }
+
+        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [Fact]
+        public void OverloadResolution_09()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        c.F(x => x);
+        c.F((int x) => x);
+    }
+    void F(Expression e) => Write(""instance, "");
+}
+static class Extensions
+{
+    public static void F(this C c, Expression<Func<int, int>> e) => Write(""extension, "");
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "extension, extension, ");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "extension, instance, ");
+            CompileAndVerify(source, expectedOutput: "extension, instance, ");
+        }
+
+        [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
+        [Fact]
+        public void OverloadResolution_10()
+        {
+            var source =
+@"using System;
+using static System.Console;
+class C
+{
+    static object M1(object o) => o;
+    static int M1(int i) => i;
+    static int M2(int i) => i;
+    static void Main()
+    {
+        var c = new C();
+        c.F(M1);
+        c.F(M2);
+    }
+    void F(Delegate d) => Write(""instance, "");
+}
+static class Extensions
+{
+    public static void F(this C c, Func<int, int> f) => Write(""extension, "");
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "extension, extension, ");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "extension, instance, ");
+            CompileAndVerify(source, expectedOutput: "extension, instance, ");
+        }
+
+        [Fact]
+        public void OverloadResolution_11()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static object M1(object o) => o;
+    static int M1(int i) => i;
+    static void Main()
+    {
+        F1(x => x);
+        F1(M1);
+        F2(x => x);
+    }
+    static void F1(Delegate d) { }
+    static void F2(Expression e) { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         F1(x => x);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 12),
+                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                //         F1(M1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M1").WithArguments("1", "method group", "System.Delegate").WithLocation(10, 12),
+                // (11,12): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         F2(x => x);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 12));
+
+            var expectedDiagnostics10AndLater = new[]
+            {
+                // (9,12): error CS8917: The delegate type could not be inferred.
+                //         F1(x => x);
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 12),
+                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                //         F1(M1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M1").WithArguments("1", "method group", "System.Delegate").WithLocation(10, 12),
+                // (11,12): error CS8917: The delegate type could not be inferred.
+                //         F2(x => x);
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(11, 12)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
         }
 
         [Fact]

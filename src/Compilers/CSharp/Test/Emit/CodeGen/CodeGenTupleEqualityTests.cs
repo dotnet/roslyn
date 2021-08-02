@@ -1682,12 +1682,9 @@ class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,65): error CS8917: The delegate type could not be inferred.
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,65): error CS8917: The delegate type could not be inferred.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30));
             verify(comp, inferDelegate: true);
 
             static void verify(CSharpCompilation comp, bool inferDelegate)
@@ -1714,7 +1711,7 @@ class C
                 // ... its first lambda ...
                 var firstLambda = tuple2.Arguments[1].Expression;
                 Assert.Null(model.GetTypeInfo(firstLambda).Type);
-                verifyType("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType, inferDelegate);
+                verifyType("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType, inferDelegate: false); // cannot infer delegate type for x => x
 
                 // ... its method group ...
                 var methodGroup = tuple2.Arguments[2].Expression;
