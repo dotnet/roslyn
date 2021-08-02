@@ -35,5 +35,11 @@ namespace Microsoft.CodeAnalysis.Remote.Services
             isEnabledValueTask.Forget();
             return false;
         }
+
+        public void EnableExperiment(string experimentName, bool value)
+        {
+            // This should never be called out of proc
+            throw new NotImplementedException();
+        }
     }
 }

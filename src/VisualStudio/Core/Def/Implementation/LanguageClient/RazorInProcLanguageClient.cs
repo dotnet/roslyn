@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
-            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;
@@ -78,5 +78,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
             return capabilities;
         }
+
+        /// <summary>
+        /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

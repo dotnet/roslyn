@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -24,26 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
         }
 
-        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
-            Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot));
+            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v));
         }
 
-        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
-            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textSnapshot, cancellationToken);
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken)
+            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textVersion, cancellationToken);
 
         protected async Task NavigateToSymbolItemAsync(
-            Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, SymbolItem symbolItem, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
+            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(
+                document, item, symbolItem, textVersion, cancellationToken).ConfigureAwait(false);
 
             // Ensure we're back on the UI thread before either navigating or showing a failure message.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -68,23 +67,24 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
             Document document,
             NavigationBarItem item,
-            RoslynNavigationBarItem.SymbolItem symbolItem,
-            ITextSnapshot textSnapshot,
+            SymbolItem symbolItem,
+            ITextVersion textVersion,
             CancellationToken cancellationToken)
         {
             // If the item points to a location in this document, then just determine the current location
             // of that item and go directly to it.
-            if (item.NavigationTrackingSpan != null)
+            var navigationSpan = item.TryGetNavigationSpan(textVersion);
+            if (navigationSpan != null)
             {
-                return Task.FromResult((document.Id, item.NavigationTrackingSpan.GetSpan(textSnapshot).Start.Position, 0));
+                return Task.FromResult((document.Id, navigationSpan.Value.Start, 0));
             }
             else
             {
                 // Otherwise, the item pointed to a location in another document.  Just return the position we
                 // computed and stored for it.
                 Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
-                var (documentId, navigationSpan) = symbolItem.Location.OtherDocumentInfo.Value;
-                return Task.FromResult((documentId, navigationSpan.Start, 0));
+                var (documentId, span) = symbolItem.Location.OtherDocumentInfo.Value;
+                return Task.FromResult((documentId, span.Start, 0));
             }
         }
 
