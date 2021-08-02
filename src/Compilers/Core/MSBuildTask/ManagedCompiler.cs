@@ -532,6 +532,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
+                // Note: using ToolArguments here (the property) since
+                // commandLineCommands (the parameter) may have been mucked with
+                // (to support using the dotnet cli)
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
@@ -545,9 +548,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ? SharedCompilationId
                     : BuildServerConnection.GetPipeName(clientDirectory);
 
-                // Note: using ToolArguments here (the property) since
-                // commandLineCommands (the parameter) may have been mucked with
-                // (to support using the dotnet cli)
                 var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,

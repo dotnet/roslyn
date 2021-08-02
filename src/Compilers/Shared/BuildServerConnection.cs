@@ -96,7 +96,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         try
                         {
                             var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
+#if NET50_OR_GREATER
+                            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+#else
                             process.WaitForExit();
+#endif
                         }
                         catch (Exception)
                         {
@@ -337,14 +341,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
-        /// Attempt to connect to the server and return a null task if connection failed. This
-        /// method will throw on cancellation
+        /// Attempt to connect to the server and return a null <see cref="NamedPipeClientStream"/> if connection 
+        /// failed. This method will throw on cancellation.
         /// </summary>
-        /// <param name="pipeName"></param>
-        /// <param name="timeoutMs"></param>
-        /// <param name="logger"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
