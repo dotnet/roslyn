@@ -15,12 +15,18 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2022
 
+<<<<<<< HEAD
 1. [Visual Studio 2022 17.0 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "17.0" or greater
+=======
+1. [Visual Studio 2019 16.10](https://visualstudio.microsoft.com/downloads/)
+    - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
+    - Ensure Visual Studio is on Version "16.10" or greater
+>>>>>>> parent of 3096ceaadae (Merge pull request #55295 from allisonchou/Revert54323)
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 6.0 Preview 1 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.1-windows-x64-installer)
+1. [.NET 6.0 Preview 6 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.6-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
