@@ -94,11 +94,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // VS AsyncLazy does not currently support cancellation:
                 var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    // proffer in-proc brokered services:
+                    _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
 
-                // proffer in-proc brokered services:
-                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
-
-                return client;
+                    return client;
+                }
+                catch
+                {
+                    client.Dispose();
+                    throw;
+                }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

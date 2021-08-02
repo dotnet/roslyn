@@ -93,27 +93,47 @@ namespace Microsoft.CodeAnalysis.Remote
                 var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
 #pragma warning restore
 
-                var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+                ServiceHubRemoteHostClient? client = null;
 
-                var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream, callbackDispatchers);
+                    var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
 
-                var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
-                var cultureLCID = CultureInfo.CurrentCulture.LCID;
+                    client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream, callbackDispatchers);
 
-                // initialize the remote service
-                await client._endPoint.InvokeAsync<string>(
-                    nameof(IRemoteHostService.InitializeGlobalState),
-                    new object?[] { uiCultureLCID, cultureLCID },
-                    cancellationToken).ConfigureAwait(false);
+                    var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
+                    var cultureLCID = CultureInfo.CurrentCulture.LCID;
 
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                    // initialize the remote service
+                    await client._endPoint.InvokeAsync<string>(
+                        nameof(IRemoteHostService.InitializeGlobalState),
+                        new object?[] { uiCultureLCID, cultureLCID },
+                        cancellationToken).ConfigureAwait(false);
 
-                client.Started();
-                return client;
+                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+
+                    client.Started();
+                    return client;
+                }
+                catch
+                {
+                    // Make sure ServiceBrokerClient is disposed on failure. At this point, it may or may not have been
+                    // wrapped in the ServiceHubRemoteHostClient instance, so handle both possibilities.
+                    if (client is not null)
+                    {
+                        client.Dispose();
+                    }
+                    else
+                    {
+                        serviceBrokerClient.Dispose();
+                    }
+
+                    throw;
+                }
             }
         }
 
@@ -209,16 +229,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override void Dispose()
         {
-            _endPoint.Disconnected -= OnDisconnected;
-            _endPoint.UnexpectedExceptionThrown -= OnUnexpectedExceptionThrown;
-            _endPoint.Dispose();
+            try
+            {
+                _endPoint.Disconnected -= OnDisconnected;
+                _endPoint.UnexpectedExceptionThrown -= OnUnexpectedExceptionThrown;
+                _endPoint.Dispose();
 
-            _connectionPools?.Dispose();
+                _connectionPools?.Dispose();
 
-            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
-            _hubClient.Dispose();
-
-            _serviceBrokerClient.Dispose();
+                _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+                _hubClient.Dispose();
+            }
+            finally
+            {
+                _serviceBrokerClient.Dispose();
+            }
 
             base.Dispose();
         }
