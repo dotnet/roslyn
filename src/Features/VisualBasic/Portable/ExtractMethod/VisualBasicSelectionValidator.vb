@@ -480,7 +480,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If (Not adjustedSpan.Contains(firstTokenInSelection.Span)) AndAlso (Not adjustedSpan.Contains(lastTokenInSelection.Span)) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.Selection_doesn_t_contain_any_valid_token),
+                           .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_does_not_contain_a_valid_token),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -490,7 +490,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If (Not firstTokenInSelection.UnderValidContext()) OrElse (Not lastTokenInSelection.UnderValidContext()) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -501,7 +501,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If commonRoot Is Nothing Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.No_common_root_node_for_extraction),
+                           .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.No_common_root_node_for_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -515,7 +515,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If (Not selectionInExpression) AndAlso (Not commonRoot.UnderValidContext()) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -526,7 +526,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If commonRoot.GetAncestor(Of TypeBlockSyntax)() Is Nothing Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection

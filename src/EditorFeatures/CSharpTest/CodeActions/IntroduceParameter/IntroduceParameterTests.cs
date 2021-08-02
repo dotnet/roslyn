@@ -1820,5 +1820,39 @@ class TestClass
 
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestClassObject()
+        {
+            var code =
+@"
+class F
+{
+    public int x;
+    public int y;
+
+    public F(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class TestClass
+{
+    int N(F f)
+    {
+        return f.[|x|];
+    }
+
+    void M()
+    {
+        N(new F(1, 2));
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }

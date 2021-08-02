@@ -34,7 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 new ColumnState2(ColumnDefinitions.CodeStyle.Category, isVisible: false, width: 0, groupingPriority: 1),
                 new ColumnState2(ColumnDefinitions.CodeStyle.Description, isVisible: true, width: 0),
                 new ColumnState2(ColumnDefinitions.CodeStyle.Value, isVisible: true, width: 0),
-                new ColumnState2(ColumnDefinitions.CodeStyle.Severity, isVisible: true, width: 0)
+                new ColumnState2(ColumnDefinitions.CodeStyle.Severity, isVisible: true, width: 0),
+                new ColumnState2(ColumnDefinitions.CodeStyle.Location, isVisible: true, width: 0)
             };
 
         protected override string[] GetFixedColumns()
@@ -43,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 ColumnDefinitions.CodeStyle.Category,
                 ColumnDefinitions.CodeStyle.Description,
                 ColumnDefinitions.CodeStyle.Value,
-                ColumnDefinitions.CodeStyle.Severity
+                ColumnDefinitions.CodeStyle.Severity,
+                ColumnDefinitions.CodeStyle.Location
             };
     }
 }

@@ -73,6 +73,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <Import Include="System.Threading.Tasks"/>
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>

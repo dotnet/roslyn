@@ -77,6 +77,11 @@
         <target state="translated">Vždy kvůli srozumitelnosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
         <target state="translated">Analyzátory</target>
@@ -372,11 +377,6 @@
         <target state="translated">Formátovat dokument</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">Formátování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Generovat soubor .editorconfig z nastavení</target>
@@ -522,6 +522,11 @@
         <target state="translated">Místní metadata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">Nastavit {0} jako abstraktní</target>
@@ -575,6 +580,11 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Obor názvů: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -1252,6 +1262,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Upozornění</target>
@@ -1275,6 +1290,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Tento pracovní prostor nepodporuje aktualizaci možností kompilace jazyka Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -2649,34 +2669,8 @@ Další informace: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Povolit navigaci na dekompilované zdroje (experimentální)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">DŮLEŽITÉ: Visual Studio zahrnuje funkci dekompilace („Dekompilátor“), která umožňuje reprodukovat zdrojový kód z binárního kódu. Spuštěním a otevřením Dekompilátoru vyjadřujete svůj souhlasit s licenčními podmínkami sady Visual Studio a s níže uvedenými podmínkami pro Dekompilátor. Pokud s těmito kombinovanými podmínkami nesouhlasíte, nesmíte Dekompilátor spouštět ani používat.
-
-Uznáváte, že binární kód a zdrojový kód mohou být chráněny na základě zákonů o autorských právech a ochranných známkách. Před použitím Dekompilátoru na libovolný binární kód musíte napřed:
-(i) ověřit, že licenční podmínky vztahující se na vaše použití binárního kódu neobsahují ustanovení, které by vám dekompilaci softwaru zakazovalo; nebo
-(ii) získat svolení k dekompilaci binárního kódu od vlastníka daného softwaru.
-
-Používání Dekompilátoru je volitelné. Společnost Microsoft nenese zodpovědnost a výslovně se zříká jakýchkoli problémů, které by mohly vyvstat v případě, že Dekompilátor použijete způsobem porušujícím jakýkoli zákon nebo licenční podmínky na software, jež dekompilaci softwaru zakazují.
-
-Souhlasím se všemi výše uvedenými podmínkami:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Právní doložka pro dekompilátor</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Povolit navigaci na dekompilované zdroje (experimentální)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
