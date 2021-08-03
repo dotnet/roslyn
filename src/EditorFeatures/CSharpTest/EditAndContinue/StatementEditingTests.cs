@@ -4954,53 +4954,43 @@ class Program
         [Fact]
         public void Lambdas_Parameter_To_Discard1()
         {
-            var src1 = "var x = new Func<int, int, int>((a, b) => 1);";
-            var src2 = "var x = new Func<int, int, int>((a, _) => 1);";
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((a, _) => 1);";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [b]@38 -> [_]@38");
+                "Update [b]@45 -> [_]@45");
 
-            // Technically not a discard, but a rename
             GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
         public void Lambdas_Parameter_To_Discard2()
         {
-            var src1 = "var x = new Func<int, int, int>((int a, int b) => 1);";
-            var src2 = "var x = new Func<int, int, int>((_, _) => 1);";
+            var src1 = "var x = new System.Func<int, int, int>((int a, int b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int a]@35 -> [_]@35",
-                "Update [int b]@42 -> [_]@38");
+                "Update [int a]@42 -> [_]@42",
+                "Update [int b]@49 -> [_]@45");
 
-            GetTopEdits(edits).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "(_, _)", CSharpFeaturesResources.lambda));
-
-            GetTopEdits(edits).VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
-                },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
-
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
         public void Lambdas_Parameter_To_Discard3()
         {
-            var src1 = "var x = new Func<int, int, int>((a, b) => 1);";
-            var src2 = "var x = new Func<int, int, int>((_, _) => 1);";
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [a]@35 -> [_]@35",
-                "Update [b]@38 -> [_]@38");
+                "Update [a]@42 -> [_]@42",
+                "Update [b]@45 -> [_]@45");
 
             GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }

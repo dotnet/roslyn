@@ -8733,20 +8733,22 @@ class C
         public void Lambdas_ActiveStatementUpdate()
         {
             var src1 = @"
+using System;
 class C
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = (int a, int b) => <AS:0>a + b + 1</AS:0>;
+        Func<int, int, int> f = (int a, int b) => <AS:0>a + b + 1</AS:0>;
         <AS:1>f(2);</AS:1>
     }
 }";
             var src2 = @"
+using System;
 class C
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = (_, _) => <AS:0>10</AS:0>;
+        Func<int, int, int> f = (_, _) => <AS:0>10</AS:0>;
         <AS:1>f(2);</AS:1>
     }
 }
