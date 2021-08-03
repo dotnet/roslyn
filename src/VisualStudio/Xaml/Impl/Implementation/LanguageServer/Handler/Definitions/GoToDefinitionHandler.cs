@@ -150,28 +150,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             var symbol = symbolDefinition.Symbol;
 
-            if (symbol.Locations.First().IsInMetadata)
+            var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(context.Solution, symbol, displayTaggedParts: null, cancellationToken);
+            if (items.Any())
             {
-                var project = context.Document?.GetCodeProject();
-                if (project != null)
-                {
-                    var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
-                    var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                    locations.Add(new LSP.Location
-                    {
-                        Uri = new Uri(declarationFile.FilePath),
-                        Range = ProtocolConversions.LinePositionToRange(linePosSpan),
-                    });
-                }
-            }
-            else
-            {
-                var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(context.Solution, symbol, displayTaggedParts: null, cancellationToken);
                 foreach (var item in items)
                 {
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
                         item.Document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
+                }
+            }
+            else
+            {
+                var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
+                if (metadataLocation != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+                {
+                    var project = context.Document?.GetCodeProject();
+                    if (project != null)
+                    {
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                        var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                        locations.Add(new LSP.Location
+                        {
+                            Uri = new Uri(declarationFile.FilePath),
+                            Range = ProtocolConversions.LinePositionToRange(linePosSpan),
+                        });
+                    }
                 }
             }
 
