@@ -44,4 +44,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\WpfTestSharedData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisualStudioVersion.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.props" PackagePath="build" />
+    <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" PackagePath="build" />
+  </ItemGroup>
 </Project>

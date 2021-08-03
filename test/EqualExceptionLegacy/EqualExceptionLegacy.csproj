@@ -27,13 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-      <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
-      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
-    </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -41,6 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.props" PackagePath="build" />
+    <Content Include="build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.targets" PackagePath="build" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Embedded assemblies -->
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.11\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.11.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.11.exe" />
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.12\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.12.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.12.exe" />

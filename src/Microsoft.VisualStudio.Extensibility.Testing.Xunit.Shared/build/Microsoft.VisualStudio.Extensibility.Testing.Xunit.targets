@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- This file might be evaluated before GenerateAssemblyInfo is set to its default value, so account for both cases. -->
+  <PropertyGroup Condition="'$(GenerateAssemblyInfo)' == '' OR '$(GenerateAssemblyInfo)' == 'true'">
+    <GenerateTestFrameworkAttribute Condition="'$(GenerateTestFrameworkAttribute)' == ''">true</GenerateTestFrameworkAttribute>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(GenerateTestFrameworkAttribute)' == 'true'">
+    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+      <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
+      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
