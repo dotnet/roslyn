@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSourceExperimental
+        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSource
         {
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
