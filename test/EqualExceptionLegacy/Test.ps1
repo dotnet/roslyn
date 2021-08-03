@@ -128,6 +128,13 @@ if (-not $logPath) {
     Exit 1
 }
 
+$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.png" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic screenshot for failing test"
+    Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.png'"
+    Exit 1
+}
+
 # Verify the second failure
 $failure2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailureAsync (VS2019)']")
 if ($failure2.Node.outcome -ne "Failed") {
@@ -140,6 +147,13 @@ $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExcep
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualException.EqualsFailureAsync-EqualException.log'"
+    Exit 1
+}
+
+$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.png" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic screenshot for failing test"
+    Write-Host "Missing image file 'EqualException.EqualsFailureAsync-EqualException.png'"
     Exit 1
 }
 
@@ -158,6 +172,13 @@ if (-not $logPath) {
     Exit 1
 }
 
+$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic screenshot for failing test"
+    Write-Host "Missing image file 'EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png'"
+    Exit 1
+}
+
 # Verify failure in before test attribute
 $failure4 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailBeforeTest (VS2019)']")
 if ($failure4.Node.outcome -ne "Failed") {
@@ -173,6 +194,13 @@ if (-not $logPath) {
     Exit 1
 }
 
+$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic screenshot for failing test"
+    Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png'"
+    Exit 1
+}
+
 # Verify failure in after test attribute
 $failure5 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailAfterTest (VS2019)']")
 if ($failure5.Node.outcome -ne "Failed") {
@@ -185,6 +213,13 @@ $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExcep
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log'"
+    Exit 1
+}
+
+$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic screenshot for failing test"
+    Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png'"
     Exit 1
 }
 

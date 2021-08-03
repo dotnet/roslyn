@@ -114,6 +114,8 @@ namespace Xunit.Harness
                 Directory.CreateDirectory(logDir);
 
                 File.WriteAllText(CreateLogFileName(logDir, timestamp, testName, errorId, logId: string.Empty, "log"), ex.ToString());
+
+                ScreenshotService.TakeScreenshot(CreateLogFileName(logDir, timestamp, testName, errorId, string.Empty, $"png"));
             }
             finally
             {

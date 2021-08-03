@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilterSafeHandle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\RequireExtensionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\ScreenshotService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstance.cs" />
