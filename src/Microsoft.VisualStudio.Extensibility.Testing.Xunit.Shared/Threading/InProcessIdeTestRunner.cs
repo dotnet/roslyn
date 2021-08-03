@@ -12,6 +12,7 @@ namespace Xunit.Threading
     using System.Windows.Threading;
     using Xunit.Abstractions;
     using Xunit.Harness;
+    using Xunit.InProcess;
     using Xunit.Sdk;
 
     public class InProcessIdeTestRunner : XunitTestRunner
@@ -24,6 +25,7 @@ namespace Xunit.Threading
         protected override async Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
         {
             DataCollectionService.InstallFirstChanceExceptionHandler();
+            VisualStudio_InProc.Create().ActivateMainWindow();
 
             var synchronizationContext = new DispatcherSynchronizationContext(Application.Current.Dispatcher, DispatcherPriority.Background);
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);

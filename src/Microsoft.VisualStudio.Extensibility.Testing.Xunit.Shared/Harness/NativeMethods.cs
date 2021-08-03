@@ -24,6 +24,7 @@ namespace Xunit.Harness
 
         public const uint SWP_NOSIZE = 0x0001;
         public const uint SWP_NOMOVE = 0x0002;
+        public const uint SWP_NOZORDER = 0x0004;
 
         public const uint WM_GETTEXT = 0x000D;
         public const uint WM_GETTEXTLENGTH = 0x000E;
@@ -34,6 +35,17 @@ namespace Xunit.Harness
 
         [DllImport(Kernel32)]
         public static extern uint GetCurrentThreadId();
+
+        [DllImport(Kernel32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AllocConsole();
+
+        [DllImport(Kernel32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FreeConsole();
+
+        [DllImport(Kernel32, SetLastError = false)]
+        public static extern IntPtr GetConsoleWindow();
 
         [DllImport(Ole32, PreserveSig = false)]
         public static extern void CreateBindCtx(int reserved, [MarshalAs(UnmanagedType.Interface)] out IBindCtx bindContext);
@@ -87,6 +99,16 @@ namespace Xunit.Harness
         [DllImport(User32, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, [Optional] IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport(User32, SetLastError = true)]
+        public static extern IntPtr GetLastActivePopup(IntPtr hWnd);
+
+        [DllImport(User32, SetLastError = true)]
+        public static extern void SwitchToThisWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool fUnknown);
+
+        [DllImport(User32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
 
         [DllImport(Ole32, SetLastError = true)]
         public static extern int CoRegisterMessageFilter(IntPtr messageFilter, out IntPtr oldMessageFilter);
