@@ -1,14 +1,15 @@
 Param (
+    [string]$version = "$env:GITBUILDVERSIONSIMPLE",
+    [string]$resultDir = "$env:AGENT_TEMPDIRECTORY",
     [string]$binlog
 )
 
-if (-not $env:GITBUILDVERSIONSIMPLE) {
+if (-not $version) {
     Write-Host "Missing environment variable 'GITBUILDVERSIONSIMPLE'"
     Exit 1
 }
 
-$resultDir = $env:AGENT_TEMPDIRECTORY
-if (-not $env:AGENT_TEMPDIRECTORY -or -not (Test-Path $env:AGENT_TEMPDIRECTORY)) {
+if (-not $resultDir -or -not (Test-Path $resultDir)) {
     if (-not $env:RUNNER_TEMP -or -not (Test-Path $env:RUNNER_TEMP)) {
         Write-Host "Missing environment variable 'AGENT_TEMPDIRECTORY' and/or 'RUNNER_TEMP'"
         Exit 1
@@ -32,7 +33,7 @@ if (-not (Test-Path $CurrentTestResultsDir)) {
 }
 
 $env:XUNIT_LOGS = $CurrentTestResultsDir
-dotnet test /bl:$binlog --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj
+dotnet test /bl:$binlog --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj "/p:GITBUILDVERSIONSIMPLE=$version"
 if ($LASTEXITCODE -ne 1) {
     Write-Host "Expected 'dotnet test' to exit with code 1, but was $LASTEXITCODE"
     Exit 1
