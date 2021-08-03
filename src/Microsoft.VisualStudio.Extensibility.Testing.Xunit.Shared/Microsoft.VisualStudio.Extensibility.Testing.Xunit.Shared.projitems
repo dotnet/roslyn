@@ -9,6 +9,7 @@
     <Import_RootNamespace>Xunit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\GlobalServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestAssemblyRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFramework.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestInvoker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SemaphoreExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SynchronizationContextTaskScheduler.cs" />
