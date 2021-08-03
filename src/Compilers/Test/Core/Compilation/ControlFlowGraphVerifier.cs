@@ -1913,18 +1913,18 @@ endRegion:
 
 #nullable enable
         private static bool IsTopLevelMainMethod([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol
+        {
+            return symbol is IMethodSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
                 ContainingType: { } containingType
-            } && containingType.IsTopLevelMainType();
-
-        private static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol
+            }
+            && containingType is INamedTypeSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 ContainingType: null,
                 ContainingNamespace: { IsGlobalNamespace: true }
             };
+        }
     }
 }
