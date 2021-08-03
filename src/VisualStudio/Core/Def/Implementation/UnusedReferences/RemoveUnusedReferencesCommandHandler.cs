@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -26,7 +27,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
 {
     [Export(typeof(RemoveUnusedReferencesCommandHandler)), Shared]
-    internal sealed class RemoveUnusedReferencesCommandHandler
+    internal sealed partial class RemoveUnusedReferencesCommandHandler
     {
         private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
 
@@ -100,6 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
         {
+            Contract.ThrowIfNull(_serviceProvider);
+
             if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
                 Solution? solution = null;
@@ -141,17 +144,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     return;
                 }
 
-                // Since undo/redo is not supported, get confirmation that we should apply these changes.
-                var result = MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.This_action_cannot_be_undone_Do_you_wish_to_continue, MessageDialogCommandSet.YesNo);
-                if (result == MessageDialogCommand.No)
+                // Open the project file so that we can access the UndoManager for it.
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, projectFilePath, Guid.Empty, out _, out _, out _, out var vsTextView);
+
+                OLE.Interop.IOleUndoManager? undoManager = null;
+                var undoSupported = ErrorHandler.Succeeded(vsTextView.GetBuffer(out var vsTextLines))
+                    && ErrorHandler.Succeeded(vsTextLines.GetUndoManager(out undoManager));
+
+                // if undo/redo is not supported, get confirmation that we should apply these changes.
+                if (!undoSupported)
                 {
-                    return;
+                    var result = MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.This_action_cannot_be_undone_Do_you_wish_to_continue, MessageDialogCommandSet.YesNo);
+                    if (result == MessageDialogCommand.No)
+                    {
+                        return;
+                    }
                 }
 
+                UpdateReferencesUndoUnit? undoUnit = null;
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
+                    undoUnit = ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
                 });
+
+                if (undoSupported && undoUnit is not null)
+                {
+                    // Delay adding the UndoUnit in order to wait for the project system to reload the project. If we add
+                    // before the project is reloaded it will clear the UndoManager's history.
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        await System.Threading.Tasks.Task.Delay(2000).ConfigureAwait(false);
+
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        undoManager?.Add(undoUnit);
+                    });
+                }
             }
 
             return;
@@ -184,8 +212,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
-                return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
+                var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFile).ConfigureAwait(true);
+
+                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
@@ -195,10 +224,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return referenceUpdates;
         }
 
-        private void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        private UpdateReferencesUndoUnit ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
-            ThreadHelper.JoinableTaskFactory.Run(
-                () => UnusedReferencesRemover.UpdateReferencesAsync(solution, projectFilePath, referenceUpdates, cancellationToken));
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                var updateOperations = await UnusedReferencesRemover.GetUpdateReferenceOperationsAsync(solution, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
+
+                foreach (var operation in updateOperations)
+                {
+                    await operation.ApplyAsync(cancellationToken).ConfigureAwait(true);
+                }
+
+                return new UpdateReferencesUndoUnit(updateOperations);
+            });
         }
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, [NotNullWhen(returnValue: true)] out string? propertyValue)
