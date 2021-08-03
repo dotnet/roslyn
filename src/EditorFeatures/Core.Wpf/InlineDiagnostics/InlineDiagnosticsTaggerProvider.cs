@@ -31,18 +31,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IClassificationFormatMapService _classificationFormatMap;
+        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
+
         protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
-            IEditorFormatMapService editorFormatMapService,
             IDiagnosticService diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IEditorFormatMapService editorFormatMapService,
+            IClassificationFormatMapService classificationFormatMap,
+            IClassificationTypeRegistryService classificationTypeRegistryService)
             : base(threadingContext, diagnosticService, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _classificationFormatMap = classificationFormatMap;
+            _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
@@ -84,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
-            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption, navigateService);
+            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMap,
+                _classificationTypeRegistryService, locationOption, navigateService);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

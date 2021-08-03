@@ -31,8 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly DiagnosticData _diagnostic;
         private readonly INavigateToLinkService _navigateToLinkService;
         private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
+        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
+            IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
+            InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
@@ -40,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             Location = location;
             _navigateToLinkService = navigateToLinkService;
             _editorFormatMap = editorFormatMap;
+            _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
+            _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         /// <summary>
@@ -57,19 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             var idRun = GetRunForId(out var hyperlink);
-            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             if (hyperlink is null)
             {
                 block.Inlines.Add(idRun);
             }
             else
             {
-                // If we are in dark mode, then we want to change the color of the link to be lighter than the
-                // default color to meet accessibility standards.
-                if (editorBackground == Color.FromArgb(255, 30, 30, 30))
-                {
-                    hyperlink.Foreground = new SolidColorBrush(Color.FromRgb(3, 194, 252));
-                }
+                // Match the hyperlink color to what the classification is set to by the user
+                var classificationType = _classificationTypeRegistryService.GetClassificationType("url");
+                var linkColor = _classificationFormatMap.GetTextProperties(classificationType);
+                hyperlink.Foreground = linkColor.ForegroundBrush;
 
                 block.Inlines.Add(hyperlink);
                 hyperlink.RequestNavigate += HandleRequestNavigate;
@@ -103,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             // This is used as a workaround to the moniker issues in blue theme
+            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
