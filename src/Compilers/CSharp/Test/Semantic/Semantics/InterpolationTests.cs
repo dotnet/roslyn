@@ -4219,7 +4219,7 @@ literal:Literal");
             comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular9);
             verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
 
-            verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", expression.Contains('+') ? @"
 {
   // Code size       37 (0x25)
   .maxstack  2
@@ -4232,6 +4232,19 @@ literal:Literal");
   IL_001a:  call       ""string string.Concat(string, string)""
   IL_001f:  call       ""void C.M(string)""
   IL_0024:  ret
+}
+"
+: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldstr      ""{0,2:f}Literal""
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  call       ""string string.Format(string, object)""
+  IL_0015:  call       ""void C.M(string)""
+  IL_001a:  ret
 }
 ");
         }
