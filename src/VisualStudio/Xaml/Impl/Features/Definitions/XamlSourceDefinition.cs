@@ -21,11 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
             _span = span;
         }
 
-        public XamlSourceDefinition(string filePath, int line, int character)
+        public XamlSourceDefinition(string filePath, int line, int column)
         {
             FilePath = filePath;
             _line = line;
-            _column = character;
+            _column = column;
         }
 
         public string FilePath { get; }
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
             // Convert the line column to TextSpan
             if (_line < text.Lines.Count)
             {
-                var character = Math.Min(_column, text.Lines[_line].Span.Length);
-                var start = text.Lines.GetPosition(new LinePosition(_line, character));
+                var column = Math.Min(_column, text.Lines[_line].Span.Length);
+                var start = text.Lines.GetPosition(new LinePosition(_line, column));
                 return new TextSpan(start, 0);
             }
 

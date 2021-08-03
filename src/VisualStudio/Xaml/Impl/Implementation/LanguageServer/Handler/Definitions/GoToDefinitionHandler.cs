@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 var task = Task.Run(async () =>
                 {
-                    foreach(var location in await this.GetLocationsAsync(definition, context, cancellationToken).ConfigureAwait(false))
+                    foreach (var location in await this.GetLocationsAsync(definition, context, cancellationToken).ConfigureAwait(false))
                     {
                         locations.Add(location);
                     }
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
             else
             {
-                throw new InvalidOperationException("Unexpected XamlDefinition Type");
+                throw new InvalidOperationException($"Unexpected {nameof(XamlDefinition)} Type");
             }
 
             return locations.ToArray();
