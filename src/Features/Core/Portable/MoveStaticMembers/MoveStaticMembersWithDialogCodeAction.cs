@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
             }
 
-            // Find the original type
+            // Find the original doc root
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var fileBanner = syntaxFacts.GetFileBanner(root);
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             newType = destSemanticModel.GetDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            var finalSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
-            return new CodeActionOperation[] { new ApplyChangesOperation(finalSolution) };
+            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
+            return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
         }
     }
 }

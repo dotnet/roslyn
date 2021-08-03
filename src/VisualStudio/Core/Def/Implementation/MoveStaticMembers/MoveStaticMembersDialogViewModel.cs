@@ -49,23 +49,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         {
             // TODO change once we allow movement to existing types
             var isNewType = !_existingNames.Contains(DestinationName);
-            _isValidName = IsValidType(DestinationName);
+            _isValidName = isNewType && IsValidType(DestinationName);
 
-            if (isNewType && _isValidName)
+            if (_isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
                 Message = ServicesVSResources.A_new_type_will_be_created;
                 ShowMessage = true;
             }
-            else if (!_isValidName || !isNewType)
+            else
             {
                 Icon = KnownMonikers.StatusInvalid;
                 Message = ServicesVSResources.Invalid_type_name;
                 ShowMessage = true;
-            }
-            else
-            {
-                ShowMessage = false;
             }
         }
 
