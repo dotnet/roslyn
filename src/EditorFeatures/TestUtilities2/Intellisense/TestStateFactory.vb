@@ -12,7 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
                                                      Optional languageVersion As LanguageVersion = LanguageVersion.Default,
-                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
+                                                     Optional showCompletionInArgumentLists As Boolean = True,
+                                                     Optional ensureCompeltionProvidersAvailable As Boolean = True) As TestState
 
             Dim testState = New TestState(<Workspace>
                                               <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
@@ -26,6 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             testState.Workspace.SetOptions(
                 testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+
+            If ensureCompeltionProvidersAvailable Then
+                Dim completionService = DirectCast(testState.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                completionService.GetTestAccessor().EnensureCompeltionProvidersAvailable()
+            End If
 
             Return testState
         End Function
@@ -47,13 +53,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
                                                             Optional extraExportedTypes As IEnumerable(Of Type) = Nothing,
                                                             Optional workspaceKind As String = Nothing,
-                                                            Optional showCompletionInArgumentLists As Boolean = True) As TestState
+                                                            Optional showCompletionInArgumentLists As Boolean = True,
+                                                            Optional ensureCompeltionProvidersAvailable As Boolean = True) As TestState
 
             Dim testState = New TestState(
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
             testState.Workspace.SetOptions(
                 testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+
+            If ensureCompeltionProvidersAvailable Then
+                Dim completionService = DirectCast(testState.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                completionService.GetTestAccessor().EnensureCompeltionProvidersAvailable()
+            End If
 
             Return testState
         End Function
