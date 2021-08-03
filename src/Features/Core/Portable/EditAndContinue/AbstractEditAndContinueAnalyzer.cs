@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (oldSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null and var oldDelegateInvoke } &&
                 newSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null and var newDelegateInvoke })
             {
-                if (!ParametersEquivalent(oldDelegateInvoke.Parameters, newDelegateInvoke.Parameters, exact: false, allowDiscards: false))
+                if (!ParameterTypesEquivalent(oldDelegateInvoke.Parameters, newDelegateInvoke.Parameters, exact: false))
                 {
                     ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingParameterTypes, newSymbol, newNode, cancellationToken);
                 }
@@ -2330,11 +2330,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => s_exactSymbolEqualityComparer.Equals(oldSymbol, newSymbol);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
-            => ParametersEquivalent(oldParameters, newParameters, exact: false, allowDiscards: false) &&
+            => ParameterTypesEquivalent(oldParameters, newParameters, exact: false) &&
                s_runtimeSymbolEqualityComparer.Equals(oldReturnType, newReturnType); // TODO: should check ref, ref readonly, custom mods
 
-        protected static bool ParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool exact, bool allowDiscards)
-            => oldParameters.SequenceEqual(newParameters, exact, (oldParameter, newParameter, exact) => ParameterTypesEquivalent(oldParameter, newParameter, exact, allowDiscards));
+        protected static bool ParameterTypesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool exact)
+            => oldParameters.SequenceEqual(newParameters, exact, (oldParameter, newParameter, exact) => ParameterTypesEquivalent(oldParameter, newParameter, exact));
 
         protected static bool CustomModifiersEquivalent(CustomModifier oldModifier, CustomModifier newModifier, bool exact)
             => oldModifier.IsOptional == newModifier.IsOptional &&
@@ -2367,16 +2367,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected static bool TypesEquivalent<T>(ImmutableArray<T> oldTypes, ImmutableArray<T> newTypes, bool exact) where T : ITypeSymbol
             => oldTypes.SequenceEqual(newTypes, exact, (x, y, exact) => TypesEquivalent(x, y, exact));
 
-        protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact, bool allowDiscards)
-        {
-            if (exact)
-            {
-                return s_exactSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
-            }
-
-            return s_runtimeSymbolEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameter, newParameter) ||
-                (allowDiscards && (oldParameter.IsDiscard || newParameter.IsDiscard));
-        }
+        protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
+            => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
 
         protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
             => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -3573,9 +3565,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange)
         {
-            if (!ParameterTypesEquivalent(oldParameter, newParameter, exact: true, allowDiscards: false))
+            if (!ParameterTypesEquivalent(oldParameter, newParameter, exact: true))
             {
-                if (ParameterTypesEquivalent(oldParameter, newParameter, exact: false, allowDiscards: false))
+                if (ParameterTypesEquivalent(oldParameter, newParameter, exact: false))
                 {
                     hasGeneratedAttributeChange = true;
                 }
@@ -5264,12 +5256,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
             // signature validation:
-
-            // We allow changing to/from discards if the runtime supports updating parameters.
-            // In theory even if the runtime doesn't allow parameter updates we could allow changing to a discard but not from
-            // a discard (because we have no way of knowing what the original name was) but this would make the debugging
-            // experience strange as users would see a local that doesn't exist in their source.
-            if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false, allowDiscards: capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters)))
+            if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false))
             {
                 ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingLambdaParameters, newLambda);
                 hasSignatureErrors = true;
