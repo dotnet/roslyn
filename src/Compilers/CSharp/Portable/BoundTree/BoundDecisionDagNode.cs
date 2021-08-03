@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : $"leaf `{node.Label.Name}`");
                     break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(this);
+                    builder.Append(base.GetDebuggerDisplay());
+                    break;
             }
 
             return pooledBuilder.ToStringAndFree();

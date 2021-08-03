@@ -26,10 +26,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            // Static methods can't cascade.
-            if (symbol.IsStatic)
-                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
-
             if (symbol.IsImplementableMember())
             {
                 // We have an interface method.  Walk down the inheritance hierarchy and find all implementations of

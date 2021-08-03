@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken.ThrowIfCancellationRequested();
                     var parseOptionsChecksum = GetParseOptionsChecksum(serializer);
 
-                    var projectReferenceChecksums = ChecksumCache.GetOrCreate<ProjectReferenceChecksumCollection>(ProjectReferences, _ => new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var metadataReferenceChecksums = ChecksumCache.GetOrCreate<MetadataReferenceChecksumCollection>(MetadataReferences, _ => new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<AnalyzerReferenceChecksumCollection>(AnalyzerReferences, _ => new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                    var projectReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(ProjectReferences, _ => new ChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                    var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(MetadataReferences, _ => new ChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences, _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
                     var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,
-                        new DocumentChecksumCollection(documentChecksums),
+                        documentChecksums: new ChecksumCollection(documentChecksums),
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        new TextDocumentChecksumCollection(additionalChecksums),
-                        new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
+                        additionalDocumentChecksums: new ChecksumCollection(additionalChecksums),
+                        analyzerConfigDocumentChecksumCollection: new ChecksumCollection(analyzerConfigDocumentChecksums));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

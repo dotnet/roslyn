@@ -309,7 +309,7 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -362,7 +362,7 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -477,7 +477,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -532,7 +532,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -586,7 +586,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -786,7 +786,7 @@ class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1076,8 +1076,8 @@ class C
                 Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1153,7 +1153,7 @@ class C
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1240,9 +1240,9 @@ class C
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1322,7 +1322,7 @@ class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1399,7 +1399,7 @@ class C
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4002,7 +4002,7 @@ public class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4087,7 +4087,7 @@ public class C
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4160,7 +4160,7 @@ public class C
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -4430,6 +4430,55 @@ public class C
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void TopLevelStatement_Closure()
+        {
+            var source0 = MarkedSource(@"
+<N:0>
+using System;
+
+Func<string> x = <N:1>() => args[0]</N:1>;
+Console.WriteLine(x());
+</N:0>
+");
+            var source1 = MarkedSource(@"
+<N:0>
+using System;
+
+Func<string> x = <N:1>() => args[1]</N:1>;
+Console.WriteLine(x());
+</N:0>
+");
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugExe);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var f1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "<Program>$.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
+                "<Program>$: {<>c__DisplayClass0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
     }
 }
