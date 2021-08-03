@@ -85,6 +85,13 @@ jobs:
         name: testResults-${{ runner.os }}
         path: obj/_artifacts/testResults
       continue-on-error: true
+    - name: Upload rawTestResults
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: rawTestResults-${{ runner.os }}
+        path: obj/_artifacts/rawTestResults
+      continue-on-error: true
     - name: Upload coverageResults
       if: always()
       uses: actions/upload-artifact@v1
