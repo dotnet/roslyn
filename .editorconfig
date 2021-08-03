@@ -75,15 +75,15 @@ dotnet_naming_symbols.constants.required_modifiers = const
 
 dotnet_naming_style.constant_style.capitalization = pascal_case
 
-# Static fields are camelCase
+# Static readonly fields are PamelCase
 dotnet_naming_rule.static_fields_should_be_camel_case.severity = suggestion
 dotnet_naming_rule.static_fields_should_be_camel_case.symbols = static_fields
-dotnet_naming_rule.static_fields_should_be_camel_case.style = static_field_style
+dotnet_naming_rule.static_fields_should_be_camel_case.style = static_readonly_field_style
 
 dotnet_naming_symbols.static_fields.applicable_kinds = field
-dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_symbols.static_fields.required_modifiers = static, readonly
 
-dotnet_naming_style.static_field_style.capitalization = camel_case
+dotnet_naming_style.static_readonly_field_style.capitalization = pascal_case
 
 # Instance fields are camelCase
 dotnet_naming_rule.instance_fields_should_be_camel_case.severity = suggestion
@@ -93,6 +93,7 @@ dotnet_naming_rule.instance_fields_should_be_camel_case.style = instance_field_s
 dotnet_naming_symbols.instance_fields.applicable_kinds = field
 
 dotnet_naming_style.instance_field_style.capitalization = camel_case
+dotnet_naming_style.instance_field_style.required_prefix = _
 
 # Locals and parameters are camelCase
 dotnet_naming_rule.locals_should_be_camel_case.severity = suggestion
