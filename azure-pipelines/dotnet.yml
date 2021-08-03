@@ -34,7 +34,7 @@ steps:
     testRunTitle: net472-$(Agent.JobName)
   condition: succeededOrFailed()
 
-- powershell: test/EqualExceptionLegacy/Test.ps1
+- powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
   failOnStderr: false
   displayName: Test EqualExceptionLegacy
   condition: succeededOrFailed()
