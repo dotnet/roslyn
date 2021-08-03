@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <summary>
         /// stores the parameter hint tags in a global location 
         /// </summary>
-        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache;
+        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = new();
 
         /// <summary>
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" /> 
@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ITextBuffer buffer,
             ITagAggregator<InlineHintDataTag> tagAggregator)
         {
-            _cache = new List<(IMappingTagSpan<InlineHintDataTag>, ITagSpan<IntraTextAdornmentTag>?)>();
-
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _taggerProvider = taggerProvider;
 
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     var dataTagSpans = tag.Span.GetSpans(snapshot);
                     if (dataTagSpans.Count == 1)
                     {
-                        _cache.Add((tag, null));
+                        _cache.Add((tag, tagSpan: null));
                     }
                 }
             }
