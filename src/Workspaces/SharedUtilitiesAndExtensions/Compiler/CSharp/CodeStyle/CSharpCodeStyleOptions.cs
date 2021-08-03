@@ -232,15 +232,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
            new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
         private static Option2<CodeStyleOption2<AddImportPlacement>> CreateUsingDirectivePlacementOption(string optionName, CodeStyleOption2<AddImportPlacement> defaultValue, string editorconfigKeyName)
-        => CreateOption(
-            CSharpCodeStyleOptionGroups.UsingDirectivePreferences, optionName,
-            defaultValue,
-            storageLocations: new OptionStorageLocation2[] {
-                new EditorConfigStorageLocation<CodeStyleOption2<AddImportPlacement>>(
-                    editorconfigKeyName,
-                    s => ParseUsingDirectivesPlacement(s, defaultValue),
-                    v => GetUsingDirectivesPlacementEditorConfigString(v, defaultValue)),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{optionName}")});
+            => CreateOption(
+                CSharpCodeStyleOptionGroups.UsingDirectivePreferences, optionName,
+                defaultValue,
+                storageLocations: new OptionStorageLocation2[] {
+                    new EditorConfigStorageLocation<CodeStyleOption2<AddImportPlacement>>(
+                        editorconfigKeyName,
+                        s => ParseUsingDirectivesPlacement(s, defaultValue),
+                        v => GetUsingDirectivesPlacementEditorConfigString(v, defaultValue)),
+                    new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{optionName}")});
         public static readonly Option2<CodeStyleOption2<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateUsingDirectivePlacementOption(
             nameof(PreferredUsingDirectivePlacement), defaultValue: PreferOutsidePlacementWithSilentEnforcement, "csharp_using_directive_placement");
 
@@ -294,6 +294,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowBlankLineAfterColonInConstructorInitializer)}")});
+
+        private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
+            => CreateOption(
+                CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
+                defaultValue,
+                storageLocations: new OptionStorageLocation2[] {
+                    new EditorConfigStorageLocation<CodeStyleOption2<NamespaceDeclarationPreference>>(
+                        editorconfigKeyName,
+                        s => ParseNamespaceDeclaration(s, defaultValue),
+                        v => GetNamespaceDeclarationEditorConfigString(v, defaultValue)),
+                    new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{optionName}")});
+
+        public static readonly Option2<CodeStyleOption2<NamespaceDeclarationPreference>> NamespaceDeclarations = CreateNamespaceDeclarationOption(
+            nameof(NamespaceDeclarations),
+            new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
+            "csharp_style_namespace_declarations");
 
 #if false
 

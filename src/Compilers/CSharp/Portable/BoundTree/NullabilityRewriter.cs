@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             }
-            while (currentBinary is object);
+            while (currentBinary is not null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        BoundBinaryOperator.UncommonData.CreateIfNeeded(binary.ConstantValue, GetUpdatedSymbol(binary, binary.Method), binary.ConstrainedToType, binary.OriginalUserDefinedOperatorsOpt),
+                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
                         binary.ResultKind,
                         leftChild,
                         right,

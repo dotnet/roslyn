@@ -380,12 +380,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                     }
                     break;
+                case BoundBinaryOperator unconvertedBinaryOperator:
+                    {
+                        result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
             }
 
             return result?.WithWasConverted();
+        }
+
+        private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        {
+            var syntax = expr.Syntax;
+            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var delegateType = expr switch
+            {
+                UnboundLambda unboundLambda => unboundLambda.InferDelegateType(ref useSiteInfo),
+                BoundMethodGroup methodGroup => GetMethodGroupDelegateType(methodGroup, ref useSiteInfo),
+                _ => throw ExceptionUtilities.UnexpectedValue(expr),
+            };
+            diagnostics.Add(syntax, useSiteInfo);
+            if (delegateType is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
+                delegateType = CreateErrorType();
+            }
+            return GenerateConversionForAssignment(delegateType, expr, diagnostics);
         }
 
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
@@ -2979,10 +3004,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (kind.IsInterpolatedStringHandler)
                 {
-                    Debug.Assert(argument is BoundUnconvertedInterpolatedString);
+                    Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall((BoundUnconvertedInterpolatedString)argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, receiverEscapeScope, diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, receiverEscapeScope, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -4286,7 +4311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(node, useSiteInfo);
                 // Attempting to make the conversion caches the diagnostics and the bound state inside
                 // the unbound lambda. Fetch the result from the cache.
-                BoundLambda boundLambda = unboundLambda.Bind(type);
+                Debug.Assert(!type.IsGenericOrNonGenericExpressionType(out _));
+                BoundLambda boundLambda = unboundLambda.Bind(type, isExpressionTree: false);
 
                 if (!conversion.IsImplicit || !conversion.IsValid)
                 {
@@ -8547,7 +8573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
-        // Consider using that method directly since it also synthesizes delegates if necessary.
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             RefKind returnRefKind,
             TypeWithAnnotations returnTypeOpt,
@@ -8555,35 +8580,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
             Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
 
-            if (returnRefKind == RefKind.None &&
-                (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
+            bool returnsVoid = !returnTypeOpt.HasType;
+            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnTypeOpt);
+
+            if (returnsVoid && returnRefKind != RefKind.None)
             {
-                var wkDelegateType = returnTypeOpt.HasType ?
-                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length) :
-                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length);
+                // Invalid return type.
+                return null;
+            }
+
+            if (!typeArguments.All(t => isValidTypeArgument(t.Type)))
+            {
+                // https://github.com/dotnet/roslyn/issues/55217: Support parameter
+                // and return types that are not valid generic type arguments.
+                return null;
+            }
+
+            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
+
+            if (returnRefKind == RefKind.None && !hasByRefParameters)
+            {
+                var wkDelegateType = returnsVoid ?
+                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length) :
+                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length);
 
                 if (wkDelegateType != WellKnownType.Unknown)
                 {
                     var delegateType = Compilation.GetWellKnownType(wkDelegateType);
                     delegateType.AddUseSiteInfo(ref useSiteInfo);
-                    if (returnTypeOpt.HasType)
-                    {
-                        parameterTypes = parameterTypes.Add(returnTypeOpt);
-                    }
-                    if (parameterTypes.Length == 0)
+                    if (typeArguments.Length == 0)
                     {
                         return delegateType;
                     }
-                    if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
+                    if (checkConstraints(Compilation, Conversions, delegateType, typeArguments))
                     {
-                        return delegateType.Construct(parameterTypes);
+                        return delegateType.Construct(typeArguments);
                     }
                 }
             }
 
-            return null;
+            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0 : 1)) : default;
+            Debug.Assert(Enumerable.Range(0, refKinds.Capacity).All(i => refKinds[i] == RefKind.None));
+
+            if (hasByRefParameters)
+            {
+                for (int i = 0; i < parameterRefKinds.Length; i++)
+                {
+                    refKinds[i] = parameterRefKinds[i];
+                }
+            }
+            if (returnRefKind != RefKind.None)
+            {
+                refKinds[parameterTypes.Length] = returnRefKind;
+            }
+
+            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, refKinds, returnsVoid, generation: 0);
+            return synthesizedType.Construct(typeArguments);
+
+            static bool isValidTypeArgument(TypeSymbol? type)
+            {
+                return type is { } &&
+                    !type.IsPointerOrFunctionPointer() &&
+                    !type.IsRestrictedType();
+            }
 
             static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
             {

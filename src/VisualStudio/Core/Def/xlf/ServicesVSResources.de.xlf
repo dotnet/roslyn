@@ -77,6 +77,11 @@
         <target state="translated">Immer zur besseren Unterscheidung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
         <target state="translated">Analyse</target>
@@ -372,11 +377,6 @@
         <target state="translated">Dokument formatieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">Formatierung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">EDITORCONFIG-Datei aus Einstellungen generieren</target>
@@ -522,6 +522,11 @@
         <target state="translated">Lokale Metadaten</target>
         <note />
       </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">"{0}" als abstrakt festlegen</target>
@@ -575,6 +580,11 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Namespace: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -1252,6 +1262,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Warnung</target>
@@ -1275,6 +1290,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -2649,34 +2669,8 @@ Zusätzliche Informationen: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), mit der Quellcode aus Binärcode reproduziert werden kann. Indem Sie auf den Decompiler zugreifen und ihn verwenden, erklären Sie sich mit den Lizenzbedingungen von Visual Studio und den nachstehenden Bedingungen für den Decompiler einverstanden. Wenn Sie mit diesen kombinierten Bedingungen nicht einverstanden sind, dürfen Sie nicht auf den Decompiler zugreifen oder ihn verwenden.
-
-Sie erkennen an, dass der Binärcode und der Quellcode möglicherweise durch Urheberrechts- und Markengesetze geschützt sind. Bevor Sie den Decompiler für Binärcode verwenden, müssen Sie zunächst Folgendes sicherstellen:
-(i) Sie müssen sich vergewissern, dass die Lizenzbestimmungen zur Regelung Ihrer Verwendung des Binärcodes keine Klausel enthalten, die das Dekompilieren der Software verbietet, oder
-(ii) Sie müssen die Erlaubnis zur Dekompilierung der Software beim Besitzer der Software einholen.
-
-Ihre Verwendung des Decompilers ist optional. Microsoft übernimmt keinerlei Verantwortung und lehnt jede Haftung für Ihre Nutzung des Decompilers ab, die gegen Gesetze oder Softwarelizenzbedingungen verstößt, die das Dekompilieren der Software verbieten.
-
-Ich stimme allen oben genannten Punkten zu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

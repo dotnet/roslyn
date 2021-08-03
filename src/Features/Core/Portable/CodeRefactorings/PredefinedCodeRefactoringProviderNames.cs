@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string ConvertAnonymousTypeToClass = "Convert Anonymous Type to Class Code Action Provider";
         public const string ConvertDirectCastToTryCast = "Convert Direct Cast to Try Cast";
+        public const string ConvertNamespace = "Convert Namespace";
         public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
@@ -76,5 +77,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
         public const string ConvertConcatenationToInterpolatedString = nameof(ConvertConcatenationToInterpolatedString);
         public const string InvertMultiLineIf = nameof(InvertMultiLineIf);
+        public const string UseRecursivePatterns = nameof(UseRecursivePatterns);
     }
 }
