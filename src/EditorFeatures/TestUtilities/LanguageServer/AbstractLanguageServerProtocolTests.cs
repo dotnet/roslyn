@@ -40,6 +40,7 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
             .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
+            .AddParts(typeof(TestExperimentationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]
@@ -398,7 +399,7 @@ namespace Roslyn.Test.Utilities
 
         private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
-            var factory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+            var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
             return factory.CreateRequestDispatcher();
         }
 

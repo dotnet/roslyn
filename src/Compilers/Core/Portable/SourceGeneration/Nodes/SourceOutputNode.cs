@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -18,11 +19,18 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Action<SourceProductionContext, TInput> _action;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action)
+        private readonly IncrementalGeneratorOutputKind _outputKind;
+
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind)
         {
             _source = source;
             _action = action;
+
+            Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
+            _outputKind = outputKind;
         }
+
+        public IncrementalGeneratorOutputKind Kind => _outputKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
@@ -71,9 +79,10 @@ namespace Microsoft.CodeAnalysis
 
         void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
 
-        public void AppendOutputs(IncrementalExecutionContext context)
+        public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {
             // get our own state table
+            Debug.Assert(context.TableBuilder is object);
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
             // add each non-removed entry to the context

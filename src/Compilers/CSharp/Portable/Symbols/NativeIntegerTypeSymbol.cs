@@ -376,6 +376,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingParameter.RefCustomModifiers;
 
+        internal override bool IsCallerLineNumber => _underlyingParameter.IsCallerLineNumber;
+
+        internal override bool IsCallerFilePath => _underlyingParameter.IsCallerFilePath;
+
+        internal override bool IsCallerMemberName => _underlyingParameter.IsCallerMemberName;
+
+        internal override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();

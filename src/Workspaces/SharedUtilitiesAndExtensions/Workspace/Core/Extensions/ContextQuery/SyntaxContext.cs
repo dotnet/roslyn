@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         internal abstract ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace();
 
+        internal abstract bool IsAwaitKeywordContext();
+
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)
         {
             if (_outerTypes == null)

@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
-                    !lazyHasEmbeddedAttribute.HasValue();
+                    !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasInterpolatedStringHandlerAttribute.HasValue();
             }
 #endif
         }
@@ -384,6 +386,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override bool IsInterpolatedStringHandlerType
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasInterpolatedStringHandlerAttribute.HasValue())
+                {
+                    uncommon.lazyHasInterpolatedStringHandlerAttribute = ContainingPEModule.Module.HasInterpolatedStringHandlerAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasInterpolatedStringHandlerAttribute.Value();
+            }
+        }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute
         {
@@ -978,8 +998,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     var method = (MethodSymbol)members[index];
 
-                    // Don't emit the default value type constructor - the runtime handles that
-                    if (!method.IsDefaultValueTypeConstructor())
+                    // Don't emit the default value type constructor - the runtime handles that.
+                    // For parameterless struct constructors from metadata, IsDefaultValueTypeConstructor()
+                    // ignores requireZeroInit and simply checks if the method is implicitly declared.
+                    if (!method.IsDefaultValueTypeConstructor(requireZeroInit: false))
                     {
                         yield return method;
                     }

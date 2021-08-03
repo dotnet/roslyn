@@ -1192,10 +1192,120 @@ class F
             Assert.Equal(3, results.GeneratedTrees.Length);
 
             // we produced the expected modified sources, but only called for the one different tree
-            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[0].FilePath);
-            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[1].FilePath);
-            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[2].FilePath);
+            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
             Assert.Single(fieldsCalledFor, "fieldD");
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_And_Changed_Tree_Order()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+}";
+            var source2 = @"
+#pragma warning disable CS0414
+class D 
+{
+    string fieldB = null; 
+}";
+            var source3 = @"
+#pragma warning disable CS0414
+class E 
+{
+    string fieldC = null; 
+}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> fieldsCalledFor = new List<string>();
+            List<string> syntaxFieldsCalledFor = new List<string>();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) =>
+                {
+                    if (c is FieldDeclarationSyntax fds)
+                    {
+                        syntaxFieldsCalledFor.Add(fds.Declaration.Variables[0].Identifier.ValueText);
+                        return true;
+                    }
+                    return false;
+                },
+                (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                    spc.AddSource(fieldName, "");
+                    fieldsCalledFor.Add(fieldName);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            var results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Equal("fieldA", fieldsCalledFor[0]);
+            Assert.Equal("fieldB", fieldsCalledFor[1]);
+            Assert.Equal("fieldC", fieldsCalledFor[2]);
+            Assert.Equal("fieldA", syntaxFieldsCalledFor[0]);
+            Assert.Equal("fieldB", syntaxFieldsCalledFor[1]);
+            Assert.Equal("fieldC", syntaxFieldsCalledFor[2]);
+
+            //swap the order of the first and last trees
+            var firstTree = compilation.SyntaxTrees.First();
+            var lastTree = compilation.SyntaxTrees.Last();
+            var dummyTree = CSharpSyntaxTree.ParseText("", parseOptions);
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, dummyTree)
+                                     .ReplaceSyntaxTree(lastTree, firstTree)
+                                     .ReplaceSyntaxTree(dummyTree, lastTree);
+
+            // now re-run the drivers and confirm we didn't actually run
+            fieldsCalledFor.Clear();
+            syntaxFieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Empty(fieldsCalledFor);
+            Assert.Empty(syntaxFieldsCalledFor);
+
+
+            // swap a tree for a tree with the same contents, but a new reference
+            var newLastTree = CSharpSyntaxTree.ParseText(lastTree.ToString(), parseOptions);
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, dummyTree)
+                                     .ReplaceSyntaxTree(lastTree, firstTree)
+                                     .ReplaceSyntaxTree(dummyTree, newLastTree);
+
+            // now re-run the drivers and confirm we only ran for the 'new' syntax tree
+            // but then stopped when we got the same value out
+            fieldsCalledFor.Clear();
+            syntaxFieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Empty(fieldsCalledFor);
+            Assert.Single(syntaxFieldsCalledFor);
+            Assert.Equal("fieldC", syntaxFieldsCalledFor[0]);
         }
 
         [Fact]

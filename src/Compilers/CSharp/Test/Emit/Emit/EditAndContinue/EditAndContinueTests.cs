@@ -970,8 +970,64 @@ class D
                 Handle(4, TableIndex.AssemblyRef));
         }
 
+        [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
-        public void AddMethod_WithAttributes()
+        public void PartialMethod()
+        {
+            var source =
+@"partial class C
+{
+    static partial void M1();
+    static partial void M2();
+    static partial void M3();
+    static partial void M1() { }
+    static partial void M2() { }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            var methods = diff1.TestData.GetMethodsByName();
+            Assert.Equal(1, methods.Count);
+            Assert.True(methods.ContainsKey("C.M2()"));
+
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetMethodDefNames(), "M2");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(6, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
+        public void Method_WithAttributes_Add()
         {
             var source0 =
 @"class C
@@ -1045,59 +1101,218 @@ class D
                 Handle(2, TableIndex.AssemblyRef));
         }
 
-        [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
-        public void PartialMethod()
+        public void ModifyMethod_ParameterAttributes()
         {
-            var source =
-@"partial class C
+            var source0 =
+@"class C
 {
-    static partial void M1();
-    static partial void M2();
-    static partial void M3();
-    static partial void M1() { }
-    static partial void M2() { }
+    static void Main() { }
+    static string F(string input, int a) { return input; }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    static string F([System.ComponentModel.Description(""input"")]string input, int a) { return input; }
+    static void G(string input) { }
+}";
+            var source2 =
+@"class C
+{
+    static void Main() { }
+    static string F([System.ComponentModel.Description(""input"")]string input, int a) { return input; }
+    static void G([System.ComponentModel.Description(""input"")]string input) { }
+}";
 
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var methodF0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var methodF1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var methodG1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var methodG2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+            CheckNames(reader0, reader0.GetParameterDefNames(), "input", "a");
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+            CheckAttributes(reader0,
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)));
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
-                md0,
-                EmptyLocalsProvider);
+               md0,
+               EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, methodF0, methodF1),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, methodG1)));
 
-            var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(1, methods.Count);
-            Assert.True(methods.ContainsKey("C.M2()"));
-
+            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
-            CheckNames(readers, reader1.GetMethodDefNames(), "M2");
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "G");
+            CheckNames(readers, reader1.GetMemberRefNames(), /*DescriptionAttribute*/".ctor");
+            CheckNames(readers, reader1.GetParameterDefNames(), "input", "a", "input");
+
+            CheckAttributes(reader1,
+                 new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(5, TableIndex.MemberRef)));
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),             // New method, G
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),                 // Update existing param
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),        // New param on method, G
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),                 // Support for the above
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(6, TableIndex.TypeRef),
+                Handle(7, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param),
+                Handle(5, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+
+            var diff2 = compilation2.EmitDifference(
+              diff1.NextGeneration,
+              ImmutableArray.Create(
+                  SemanticEdit.Create(SemanticEditKind.Update, methodG1, methodG2)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "G");
+            CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor");
+            CheckNames(readers, reader2.GetParameterDefNames(), "input");
+
+            CheckAttributes(reader2,
+                 new CustomAttributeRow(Handle(3, TableIndex.Param), Handle(6, TableIndex.MemberRef)));
+
+            CheckEncLog(reader2,
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),             // Update existing param, from the first delta
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader2,
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(6, TableIndex.MemberRef),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(3, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
+        public void ModifyDelegateInvokeMethod_AddAttributes()
+        {
+            var source0 = @"
+class A : System.Attribute { }
+delegate void D(int x);
+";
+            var source1 = @"
+class A : System.Attribute { }
+delegate void D([A]int x);
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var invoke0 = compilation0.GetMember<MethodSymbol>("D.Invoke");
+            var beginInvoke0 = compilation0.GetMember<MethodSymbol>("D.BeginInvoke");
+            var invoke1 = compilation1.GetMember<MethodSymbol>("D.Invoke");
+            var beginInvoke1 = compilation1.GetMember<MethodSymbol>("D.BeginInvoke");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, invoke0, invoke1),
+                    SemanticEdit.Create(SemanticEditKind.Update, beginInvoke0, beginInvoke1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetMethodDefNames(), "Invoke", "BeginInvoke");
+            CheckNames(readers, reader1.GetParameterDefNames(), "x", "x", "callback", "object");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(3, TableIndex.Param), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(4, TableIndex.Param), Handle(1, TableIndex.MethodDef)));
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),             // Updating existing parameter defs
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),   // Adding new custom attribute rows
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(10, TableIndex.TypeRef),
+                Handle(11, TableIndex.TypeRef),
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param),
+                Handle(6, TableIndex.Param),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.AssemblyRef));
         }
 
@@ -1107,88 +1322,81 @@ class D
         /// Add the method in the first edit, then modify the method in the second.
         /// </summary>
         [Fact]
-        public void AddThenModifyMethod()
+        public void Method_WithParameterAttributes_AddThenUpdate()
         {
             var source0 =
 @"class A : System.Attribute { }
 class C
 {
-    static void Main() { F1(null); }
-    static object F1(string s1) { return s1; }
 }";
             var source1 =
 @"class A : System.Attribute { }
 class C
 {
-    static void Main() { F2(); }
-    [return:A]static object F2(string s2 = ""2"") { return s2; }
+    [return:A]static object F(int arg = 1) => arg;
 }";
             var source2 =
 @"class A : System.Attribute { }
 class C
 {
-    static void Main() { F2(); }
-    [return:A]static object F2(string s2 = ""2"") { return null; }
+    [return:A]static object F(int arg = 1) => null;
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
-            // Verify full metadata contains expected rows.
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "C");
-            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Main", "F1", ".ctor");
-            CheckNames(reader0, reader0.GetParameterDefNames(), "s1");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F2");
+            // gen 1
+
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, method1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, f1)));
 
-            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new List<MetadataReader> { reader0, reader1 };
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
             CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetMethodDefNames(), "F2");
-            CheckNames(readers, reader1.GetParameterDefNames(), "", "s2");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F");
+            CheckNames(readers, reader1.GetParameterDefNames(), "", "arg");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods);
 
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Constant, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(7, TableIndex.TypeRef),
-                Handle(5, TableIndex.MethodDef),
+            CheckEncMapDefinitions(reader1,
+                Handle(3, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
                 Handle(2, TableIndex.Param),
-                Handle(3, TableIndex.Param),
                 Handle(1, TableIndex.Constant),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(4, TableIndex.CustomAttribute));
 
-            var method2 = compilation2.GetMember<MethodSymbol>("C.F2");
+            // gen 2
+
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2)));
 
-            // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
             readers.Add(reader2);
@@ -1196,24 +1404,24 @@ class C
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
             CheckNames(readers, reader2.GetTypeDefNames());
-            CheckNames(readers, reader2.GetMethodDefNames(), "F2");
-            CheckNames(readers, reader2.GetParameterDefNames());
 
-            CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F2
+            CheckEncLogDefinitions(reader2,
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), // C.F2
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Constant, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader2,
-                Handle(8, TableIndex.TypeRef),
-                Handle(5, TableIndex.MethodDef),
-                Handle(3, TableIndex.StandAloneSig),
-                Handle(3, TableIndex.AssemblyRef));
+            CheckEncMapDefinitions(reader2,
+                Handle(3, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(2, TableIndex.Param),
+                Handle(2, TableIndex.Constant),
+                Handle(4, TableIndex.CustomAttribute));
         }
 
         [Fact]
-        public void AddThenModifyMethod_EmbeddedAttributes()
+        public void Method_WithEmbeddedAttributes_AndThenUpdate()
         {
             var source0 =
 @"
@@ -1434,8 +1642,10 @@ namespace N
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1462,10 +1672,12 @@ namespace N
                 Handle(9, TableIndex.MethodDef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(11, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
                 Handle(4, TableIndex.Param),
                 Handle(7, TableIndex.MemberRef),
                 Handle(8, TableIndex.MemberRef),
                 Handle(9, TableIndex.MemberRef),
+                Handle(6, TableIndex.CustomAttribute),
                 Handle(11, TableIndex.CustomAttribute),
                 Handle(12, TableIndex.CustomAttribute),
                 Handle(13, TableIndex.CustomAttribute),
@@ -1509,7 +1721,7 @@ namespace N
         }
 
         [Fact]
-        public void AddField()
+        public void Field_Add()
         {
             var source0 =
 @"class C
@@ -1549,9 +1761,7 @@ namespace N
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000002");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetFieldDefNames(), "G");
@@ -1574,7 +1784,7 @@ namespace N
         }
 
         [Fact]
-        public void ModifyProperty()
+        public void Property_Accessor_Update()
         {
             var source0 =
 @"class C
@@ -1631,57 +1841,47 @@ namespace N
         }
 
         [Fact]
-        public void AddProperty()
+        public void Property_Add()
         {
-            var source0 =
-@"class A
+            var source0 = @"
+class C
 {
-    object P { get; set; }
 }
-class B
-{
-}";
-            var source1 =
-@"class A
-{
-    object P { get; set; }
-}
-class B
+";
+            var source1 = @"
+class C
 {
     object R { get { return null; } }
-}";
-            var source2 =
-@"class A
+}
+";
+            var source2 = @"
+class C
 {
-    object P { get; set; }
+    object R { get { return null; } }
     object Q { get; set; }
 }
-class B
-{
-    object R { get { return null; } }
-    object S { set { } }
-}";
+";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
-            // Verify full metadata contains expected rows.
+            var r1 = compilation1.GetMember<PropertySymbol>("C.R");
+            var q2 = compilation2.GetMember<PropertySymbol>("C.Q");
+
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "<P>k__BackingField");
-            CheckNames(reader0, reader0.GetPropertyDefNames(), "P");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "get_P", "set_P", ".ctor", ".ctor");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
+            // gen 1
+
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<PropertySymbol>("B.R"))));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, r1)));
 
-            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new List<MetadataReader> { reader0, reader1 };
@@ -1690,191 +1890,191 @@ class B
             CheckNames(readers, reader1.GetFieldDefNames());
             CheckNames(readers, reader1.GetPropertyDefNames(), "R");
             CheckNames(readers, reader1.GetMethodDefNames(), "get_R");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods);
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(9, TableIndex.TypeRef),
-                Handle(5, TableIndex.MethodDef),
+            CheckEncMapDefinitions(reader1,
+                Handle(2, TableIndex.MethodDef),
                 Handle(1, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.PropertyMap),
-                Handle(2, TableIndex.Property),
-                Handle(3, TableIndex.MethodSemantics),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(1, TableIndex.PropertyMap),
+                Handle(1, TableIndex.Property),
+                Handle(1, TableIndex.MethodSemantics));
+
+            // gen 2
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<PropertySymbol>("A.Q")),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<PropertySymbol>("B.S"))));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, q2)));
 
-            // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
             readers.Add(reader2);
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetFieldDefNames(), "<Q>k__BackingField");
-            CheckNames(readers, reader2.GetPropertyDefNames(), "Q", "S");
-            CheckNames(readers, reader2.GetMethodDefNames(), "get_Q", "set_Q", "set_S");
+            CheckNames(readers, reader2.GetPropertyDefNames(), "Q");
+            CheckNames(readers, reader2.GetMethodDefNames(), "get_Q", "set_Q");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods);
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
-            CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader2,
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                Row(3, TableIndex.Property, EditAndContinueOperation.Default),
-                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                Row(4, TableIndex.Property, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader2,
-                Handle(10, TableIndex.TypeRef),
-                Handle(11, TableIndex.TypeRef),
-                Handle(12, TableIndex.TypeRef),
-                Handle(13, TableIndex.TypeRef),
-                Handle(2, TableIndex.Field),
-                Handle(6, TableIndex.MethodDef),
-                Handle(7, TableIndex.MethodDef),
-                Handle(8, TableIndex.MethodDef),
-                Handle(2, TableIndex.Param),
-                Handle(3, TableIndex.Param),
-                Handle(7, TableIndex.MemberRef),
-                Handle(8, TableIndex.MemberRef),
-                Handle(8, TableIndex.CustomAttribute),
-                Handle(9, TableIndex.CustomAttribute),
-                Handle(10, TableIndex.CustomAttribute),
-                Handle(11, TableIndex.CustomAttribute),
-                Handle(3, TableIndex.Property),
-                Handle(4, TableIndex.Property),
-                Handle(4, TableIndex.MethodSemantics),
-                Handle(5, TableIndex.MethodSemantics),
-                Handle(6, TableIndex.MethodSemantics),
-                Handle(3, TableIndex.AssemblyRef));
+            CheckEncMapDefinitions(reader2,
+                Handle(1, TableIndex.Field),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(6, TableIndex.CustomAttribute),
+                Handle(7, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.Property),
+                Handle(2, TableIndex.MethodSemantics),
+                Handle(3, TableIndex.MethodSemantics));
         }
 
         [Fact]
-        public void AddEvent()
+        public void Event_Add()
         {
-            var source0 =
-@"delegate void D();
-class A
-{
-    event D E;
-}
-class B
+            var source0 = @"
+class C
 {
 }";
-            var source1 =
-@"delegate void D();
-class A
+            var source1 = @"
+class C
 {
-    event D E;
-}
-class B
-{
-    event D F;
+    event System.Action E;
 }";
-            var source2 =
-@"delegate void D();
-class A
+            var source2 = @"
+class C
 {
-    event D E;
-    event D G;
-}
-class B
-{
-    event D F;
-    event D H;
+    event System.Action E;
+    event System.Action G;
 }";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
-            // Verify full metadata contains expected rows.
+            var e1 = compilation1.GetMember<EventSymbol>("C.E");
+            var g2 = compilation2.GetMember<EventSymbol>("C.G");
+
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
-
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "D", "A", "B");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "E");
-            CheckNames(reader0, reader0.GetEventDefNames(), "E");
-            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "BeginInvoke", "EndInvoke", "add_E", "remove_E", ".ctor", ".ctor");
-
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            // gen 1
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<EventSymbol>("B.F"))));
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, e1)));
 
-            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new List<MetadataReader> { reader0, reader1 };
 
             CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetFieldDefNames(), "F");
-            CheckNames(readers, reader1.GetMethodDefNames(), "add_F", "remove_F");
+            CheckNames(readers, reader1.GetFieldDefNames(), "E");
+            CheckNames(readers, reader1.GetMethodDefNames(), "add_E", "remove_E");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods);
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
+                Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.EventMap, EditAndContinueOperation.Default),
+                Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
+                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(1, TableIndex.Field),
+                Handle(2, TableIndex.MethodDef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(2, TableIndex.Param),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(6, TableIndex.CustomAttribute),
+                Handle(7, TableIndex.CustomAttribute),
+                Handle(1, TableIndex.StandAloneSig),
+                Handle(1, TableIndex.EventMap),
+                Handle(1, TableIndex.Event),
+                Handle(1, TableIndex.MethodSemantics),
+                Handle(2, TableIndex.MethodSemantics));
+
+            // gen 2
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g2)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+
+            readers.Add(reader2);
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetFieldDefNames(), "G");
+            CheckNames(readers, reader2.GetMethodDefNames(), "add_G", "remove_G");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods);
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
+
+            CheckEncLogDefinitions(reader2,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.EventMap, EditAndContinueOperation.Default),
-                Row(2, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
+                Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
                 Row(2, TableIndex.Event, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                 Row(2, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(9, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1882,141 +2082,20 @@ class B
                 Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(14, TableIndex.TypeRef),
-                Handle(15, TableIndex.TypeRef),
-                Handle(16, TableIndex.TypeRef),
-                Handle(17, TableIndex.TypeRef),
-                Handle(18, TableIndex.TypeRef),
-                Handle(19, TableIndex.TypeRef),
+            CheckEncMapDefinitions(reader2,
                 Handle(2, TableIndex.Field),
-                Handle(9, TableIndex.MethodDef),
-                Handle(10, TableIndex.MethodDef),
-                Handle(8, TableIndex.Param),
-                Handle(9, TableIndex.Param),
-                Handle(10, TableIndex.MemberRef),
-                Handle(11, TableIndex.MemberRef),
-                Handle(12, TableIndex.MemberRef),
-                Handle(13, TableIndex.MemberRef),
-                Handle(14, TableIndex.MemberRef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(4, TableIndex.Param),
                 Handle(8, TableIndex.CustomAttribute),
                 Handle(9, TableIndex.CustomAttribute),
                 Handle(10, TableIndex.CustomAttribute),
                 Handle(11, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.EventMap),
                 Handle(2, TableIndex.Event),
                 Handle(3, TableIndex.MethodSemantics),
-                Handle(4, TableIndex.MethodSemantics),
-                Handle(2, TableIndex.AssemblyRef),
-                Handle(2, TableIndex.MethodSpec));
-
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("A.G")),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("B.H"))));
-
-            // Verify delta metadata contains expected rows.
-            using var md2 = diff2.GetMetadata();
-            var reader2 = md2.Reader;
-
-            readers.Add(reader2);
-            CheckNames(readers, reader2.GetTypeDefNames());
-            CheckNames(readers, reader2.GetFieldDefNames(), "G", "H");
-            CheckNames(readers, reader2.GetMethodDefNames(), "add_G", "remove_G", "add_H", "remove_H");
-
-            CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
-                Row(3, TableIndex.Event, EditAndContinueOperation.Default),
-                Row(2, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
-                Row(4, TableIndex.Event, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(10, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(11, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(12, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(13, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
-
-            CheckEncMap(reader2,
-                Handle(20, TableIndex.TypeRef),
-                Handle(21, TableIndex.TypeRef),
-                Handle(22, TableIndex.TypeRef),
-                Handle(23, TableIndex.TypeRef),
-                Handle(24, TableIndex.TypeRef),
-                Handle(25, TableIndex.TypeRef),
-                Handle(3, TableIndex.Field),
-                Handle(4, TableIndex.Field),
-                Handle(11, TableIndex.MethodDef),
-                Handle(12, TableIndex.MethodDef),
-                Handle(13, TableIndex.MethodDef),
-                Handle(14, TableIndex.MethodDef),
-                Handle(10, TableIndex.Param),
-                Handle(11, TableIndex.Param),
-                Handle(12, TableIndex.Param),
-                Handle(13, TableIndex.Param),
-                Handle(15, TableIndex.MemberRef),
-                Handle(16, TableIndex.MemberRef),
-                Handle(17, TableIndex.MemberRef),
-                Handle(18, TableIndex.MemberRef),
-                Handle(19, TableIndex.MemberRef),
-                Handle(12, TableIndex.CustomAttribute),
-                Handle(13, TableIndex.CustomAttribute),
-                Handle(14, TableIndex.CustomAttribute),
-                Handle(15, TableIndex.CustomAttribute),
-                Handle(16, TableIndex.CustomAttribute),
-                Handle(17, TableIndex.CustomAttribute),
-                Handle(18, TableIndex.CustomAttribute),
-                Handle(19, TableIndex.CustomAttribute),
-                Handle(3, TableIndex.StandAloneSig),
-                Handle(3, TableIndex.Event),
-                Handle(4, TableIndex.Event),
-                Handle(5, TableIndex.MethodSemantics),
-                Handle(6, TableIndex.MethodSemantics),
-                Handle(7, TableIndex.MethodSemantics),
-                Handle(8, TableIndex.MethodSemantics),
-                Handle(3, TableIndex.AssemblyRef),
-                Handle(3, TableIndex.MethodSpec));
+                Handle(4, TableIndex.MethodSemantics));
         }
 
         [WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
@@ -2087,6 +2166,234 @@ class C
         }
 
         [Fact]
+        public void UpdateType_AddAttributes()
+        {
+            var source0 = @"
+class C
+{
+}";
+            var source1 = @"
+[System.ComponentModel.Description(""C"")]
+class C
+{
+}";
+            var source2 = @"
+[System.ComponentModel.Description(""C"")]
+[System.ObsoleteAttribute]
+class C
+{
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+
+            Assert.Equal(3, reader0.CustomAttributes.Count);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c0, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "C");
+
+            Assert.Equal(1, reader1.CustomAttributes.Count);
+
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c1, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames(), "C");
+
+            Assert.Equal(2, reader2.CustomAttributes.Count);
+
+            CheckEncLogDefinitions(reader2,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader2,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute));
+        }
+
+        [Fact]
+        public void ReplaceType()
+        {
+            var source0 = @"
+class C 
+{
+    void F(int x) {}
+}
+";
+            var source1 = @"
+class C
+{
+    void F(int x, int y) { }
+}";
+            var source2 = @"
+class C
+{
+    void F(int x, int y) { System.Console.WriteLine(1); }
+}";
+            var source3 = @"
+[System.Obsolete]
+class C
+{
+    void F(int x, int y) { System.Console.WriteLine(2); }
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+            var compilation3 = compilation2.WithSource(source3);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+            var c3 = compilation3.GetMember<NamedTypeSymbol>("C");
+            var f2 = c2.GetMember<MethodSymbol>("F");
+            var f3 = c3.GetMember<MethodSymbol>("F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "C#1");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C#1");
+
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(3, TableIndex.TypeDef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param));
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames(), "C#2");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C#2");
+
+            CheckEncLogDefinitions(reader2,
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader2,
+                Handle(4, TableIndex.TypeDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(6, TableIndex.MethodDef),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param));
+
+            // This update is an EnC update - even reloadable types are update in-place
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, c2, c3),
+                    SemanticEdit.Create(SemanticEditKind.Update, f2, f3)));
+
+            // Verify delta metadata contains expected rows.
+            using var md3 = diff3.GetMetadata();
+            var reader3 = md3.Reader;
+            readers = new[] { reader0, reader1, reader2, reader3 };
+
+            CheckNames(readers, reader3.GetTypeDefNames(), "C#2");
+            CheckNames(readers, diff3.EmitResult.ChangedTypes, "C#2");
+
+            CheckEncLogDefinitions(reader3,
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader3,
+                Handle(4, TableIndex.TypeDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param),
+                Handle(4, TableIndex.CustomAttribute));
+        }
+
+        [Fact]
         public void AddNestedTypeAndMembers()
         {
             var source0 =
@@ -2147,6 +2454,9 @@ class C
 
             CheckNames(readers, reader1.GetTypeDefNames(), "C", "D");
             CheckNames(readers, reader1.GetMethodDefNames(), "F", "G", ".ctor", ".ctor");
+            CheckNames(readers, diff1.EmitResult.UpdatedMethods, "F");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "A", "C", "D");
+
             Assert.Equal(2, reader1.GetTableRowCount(TableIndex.NestedClass));
 
             CheckEncLog(reader1,
@@ -2305,9 +2615,7 @@ class C
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "A", "B`1");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "A", "B`1", "C`1");
 
             CheckNames(readers, reader1.GetTypeDefNames(), "C`1");
             Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
@@ -2740,9 +3048,7 @@ interface I
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000002");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "I");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "I", "J");
 
             CheckNames(readers, reader1.GetTypeDefNames(), "J");
             CheckNames(readers, reader1.GetFieldDefNames(), "X", "Y");
@@ -2769,9 +3075,7 @@ interface I
             var reader2 = md2.Reader;
             readers = new[] { reader0, reader1, reader2 };
 
-            diff2.VerifyUpdatedTypes("0x02000002");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "I");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "I", "J");
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetFieldDefNames(), "X");
@@ -2797,6 +3101,12 @@ interface I
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
@@ -2909,27 +3219,12 @@ delegate void D();
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000004");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "M2", "get_P2", "add_E2", "remove_E2");
 
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
@@ -2966,13 +3261,7 @@ delegate void D();
                 Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(2, TableIndex.GenericParam, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(15, TableIndex.TypeRef),
-                Handle(16, TableIndex.TypeRef),
-                Handle(17, TableIndex.TypeRef),
-                Handle(18, TableIndex.TypeRef),
-                Handle(19, TableIndex.TypeRef),
-                Handle(20, TableIndex.TypeRef),
+            CheckEncMapDefinitions(reader1,
                 Handle(3, TableIndex.Field),
                 Handle(4, TableIndex.Field),
                 Handle(12, TableIndex.MethodDef),
@@ -2981,11 +3270,6 @@ delegate void D();
                 Handle(15, TableIndex.MethodDef),
                 Handle(8, TableIndex.Param),
                 Handle(9, TableIndex.Param),
-                Handle(11, TableIndex.MemberRef),
-                Handle(12, TableIndex.MemberRef),
-                Handle(13, TableIndex.MemberRef),
-                Handle(14, TableIndex.MemberRef),
-                Handle(15, TableIndex.MemberRef),
                 Handle(7, TableIndex.CustomAttribute),
                 Handle(13, TableIndex.CustomAttribute),
                 Handle(14, TableIndex.CustomAttribute),
@@ -3002,9 +3286,7 @@ delegate void D();
                 Handle(4, TableIndex.MethodSemantics),
                 Handle(5, TableIndex.MethodSemantics),
                 Handle(6, TableIndex.MethodSemantics),
-                Handle(2, TableIndex.AssemblyRef),
-                Handle(2, TableIndex.GenericParam),
-                Handle(2, TableIndex.MethodSpec));
+                Handle(2, TableIndex.GenericParam));
 
             CheckAttributes(reader1,
                 new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
@@ -3059,9 +3341,7 @@ class C
             using var md1 = diff1.GetMetadata();
             var readers = new[] { reader0, md1.Reader };
 
-            diff1.VerifyUpdatedTypes("0x02000002");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
             CheckNames(readers, md1.Reader.GetTypeDefNames());
             CheckNames(readers, md1.Reader.GetMethodDefNames(), "M");
@@ -3134,9 +3414,7 @@ class C
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000003");
-
-            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetEventDefNames());
@@ -3182,10 +3460,9 @@ class C
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
 
-            diff1.VerifyUpdatedTypes("0x02000002");
-
-            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -3277,34 +3554,29 @@ class C
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.puts"))));
 
-            diff1.VerifyUpdatedTypes("0x02000002");
-
-            var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
-
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.ModuleRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C");
+
+            CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(2, TableIndex.ImplMap, EditAndContinueOperation.Default));
-            CheckEncMap(reader1,
-                Handle(6, TableIndex.TypeRef),
+
+            CheckEncMapDefinitions(reader1,
                 Handle(3, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(2, TableIndex.ModuleRef),
-                Handle(2, TableIndex.ImplMap),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(2, TableIndex.ImplMap));
         }
 
         /// <summary>
@@ -10095,17 +10367,19 @@ public class C : Base
 ");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
+            var reader0 = md0.MetadataReader;
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            diff1.VerifyUpdatedTypes("0x02000002", "0x02000004");
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
 
-            var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C", "<>c__DisplayClass0_0");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C", "<>c__DisplayClass0_0");
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -10150,9 +10424,11 @@ public class C : Base
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff2.VerifyUpdatedTypes("0x02000002", "0x02000004");
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
 
-            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff2.EmitResult), "C", "<>c__DisplayClass0_0");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C", "<>c__DisplayClass0_0");
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -11395,18 +11671,20 @@ namespace N
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default)); // R.PrintMembers
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
-                Handle(19, TableIndex.TypeRef),
                 Handle(20, TableIndex.TypeRef),
                 Handle(21, TableIndex.TypeRef),
+                Handle(22, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));
@@ -11460,6 +11738,74 @@ namespace N
                 "Microsoft: {CodeAnalysis}",
                 "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
                 "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+        }
+
+        [Fact]
+        public void TopLevelStatement_Update()
+        {
+            var source0 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var source1 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var method1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<Program>$");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "<Main>$");
+            CheckNames(readers, reader1.GetMemberRefNames(), /*CompilerGenerated*/".ctor", /*Console.*/"WriteLine");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default), // Synthesized Main method
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
+                Handle(10, TableIndex.TypeRef),
+                Handle(1, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(6, TableIndex.MemberRef),
+                Handle(7, TableIndex.MemberRef),
+                Handle(2, TableIndex.AssemblyRef));
         }
     }
 }

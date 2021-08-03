@@ -109,11 +109,6 @@ namespace Roslyn.Test.Utilities
             return reader.GetGuid(reader.GetModuleDefinition().Mvid);
         }
 
-        public static StringHandle[] GetUpdatedTypeDefNames(this MetadataReader reader, EmitDifferenceResult emitResult)
-        {
-            return emitResult.UpdatedTypes.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
-        }
-
         public static StringHandle[] GetAssemblyRefNames(this MetadataReader reader)
         {
             return reader.AssemblyReferences.Select(handle => reader.GetAssemblyReference(handle).Name).ToArray();
