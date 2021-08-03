@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -22,7 +20,6 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
@@ -32,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        private bool? _experimentEnabled = null;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -68,13 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             var workspace = document.Project.Solution.Workspace;
             var option = workspace.Options.GetOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, document.Project.Language);
-            if (_experimentEnabled is null)
-            {
-                var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-                _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InlineDiagnostics);
-            }
+            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
+            var experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InlineDiagnostics);
 
-            var shouldEnableFeature = option == true || (_experimentEnabled == true && !option.HasValue);
+            var shouldEnableFeature = option == true || (experimentEnabled == true && !option.HasValue);
             return shouldEnableFeature;
         }
 
