@@ -2432,9 +2432,9 @@ outerDefault:
             // handler conversion.
             // We deviate from our usual policy around language version not changing binding behavior here
             // because this will cause existing code that chooses one overload to instead choose an overload
-            // that will immediately cause an error. True, the user does need to update their TFM or a library
-            // to a version that takes advantage of the feature, but we made this pragmatic choice after we
-            // received customer reports of problems in the space.
+            // that will immediately cause an error. True, the user does need to update their target framework
+            // or a library to a version that takes advantage of the feature, but we made this pragmatic
+            // choice after we received customer reports of problems in the space.
             // https://github.com/dotnet/roslyn/issues/55345
             if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
                 node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
