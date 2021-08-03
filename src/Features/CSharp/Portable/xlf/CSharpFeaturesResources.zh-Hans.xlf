@@ -182,6 +182,11 @@
         <target state="translated">Unseal 类 "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="new">Use recursive patterns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 即将在条件方法调用中内联临时内容。</target>
