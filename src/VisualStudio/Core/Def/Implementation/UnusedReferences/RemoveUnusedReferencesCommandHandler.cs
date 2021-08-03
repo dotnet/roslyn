@@ -8,24 +8,20 @@ using System.ComponentModel.Design;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
+using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -40,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
@@ -48,12 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
             IUIThreadOperationExecutor threadOperationExecutor,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
             VisualStudioWorkspace workspace)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
             _threadOperationExecutor = threadOperationExecutor;
-            _undoHistoryRegistry = undoHistoryRegistry;
             _workspace = workspace;
 
             _lazyReferenceCleanupService = new(() => workspace.Services.GetRequiredService<IReferenceCleanupService>());
@@ -109,7 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
         {
-            if (_serviceProvider is not null && VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
+            Contract.ThrowIfNull(_serviceProvider);
+
+            if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
                 Solution? solution = null;
                 string? projectFilePath = null;
@@ -191,14 +186,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return;
         }
 
-
-        private static bool TryGetText(IVsTextLines vsTextLines, out string text)
-        {
-            text = string.Empty;
-            return ErrorHandler.Succeeded(vsTextLines.GetLastLineIndex(out var lastLineIndex, out var lastIndex))
-                && ErrorHandler.Succeeded(vsTextLines.GetLineText(0, 0, lastLineIndex, lastIndex, out text));
-        }
-
         private (Solution?, string?, ImmutableArray<ReferenceUpdate>) GetUnusedReferencesForProjectHierarchy(
             IVsHierarchy projectHierarchy,
             CancellationToken cancellationToken)
@@ -226,8 +213,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
-                return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
+                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
+
+                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
