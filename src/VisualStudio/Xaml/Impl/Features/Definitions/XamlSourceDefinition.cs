@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
     internal sealed class XamlSourceDefinition : XamlDefinition
     {
         private readonly TextSpan? _span;
-        private readonly int _line, _character;
+        private readonly int _line, _column;
 
         public XamlSourceDefinition(string filePath, TextSpan span)
         {
@@ -25,14 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
         {
             FilePath = filePath;
             _line = line;
-            _character = character;
+            _column = character;
         }
 
         public string FilePath { get; }
 
         /// <summary>
         /// When XamlSourceDefinition was created, the creator may have had a textSpan or line/column.
-        /// We should either use _span or _line _character. This property will tell you which one to use.
+        /// We should either use _span or _line _column. This property will tell you which one to use.
         /// </summary>
         private bool CanUseSpan => _span != null;
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
             // Convert the line column to TextSpan
             if (_line < text.Lines.Count)
             {
-                var character = Math.Min(_character, text.Lines[_line].Span.Length);
+                var character = Math.Min(_column, text.Lines[_line].Span.Length);
                 var start = text.Lines.GetPosition(new LinePosition(_line, character));
                 return new TextSpan(start, 0);
             }
