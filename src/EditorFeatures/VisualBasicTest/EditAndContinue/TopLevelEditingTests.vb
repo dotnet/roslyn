@@ -2217,7 +2217,7 @@ End Class
                 "Update [a]@27 -> [b]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Public Delegate Function D(b As Integer)", "parameter 'a As Integer'"))
+                Diagnostic(RudeEditKind.Renamed, "Public Delegate Function D(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
