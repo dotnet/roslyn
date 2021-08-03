@@ -8,7 +8,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -23,19 +22,19 @@ namespace Microsoft.CodeAnalysis
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
+            if (!ShouldLoad(fullPath))
+            {
+                throw new ArgumentException(message: null, paramName: nameof(fullPath));
+            }
+
             AssemblyLoadContext? loadContext;
 
-            var fullDirectoryPath = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException();
+            var fullDirectoryPath = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException(message: null, paramName: nameof(fullPath));
             lock (_guard)
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    loadContext = new DirectoryLoadContext(fullDirectoryPath);
-                    loadContext.Resolving += (context, name) =>
-                    {
-                        Debug.Assert(ReferenceEquals(context, loadContext));
-                        return Load(name.FullName);
-                    };
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -46,9 +45,12 @@ namespace Microsoft.CodeAnalysis
         private class DirectoryLoadContext : AssemblyLoadContext
         {
             private readonly string _directory;
-            public DirectoryLoadContext(string fullDirectoryPath)
+            private readonly DefaultAnalyzerAssemblyLoader _loader;
+
+            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader)
             {
-                _directory = fullDirectoryPath;
+                _directory = directory;
+                _loader = loader;
             }
 
             protected override Assembly? Load(AssemblyName assemblyName)
@@ -68,6 +70,11 @@ namespace Microsoft.CodeAnalysis
 
                 var simpleName = assemblyName.Name;
                 var assemblyPath = Path.Combine(_directory, assemblyName.Name + ".dll");
+                if (!_loader.ShouldLoad(assemblyPath))
+                {
+                    return null;
+                }
+
                 try
                 {
                     return LoadFromAssemblyPath(assemblyPath);

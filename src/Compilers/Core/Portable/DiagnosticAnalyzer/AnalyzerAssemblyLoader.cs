@@ -153,6 +153,13 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
+        public bool ShouldLoad(string fullPath)
+        {
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+            var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
+            return _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths) && paths.Contains(fullPath);
+        }
+
         public Assembly Load(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
