@@ -2248,13 +2248,39 @@ class C
     public int X = 0, Y = 0;
     public static void Test(Span<int> a, Span<C> b)
     {
-        _ = a switch { [.., >=0] or [<0] or { Length: 0 or > 1 } => 0 };
-        _ = a switch { [.., >=0] or [..[.., <0] ] or [] => 0 };
-        _ = a switch { [..[>=0] ] or [<0] or { Length: 0 or > 1 } => 0 };
-        _ = a switch { [..[.., <0]] or [..] => 0 };
-        _ = b switch { [.., { X: >=0, Y: <0}] or [ { Y: >=0, X: <0} ] or
-                       [.., { Y: >=0, X: <0}] or [ { X: >=0, Y: <0} ] or
-                       [.., { X: <=0 }] or [{ X: >0 }] or { Length: 0 or > 1 } => 0 };
+        _ = a switch
+        {
+            [.., >=0] or [<0] or { Length: 0 or > 1 } => 0
+        };
+
+        _ = a switch
+        {
+            [.., >=0] or [..[.., <0] ] or [] => 0
+        };
+
+        _ = a switch
+        {
+            [..[>=0] ] or [<0] or
+            { Length: 0 or > 1 } => 0
+        };
+
+        _ = a switch
+        {
+            [..[.., <0]] or [..] => 0
+        };
+
+        _ = a switch
+        {
+            [_, ..{ Length: <= (int.MaxValue - 1) }] or [] => 0
+        };
+
+        _ = b switch
+        { 
+            [.., { X: >=0, Y: <0}] or [ { Y: >=0, X: <0} ] or
+            [.., { Y: >=0, X: <0}] or [ { X: >=0, Y: <0} ] or
+            [.., { X: <=0 }] or [{ X: >0 }] or 
+            { Length: 0 or > 1 } => 0
+        };
     }
 }";
             var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);

@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static (BoundDagTemp? lengthTemp, int offset) GetTopLevelLengthTemp(BoundDagPropertyEvaluation e)
+        private static (BoundDagTemp? lengthTemp, int offset) TryGetTopLevelLengthTemp(BoundDagPropertyEvaluation e)
         {
             Debug.Assert(e.IsLengthOrCount);
             int offset = 0;
@@ -1156,42 +1156,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (input1.Source, input2.Source)
                     {
                         case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                            Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                            Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
+                            if (s1Input.Equals(s2Input) &&
+                                // We don't want to pair two indices within the same pattern.
+                                s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                             {
-                                (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                                (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                                Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
-                                Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
-                                if (s1Input.Equals(s2Input) &&
-                                    // We don't want to pair two indices within the same pattern.
-                                    s1LengthTemp.Syntax != s2LengthTemp.Syntax)
+                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
+                                if (s1Index == s2Index)
                                 {
-                                    Debug.Assert(s1LengthTemp.Equals(s2LengthTemp));
-                                    if (s1Index == s2Index)
+                                    break;
+                                }
+                                if (s1Index < 0 != s2Index < 0)
+                                {
+                                    Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
+                                    var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                    if (lengthValues.IsEmpty)
                                     {
+                                        return;
+                                    }
+
+                                    // Compute the length value that would make these two indices point to the same element.
+                                    int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                    if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                    {
+                                        // If the length is known to be exact, the two can definitely point to the same element.
                                         break;
                                     }
-                                    if (s1Index < 0 != s2Index < 0)
+                                    if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                     {
-                                        Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                        var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                        if (lengthValues.IsEmpty)
-                                        {
-                                            return;
-                                        }
-
-                                        // Compute the length value that would make these two indices point to the same element.
-                                        int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                        {
-                                            // If the length is known to be exact, the two can definitely point to the same element.
-                                            break;
-                                        }
-                                        if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                                        {
-                                            // Otherwise, we inject a test in the success branch to split the exact value.
-                                            lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
-                                            break;
-                                        }
+                                        // Otherwise, we add a test to make the result conditional on the length value.
+                                        lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                        break;
                                     }
                                 }
                             }
@@ -1764,11 +1762,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Hash.Combine(RemainingTests.GetHashCode(), Index);
             }
 
-            public StateForCase UpdateRemainingTests(Tests remainingTests)
+            public StateForCase UpdateRemainingTests(Tests newRemainingTests)
             {
-                return remainingTests.Equals(RemainingTests)
+                return newRemainingTests.Equals(RemainingTests)
                     ? this
-                    : new StateForCase(Index, Syntax, remainingTests, Bindings, WhenClause, CaseLabel);
+                    : new StateForCase(Index, Syntax, newRemainingTests, Bindings, WhenClause, CaseLabel);
             }
 
             public StateForCase RewriteNestedLengthTests()
@@ -1907,44 +1905,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTemp input = test.Input;
                     if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                     {
-                        if (GetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
+                        if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                         {
                             switch (test)
                             {
-                                case BoundDagValueTest { Value.IsBad: false } t:
+                                case BoundDagValueTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = t.Value.Int32Value + offset;
-                                        return new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
+                                        int lengthValue = safeAdd(t.Value.Int32Value, offset);
+                                        return rewriteLengthTest(BinaryOperatorKind.Equal, lengthValue) ??
+                                               new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
-                                case BoundDagRelationalTest { Value.IsBad: false } t:
+                                case BoundDagRelationalTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = t.Value.Int32Value + offset;
-                                        if (lengthValue <= 0 && t.Relation == BinaryOperatorKind.GreaterThanOrEqual)
-                                            return True.Instance;
-                                        return new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
+                                        int lengthValue = safeAdd(t.Value.Int32Value, offset);
+                                        return rewriteLengthTest(t.Relation, lengthValue) ??
+                                               new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
                             }
                         }
-                        else
+                        else if (e.Syntax.IsKind(SyntaxKind.ListPattern))
                         {
                             switch (test)
                             {
-                                case BoundDagRelationalTest { Value.IsBad: false, Relation: BinaryOperatorKind.GreaterThanOrEqual } t:
+                                case BoundDagRelationalTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        Debug.Assert(t.OperatorKind == BinaryOperatorKind.IntGreaterThanOrEqual);
+                                        Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
                                         int lengthValue = t.Value.Int32Value;
-                                        if (lengthValue <= 0)
-                                            return True.Instance;
-                                        break;
+                                        return rewriteLengthTest(t.Relation, lengthValue) ?? this;
                                     }
                             }
                         }
                     }
 
                     return this;
+
+                    static Tests? rewriteLengthTest(BinaryOperatorKind op, int lengthValue)
+                    {
+                        var lengthValues = ValueSetFactory.ForLength.Related(op, lengthValue);
+                        if (lengthValues.IsEmpty)
+                            return False.Instance;
+                        if (lengthValues.Complement().IsEmpty)
+                            return True.Instance;
+                        return null;
+                    }
+                    static int safeAdd(int a, int b)
+                    {
+                        return (a, b) switch
+                        {
+                            ( > 0, > 0) when b > (int.MaxValue - a) => int.MaxValue,
+                            ( < 0, < 0) when b < (int.MinValue - a) => int.MinValue,
+                            _ => a + b
+                        };
+                    }
                 }
             }
 
