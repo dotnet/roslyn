@@ -1,3 +1,7 @@
+Param (
+    [string]$binlog
+)
+
 if (-not $env:GITBUILDVERSIONSIMPLE) {
     Write-Host "Missing environment variable 'GITBUILDVERSIONSIMPLE'"
     Exit 1
@@ -24,7 +28,7 @@ if (-not (Test-Path "$PSScriptRoot/../../bin/Packages/Release/NuGet")) {
 
 $CurrentTestResultsDir = "$resultDir\xUnitResults\EqualExceptionLegacy"
 mkdir $CurrentTestResultsDir
-dotnet test --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj
+dotnet test /bl:$binlog --logger trx --results-directory $CurrentTestResultsDir $PSScriptRoot\EqualExceptionLegacy.csproj
 if ($LASTEXITCODE -ne 1) {
     Write-Host "Expected 'dotnet test' to exit with code 1, but was $LASTEXITCODE"
     Exit 1
