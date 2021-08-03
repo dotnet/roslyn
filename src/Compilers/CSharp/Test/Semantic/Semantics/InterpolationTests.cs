@@ -4158,12 +4158,13 @@ literal:Literal");
 ");
         }
 
-        [Theory]
+        [Theory, WorkItem(55345, "https://github.com/dotnet/roslyn/issues/55345")]
         [InlineData(@"$""{1,2:f}Literal""")]
         [InlineData(@"$""{1,2:f}"" + $""Literal""")]
         public void HandlerConversionPreferredOverStringForNonConstant(string expression)
         {
             var code = @"
+CultureInfoNormalizer.Normalize();
 C.M(" + expression + @");
 class C
 {
@@ -4173,12 +4174,12 @@ class C
     }
     public static void M(string s)
     {
-        throw null;
+        System.Console.WriteLine(s);
     }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular10);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4188,29 +4189,62 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
 {
-  // Code size       50 (0x32)
+  // Code size       55 (0x37)
   .maxstack  4
   .locals init (CustomHandler V_0)
-  IL_0000:  ldc.i4.7
-  IL_0001:  ldc.i4.1
-  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  box        ""int""
-  IL_000f:  ldc.i4.2
-  IL_0010:  ldstr      ""f""
-  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
-  IL_001a:  brfalse.s  IL_0029
-  IL_001c:  ldloc.0
-  IL_001d:  ldstr      ""Literal""
-  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
-  IL_0027:  br.s       IL_002a
-  IL_0029:  ldc.i4.0
-  IL_002a:  pop
-  IL_002b:  ldloc.0
-  IL_002c:  call       ""void C.M(CustomHandler)""
-  IL_0031:  ret
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.7
+  IL_0006:  ldc.i4.1
+  IL_0007:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.1
+  IL_000f:  box        ""int""
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldstr      ""f""
+  IL_001a:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001f:  brfalse.s  IL_002e
+  IL_0021:  ldloc.0
+  IL_0022:  ldstr      ""Literal""
+  IL_0027:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.0
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  call       ""void C.M(CustomHandler)""
+  IL_0036:  ret
+}
+");
+
+            comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular9);
+            verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
+
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", expression.Contains('+') ? @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldstr      ""{0,2:f}""
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  call       ""string string.Format(string, object)""
+  IL_0015:  ldstr      ""Literal""
+  IL_001a:  call       ""string string.Concat(string, string)""
+  IL_001f:  call       ""void C.M(string)""
+  IL_0024:  ret
+}
+"
+: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldstr      ""{0,2:f}Literal""
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  call       ""string string.Format(string, object)""
+  IL_0015:  call       ""void C.M(string)""
+  IL_001a:  ret
 }
 ");
         }
