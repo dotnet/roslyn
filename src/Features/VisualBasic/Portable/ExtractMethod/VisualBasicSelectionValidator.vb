@@ -494,9 +494,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                        }
             End If
 
-            Dim commonRootContainer = commonRoot.FirstAncestorOrSelf(Of SyntaxNode)(Function(node) TypeOf node Is TypeBlockSyntax)
-
-            If commonRootContainer Is Nothing Then
+            If Not commonRoot.ContainedInValidType() Then
                 Return New SelectionInfo With
                     {
                         .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),

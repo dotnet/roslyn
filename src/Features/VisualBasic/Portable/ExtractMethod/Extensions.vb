@@ -296,6 +296,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         <Extension()>
+        Public Function ContainedInValidType(node As SyntaxNode) As Boolean
+            Contract.ThrowIfNull(node)
+            Dim typeContainer = node.FirstAncestorOrSelf(Of TypeStatementSyntax)()
+
+            If typeContainer IsNot Nothing Then
+                Return True
+            End If
+
+            Dim nameSpaceContainer = node.FirstAncestorOrSelf(Of NamespaceBlockSyntax)
+            If nameSpaceContainer IsNot Nothing Then
+                Return False
+            End If
+
+            Return True
+        End Function
+
+        <Extension()>
         Public Function ContainsInMethodBlockBody(block As MethodBlockBaseSyntax, textSpan As TextSpan) As Boolean
             If block Is Nothing Then
                 Return False
