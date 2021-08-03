@@ -267,7 +267,7 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=true `
+      /p:RestoreUseStaticGraphEvaluation=false `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       $suppressExtensionDeployment `

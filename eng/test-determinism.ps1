@@ -61,7 +61,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:BootstrapBuildPath=$bootstrapDir `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
-     /p:RestoreUseStaticGraphEvaluation=true `
+     /p:RestoreUseStaticGraphEvaluation=false `
      /bl:$logFilePath
 
   Stop-Processes
