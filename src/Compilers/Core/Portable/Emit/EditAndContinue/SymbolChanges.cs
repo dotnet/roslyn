@@ -217,20 +217,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
                     var internalSymbol = GetISymbolInternalOrNull(symbol);
-                    if (internalSymbol is { Kind: not SymbolKind.Namespace })
+                    if (internalSymbol is null)
                     {
-                        // If the definition did not exist in the previous generation, it was added.
-                        return ExistsInPreviousGeneration(internalSymbol) ? SymbolChange.None : SymbolChange.Added;
+                        return SymbolChange.None;
                     }
 
-                    if (internalSymbol is { Kind: SymbolKind.Namespace })
+                    if (internalSymbol.Kind == SymbolKind.Namespace)
                     {
                         // If the namespace did not exist in the previous generation, it was added.
                         // Otherwise the namespace may contain changes.
                         return _definitionMap.NamespaceExists((INamespace)internalSymbol.GetCciAdapter()) ? SymbolChange.ContainsChanges : SymbolChange.Added;
                     }
 
-                    return SymbolChange.None;
+                    // If the definition did not exist in the previous generation, it was added.
+                    return ExistsInPreviousGeneration(internalSymbol) ? SymbolChange.None : SymbolChange.Added;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(containerChange);
