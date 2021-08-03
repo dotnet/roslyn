@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 _rolesToProviders = new(this);
             }
 
-            public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, bool waitUntilAvaialble = false)
+            public Task<ImmutableArray<CompletionProvider>> GetProvidersAsync(ImmutableHashSet<string> roles)
             {
                 Task<ImmutableArray<CompletionProvider>>? createProviderTask;
 
@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
 
-                return createProviderTask.IsCompleted || waitUntilAvaialble
-                    ? createProviderTask.Result
-                    : ImmutableArray<CompletionProvider>.Empty;
+                return createProviderTask;
             }
 
             public CompletionProvider? GetProviderByName(string name)
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             private async Task<ImmutableArray<CompletionProvider>> GetAllProvidersAsync(ImmutableHashSet<string> roles)
             {
-                await Task.Yield();
+                await Task.Yield().ConfigureAwait(false);
 
                 var imported = GetImportedProviders()
                     .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))

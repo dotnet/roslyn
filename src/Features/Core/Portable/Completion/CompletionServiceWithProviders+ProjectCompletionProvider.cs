@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return ImmutableArray<CompletionProvider>.Empty;
             }
 
-            if (project is null || project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
             {
                 // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
                 return ImmutableArray<CompletionProvider>.Empty;

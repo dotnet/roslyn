@@ -48,7 +48,19 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
         {
-            return _providerSource.GetProviders(roles ?? ImmutableHashSet<string>.Empty);
+            var getProviderTask = _providerSource.GetProvidersAsync(roles ?? ImmutableHashSet<string>.Empty);
+            if (getProviderTask.IsCompleted)
+            {
+                return getProviderTask.Result;
+            }
+
+            return ImmutableArray<CompletionProvider>.Empty;
+        }
+
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(
+            ImmutableHashSet<string> roles, CompletionTrigger trigger)
+        {
+            return GetProviders(roles);
         }
 
         private ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
@@ -57,12 +69,6 @@ namespace Microsoft.CodeAnalysis.Completion
             var allCompletionProviders = FilterProviders(GetProviders(roles, trigger), trigger, options);
             var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
             return allCompletionProviders.ConcatFast(projectCompletionProviders);
-        }
-
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(
-            ImmutableHashSet<string> roles, CompletionTrigger trigger)
-        {
-            return GetProviders(roles);
         }
 
         private ImmutableArray<CompletionProvider> FilterProviders(
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (item.ProviderName != null)
             {
-                _providerSource.GetProviderByName(item.ProviderName);
+                provider = _providerSource.GetProviderByName(item.ProviderName);
             }
 
             return provider;
@@ -557,10 +563,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
-                => _completionServiceWithProviders._providerSource.GetProviders(roles, waitUntilAvaialble: true);
+                => _completionServiceWithProviders._providerSource.GetProvidersAsync(roles).Result;
 
-            internal void EnensureCompeltionProvidersAvailable()
-                => _completionServiceWithProviders._providerSource.GetProviders(ImmutableHashSet<string>.Empty, waitUntilAvaialble: true);
+            internal void EnsureCompletionProvidersAvailable()
+                => GetAllProviders(ImmutableHashSet<string>.Empty);
 
             internal Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

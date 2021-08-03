@@ -101,7 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             RoslynCompletion.CompletionTrigger triggerInfo,
             OptionSet options = null)
         {
-            return service.GetCompletionsAsync(document, position, triggerInfo, GetRoles(document), options);
+            // Ensure all providers are created and available, since by default we don't
+            // wait for them to be imported to avoid blocking UI thread in VS.
+            var testAccessor = ((CompletionServiceWithProviders)service).GetTestAccessor();
+            var roles = GetRoles(document);
+            testAccessor.GetAllProviders(roles);
+
+            return service.GetCompletionsAsync(document, position, triggerInfo, roles, options);
         }
 
         private protected async Task CheckResultsAsync(
