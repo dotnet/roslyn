@@ -6,7 +6,7 @@
     <SharedGUID>b3bed6cb-abfe-4bb8-8af7-901ff0c6f027</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Microsoft.VisualStudio.VsixInstaller.Shared</Import_RootNamespace>
+    <Import_RootNamespace>Microsoft.VisualStudio.VsixInstaller</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Installer.cs" />

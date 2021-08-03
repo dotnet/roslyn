@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Microsoft.VisualStudio.VsixInstaller</RootNamespace>
     <OutputType>Exe</OutputType>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>

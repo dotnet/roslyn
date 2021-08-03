@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
+    <RootNamespace>Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests</RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
