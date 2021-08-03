@@ -1940,15 +1940,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution.
             if ((object)baseType != null)
             {
-                if (baseType.IsErrorType() || baseType.IsStatic)
+                if (baseType.SpecialType == SpecialType.System_Object)
+                {
+                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
+                }
+                else if (baseType.IsErrorType() || baseType.IsStatic)
                 {
                     // If the base type is bad and there is no initializer then we can just bail.
                     // We have no expressions we need to analyze to report errors on.
                     return null;
-                }
-                else if (baseType.SpecialType == SpecialType.System_Object)
-                {
-                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
                 }
             }
 

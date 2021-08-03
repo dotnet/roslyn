@@ -83,9 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
             : base(containingSymbol, declaration, diagnostics, tupleData)
         {
-            // If we're dealing with a simple program, then we must be in the global namespace
-            Debug.Assert(containingSymbol is NamespaceSymbol { IsGlobalNamespace: true } || !declaration.Declarations.Any(d => d.IsSimpleProgram));
-
             switch (declaration.Kind)
             {
                 case DeclarationKind.Struct:
@@ -1589,37 +1586,6 @@ next:;
             {
                 return this.declaration.Declarations.Any(d => d is { IsSimpleProgram: true });
             }
-        }
-
-        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
-        {
-            var type = GetSimpleProgramNamedTypeSymbol(compilation);
-            if (type is null)
-            {
-                return null;
-            }
-
-            ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> entryPoints = type.GetSimpleProgramEntryPoints();
-
-            foreach (var entryPoint in entryPoints)
-            {
-                if (entryPoint.SyntaxTree == compilationUnit.SyntaxTree && entryPoint.SyntaxNode == compilationUnit)
-                {
-                    return entryPoint;
-                }
-            }
-
-            return fallbackToMainEntryPoint ? entryPoints[0] : null;
-        }
-
-        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
-        {
-            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeMembers.First(m => m is SynthesizedSimpleProgramEntryPointSymbol);
-        }
-
-        private static SourceNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
-        {
-            return compilation.SourceModule.GlobalNamespace.GetTypeMembers("Program").OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
         }
     }
 }

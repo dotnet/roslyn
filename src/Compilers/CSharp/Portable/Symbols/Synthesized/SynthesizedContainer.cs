@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared) // TODO2
+            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
             {
                 return;
             }

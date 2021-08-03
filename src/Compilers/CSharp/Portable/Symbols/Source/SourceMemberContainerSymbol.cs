@@ -187,6 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TupleExtraData? tupleData = null)
             : base(tupleData)
         {
+            // If we're dealing with a simple program, then we must be in the global namespace
+            Debug.Assert(containingSymbol is NamespaceSymbol { IsGlobalNamespace: true } || !declaration.Declarations.Any(d => d.IsSimpleProgram));
+
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
 
@@ -1522,6 +1525,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (membersAndInitializers is null)
             {
+                if (member is SynthesizedSimpleProgramEntryPointSymbol)
+                {
+                    RoslynDebug.AssertOrFailFast(GetSimpleProgramEntryPoints().Contains(m => m == (object)member));
+                    return;
+                }
+
                 var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
                 RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
@@ -2935,7 +2944,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> GetSimpleProgramEntryPoints()
         {
-            if (this.ContainingType is not null || this.Name != WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)
+            if (this.ContainingSymbol is not NamespaceSymbol { IsGlobalNamespace: true }
+                || this.Name != WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)
             {
                 return ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
             }
@@ -2968,7 +2978,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var singleDecl in declaration.Declarations)
                 {
-                    builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
                     if (singleDecl.IsSimpleProgram)
                     {
                         if (reportAnError)
@@ -2980,6 +2989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             reportAnError = true;
                         }
 
+                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
                         builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
                     }
                 }

@@ -67,6 +67,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                       TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
         }
 
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
+        {
+            var type = GetSimpleProgramNamedTypeSymbol(compilation);
+            if (type is null)
+            {
+                return null;
+            }
+
+            ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> entryPoints = type.GetSimpleProgramEntryPoints();
+
+            foreach (var entryPoint in entryPoints)
+            {
+                if (entryPoint.SyntaxTree == compilationUnit.SyntaxTree && entryPoint.SyntaxNode == compilationUnit)
+                {
+                    return entryPoint;
+                }
+            }
+
+            return fallbackToMainEntryPoint ? entryPoints[0] : null;
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
+        {
+            return GetSimpleProgramNamedTypeSymbol(compilation)?.GetSimpleProgramEntryPoints().First();
+        }
+
+        private static SourceNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
+        {
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers("Program").OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
+        }
+
         public override string Name
         {
             get

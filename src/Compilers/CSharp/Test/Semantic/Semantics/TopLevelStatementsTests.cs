@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"System.Console.WriteLine(""Hi!"");";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -73,7 +73,7 @@ Console.Write(""async main"");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -1082,7 +1082,7 @@ System.Console.WriteLine(await);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 31)
                 );
 
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnType.IsErrorType());
             AssertEntryPointParameter(entryPoint);
@@ -7374,7 +7374,10 @@ class C1
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.String' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1),
+                // (1,1): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // return;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "return").WithArguments("object", "0").WithLocation(1, 1)
                 );
         }
 
@@ -7408,7 +7411,7 @@ return 10;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7430,7 +7433,7 @@ return 11;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7468,7 +7471,7 @@ return 11;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7495,7 +7498,7 @@ return 11;
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7525,7 +7528,7 @@ System.Console.WriteLine();
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_String);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.String[missing][] args", entryPoint.Parameters.Single().ToTestDisplayString());
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'System.String' is not defined or imported
@@ -7542,7 +7545,7 @@ return;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7589,7 +7592,7 @@ return 10;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7636,7 +7639,7 @@ return;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7699,7 +7702,7 @@ return 11;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7758,7 +7761,7 @@ return ""error"";
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7781,7 +7784,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7800,7 +7803,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7819,7 +7822,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7839,7 +7842,7 @@ local(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7857,7 +7860,7 @@ else
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7879,7 +7882,7 @@ else
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7899,7 +7902,7 @@ System.Console.WriteLine(2);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
                 // (4,1): warning CS0162: Unreachable code detected
@@ -7918,7 +7921,7 @@ System.Console.WriteLine(2);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "1", expectedReturnCode: 13).VerifyDiagnostics(
                 // (4,1): warning CS0162: Unreachable code detected
@@ -7936,7 +7939,7 @@ return default;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 0);
@@ -7956,7 +7959,7 @@ return default;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 0);
@@ -8476,7 +8479,7 @@ System.Console.WriteLine(args.Length == 0 ? 0 : -args[0].Length);
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             AssertEntryPointParameter(entryPoint);
         }
 
@@ -8867,7 +8870,7 @@ System.Console.WriteLine(""Hi!"");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -8894,6 +8897,15 @@ System.Console.WriteLine(""Hi!"");
                     Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(program.GetAttributes().As<CSharpAttributeData>()));
                 }
                 Assert.Empty(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
+
+                if (fromSource)
+                {
+                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                }
+                else
+                {
+                    Assert.Equal(new[] { "void Program.<Main>$(System.String[] args)", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                }
             }
         }
 
@@ -8913,7 +8925,7 @@ public partial class Program
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -8956,7 +8968,7 @@ public class Program
                 // public class Program
                 Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(4, 14)
                 );
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -8986,7 +8998,7 @@ internal partial class Program
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "Hi!");
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
         }
@@ -9008,7 +9020,7 @@ partial class Program
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "Hi!");
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
         }
@@ -9037,10 +9049,35 @@ partial struct Program
                 // M();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(2, 1)
                 );
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
             Assert.True(entryPoint.ContainingType.IsReferenceType);
+        }
+
+        [Fact]
+        public void SpeakableEntyrPoint_ProgramIsRecord()
+        {
+            var text = @"
+M();
+
+partial record Program
+{
+    private static void M()
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // M();
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "M").WithArguments("Program").WithLocation(2, 1),
+                // (2,1): error CS0103: The name 'M' does not exist in the current context
+                // M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(2, 1)
+                );
         }
 
         [Fact]
@@ -9088,7 +9125,7 @@ partial class Program : Base
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyDiagnostics();
-            var entryPoint = SourceNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
             Assert.True(entryPoint.IsStatic);
 
@@ -9148,27 +9185,91 @@ partial class Program
     public int Property { get; set; }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
             comp.VerifyEmitDiagnostics();
 
             void validate(ModuleSymbol module)
             {
                 bool fromSource = module is SourceModuleSymbol;
-                var field = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetField("<Property>k__BackingField"); // TODO2
+                var field = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetField("<Property>k__BackingField");
                 Assert.False(field.ContainingType.IsImplicitlyDeclared);
                 var fieldAttributes = GetAttributeNames(field.GetAttributes().As<CSharpAttributeData>());
                 if (fromSource)
                 {
                     Assert.Empty(fieldAttributes);
+
+                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "System.Int32 Program.<Property>k__BackingField",
+                            "System.Int32 Program.Property { get; set; }", "System.Int32 Program.Property.get",
+                            "void Program.Property.set", "Program..ctor()" },
+                        field.ContainingType.GetMembers().ToTestDisplayStrings());
                 }
                 else
                 {
-                    Assert.Equal(new[] { "CompilerGeneratedAttribute" }, fieldAttributes);
+                    Assert.Equal(new[] { "CompilerGeneratedAttribute", "DebuggerBrowsableAttribute" }, fieldAttributes);
+
+                    Assert.Equal(new[] { "System.Int32 Program.<Property>k__BackingField", "void Program.<Main>$(System.String[] args)",
+                            "System.Int32 Program.Property.get", "void Program.Property.set",
+                            "Program..ctor()", "System.Int32 Program.Property { get; set; }" },
+                        field.ContainingType.GetMembers().ToTestDisplayStrings());
                 }
             }
         }
 
-        // TODO2 no compiler-generated attribute on Program when Program is user-defined, but still on Main
+        [Fact]
+        public void SpeakableEntyrPoint_XmlDoc()
+        {
+            var src = @"
+System.Console.Write(42);
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal("", cMember.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void SpeakableEntyrPoint_XmlDoc_ProgramIsPartial()
+        {
+            var src = @"
+System.Console.Write(42);
+
+/// <summary>Summary</summary>
+public partial class Program { }
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal(
+@"<member name=""T:Program"">
+    <summary>Summary</summary>
+</member>
+", cMember.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void SpeakableEntyrPoint_XmlDoc_ProgramIsPartial_NotCommented()
+        {
+            var src = @"
+System.Console.Write(42);
+
+public partial class Program { }
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (4,22): warning CS1591: Missing XML comment for publicly visible type or member 'Program'
+                // public partial class Program { }
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Program").WithArguments("Program").WithLocation(4, 22)
+                );
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal("", cMember.GetDocumentationCommentXml());
+        }
     }
 }
