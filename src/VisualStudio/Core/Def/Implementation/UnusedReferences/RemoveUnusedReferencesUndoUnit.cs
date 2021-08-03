@@ -4,14 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
 {

@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
-using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -162,23 +161,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     }
                 }
 
-                UpdateReferencesUndoUnit? _undoUnit = null;
+                UpdateReferencesUndoUnit? undoUnit = null;
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    _undoUnit = ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
+                    undoUnit = ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
                 });
 
-                if (undoSupported && _undoUnit is not null)
+                if (undoSupported && undoUnit is not null)
                 {
                     // Delay adding the UndoUnit in order to wait for the project system to reload the project. If we add
                     // before the project is reloaded it will clear the UndoManager's history.
                     System.Threading.Tasks.Task.Run(async () =>
                     {
-                        await System.Threading.Tasks.Task.Delay(5000).ConfigureAwait(false);
+                        await System.Threading.Tasks.Task.Delay(2000).ConfigureAwait(false);
 
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                        undoManager?.Add(_undoUnit);
+                        undoManager?.Add(undoUnit);
                     });
                 }
             }
@@ -213,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
+                var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFile).ConfigureAwait(true);
 
                 return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
             });
