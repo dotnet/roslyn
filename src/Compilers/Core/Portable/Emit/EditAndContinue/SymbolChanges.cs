@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.GetChange(symbol) != SymbolChange.None;
         }
 
-        private bool ExistsInPreviousGeneration(ISymbolInternal symbol)
+        private bool DefinitionExistsInPreviousGeneration(ISymbolInternal symbol)
         {
             var definition = (IDefinition)symbol.GetCciAdapter();
 
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!ExistsInPreviousGeneration(synthesizedSymbol.ContainingType))
+                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol.ContainingType))
                         {
                             return SymbolChange.Added;
                         }
 
-                        if (!ExistsInPreviousGeneration(synthesizedSymbol))
+                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol))
                         {
                             // A method was changed to a method containing a lambda, to an iterator, or to an async method.
                             // The state machine or closure class has been added.
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     case SymbolChange.Added:
                         // The method has been added - add the synthesized member as well, unless it already exists.
-                        if (!ExistsInPreviousGeneration(synthesizedSymbol))
+                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol))
                         {
                             return SymbolChange.Added;
                         }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
 
                     // If the definition did not exist in the previous generation, it was added.
-                    return ExistsInPreviousGeneration(internalSymbol) ? SymbolChange.None : SymbolChange.Added;
+                    return DefinitionExistsInPreviousGeneration(internalSymbol) ? SymbolChange.None : SymbolChange.Added;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(containerChange);
