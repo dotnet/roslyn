@@ -9,6 +9,11 @@
     <Import_RootNamespace>Xunit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\ActivityLogCollector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\EventLogCollector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemDotNetEntry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemWatsonEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\GlobalServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestAssemblyRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFramework.cs" />
@@ -19,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilterSafeHandle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\RequireExtensionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\ScreenshotService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstance.cs" />
@@ -28,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\InProcComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\IVsActivityLogDumper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\OleServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\TestInvoker_InProc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\VisualStudio_InProc.cs" />
@@ -38,6 +45,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestInvoker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SemaphoreExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SynchronizationContextTaskScheduler.cs" />
