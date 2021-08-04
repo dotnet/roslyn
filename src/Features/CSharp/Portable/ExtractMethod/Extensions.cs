@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public static bool ContainedInValidType(this SyntaxNode node)
         {
             Contract.ThrowIfNull(node);
-            var typeContainer = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if (typeContainer is not null)
+            foreach (var ancestor in node.AncestorsAndSelf())
             {
-                return true;
-            }
-
-            var nameSpaceContainer = node.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
-            if (nameSpaceContainer is not null)
-            {
-                return false;
+                if (ancestor is TypeDeclarationSyntax)
+                {
+                    return true;
+                }
+                if (ancestor is NamespaceDeclarationSyntax)
+                {
+                    return false;
+                }
             }
 
             return true;

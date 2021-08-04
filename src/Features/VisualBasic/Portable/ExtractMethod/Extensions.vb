@@ -299,15 +299,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Public Function ContainedInValidType(node As SyntaxNode) As Boolean
             Contract.ThrowIfNull(node)
             Dim typeContainer = node.FirstAncestorOrSelf(Of TypeStatementSyntax)()
+            For Each ancestor In typeContainer.AncestorsAndSelf
+                If TryCast(ancestor, TypeStatementSyntax) IsNot Nothing Then
+                    Return True
+                End If
 
-            If typeContainer IsNot Nothing Then
-                Return True
-            End If
-
-            Dim nameSpaceContainer = node.FirstAncestorOrSelf(Of NamespaceBlockSyntax)
-            If nameSpaceContainer IsNot Nothing Then
-                Return False
-            End If
+                If TryCast(ancestor, NamespaceBlockSyntax) IsNot Nothing Then
+                    Return False
+                End If
+            Next
 
             Return True
         End Function
