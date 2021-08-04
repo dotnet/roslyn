@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly BuildPaths _buildPaths;
             private readonly List<ServerData> _serverDataList = new List<ServerData>();
             private readonly XunitCompilerServerLogger _logger;
-            private bool _allowServer = true;
-            private int _failedCreatedServerCount = 0;
 
             public ServerTests(ITestOutputHelper testOutputHelper)
             {
@@ -58,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private BuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
-                CreateServerFunc createServerFunc = null)
+                CompileOnServerFunc compileOnServerFunc = null)
             {
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
-                createServerFunc ??= ((_, pipeName, _) => TryCreateServer(pipeName));
-                return new BuildClient(language.Value, compileFunc, _logger, createServerFunc);
+                compileOnServerFunc ??= delegate { throw new InvalidOperationException(); };
+                return new BuildClient(language.Value, compileFunc, compileOnServerFunc);
             }
 
             private ServerData CreateServer(string pipeName)
@@ -71,18 +69,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var serverData = ServerUtil.CreateServer(_logger, pipeName).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return serverData;
-            }
-
-            private bool TryCreateServer(string pipeName)
-            {
-                if (!_allowServer)
-                {
-                    _failedCreatedServerCount++;
-                    return false;
-                }
-
-                CreateServer(pipeName);
-                return true;
             }
 
             [Fact]
@@ -155,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     async () => await connection);
 
                 // Create server and try again
-                Assert.True(TryCreateServer(pipeName));
+                using var serverData = CreateServer(pipeName);
                 Assert.True(await tryConnectToNamedPipe(Timeout.Infinite, cancellationToken: default));
 
                 async Task<bool> tryConnectToNamedPipe(int timeoutMs, CancellationToken cancellationToken)
@@ -165,41 +151,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            [ConditionalFact(typeof(DesktopOnly))]
-            public void OnlyStartsOneServer()
-            {
-                var ranLocal = false;
-                var client = CreateClient(
-                    compileFunc: delegate
-                    {
-                        ranLocal = true;
-                        throw new Exception();
-                    });
-
-                for (var i = 0; i < 5; i++)
-                {
-                    client.RunCompilation(new[] { "/shared" }, _buildPaths, new StringWriter(), pipeName: _pipeName);
-                }
-
-                Assert.Equal(1, _serverDataList.Count);
-                Assert.False(ranLocal);
-            }
-
             [Fact]
             public void FallbackToCsc()
             {
-                _allowServer = false;
                 var ranLocal = false;
-                var client = CreateClient(compileFunc: delegate
-                {
-                    ranLocal = true;
-                    return 0;
-                });
+                var ranServer = false;
+                var client = CreateClient(
+                    compileFunc: (_, _, _, _) =>
+                    {
+                        ranLocal = true;
+                        return 0;
+                    },
+                    compileOnServerFunc: (_, _, _) =>
+                    {
+                        ranServer = true;
+                        return Task.FromResult<BuildResponse>(new RejectedBuildResponse(""));
+                    });
 
                 var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName).ExitCode;
                 Assert.Equal(0, exitCode);
                 Assert.True(ranLocal);
-                Assert.Equal(1, _failedCreatedServerCount);
+                Assert.True(ranServer);
                 Assert.Equal(0, _serverDataList.Count);
             }
         }
@@ -345,17 +317,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void GetPipeNameForPathOptSlashes()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetPipeNameForPath(path);
-                Assert.Equal(name, BuildServerConnection.GetPipeNameForPath(path));
-                Assert.Equal(name, BuildServerConnection.GetPipeNameForPath(path + Path.DirectorySeparatorChar));
-                Assert.Equal(name, BuildServerConnection.GetPipeNameForPath(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+                var name = BuildServerConnection.GetPipeName(path);
+                Assert.Equal(name, BuildServerConnection.GetPipeName(path));
+                Assert.Equal(name, BuildServerConnection.GetPipeName(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, BuildServerConnection.GetPipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
 
             [Fact]
             public void GetPipeNameForPathOptLength()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetPipeNameForPath(path);
+                var name = BuildServerConnection.GetPipeName(path);
                 // We only have ~50 total bytes to work with on mac, so the base path must be small
                 Assert.Equal(43, name.Length);
             }

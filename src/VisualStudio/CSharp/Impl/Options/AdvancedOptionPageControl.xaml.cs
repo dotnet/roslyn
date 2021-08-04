@@ -65,10 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp);
             BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, () =>
             {
-                // This option used to be backed by an experimentation flag but is now enabled by default.
+                // This option used to be backed by an experimentation flag but is no longer.
                 // Having the option still a bool? keeps us from running into storage related issues,
-                // but if the option was stored as null we want it to be enabled by default
-                return true;
+                // but if the option was stored as null we want it to respect this default
+                return false;
             });
 
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -327,9 +328,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 SemanticToken[] newSemanticTokens, int newIndex)
                 => oldSemanticTokens[oldIndex].Equals(newSemanticTokens[newIndex]);
 
-            public static IEnumerable<SequenceEdit> GetEdits(
-                SemanticToken[] oldSemanticTokens, SemanticToken[] newSemanticTokens)
-                => s_instance.GetEdits(oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
+            public static IEnumerable<SequenceEdit> GetEdits(SemanticToken[] oldSemanticTokens, SemanticToken[] newSemanticTokens)
+            {
+                try
+                {
+                    return s_instance.GetEdits(oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
+                }
+                catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
+                {
+                    // The algorithm is superlinear in memory usage so we might potentially run out in rare cases.
+                    // Report telemetry and return no edits.
+                    return SpecializedCollections.EmptyEnumerable<SequenceEdit>();
+                }
+            }
         }
 
         /// <summary>

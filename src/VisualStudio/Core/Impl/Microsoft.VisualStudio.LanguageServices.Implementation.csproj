@@ -7,7 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
