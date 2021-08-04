@@ -71,10 +71,16 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
+        // project, no callback
+
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Project project,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken);
+
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Solution solution,
-            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            Project project,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
         // solution, callback
@@ -87,6 +93,32 @@ namespace Microsoft.CodeAnalysis.Remote
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Solution solution,
             Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken);
+
+        // project, callback
+
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Project project,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken);
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken);
+
+        // streaming
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken);
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken);
     }
 }

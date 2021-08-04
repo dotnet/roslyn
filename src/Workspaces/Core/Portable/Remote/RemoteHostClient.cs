@@ -126,6 +126,40 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
+        // project, no callback.
+
+        /// <summary>
+        /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, PinnedSolutionInfo, CancellationToken, ValueTask}, CancellationToken)"/>
+        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+        /// the high potential cost of a full sync.
+        /// </summary>
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, PinnedSolutionInfo, CancellationToken, ValueTask}, CancellationToken)"/>
+        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+        /// the high potential cost of a full sync.
+        /// </summary>
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
         // solution, callback:
 
         public async ValueTask<bool> TryInvokeAsync<TService>(
@@ -150,6 +184,42 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
+        // project, callback:
+
+        /// <summary>
+        /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask}, object, CancellationToken)"/>
+        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+        /// the high potential cost of a full sync.
+        /// </summary>
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+            object callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask}, object, CancellationToken)"/>
+        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+        /// the high potential cost of a full sync.
+        /// </summary>
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            object callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
         // streaming
 
         /// <summary>
@@ -164,6 +234,23 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
             return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="TryInvokeAsync{TService, TResult}(Project, Func{TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask}, Func{PipeReader, CancellationToken, ValueTask{TResult}}, CancellationToken)"/>
+        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+        /// the high potential cost of a full sync.
+        /// </summary>
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Project project,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(project, invocation, reader, cancellationToken).ConfigureAwait(false);
         }
 
         // legacy services:
