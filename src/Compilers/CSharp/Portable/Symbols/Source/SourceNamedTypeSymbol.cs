@@ -1584,7 +1584,7 @@ next:;
         {
             get
             {
-                return this.declaration.Declarations.Any(d => d is { IsSimpleProgram: true });
+                return this.declaration.Declarations.Any(d => d.IsSimpleProgram);
             }
         }
     }

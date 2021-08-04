@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
             this.MakeFlags(
                 MethodKind.Ordinary,
-                DeclarationModifiers.Static | DeclarationModifiers.Public | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
+                DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static SourceNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
         {
-            return compilation.SourceModule.GlobalNamespace.GetTypeMembers("Program").OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
         }
 
         public override string Name
@@ -140,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _parameters;
-            }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return Accessibility.Public;
             }
         }
 

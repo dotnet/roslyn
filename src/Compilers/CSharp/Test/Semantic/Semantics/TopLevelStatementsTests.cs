@@ -5132,6 +5132,86 @@ partial class Program
         }
 
         [Fact]
+        public void ExplicitMain_07()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+System.Console.Write(""Hi!"");
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.Write(""hello "");
+    }
+
+    static async Task Main()
+    {
+        Console.Write(""hello "");
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (7,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
+                // class Program
+                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(7, 7),
+                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                //     static void Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(9, 17),
+                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                //     static async Task Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(14, 23)
+                );
+        }
+
+        [Fact]
+        public void ExplicitMain_08()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Factory.StartNew(() => 5);
+System.Console.Write(""Hi!"");
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(""hello "");
+    }
+
+    static async Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
+                // class Program
+                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(8, 7),
+                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                //     static void Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
+                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                //     static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(15, 23)
+                );
+        }
+
+        [Fact]
         public void ExplicitMain_09()
         {
             var text1 = @"
@@ -8863,13 +8943,13 @@ class Program2
         }
 
         [Fact]
-        public void SpeakableEntyrPoint()
+        public void SpeakableEntryPoint()
         {
             var text = @"
 System.Console.WriteLine(""Hi!"");
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
@@ -8881,7 +8961,7 @@ System.Console.WriteLine(""Hi!"");
             Assert.Equal("<Main>$", entryPoint.Name);
             Assert.Equal("Program", entryPoint.ContainingType.Name);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
 
             void validate(ModuleSymbol module)
             {
@@ -8910,7 +8990,7 @@ System.Console.WriteLine(""Hi!"");
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramIsPartial()
+        public void SpeakableEntryPoint_ProgramIsPartial()
         {
             var text = @"
 M();
@@ -8924,7 +9004,7 @@ public partial class Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
@@ -8936,7 +9016,7 @@ public partial class Program
             Assert.Equal("<Main>$", entryPoint.Name);
             Assert.Equal("Program", entryPoint.ContainingType.Name);
             Assert.Equal(Accessibility.Public, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
 
             void validate(ModuleSymbol module)
             {
@@ -8948,7 +9028,7 @@ public partial class Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramIsNotPartial()
+        public void SpeakableEntryPoint_ProgramIsNotPartial()
         {
             var text = @"
 M();
@@ -8962,7 +9042,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,14): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
                 // public class Program
@@ -8978,11 +9058,11 @@ public class Program
             Assert.Equal("<Main>$", entryPoint.Name);
             Assert.Equal("Program", entryPoint.ContainingType.Name);
             Assert.Equal(Accessibility.Public, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramIsInternal()
+        public void SpeakableEntryPoint_ProgramIsInternal()
         {
             var text = @"
 M();
@@ -8996,15 +9076,15 @@ internal partial class Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             CompileAndVerify(comp, expectedOutput: "Hi!");
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramWithoutDeclaredAccessibility()
+        public void SpeakableEntryPoint_ProgramWithoutDeclaredAccessibility()
         {
             var text = @"
 M();
@@ -9018,15 +9098,15 @@ partial class Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             CompileAndVerify(comp, expectedOutput: "Hi!");
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramIsStruct()
+        public void SpeakableEntryPoint_ProgramIsStruct()
         {
             var text = @"
 M();
@@ -9040,7 +9120,7 @@ partial struct Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 // M();
@@ -9051,12 +9131,12 @@ partial struct Program
                 );
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
             Assert.True(entryPoint.ContainingType.IsReferenceType);
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramIsRecord()
+        public void SpeakableEntryPoint_ProgramIsRecord()
         {
             var text = @"
 M();
@@ -9081,7 +9161,26 @@ partial record Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramCallsMain()
+        public void SpeakableEntryPoint_ProgramIsInterface()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial interface Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "System").WithArguments("Program").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramCallsMain()
         {
             var text = @"
 M(args);
@@ -9095,7 +9194,7 @@ partial class Program
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0103: The name 'Main' does not exist in the current context
                 //         Main();
@@ -9104,7 +9203,7 @@ partial class Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramHasBaseList()
+        public void SpeakableEntryPoint_ProgramHasBaseList()
         {
             var text = @"
 new Program().M();
@@ -9122,11 +9221,11 @@ partial class Program : Base
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyDiagnostics();
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
-            Assert.Equal(Accessibility.Public, entryPoint.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
             Assert.True(entryPoint.IsStatic);
 
             Assert.Equal("Base", entryPoint.ContainingType.BaseType().ToTestDisplayString());
@@ -9135,7 +9234,121 @@ partial class Program : Base
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramHasMain()
+        public void SpeakableEntryPoint_ProgramImplementsInterface()
+        {
+            var text = @"
+((Interface)new Program()).M();
+
+interface Interface
+{
+    void M();
+}
+
+partial class Program : Interface
+{
+    void Interface.M()
+    {
+        System.Console.Write(42);
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsAbstractPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+abstract partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsSealedPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+sealed partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsStaticPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+static partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsObsolete()
+        {
+            var text = @"
+System.Console.Write(42);
+
+[System.Obsolete(""error"")]
+public partial class Program
+{
+}
+
+public class C
+{
+    public Program f;
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (11,12): warning CS0618: 'Program' is obsolete: 'error'
+                //     public Program f;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Program").WithArguments("Program", "error").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsObsolete_UsedWithinProgram()
+        {
+            var text = @"
+Program p = new Program();
+
+[System.Obsolete(""error"")]
+public partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramHasMain()
         {
             var text = @"
 System.Console.Write(42);
@@ -9145,7 +9358,7 @@ partial class Program
     public static void Main(string[] args) { }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                 // (6,24): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
@@ -9155,7 +9368,7 @@ partial class Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramHasMain_DifferentSignature()
+        public void SpeakableEntryPoint_ProgramHasMain_DifferentSignature()
         {
             var text = @"
 System.Console.Write(42);
@@ -9165,7 +9378,7 @@ partial class Program
     public static void Main() { }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text);
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyDiagnostics(
                 // (6,24): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
@@ -9175,7 +9388,7 @@ partial class Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_ProgramHasBackingField()
+        public void SpeakableEntryPoint_ProgramHasBackingField()
         {
             var text = @"
 System.Console.Write(42);
@@ -9218,7 +9431,7 @@ partial class Program
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_XmlDoc()
+        public void SpeakableEntryPoint_XmlDoc()
         {
             var src = @"
 System.Console.Write(42);
@@ -9232,7 +9445,7 @@ System.Console.Write(42);
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_XmlDoc_ProgramIsPartial()
+        public void SpeakableEntryPoint_XmlDoc_ProgramIsPartial()
         {
             var src = @"
 System.Console.Write(42);
@@ -9253,7 +9466,7 @@ public partial class Program { }
         }
 
         [Fact]
-        public void SpeakableEntyrPoint_XmlDoc_ProgramIsPartial_NotCommented()
+        public void SpeakableEntryPoint_XmlDoc_ProgramIsPartial_NotCommented()
         {
             var src = @"
 System.Console.Write(42);

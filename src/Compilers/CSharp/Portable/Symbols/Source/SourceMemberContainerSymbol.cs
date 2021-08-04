@@ -2586,7 +2586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed class SimpleProgramEntryPointInfo
+        private sealed class SimpleProgramEntryPointInfo
         {
             public readonly ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> SimpleProgramEntryPoints;
 
@@ -2951,45 +2951,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SimpleProgramEntryPointInfo? simpleProgramEntryPointInfo = _lazySimpleProgramEntryPoint;
-            if (simpleProgramEntryPointInfo != SimpleProgramEntryPointInfo.UninitializedSentinel)
+            if (simpleProgramEntryPointInfo == SimpleProgramEntryPointInfo.UninitializedSentinel)
             {
-                return simpleProgramEntryPointInfo?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
-            }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            simpleProgramEntryPointInfo = buildSimpleProgramEntryPoint(diagnostics);
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                simpleProgramEntryPointInfo = buildSimpleProgramEntryPoint(diagnostics);
 
-            var alreadyKnown = Interlocked.CompareExchange(ref _lazySimpleProgramEntryPoint, simpleProgramEntryPointInfo, SimpleProgramEntryPointInfo.UninitializedSentinel);
-            if (alreadyKnown != SimpleProgramEntryPointInfo.UninitializedSentinel)
-            {
+                var alreadyKnown = Interlocked.CompareExchange(ref _lazySimpleProgramEntryPoint, simpleProgramEntryPointInfo, SimpleProgramEntryPointInfo.UninitializedSentinel);
+                if (alreadyKnown == SimpleProgramEntryPointInfo.UninitializedSentinel)
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
+
                 diagnostics.Free();
-                return alreadyKnown?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
             }
 
-            AddDeclarationDiagnostics(diagnostics);
-            diagnostics.Free();
-
-            return simpleProgramEntryPointInfo?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+            return _lazySimpleProgramEntryPoint?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
 
             SimpleProgramEntryPointInfo? buildSimpleProgramEntryPoint(BindingDiagnosticBag diagnostics)
             {
-                bool reportAnError = false;
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
 
                 foreach (var singleDecl in declaration.Declarations)
                 {
                     if (singleDecl.IsSimpleProgram)
                     {
-                        if (reportAnError)
+                        if (builder is null)
                         {
-                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
+                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
                         }
                         else
                         {
-                            reportAnError = true;
+                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
                         }
 
-                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
                         builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
                     }
                 }
