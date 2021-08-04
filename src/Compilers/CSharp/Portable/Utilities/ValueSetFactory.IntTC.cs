@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int Random(Random random)
             {
-                return (random.Next() << 10) ^ random.Next();
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }
