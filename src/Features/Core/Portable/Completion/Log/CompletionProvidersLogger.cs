@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionPartialResultCount,
             ExtensionMethodCompletionTimeoutCount,
             CommitUsingSemicolonToAddParenthesis,
-            CommitUsingDotToAddParenthesis
+            CommitUsingDotToAddParenthesis,
+
+            WaitForProviderCreationTimeoutCount
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -105,6 +107,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                     break;
             }
         }
+
+        internal static void LogWaitForProviderCreationTimeoutCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.WaitForProviderCreationTimeoutCount);
 
         internal static void ReportTelemetry()
         {

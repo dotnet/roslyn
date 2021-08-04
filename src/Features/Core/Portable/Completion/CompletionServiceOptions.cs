@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Indicate if we should wait for all completion providers to be available in synchronous operations.
-        /// MEF importing providers might be expensive and we don't want to block in certain scenarios (e.g. when on UI thread)
+        /// MEF importing providers might be expensive and we don't want to block when on UI thread.
         /// </summary>
         public static readonly Option2<bool> WaitForProviderCreation
             = new(nameof(CompletionServiceOptions), nameof(WaitForProviderCreation), defaultValue: false);

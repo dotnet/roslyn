@@ -9,9 +9,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -434,13 +436,24 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            // MEF importing providers can be expensive, we might not want to block on it in certain scenarios (e.g. when on UI thread)
-            var getProvidersTask = GetFilteredProvidersAsync(project, roles, trigger, options);
-            if (getProvidersTask.IsCompleted || options.GetOption(CompletionServiceOptions.WaitForProviderCreation))
+            try
             {
-                return getProvidersTask.Result.Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
+                // MEF importing providers can be expensive, so we only wait for a short period (250ms)
+                // if not all providers are readily available.
+                // Completion will not trigger when timed out.
+                var getProvidersTask = GetFilteredProvidersAsync(project, roles, trigger, options);
+                if (getProvidersTask.Wait(TimeSpan.FromMilliseconds(250)) || options.GetOption(CompletionServiceOptions.WaitForProviderCreation))
+                {
+                    return getProvidersTask.Result
+                        .Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
+                }
+            }
+            catch (AggregateException ex) when (ex.InnerException != null)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
             }
 
+            CompletionProvidersLogger.LogWaitForProviderCreationTimeoutCount();
             return false;
         }
 
