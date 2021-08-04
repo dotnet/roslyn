@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         /// <summary>
         /// Determines whether await should be suggested in a given position.
         /// </summary>
-        internal bool IsAwaitKeywordContext(int position)
+        internal override bool IsAwaitKeywordContext()
         {
             if (IsGlobalStatementContext)
             {
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&
-                            lockStatement.Statement.Span.Contains(position))
+                            lockStatement.Statement.Span.Contains(Position))
                         {
                             return false;
                         }
