@@ -174,8 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // cases such as namespace, type, enum, method almost any top level elements
-            if (parent is MemberDeclarationSyntax ||
-                parent is SwitchStatementSyntax)
+            if (parent is MemberDeclarationSyntax or SwitchStatementSyntax or SwitchExpressionSyntax)
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
             }

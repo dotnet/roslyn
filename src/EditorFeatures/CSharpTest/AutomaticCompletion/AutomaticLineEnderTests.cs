@@ -2684,6 +2684,31 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestSwitchExpression()
+        {
+            Test(@"
+public class Bar
+{
+    public void Foo(int c)
+    {
+        var d = c switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Foo(int c)
+    {
+        var d = c swi$$tch
+    }
+}");
+
+        }
+
+        [WpfFact]
         public void TestSwitchStatement()
         {
             Test(@"
