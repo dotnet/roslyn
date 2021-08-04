@@ -143,9 +143,70 @@ namespace Xunit.Threading
 
         protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
         {
+            var oldSyncContext = SynchronizationContext.Current;
+
             try
             {
-                return await base.InvokeTestMethodAsync(testClassInstance);
+                var asyncSyncContext = new AsyncTestSyncContext(oldSyncContext);
+                SynchronizationContext.SetSynchronizationContext(asyncSyncContext);
+
+                await Aggregator.RunAsync(
+                    () => Timer.AggregateAsync(
+                        async () =>
+                        {
+                            var parameterCount = TestMethod.GetParameters().Length;
+                            var valueCount = TestMethodArguments == null ? 0 : TestMethodArguments.Length;
+                            if (parameterCount != valueCount)
+                            {
+                                Aggregator.Add(
+                                    new InvalidOperationException(
+                                        $"The test method expected {parameterCount} parameter value{(parameterCount == 1 ? string.Empty : "s")}, but {valueCount} parameter value{(valueCount == 1 ? string.Empty : "s")} {(valueCount == 1 ? "was" : "were")} provided."));
+                            }
+                            else
+                            {
+                                var result = CallTestMethod(testClassInstance);
+                                var task = GetTaskFromResult(result);
+                                if (task != null)
+                                {
+                                    if (task.Status == TaskStatus.Created)
+                                    {
+                                        throw new InvalidOperationException("Test method returned a non-started Task (tasks must be started before being returned)");
+                                    }
+
+                                    try
+                                    {
+                                        await task;
+                                    }
+                                    catch (Exception ex) when (DataCollectionService.LogAndPropagate(ex))
+                                    {
+                                        throw ExceptionUtilities.Unreachable;
+                                    }
+                                }
+                                else
+                                {
+                                    var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                    if (ex != null)
+                                    {
+                                        DataCollectionService.TryLog(ex);
+                                        Aggregator.Add(ex);
+                                    }
+                                }
+                            }
+                        }));
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(oldSyncContext);
+            }
+
+            return Timer.Total;
+        }
+
+        protected override object CallTestMethod(object testClassInstance)
+        {
+            try
+            {
+                return base.CallTestMethod(testClassInstance);
             }
             catch (Exception ex) when (DataCollectionService.LogAndPropagate(ex))
             {
