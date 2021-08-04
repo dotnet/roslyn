@@ -9,6 +9,7 @@
     <Import_RootNamespace>Xunit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\ActivityLogCollector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\EventLogCollector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemDotNetEntry.cs" />
@@ -33,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\InProcComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\IVsActivityLogDumper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\OleServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\TestInvoker_InProc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\VisualStudio_InProc.cs" />

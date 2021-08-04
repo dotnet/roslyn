@@ -115,6 +115,7 @@ namespace Xunit.Harness
 
                 File.WriteAllText(CreateLogFileName(logDir, timestamp, testName, errorId, logId: string.Empty, "log"), ex.ToString());
 
+                ActivityLogCollector.TryWriteActivityLogToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "Activity", "xml"));
                 EventLogCollector.TryWriteDotNetEntriesToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "DotNet", "log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "Watson", "log"));
 
