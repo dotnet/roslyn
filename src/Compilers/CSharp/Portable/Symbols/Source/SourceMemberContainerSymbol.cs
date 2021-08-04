@@ -2953,7 +2953,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SimpleProgramEntryPointInfo? simpleProgramEntryPointInfo = _lazySimpleProgramEntryPoint;
             if (simpleProgramEntryPointInfo == SimpleProgramEntryPointInfo.UninitializedSentinel)
             {
-
                 var diagnostics = BindingDiagnosticBag.GetInstance();
                 simpleProgramEntryPointInfo = buildSimpleProgramEntryPoint(diagnostics);
 
