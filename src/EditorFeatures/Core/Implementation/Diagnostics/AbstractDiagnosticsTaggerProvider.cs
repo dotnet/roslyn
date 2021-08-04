@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService));
         }
 
-        protected internal abstract bool IsEnabled(Document document);
+        protected internal abstract bool IsEnabled { get; }
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
         protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
@@ -125,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private async Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
         {
-            var document = spanToTag.Document;
-            if (document == null)
+            if (!IsEnabled)
             {
                 return;
             }
 
-            if (!this.IsEnabled(document))
+            var document = spanToTag.Document;
+            if (document == null)
             {
                 return;
             }

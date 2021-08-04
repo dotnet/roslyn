@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -373,6 +374,32 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
                 var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+                var experimentIsEnabledOption = _dataSource.ExperimentIsEnabledOption ?? SpecializedCollections.EmptyEnumerable<(PerLanguageOption2<bool?>, string)>();
+
+                if (!_subjectBuffer.TryGetWorkspace(out var workspace))
+                {
+                    return false;
+                }
+
+                var experimentService = workspace.Services.GetRequiredService<IExperimentationService>();
+                if (experimentIsEnabledOption.Any())
+                {
+                    foreach (var option in experimentIsEnabledOption)
+                    {
+                        var experimentEnabled = experimentService.IsExperimentEnabled(option.Item2);
+                        var experimentFeatureOn = _subjectBuffer.GetFeatureOnOffOption(option.Item1);
+                        if (experimentFeatureOn == true || (experimentEnabled == true && !experimentFeatureOn.HasValue))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
 
                 return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
                        perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));

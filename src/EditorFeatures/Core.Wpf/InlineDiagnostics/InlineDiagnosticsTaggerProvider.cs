@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -20,6 +22,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
@@ -29,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
+        protected sealed override IEnumerable<(PerLanguageOption2<bool?>, string)> ExperimentIsEnabledOption =>
+            SpecializedCollections.SingletonEnumerable((InlineDiagnosticsOptions.EnableInlineDiagnostics, WellKnownExperimentNames.InlineDiagnostics));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             return TaggerEventSources.Compose(
                 base.CreateEventSource(textViewOpt, subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.EnableInlineDiagnostics),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
         }
 
@@ -58,17 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
                 !string.IsNullOrWhiteSpace(diagnostic.Message) &&
                 !diagnostic.IsSuppressed;
-        }
-
-        protected internal override bool IsEnabled(Document document)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, document.Project.Language);
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InlineDiagnostics);
-
-            var shouldEnableFeature = option == true || (experimentEnabled == true && !option.HasValue);
-            return shouldEnableFeature;
         }
 
         protected override InlineDiagnosticsTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
