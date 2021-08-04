@@ -384,10 +384,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var experimentService = workspace.Services.GetRequiredService<IExperimentationService>();
                 if (experimentIsEnabledOption.Any())
                 {
-                    foreach (var option in experimentIsEnabledOption)
+                    foreach (var (option, experiment) in experimentIsEnabledOption)
                     {
-                        var experimentEnabled = experimentService.IsExperimentEnabled(option.Item2);
-                        var experimentFeatureOn = _subjectBuffer.GetFeatureOnOffOption(option.Item1);
+                        var experimentEnabled = experimentService.IsExperimentEnabled(experiment);
+                        var experimentFeatureOn = _subjectBuffer.GetFeatureOnOffOption(option);
                         if (experimentFeatureOn == true || (experimentEnabled == true && !experimentFeatureOn.HasValue))
                         {
                             continue;
