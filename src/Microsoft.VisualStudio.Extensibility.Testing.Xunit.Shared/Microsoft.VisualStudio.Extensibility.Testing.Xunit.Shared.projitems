@@ -10,6 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\EventLogCollector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemDotNetEntry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemWatsonEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\GlobalServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestAssemblyRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFramework.cs" />
