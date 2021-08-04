@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public AnalyzerSetting(DiagnosticDescriptor descriptor,
                                ReportDiagnostic effectiveSeverity,
                                AnalyzerSettingsUpdater settingsUpdater,
-                               Language language)
+                               Language language,
+                               SettingLocation location)
         {
             _descriptor = descriptor;
             _settingsUpdater = settingsUpdater;
@@ -35,15 +36,17 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             IsEnabled = enabled;
             Severity = severity;
             Language = language;
+            Location = location;
         }
 
         public string Id => _descriptor.Id;
-        public string Title => _descriptor.Title.ToString(CultureInfo.CurrentCulture);
-        public string Description => _descriptor.Description.ToString(CultureInfo.CurrentCulture);
+        public string Title => _descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+        public string Description => _descriptor.Description.ToString(CultureInfo.CurrentUICulture);
         public string Category => _descriptor.Category;
         public DiagnosticSeverity Severity { get; private set; }
         public bool IsEnabled { get; private set; }
         public Language Language { get; }
+        public SettingLocation Location { get; }
 
         internal void ChangeSeverity(DiagnosticSeverity severity)
         {

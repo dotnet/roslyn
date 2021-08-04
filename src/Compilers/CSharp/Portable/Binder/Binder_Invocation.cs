@@ -1322,6 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Params array is filled in the local rewriter
             var lastIndex = expanded ? ^1 : ^0;
 
+            var argumentsCount = argumentsBuilder.Count;
             // Go over missing parameters, inserting default values for optional parameters
             foreach (var parameter in parameters.AsSpan()[..lastIndex])
             {
@@ -1330,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
@@ -1349,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1383,6 +1384,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var memberName = containingMember.GetMemberCallerName();
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
+                    argumentIndex > -1 && argumentIndex < argumentsCount)
+                {
+                    var argument = argumentsBuilder[argumentIndex];
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
                 {
@@ -1437,6 +1444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return defaultValue;
+
+                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt)
+                    => argsToParamsOpt.IsDefault
+                        ? parameterIndex
+                        : argsToParamsOpt.IndexOf(parameterIndex);
             }
 
         }
@@ -1659,7 +1671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (parameterType?.Kind == SymbolKind.NamedType &&
                                     (object)parameterType.GetDelegateType() != null)
                                 {
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                    // Just assume we're not in an expression tree for the purposes of error recovery.
+                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
                                 }
                             }
 

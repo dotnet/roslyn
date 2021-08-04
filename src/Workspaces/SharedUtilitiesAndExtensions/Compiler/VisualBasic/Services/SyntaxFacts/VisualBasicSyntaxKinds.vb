@@ -70,6 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKinds.EndOfFileToken
         Public ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword Implements ISyntaxKinds.AwaitKeyword
+        Public ReadOnly Property AsyncKeyword As Integer = SyntaxKind.AsyncKeyword Implements ISyntaxKinds.AsyncKeyword
 
         Public ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken Implements ISyntaxKinds.IdentifierToken
         Public ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword Implements ISyntaxKinds.GlobalKeyword

@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             return searchServiceCallback.ReturnsAsync(isFullyLoaded ? NavigateToSearchLocation.Latest : NavigateToSearchLocation.Cache);
         }
 
-        private static ValueTask<(bool projectSystem, bool remoteHost)> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
-            => new((projectSystem, remoteHost));
+        private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
+            => new(projectSystem && remoteHost);
 
         [Fact]
         public async Task NotFullyLoadedOnlyMakesOneSearchProjectCallIfValueReturned()
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
-            // Because we did a full search, the accuracy is dependent on it the project system was fully loaded or not.
-            callbackMock.Setup(c => c.Done(projectSystemFullyLoaded));
+            // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
+            callbackMock.Setup(c => c.Done(false));
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
         [Theory]
         [CombinatorialData]
-        public async Task NotFullyLoadedStillReportsAsFullyCompletedIfSecondCallReturnsNothing(bool projectIsFullyLoaded)
+        public async Task NotFullyLoadedStillReportsAsNotCompleteIfRemoteHostIsStillHydrating(bool projectIsFullyLoaded)
         {
             using var workspace = TestWorkspace.CreateCSharp("");
 
@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
 
-            // Because we did a full search, the accuracy is dependent on it the project system was fully loaded or not.
-            callbackMock.Setup(c => c.Done(projectIsFullyLoaded));
+            // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
+            callbackMock.Setup(c => c.Done(false));
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,

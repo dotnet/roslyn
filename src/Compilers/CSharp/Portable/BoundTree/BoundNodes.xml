@@ -2185,7 +2185,7 @@
 
   <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Initializer" Type="BoundExpressionStatement?"/>
+    <Field Name="Initializer" Type="BoundStatement?"/>
   </Node>
 
   <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->
