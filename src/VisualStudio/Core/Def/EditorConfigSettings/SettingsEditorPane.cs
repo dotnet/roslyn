@@ -17,8 +17,8 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.Vie
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             // hook up our panel
             _control = new SettingsEditorControl(
-                GetFormattingView(),
+                GetWhitespaceView(),
                 GetCodeStyleView(),
                 GetAnalyzerView(),
                 _workspace,
@@ -115,16 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                 new EventHandler(OnViewCode), new EventHandler(OnQueryViewCode));
             }
 
-            ISettingsEditorView GetFormattingView()
+            ISettingsEditorView GetWhitespaceView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<FormattingSetting>(_fileName);
+                var dataProvider = _settingsDataProviderService.GetSettingsProvider<WhitespaceSetting>(_fileName);
                 if (dataProvider is null)
                 {
-                    throw new InvalidOperationException("Unable to get formatter settings");
+                    throw new InvalidOperationException("Unable to get whitespace settings");
                 }
 
-                var viewModel = new FormattingViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new FormattingSettingsView(viewModel);
+                var viewModel = new WhitespaceViewModel(dataProvider, _controlProvider, _tableMangerProvider);
+                return new WhitespaceSettingsView(viewModel);
             }
 
             ISettingsEditorView GetCodeStyleView()
