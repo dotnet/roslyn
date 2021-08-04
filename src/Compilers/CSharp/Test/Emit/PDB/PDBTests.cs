@@ -7638,6 +7638,15 @@ class C
         <namespace name=""System"" />
       </scope>
     </method>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""61"" />
+          <slot kind=""0"" offset=""64"" />
+          <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
   </methods>
 </symbols>");
         }
@@ -7740,6 +7749,13 @@ class C
           <slot kind=""0"" offset=""61"" />
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
     </method>

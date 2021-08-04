@@ -63,7 +63,14 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, MethodDefinitionHandle methodHandle, bool emitEncInfo, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(
+            EmitContext context,
+            IMethodBody methodBody,
+            MethodDefinitionHandle methodHandle,
+            bool emitStateMachineInfo,
+            bool emitEncInfo,
+            bool emitDynamicAndTupleInfo,
+            out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
@@ -88,27 +95,30 @@ namespace Microsoft.Cci
             var pooledBuilder = PooledBlobBuilder.GetInstance();
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
-            if (methodBody.StateMachineTypeName != null)
+            if (emitStateMachineInfo)
             {
-                encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
-            }
-            else
-            {
-                SerializeNamespaceScopeMetadata(ref encoder, context, methodBody);
+                if (methodBody.StateMachineTypeName != null)
+                {
+                    encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
+                }
+                else
+                {
+                    SerializeNamespaceScopeMetadata(ref encoder, context, methodBody);
 
-                encoder.AddStateMachineHoistedLocalScopes(methodBody.StateMachineHoistedLocalScopes);
+                    encoder.AddStateMachineHoistedLocalScopes(methodBody.StateMachineHoistedLocalScopes);
+                }
             }
 
-            if (!suppressNewCustomDebugInfo)
+            if (emitDynamicAndTupleInfo)
             {
                 SerializeDynamicLocalInfo(ref encoder, methodBody);
                 SerializeTupleElementNames(ref encoder, methodBody);
+            }
 
-                if (emitEncInfo)
-                {
-                    var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
-                    SerializeCustomDebugInformation(ref encoder, encMethodInfo);
-                }
+            if (emitEncInfo)
+            {
+                var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
+                SerializeCustomDebugInformation(ref encoder, encMethodInfo);
             }
 
             byte[] result = encoder.ToArray();

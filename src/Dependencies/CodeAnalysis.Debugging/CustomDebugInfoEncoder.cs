@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             if (_recordCount == 0)
             {
-                return null;
+                return Array.Empty<byte>();
             }
 
             Debug.Assert(_recordCount <= byte.MaxValue);
