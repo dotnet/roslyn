@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        private readonly IClassificationFormatMapService _classificationFormatMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
         protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
-            IClassificationFormatMapService classificationFormatMap,
+            IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
             : base(threadingContext, diagnosticService, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _classificationFormatMap = classificationFormatMap;
+            _classificationFormatMapService = classificationFormatMapService;
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
-            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMap,
+            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService,
                 _classificationTypeRegistryService, locationOption, navigateService);
         }
 

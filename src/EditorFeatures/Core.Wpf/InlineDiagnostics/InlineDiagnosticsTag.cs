@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
+        private readonly IClassificationType? _classificationType;
+
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
             IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
             InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _editorFormatMap = editorFormatMap;
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
             _classificationTypeRegistryService = classificationTypeRegistryService;
+            _classificationType = _classificationTypeRegistryService.GetClassificationType("url");
         }
 
         /// <summary>
@@ -70,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             else
             {
                 // Match the hyperlink color to what the classification is set to by the user
-                var classificationType = _classificationTypeRegistryService.GetClassificationType("url");
-                var linkColor = _classificationFormatMap.GetTextProperties(classificationType);
+                var linkColor = _classificationFormatMap.GetTextProperties(_classificationType);
                 hyperlink.Foreground = linkColor.ForegroundBrush;
 
                 block.Inlines.Add(hyperlink);
