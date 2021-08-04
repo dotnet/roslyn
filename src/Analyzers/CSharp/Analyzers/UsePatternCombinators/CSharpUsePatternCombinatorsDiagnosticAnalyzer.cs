@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,13 +20,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        private static readonly LocalizableResourceString s_safePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_unsafe_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+
+        private static readonly DiagnosticDescriptor s_safeDescriptor = CreateDescriptorWithId(
+                    IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                    EnforceOnBuildValues.UsePatternCombinators,
+                    title: s_safePatternTitle,
+                    messageFormat: s_safePatternTitle);
+
+        private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
+                    IDEDiagnosticIds.UseUnsafePatternCombinatorsDiagnosticsId,
+                    EnforceOnBuildValues.UsePatternCombinators,
+                    title: s_unsafePatternTitle,
+                    messageFormat: s_unsafePatternTitle);
+
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-                EnforceOnBuildValues.UsePatternCombinators,
-                CSharpCodeStyleOptions.PreferPatternMatching,
-                LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            : base(
+                  new Dictionary<DiagnosticDescriptor, Options.ILanguageSpecificOption> {
+                      { s_safeDescriptor, CSharpCodeStyleOptions.PreferPatternMatching },
+                      { s_unsafeDescriptor, CSharpCodeStyleOptions.PreferPatternMatching }
+                  }.ToImmutableDictionary(), LanguageNames.CSharp)
         {
         }
 
@@ -76,8 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (HasIllegalPatternVariables(pattern, isTopLevel: true))
                 return;
 
+            // If we are sure the codefix would not have side-effects, then use the "safe" description
+            // Otherwise use the "unsafe" description
+            var desc = IsPure(pattern) ? s_safeDescriptor : s_unsafeDescriptor;
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
+                desc,
                 expression.GetLocation(),
                 styleOption.Notification.Severity,
                 additionalLocations: null,
@@ -126,6 +146,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Binary _ => false,
                 _ => true
             };
+        }
+
+        private static bool IsPure(AnalyzedPattern pattern)
+        {
+            if (pattern is Constant)
+                return true;
+
+            if (pattern.Target is Operations.IPropertyReferenceOperation prop)
+            {
+                return IsAutoProperty(prop.Property);
+            }
+
+            return pattern.Target is
+                Operations.ILocalReferenceOperation or
+                Operations.IParameterReferenceOperation or
+                Operations.IFieldReferenceOperation or
+                Operations.IInstanceReferenceOperation;
+        }
+
+        // Blantantly stolen from here :
+        // https://www.meziantou.net/checking-if-a-property-is-an-auto-implemented-property-in-roslyn.htm
+        //
+        // For such a small snippet of code, I have a hard time seeing how you could be original given how
+        // many variations there are online. If I still shouldn't do that, please let me know ^^"
+        private static bool IsAutoProperty(IPropertySymbol propertySymbol)
+        {
+            // Get fields declared in the same type as the property
+            var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
+
+            // Check if one field is associated to
+            return fields.Any(field => SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, propertySymbol));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

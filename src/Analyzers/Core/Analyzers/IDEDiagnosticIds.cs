@@ -136,6 +136,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvalidSuppressMessageAttributeDiagnosticId = "IDE0076";
         public const string LegacyFormatSuppressMessageAttributeDiagnosticId = "IDE0077";
 
+        /// <summary>
+        /// <b>Side-effects free</b> codefix for when a logical expression can be rewritten using pattern matching
+        /// </summary>
         public const string UsePatternCombinatorsDiagnosticId = "IDE0078";
 
         public const string RemoveUnnecessarySuppressionDiagnosticId = "IDE0079";
@@ -147,6 +150,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+
+        /// <summary>
+        /// Reported when using IDE0078 code-fix might have unexpected side-effects
+        /// <br/>
+        /// <br/>
+        /// See https://github.com/dotnet/roslyn/issues/50462
+        /// </summary>
+        public const string UseUnsafePatternCombinatorsDiagnosticsId = "IDE0085";
 
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 

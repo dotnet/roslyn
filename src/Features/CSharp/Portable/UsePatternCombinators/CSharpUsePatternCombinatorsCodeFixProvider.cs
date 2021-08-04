@@ -49,15 +49,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId, IDEDiagnosticIds.UseUnsafePatternCombinatorsDiagnosticsId);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            if (context.Diagnostics.First().Id == IDEDiagnosticIds.UseUnsafePatternCombinatorsDiagnosticsId)
+            {
+                context.RegisterCodeFix(
+                   new MyUnsafeCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                   context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterCodeFix(
+                    new MySafeCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                    context.Diagnostics);
+            }
+
             return Task.CompletedTask;
         }
 
@@ -121,10 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             return expr.Parenthesize();
         }
 
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
+        private class MySafeCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MySafeCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpUsePatternCombinatorsCodeFixProvider))
+            {
+            }
+
+            internal override CodeActionPriority Priority => CodeActionPriority.Low;
+        }
+
+        private class MyUnsafeCodeAction : CustomCodeActions.DocumentChangeAction
+        {
+            public MyUnsafeCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_unsafe_pattern_matching, createChangedDocument, nameof(CSharpUsePatternCombinatorsCodeFixProvider))
             {
             }
 

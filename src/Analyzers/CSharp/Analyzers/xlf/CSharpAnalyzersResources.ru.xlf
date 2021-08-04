@@ -272,6 +272,11 @@
         <target state="translated">Использовать выражение switch</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_unsafe_pattern_matching">
+        <source>Use pattern matching (this could have side effects !)</source>
+        <target state="new">Use pattern matching (this could have side effects !)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
         <target state="translated">Директивы using должны находиться внутри объявления namespace</target>
