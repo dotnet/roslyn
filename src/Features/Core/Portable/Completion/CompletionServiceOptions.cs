@@ -26,5 +26,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
             = new(nameof(CompletionServiceOptions), nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), defaultValue: 500);
+
+        /// <summary>
+        /// Indicate if we should wait for all completion providers to be available in synchronous operations.
+        /// MEF importing providers might be expensive and we don't want to block in certain scenarios (e.g. when on UI thread)
+        /// </summary>
+        public static readonly Option2<bool> WaitForProviderCreation
+            = new(nameof(CompletionServiceOptions), nameof(WaitForProviderCreation), defaultValue: false);
     }
 }

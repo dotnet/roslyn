@@ -47,26 +47,26 @@ namespace Microsoft.CodeAnalysis.Completion
             => ImmutableArray<CompletionProvider>.Empty;
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
-        {
-            var getProviderTask = _providerSource.GetProvidersAsync(roles ?? ImmutableHashSet<string>.Empty);
-            if (getProviderTask.IsCompleted)
-            {
-                return getProviderTask.Result;
-            }
+            => _providerSource.GetProvidersAsync(roles ?? ImmutableHashSet<string>.Empty).Result;
 
-            return ImmutableArray<CompletionProvider>.Empty;
-        }
+        [Obsolete("Please use GetProvidersAsync instead.")]
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, CompletionTrigger trigger)
+            => GetProviders(roles);
 
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(
-            ImmutableHashSet<string> roles, CompletionTrigger trigger)
-        {
-            return GetProviders(roles);
-        }
+        protected Task<ImmutableArray<CompletionProvider>> GetProvidersAsync(ImmutableHashSet<string> roles)
+            => _providerSource.GetProvidersAsync(roles ?? ImmutableHashSet<string>.Empty);
 
-        private ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
+        protected virtual Task<ImmutableArray<CompletionProvider>> GetProvidersAsync(
+            ImmutableHashSet<string> roles,
+            CompletionTrigger trigger,
+            CancellationToken cancellationToken = default)
+            => GetProvidersAsync(roles);
+
+        private async Task<ConcatImmutableArray<CompletionProvider>> GetFilteredProvidersAsync(
             Project project, ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
         {
-            var allCompletionProviders = FilterProviders(GetProviders(roles, trigger), trigger, options);
+            var providers = await GetProvidersAsync(roles, trigger).ConfigureAwait(false);
+            var allCompletionProviders = FilterProviders(providers, trigger, options);
             var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
             return allCompletionProviders.ConcatFast(projectCompletionProviders);
         }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var providers = GetFilteredProviders(document.Project, roles, trigger, options);
+            var providers = await GetFilteredProvidersAsync(document.Project, roles, trigger, options).ConfigureAwait(false);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
 
@@ -434,8 +434,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            var providers = GetFilteredProviders(project, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
+            // MEF importing providers can be expensive, we might not want to block on it in certain scenarios (e.g. when on UI thread)
+            var getProvidersTask = GetFilteredProvidersAsync(project, roles, trigger, options);
+            if (getProvidersTask.IsCompleted || options.GetOption(CompletionServiceOptions.WaitForProviderCreation))
+            {
+                return getProvidersTask.Result.Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
+            }
+
+            return false;
         }
 
         internal virtual bool SupportsTriggerOnDeletion(OptionSet options)
@@ -563,10 +569,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
-                => _completionServiceWithProviders._providerSource.GetProvidersAsync(roles).Result;
-
-            internal void EnsureCompletionProvidersAvailable()
-                => GetAllProviders(ImmutableHashSet<string>.Empty);
+                => _completionServiceWithProviders.GetProvidersAsync(roles).Result;
 
             internal Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

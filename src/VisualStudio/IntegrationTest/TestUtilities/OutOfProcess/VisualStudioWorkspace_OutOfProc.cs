@@ -125,6 +125,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
+        public void SetCompletionServiceWaitForProviderCreation(bool value)
+        {
+            SetOption(
+                optionName: CompletionServiceOptions.WaitForProviderCreation.Name,
+                feature: CompletionServiceOptions.WaitForProviderCreation.Feature,
+                value: value);
+        }
+
         public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 

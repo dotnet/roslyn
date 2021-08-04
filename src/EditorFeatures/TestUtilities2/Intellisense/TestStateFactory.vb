@@ -27,8 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             testState.Workspace.SetOptions(
                 testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
-            Dim completionService = DirectCast(testState.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
-            completionService.GetTestAccessor().EnsureCompletionProvidersAvailable()
+            testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(CompletionServiceOptions.WaitForProviderCreation, True))
 
             Return testState
         End Function
@@ -36,15 +35,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Shared Function CreateVisualBasicTestState(documentElement As XElement,
                                                            Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
 
-            Return New TestState(<Workspace>
-                                     <Project Language="Visual Basic" CommonReferences="true">
-                                         <Document>
-                                             <%= documentElement.Value %>
-                                         </Document>
-                                     </Project>
-                                 </Workspace>,
+            Dim testState = New TestState(<Workspace>
+                                              <Project Language="Visual Basic" CommonReferences="true">
+                                                  <Document>
+                                                      <%= documentElement.Value %>
+                                                  </Document>
+                                              </Project>
+                                          </Workspace>,
                                  excludedTypes:=Nothing, extraExportedTypes,
                                  includeFormatCommandHandler:=False, workspaceKind:=Nothing)
+
+            testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(CompletionServiceOptions.WaitForProviderCreation, True))
+
+            Return testState
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
@@ -58,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             testState.Workspace.SetOptions(
                 testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
-            Dim completionService = DirectCast(testState.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
-            completionService.GetTestAccessor().EnsureCompletionProvidersAvailable()
+            testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(CompletionServiceOptions.WaitForProviderCreation, True))
 
             Return testState
         End Function
