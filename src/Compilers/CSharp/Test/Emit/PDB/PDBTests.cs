@@ -7584,7 +7584,7 @@ public class C
         [Fact]
         public void HiddenMethods()
         {
-            var src = @"
+            var src = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -7614,7 +7614,7 @@ class C
             Console.WriteLine(x);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
