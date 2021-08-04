@@ -3,6 +3,7 @@
 
 namespace EqualExceptionLegacy
 {
+    using System;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -12,6 +13,12 @@ namespace EqualExceptionLegacy
         public void EqualsFailure()
         {
             Assert.Equal(0, 1);
+        }
+
+        [IdeFact]
+        public void EqualsFailureNonXunit()
+        {
+            throw new InvalidOperationException("Unexpected assertion result.");
         }
 
         [IdeFact]
@@ -25,6 +32,13 @@ namespace EqualExceptionLegacy
         {
             await Task.Yield();
             Assert.Equal(0, 1);
+        }
+
+        [IdeFact]
+        public async Task EqualsFailureNonXunitAsync()
+        {
+            await Task.Yield();
+            throw new InvalidOperationException("Unexpected assertion result.");
         }
 
         [IdeFact]
