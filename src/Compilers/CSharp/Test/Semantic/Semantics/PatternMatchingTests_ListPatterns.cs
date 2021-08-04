@@ -1521,6 +1521,62 @@ slice
         }
 
         [Fact]
+        public void ListPattern_Nullable()
+        {
+            var source = @"
+using System;
+struct S
+{
+    public int Length => 1;
+    public int this[int i] => 42;
+
+    public static bool Test(S? s)
+    {
+        return s is [42];
+    }
+
+    public static void Main()
+    {
+        Console.WriteLine(Test(new S()));
+        Console.WriteLine(Test(null));
+    }
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics();
+            string expectedOutput = @"
+True
+False
+";
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            verifier.VerifyIL("S.Test", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0028
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S S?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int S.Length.get""
+  IL_0018:  ldc.i4.1
+  IL_0019:  bne.un.s   IL_0028
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldc.i4.0
+  IL_001e:  call       ""int S.this[int].get""
+  IL_0023:  ldc.i4.s   42
+  IL_0025:  ceq
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
         public void ListPattern_Negated_01()
         {
             var source = @"
