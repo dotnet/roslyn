@@ -2217,7 +2217,7 @@ End Class
                 "Update [a]@27 -> [b]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Public Delegate Function D(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "Public Delegate Function D(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9767,7 +9767,7 @@ End Class
                 "Update [a]@24 -> [b]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "b", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9788,7 +9788,7 @@ End Class
                 "Update [a]@26 -> [b]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "b", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9809,7 +9809,7 @@ End Class
                 "Update [a]@40 -> [b]@40")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "b", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9830,7 +9830,7 @@ End Class
                 "Update [b]@44 -> [x]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "x", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9851,7 +9851,7 @@ End Class
                 "Update [b]@52 -> [x]@52")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "x", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -9872,7 +9872,7 @@ End Class
                 "Update [a]@24 -> [b]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "b", FeaturesResources.parameter))
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -10072,7 +10072,7 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.parameter),
-                Diagnostic(RudeEditKind.Renamed, "c", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "c", FeaturesResources.parameter))
         End Sub
 
         <Theory>

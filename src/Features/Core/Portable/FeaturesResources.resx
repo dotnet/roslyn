@@ -471,7 +471,7 @@
   <data name="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the library name of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
-  </data>    
+  </data>
   <data name="Updating_the_alias_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the alias of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
@@ -2898,5 +2898,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Changing_constraints_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing constraints of {0} requires restarting the application.</value>
+  </data>
+  <data name="Renaming_parameter_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Renaming parameter {0} requires restarting the application because it is not supported by the runtime.</value>
   </data>
 </root>

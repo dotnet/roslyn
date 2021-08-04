@@ -3297,11 +3297,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (oldSymbol.Name != newSymbol.Name)
             {
-                if (oldSymbol is IParameterSymbol &&
-                    newSymbol is IParameterSymbol &&
-                    capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
+                if (oldSymbol is IParameterSymbol && newSymbol is IParameterSymbol)
                 {
-                    hasParameterRename = true;
+                    if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
+                    {
+                        hasParameterRename = true;
+                    }
+                    else
+                    {
+                        rudeEdit = RudeEditKind.RenamingParameterNotSupportedByRuntime;
+                    }
                 }
                 else
                 {
