@@ -12,27 +12,6 @@ namespace TestResources
         public static byte[] FaultyAnalyzer => ResourceLoader.GetOrCreateResource(ref s_faultyAnalyzer, "Analyzers.FaultyAnalyzer.dll");
     }
 
-    public static class AssemblyLoadTests
-    {
-        private static byte[] s_alpha;
-        public static byte[] Alpha => ResourceLoader.GetOrCreateResource(ref s_alpha, "AssemblyLoadTests.Alpha.dll");
-
-        private static byte[] s_beta;
-        public static byte[] Beta => ResourceLoader.GetOrCreateResource(ref s_beta, "AssemblyLoadTests.Beta.dll");
-
-        private static byte[] s_delta1;
-        public static byte[] Delta1 => ResourceLoader.GetOrCreateResource(ref s_delta1, "AssemblyLoadTests.Delta.dll");
-
-        private static byte[] s_gamma;
-        public static byte[] Gamma => ResourceLoader.GetOrCreateResource(ref s_gamma, "AssemblyLoadTests.Gamma.dll");
-
-        private static byte[] s_delta2;
-        public static byte[] Delta2 => ResourceLoader.GetOrCreateResource(ref s_delta2, "AssemblyLoadTests.Version2.Delta.dll");
-
-        private static byte[] s_epsilon;
-        public static byte[] Epsilon => ResourceLoader.GetOrCreateResource(ref s_epsilon, "AssemblyLoadTests.Version2.Epsilon.dll");
-    }
-
     public static class DiagnosticTests
     {
         private static byte[] s_badresfile;

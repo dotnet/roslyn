@@ -18,9 +18,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AnalyzerFileReferenceTests : TestBase
     {
         private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
+        private readonly AssemblyLoadTestFixture _testResources;
+        public AnalyzerFileReferenceTests(AssemblyLoadTestFixture testResources)
+        {
+            _testResources = testResources;
+        }
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
@@ -164,9 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors3()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -175,8 +179,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
-
-            File.Delete(alphaDll.Path);
 
             Assert.Equal(0, errors.Count);
         }
@@ -195,9 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ValidAnalyzerReference_DisplayName()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
         }
@@ -207,9 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void ValidAnalyzerReference_Id()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
 
             AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out var expectedIdentity);
 

@@ -14,6 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [CollectionDefinition(Name)]
+    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    {
+        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
+        private AssemblyLoadTestFixtureCollection() { }
+    }
+
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
@@ -177,7 +184,6 @@ Delta: Epsilon: Test E
                 eWrite.Invoke(e, new object[] { sb, "Test E" });
                 Assert.Equal(
 @"Delta: Gamma: Test G
-Delta: Epsilon: Test E
 ",
                     actual);
             }

@@ -15,18 +15,6 @@
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
     <Content Include="Analyzers\FaultyAnalyzer.cs" />
     <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
-    <Content Include="AssemblyLoadTests\Alpha.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Alpha.dll" />
-    <Content Include="AssemblyLoadTests\Beta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Beta.dll" />
-    <Content Include="AssemblyLoadTests\Delta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Delta.dll" />
-    <Content Include="AssemblyLoadTests\Gamma.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Gamma.dll" />
-    <Content Include="AssemblyLoadTests\Version2\Delta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Version2\Delta.dll" />
-    <Content Include="AssemblyLoadTests\Version2\Epsilon.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Version2\Epsilon.dll" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestLib01.dll" />

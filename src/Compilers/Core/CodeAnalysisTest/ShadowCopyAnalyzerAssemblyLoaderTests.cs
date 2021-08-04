@@ -16,9 +16,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public sealed class ShadowCopyAnalyzerAssemblyLoaderTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+        private readonly AssemblyLoadTestFixture _testResources;
+        public ShadowCopyAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testResources)
+        {
+            _testResources = testResources;
+        }
 
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency()
@@ -109,25 +115,17 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
         {
             StringBuilder sb = new StringBuilder();
 
-            var path1 = Temp.CreateDirectory();
-            var gammaDll = path1.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var delta1Dll = path1.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
-
-            var path2 = Temp.CreateDirectory();
-            var epsilonDll = path2.CreateFile("Epsilon.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Epsilon);
-            var delta2Dll = path2.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta2);
-
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(gammaDll.Path);
-            loader.AddDependencyLocation(delta1Dll.Path);
-            loader.AddDependencyLocation(epsilonDll.Path);
-            loader.AddDependencyLocation(delta2Dll.Path);
+            loader.AddDependencyLocation(_testResources.Gamma.Path);
+            loader.AddDependencyLocation(_testResources.Delta1.Path);
+            loader.AddDependencyLocation(_testResources.Epsilon.Path);
+            loader.AddDependencyLocation(_testResources.Delta2.Path);
 
-            Assembly gamma = loader.LoadFromPath(gammaDll.Path);
+            Assembly gamma = loader.LoadFromPath(_testResources.Gamma.Path);
             var g = gamma.CreateInstance("Gamma.G");
             g.GetType().GetMethod("Write").Invoke(g, new object[] { sb, "Test G" });
 
-            Assembly epsilon = loader.LoadFromPath(epsilonDll.Path);
+            Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E");
             e.GetType().GetMethod("Write").Invoke(e, new object[] { sb, "Test E" });
 

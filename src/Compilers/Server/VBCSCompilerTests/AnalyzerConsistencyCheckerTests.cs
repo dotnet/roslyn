@@ -17,23 +17,33 @@ using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
+    [CollectionDefinition(Name)]
+    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    {
+        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
+        private AssemblyLoadTestFixtureCollection() { }
+    }
+
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AnalyzerConsistencyCheckerTests : TestBase
     {
+        private AssemblyLoadTestFixture TestResources { get; }
         private ICompilerServerLogger Logger { get; }
-
-        public AnalyzerConsistencyCheckerTests(ITestOutputHelper testOutputHelper)
+        public AnalyzerConsistencyCheckerTests(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture testResources)
         {
             Logger = new XunitCompilerServerLogger(testOutputHelper);
+            TestResources = testResources;
         }
 
         [Fact]
         public void MissingReference()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CopyFile(TestResources.Alpha.Path);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
@@ -44,20 +54,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void AllChecksPassed()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
-
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Alpha.dll"),
                 new CommandLineAnalyzerReference("Beta.dll"),
                 new CommandLineAnalyzerReference("Gamma.dll"),
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
-
+            var result = AnalyzerConsistencyChecker.Check(Path.GetDirectoryName(TestResources.Alpha.Path), analyzerReferences, new InMemoryAssemblyLoader(), Logger);
             Assert.True(result);
         }
 
@@ -67,14 +70,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var directory = Temp.CreateDirectory();
 
             // Load Beta.dll from the future Alpha.dll path to prime the assembly loader
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
+            var alphaDll = directory.CopyFile(TestResources.Beta.Path, name: "Alpha.dll");
 
             var assemblyLoader = new InMemoryAssemblyLoader();
             var betaAssembly = assemblyLoader.LoadFromPath(alphaDll.Path);
 
-            alphaDll.WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
+            // now overwrite the {directory}/Alpha.dll file with the content from our Alpha.dll test resource
+            alphaDll.CopyContentFrom(TestResources.Alpha.Path);
+            directory.CopyFile(TestResources.Gamma.Path);
+            directory.CopyFile(TestResources.Delta1.Path);
 
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Alpha.dll"),
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void AssemblyLoadException()
         {
             var directory = Temp.CreateDirectory();
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta1);
+            directory.CopyFile(TestResources.Delta1.Path);
 
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Delta.dll"));

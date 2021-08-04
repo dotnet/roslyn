@@ -3,27 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    [CollectionDefinition(Name)]
-    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
-    {
-        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
-        private AssemblyLoadTestFixtureCollection() { }
-    }
-
     public class AssemblyLoadTestFixture : IDisposable
     {
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
         private readonly TempRoot _temp;
         private readonly TempDirectory _directory;
@@ -150,7 +139,6 @@ namespace Epsilon
 }
 ", delta2Reference);
         }
-
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
         {
