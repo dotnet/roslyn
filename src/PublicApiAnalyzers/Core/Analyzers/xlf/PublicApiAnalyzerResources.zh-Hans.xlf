@@ -175,7 +175,7 @@
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="needs-review-translation">删除公共类型或成员时还应该删除 PublicAPI.txt 中相应的项。这将关注代码评审和源代码管理历史记录中的 API 更改，并有助于防止重大更改。</target>
-        <note />
+        <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>

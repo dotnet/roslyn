@@ -161,7 +161,7 @@
   </data>
   <data name="RemoveDeletedApiDescription" xml:space="preserve">
     <value>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
-    <note>{Locked="*REMOVED*"}</note>
+    <comment>{Locked="*REMOVED*"}</comment>
   </data>
   <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
     <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</value>

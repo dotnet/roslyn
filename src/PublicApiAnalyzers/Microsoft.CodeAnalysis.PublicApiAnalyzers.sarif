@@ -31,7 +31,7 @@
         "RS0017": {
           "id": "RS0017",
           "shortDescription": "Remove deleted types and members from the declared API",
-          "fullDescription": "When removing a public type or member put that entry in PublicAPI.Unshipped.txt with *REMOVED* prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "fullDescription": "When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
