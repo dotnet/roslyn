@@ -121,7 +121,7 @@ namespace Microsoft.Cci
                 SerializeCustomDebugInformation(ref encoder, encMethodInfo);
             }
 
-            byte[] result = encoder.ToArray();
+            byte[] result = encoder.ToArray() ?? Array.Empty<byte>();
             pooledBuilder.Free();
             return result;
         }
