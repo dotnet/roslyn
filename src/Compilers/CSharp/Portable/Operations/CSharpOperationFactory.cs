@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IBinaryOperation createBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
             {
                 BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-                IMethodSymbol? operatorMethod = boundBinaryOperator.MethodOpt.GetPublicSymbol();
+                IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
                 IMethodSymbol? unaryOperatorMethod = null;
 
                 // For dynamic logical operator MethodOpt is actually the unary true/false operator

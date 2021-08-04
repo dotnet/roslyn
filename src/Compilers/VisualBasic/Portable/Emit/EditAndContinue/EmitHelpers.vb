@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
-            Dim changes = moduleBeingBuilt.Changes
+            Dim changes = moduleBeingBuilt.EncSymbolChanges
 
             Dim newBaseline As EmitBaseline = Nothing
 

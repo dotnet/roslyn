@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+
+            if (token == default)
+            {
+                return null;
+            }
+
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             return GetTargetPositionIfControlFlow(semanticModel, token);
