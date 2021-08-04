@@ -37,7 +37,7 @@ steps:
 - powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
   failOnStderr: false
   displayName: Test EqualExceptionLegacy
-  condition: succeededOrFailed()
+  condition: eq(variables['SignTypeSelection'], '')
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
