@@ -2429,8 +2429,15 @@ outerDefault:
             // and an implicit conversion C2 that converts from an expression E to a type T2,
             // C1 is a better conversion than C2 if E is a non-constant interpolated string expression, C1
             // is an interpolated string handler conversion, and C2 is not an interpolated string
-            // handler conversion
-            if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
+            // handler conversion.
+            // We deviate from our usual policy around language version not changing binding behavior here
+            // because this will cause existing code that chooses one overload to instead choose an overload
+            // that will immediately cause an error. True, the user does need to update their target framework
+            // or a library to a version that takes advantage of the feature, but we made this pragmatic
+            // choice after we received customer reports of problems in the space.
+            // https://github.com/dotnet/roslyn/issues/55345
+            if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
+                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {
