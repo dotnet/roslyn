@@ -81,11 +81,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             foreach (var (_, projectState) in state.ProjectStates)
             {
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-
                 if (searchingChecksumsLeft.Count == 0)
                     break;
+
+                // It's possible not all all our projects have checksums.  Specifically, we may have only been
+                // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
+                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
 
             ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);

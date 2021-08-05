@@ -165,6 +165,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var projectId in solutionState.ProjectIds)
             {
+                if (remainingChecksumsToFind.Count == 0)
+                    break;
+
                 if (solutionState.TryGetStateChecksums(projectId, out stateChecksums))
                     await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
