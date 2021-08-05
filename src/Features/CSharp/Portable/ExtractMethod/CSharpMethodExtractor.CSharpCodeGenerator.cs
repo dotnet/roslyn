@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
-                    parameters: CreateMethodParameters(),
+                    parameters: CreateMethodParameters(localFunction),
                     statements: result.Data,
                     methodKind: localFunction ? MethodKind.LocalFunction : MethodKind.Ordinary);
 
@@ -173,6 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return statements.CastArray<SyntaxNode>();
             }
+
+            protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
+            => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8;
 
             private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;

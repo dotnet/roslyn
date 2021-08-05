@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -332,8 +333,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return typeParameters.ToImmutableAndFree();
             }
 
-            protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
+            protected ImmutableArray<IParameterSymbol> CreateMethodParameters(bool localFunction)
             {
+                var root = SemanticDocument.Root;
+                if (localFunction && ShouldLocalFunctionCaptureParameter(root))
+                {
+                    return ImmutableArray.Create<IParameterSymbol>();
+                }
+
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 foreach (var parameter in AnalyzerResult.MethodParameters)
