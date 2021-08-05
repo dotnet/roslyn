@@ -8,11 +8,13 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
@@ -441,9 +443,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Async Function GetSelectedItemDescriptionAsync() As Task(Of CompletionDescription)
-            Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+            Dim editorItem = GetSelectedEditorItem()
+            Dim triggerLocation As SnapshotPoint
+            Assert.True(editorItem.Properties.TryGetProperty(CompletionSource.TriggerLocation, triggerLocation))
+            Dim document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim roslynItem = GetRoslynCompletionItem(editorItem)
             Dim service = CompletionService.GetService(document)
-            Dim roslynItem = GetSelectedItem()
             Return Await service.GetDescriptionAsync(document, roslynItem)
         End Function
 
@@ -475,10 +480,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Function GetSelectedItem() As CompletionItem
+            Return GetRoslynCompletionItem(GetSelectedEditorItem())
+        End Function
+
+        Public Function GetSelectedEditorItem() As Data.CompletionItem
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
-            Return GetRoslynCompletionItem(items.SelectedItem)
+            Return items.SelectedItem
         End Function
 
         Public Sub CalculateItemsIfSessionExists()

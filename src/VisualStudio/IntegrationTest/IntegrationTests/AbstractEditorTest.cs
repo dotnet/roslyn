@@ -61,8 +61,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     ClearEditor();
                 }
 
-                VisualStudio.Workspace.SetCompletionServiceWaitForProviderCreation(true);
-
                 // Work around potential hangs in 16.10p2 caused by the roslyn LSP server not completing initialization before solution closed.
                 // By waiting for the async operation tracking roslyn LSP server activation to complete we should never
                 // encounter the scenario where the solution closes while activation is incomplete.

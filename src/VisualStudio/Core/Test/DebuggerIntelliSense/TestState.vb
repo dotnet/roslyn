@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -80,14 +81,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow)
+            Return CreateTestState(workspaceElement, isImmediateWindow)
         End Function
 
         Public Shared Function CreateCSharpTestState(
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow)
+            Return CreateTestState(workspaceElement, isImmediateWindow)
+        End Function
+
+        Private Shared Function CreateTestState(
+                workspaceElement As XElement,
+                isImmediateWindow As Boolean) As TestState
+
+            Dim state = New TestState(workspaceElement, isImmediateWindow)
+            state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionServiceOptions.WaitForProviderCreation, True))
+            Return state
         End Function
 
         Public Function GetCurrentViewLineText() As String
