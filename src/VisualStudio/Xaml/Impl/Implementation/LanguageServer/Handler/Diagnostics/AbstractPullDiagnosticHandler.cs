@@ -192,8 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         private static CodeDescription? GetCodeDescription(string? helpLink)
         {
-            if (!string.IsNullOrEmpty(helpLink)
-                && Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
+            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
             {
                 return new CodeDescription
                 {
