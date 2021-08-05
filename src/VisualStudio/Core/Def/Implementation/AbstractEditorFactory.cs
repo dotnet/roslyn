@@ -45,8 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
-        protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
