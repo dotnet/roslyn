@@ -1102,6 +1102,11 @@
         <target state="translated">참조 없는 기호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">두 번 탭하여 인수 삽입(실험적)</target>
@@ -1176,6 +1181,11 @@
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">사용되지 않는 값이 무시 항목에 명시적으로 할당됩니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>

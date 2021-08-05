@@ -1102,6 +1102,11 @@
         <target state="translated">沒有參考的符號</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">按 Tab 鍵兩次可插入引數 (實驗性)</target>
@@ -1176,6 +1181,11 @@
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">未使用的值已明確指派至捨棄</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>

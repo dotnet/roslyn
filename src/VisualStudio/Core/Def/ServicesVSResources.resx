@@ -1762,4 +1762,12 @@ Additional information: {1}</value>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
   </data>
+  <data name="Sync_Namespaces" xml:space="preserve">
+    <value>Sync Namespaces</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Updating_namspaces" xml:space="preserve">
+    <value>Updating namespaces...</value>
+    <comment>"namespaces" is the programming language concept</comment>
+  </data>
 </root>

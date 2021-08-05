@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -198,6 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
             this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().Initialize(this);
+            this.ComponentModel.GetService<SyncNamespacesCommandHandler>().Initialize(this);
 
             LoadAnalyzerNodeComponents();
 

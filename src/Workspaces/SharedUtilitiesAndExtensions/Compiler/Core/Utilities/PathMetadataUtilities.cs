@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var parts = folders.SelectMany(folder => folder.Split(NamespaceSeparatorArray)).SelectAsArray(syntaxFacts.EscapeIdentifier);
 
-            var constructedNamespace = parts.All(syntaxFacts.IsValidIdentifier)
+            var constructedNamespace = !parts.IsEmpty && parts.All(syntaxFacts.IsValidIdentifier)
                 ? string.Join(".", parts)
                 : null;
 
