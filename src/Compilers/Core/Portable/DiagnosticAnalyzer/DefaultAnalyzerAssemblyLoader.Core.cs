@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var pathToLoad = _loader.GetPathToLoad(assemblyPath);
-            try
+                try
                 {
                     return LoadFromAssemblyPath(pathToLoad);
                 }
