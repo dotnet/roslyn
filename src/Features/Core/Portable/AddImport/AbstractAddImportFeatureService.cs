@@ -555,6 +555,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // Get the diagnostics that indicate a missing import.
             var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
                .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
                .ToImmutableArray();
