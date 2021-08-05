@@ -979,9 +979,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
-            var statesForCases = state.Cases;
-            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
-            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
+            ImmutableArray<StateForCase> cases = state.Cases;
+            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
             (whenTrueValues, whenFalseValues, bool whenTruePossible, bool whenFalsePossible) = SplitValues(state.RemainingValues, test);
             // whenTruePossible means the test could possibly have succeeded.  whenFalsePossible means it could possibly have failed.
             // Tests that are either impossible or tautological (i.e. either of these false) given
@@ -990,10 +990,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // against a non-constant value).
             whenTrueValues.TryGetValue(test.Input, out IValueSet? whenTrueValuesOpt);
             whenFalseValues.TryGetValue(test.Input, out IValueSet? whenFalseValuesOpt);
-            foreach (var statesForCase in statesForCases)
+            foreach (var stateForCase in cases)
             {
                 SplitCase(
-                    state, statesForCase, test,
+                    state, stateForCase, test,
                     whenTrueValuesOpt, whenFalseValuesOpt,
                     out var whenTrueState, out var whenFalseState, ref foundExplicitNullTest);
                 // whenTrueState.IsImpossible occurs when Split results in a state for a given case where the case has been ruled
@@ -1913,14 +1913,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                         int lengthValue = safeAdd(t.Value.Int32Value, offset);
-                                        return rewriteLengthTest(BinaryOperatorKind.Equal, lengthValue) ??
+                                        return knownResult(BinaryOperatorKind.Equal, lengthValue) ??
                                                new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                         int lengthValue = safeAdd(t.Value.Int32Value, offset);
-                                        return rewriteLengthTest(t.Relation, lengthValue) ??
+                                        return knownResult(t.Relation, lengthValue) ??
                                                new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
                             }
@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                         Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
                                         int lengthValue = t.Value.Int32Value;
-                                        return rewriteLengthTest(t.Relation, lengthValue) ?? this;
+                                        return knownResult(t.Relation, lengthValue) ?? this;
                                     }
                             }
                         }
@@ -1942,9 +1942,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this;
 
-                    static Tests? rewriteLengthTest(BinaryOperatorKind op, int lengthValue)
+                    static Tests? knownResult(BinaryOperatorKind relation, int lengthValue)
                     {
-                        var lengthValues = ValueSetFactory.ForLength.Related(op, lengthValue);
+                        var lengthValues = ValueSetFactory.ForLength.Related(relation, lengthValue);
                         if (lengthValues.IsEmpty)
                             return False.Instance;
                         if (lengthValues.Complement().IsEmpty)
