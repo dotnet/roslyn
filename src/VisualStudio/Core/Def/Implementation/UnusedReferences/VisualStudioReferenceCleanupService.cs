@@ -20,13 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     [ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
     {
-        private readonly IProjectSystemReferenceCleanupService _projectSystemReferenceUpdateService;
+        private readonly IProjectSystemReferenceCleanupService2 _projectSystemReferenceUpdateService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioReferenceCleanupService(IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService)
         {
-            _projectSystemReferenceUpdateService = projectSystemReferenceUpdateService;
+            _projectSystemReferenceUpdateService = (IProjectSystemReferenceCleanupService2)projectSystemReferenceUpdateService;
         }
 
         public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
@@ -35,9 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
         }
 
-        public Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+        public async Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
-            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
+            var operation = await _projectSystemReferenceUpdateService.GetUpdateReferenceOperationAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken).ConfigureAwait(true);
+            if (operation is null)
+                return false;
+
+            return await operation.ApplyAsync(cancellationToken).ConfigureAwait(true);
         }
     }
 }
