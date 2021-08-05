@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void CreateServicesInBackground()
         {
-            _ = Task.Run(ImportCompeltionProviders);
+            _ = Task.Run(ImportCompletionProviders);
 
             // Preload completion providers on a background thread since assembly loads can be slow
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
