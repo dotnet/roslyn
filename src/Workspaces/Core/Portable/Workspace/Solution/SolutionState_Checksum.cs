@@ -43,14 +43,20 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksum))
                 {
-                    lazyChecksum = new AsyncLazy<SolutionStateChecksums>(
-                        c => ComputeChecksumsAsync(projectId, c), cacheResult: true);
+                    lazyChecksum = CreateLazyChecksum(projectId);
                     _lazyProjectChecksums.Add(projectId, lazyChecksum);
                 }
             }
 
             var collection = await lazyChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return collection.Checksum;
+
+            // Extracted as a local function to prevent delegate allocations when not needed.
+            ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId)
+            {
+                return new AsyncLazy<SolutionStateChecksums>(
+                    c => ComputeChecksumsAsync(projectId, c), cacheResult: true);
+            }
         }
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
