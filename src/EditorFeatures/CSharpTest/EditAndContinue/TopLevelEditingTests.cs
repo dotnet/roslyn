@@ -4052,7 +4052,7 @@ record C(int X)
                 "Update [int a]@22 -> [int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter));
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -6797,7 +6797,7 @@ class C
                 "Update [string[] args]@35 -> [string[] b]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -6830,7 +6830,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingParameterNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,

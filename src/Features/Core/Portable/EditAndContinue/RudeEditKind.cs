@@ -133,6 +133,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangingTypeParameters = 104,
         ChangingConstraints = 105,
         ChangingReloadableTypeNotSupportedByRuntime = 106,
-        RenamingParameterNotSupportedByRuntime = 107,
+        RenamingNotSupportedByRuntime = 107,
     }
 }

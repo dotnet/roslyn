@@ -3305,7 +3305,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        rudeEdit = RudeEditKind.RenamingParameterNotSupportedByRuntime;
+                        rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
                 }
                 else
