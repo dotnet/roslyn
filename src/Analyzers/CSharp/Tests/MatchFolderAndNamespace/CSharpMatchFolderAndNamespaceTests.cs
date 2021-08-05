@@ -525,14 +525,14 @@ namespace {DefaultNamespace}
         {
             var folder = CreateFolderPath();
 
-            var code = $@"
-namespace {DefaultNamespace}.Test
+            var code =
+$@"namespace [|{DefaultNamespace}.Test|]
 {{
     class C {{ }}
 }}";
 
-            var fixedCode = $@"
-namespace {DefaultNamespace}
+            var fixedCode =
+$@"namespace {DefaultNamespace}
 {{
     class C {{ }}
 }}";
