@@ -20,7 +20,7 @@ namespace Xunit.Harness
 
     internal sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
     {
-        public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
+        public static readonly string VsLaunchArgs = string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? string.Empty : $"/rootsuffix {Settings.Default.VsRootSuffix}";
 
         private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
 

@@ -100,8 +100,8 @@ namespace Xunit.InProcess
                 var vsActivityLogBuilder = new StringBuilder(vsActivityLogContents.Remove(lastIndexOfClosingBracket + 1, vsActivityLogContents.Length - lastIndexOfClosingBracket - 1));
 
                 // We need to add a root element so that the it's valid xml and can easily be consumed using Xml.Linq
-                vsActivityLogBuilder.Insert(0, $"<{VisualStudioActivityLogRoot}>");
-                vsActivityLogBuilder.AppendLine($"</{VisualStudioActivityLogRoot}>");
+                vsActivityLogBuilder.Insert(0, $"<{VisualStudioActivityLogRoot}>{Environment.NewLine}");
+                vsActivityLogBuilder.AppendLine($"{Environment.NewLine}</{VisualStudioActivityLogRoot}>");
 
                 return vsActivityLogBuilder.ToString();
             });
