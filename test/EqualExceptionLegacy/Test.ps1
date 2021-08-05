@@ -135,6 +135,13 @@ if (-not $pngPath) {
     Exit 1
 }
 
+$activityPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.Activity.xml" | sort LastWriteTime | select -last 1
+if (-not $pngPath) {
+    Write-Host "Verifying diagnostic in-memory activity log for failing test"
+    Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.Activity.xml'"
+    Exit 1
+}
+
 # Verify the first failure (non-xunit exception)
 $failure1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailureNonXunit (VS2019)']")
 if ($failure1.Node.outcome -ne "Failed") {
