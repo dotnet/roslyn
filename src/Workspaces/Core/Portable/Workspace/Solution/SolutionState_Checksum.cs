@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis
                     var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
                                                                 .Select(id => ProjectStates[id])
                                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                                .Select(s => s.GetChecksumAsync(cancellationToken));
+                                                                .Select(s => s.GetChecksumAsync(cancellationToken))
+                                                                .ToArray();
 
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
