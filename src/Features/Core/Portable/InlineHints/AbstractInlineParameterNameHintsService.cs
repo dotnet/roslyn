@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
+        protected abstract bool IsArrayIndexer(SyntaxNode node);
+
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return ImmutableArray<InlineHint>.Empty;
 
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
+            var arrayIndexers = displayAllOverride || options.GetOption(InlineHintsOptions.ForArrayIndexers);
             var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
             var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
@@ -60,14 +63,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 if (buffer.Count > 0)
                 {
-                    AddHintsIfAppropriate();
+                    AddHintsIfAppropriate(node);
                     buffer.Clear();
                 }
             }
 
             return result.ToImmutable();
 
-            void AddHintsIfAppropriate()
+            void AddHintsIfAppropriate(SyntaxNode node)
             {
                 if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
+                    if (HintMatches(node, kind, literalParameters, objectCreationParameters, otherParameters, arrayIndexers))
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
@@ -178,14 +181,26 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 => c is >= '0' and <= '9';
         }
 
-        private static bool HintMatches(HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters)
-            => kind switch
+        private bool HintMatches(SyntaxNode node, HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters, bool arrayIndexers)
+        {
+            switch (kind)
             {
-                HintKind.Literal => literalParameters,
-                HintKind.ObjectCreation => objectCreationParameters,
-                HintKind.Other => otherParameters,
-                _ => throw ExceptionUtilities.UnexpectedValue(kind),
-            };
+                case HintKind.Literal:
+                    if (literalParameters)
+                    {
+                        return (arrayIndexers || !IsArrayIndexer(node));
+                    }
+
+                    return false;
+
+                case HintKind.ObjectCreation:
+                    return objectCreationParameters;
+                case HintKind.Other:
+                    return otherParameters;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
 
         protected static bool MatchesMethodIntent(IParameterSymbol? parameter)
         {

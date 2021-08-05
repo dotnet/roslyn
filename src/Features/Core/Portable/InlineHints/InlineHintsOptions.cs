@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
 
+        public static readonly PerLanguageOption2<bool> ForArrayIndexers =
+            new(nameof(InlineHintsOptions),
+                nameof(ForArrayIndexers),
+                defaultValue: false,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers"));
+
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
             new(nameof(InlineHintsOptions),
                 nameof(SuppressForParametersThatDifferOnlyBySuffix),
