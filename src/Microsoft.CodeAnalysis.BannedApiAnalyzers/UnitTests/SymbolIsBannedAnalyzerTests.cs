@@ -1309,7 +1309,7 @@ End Namespace";
             await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText1,
-                GetBasicResultAt(0,SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
 
             await VerifyBasicAnalyzerAsync(
                 source,
