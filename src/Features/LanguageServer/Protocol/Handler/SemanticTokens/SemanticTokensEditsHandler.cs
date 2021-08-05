@@ -104,19 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // the old and new tokens. Edits are computed on an int level, with five ints representing
             // one token. We compute on int level rather than token level to minimize the amount of
             // edits we send back to the client.
-            var editsDiffer = new SemanticTokensEditsDiffer(oldSemanticTokens, newSemanticTokens);
-            IReadOnlyList<DiffEdit>? edits;
-
-            try
-            {
-                edits = editsDiffer.ComputeDiff();
-            }
-            catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
-            {
-                // The algorithm is superlinear in memory usage so we might potentially run out in
-                // rare cases. Report telemetry and return no edits.
-                return Array.Empty<LSP.SemanticTokensEdit>();
-            }
+            var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldSemanticTokens, newSemanticTokens);
 
             var processedEdits = ProcessEdits(newSemanticTokens, edits);
             return processedEdits;
@@ -124,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static LSP.SemanticTokensEdit[] ProcessEdits(
             int[] newSemanticTokens,
-            IReadOnlyList<DiffEdit> edits)
+            IEnumerable<SequenceEdit> edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
 
@@ -132,11 +120,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             foreach (var edit in edits)
             {
                 var editInProgress = results.Count > 0 ? results[^1] : null;
-                switch (edit.Operation)
+                switch (edit.Kind)
                 {
-                    case DiffEdit.Type.Delete:
+                    case EditKind.Delete:
                         if (editInProgress != null &&
-                            editInProgress.Start + editInProgress.DeleteCount == edit.Position)
+                            editInProgress.Start + editInProgress.DeleteCount == edit.OldIndex)
                         {
                             editInProgress.DeleteCount += 1;
                         }
@@ -144,28 +132,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             results.Add(new RoslynSemanticTokensEdit
                             {
-                                Start = edit.Position,
+                                Start = edit.OldIndex,
                                 DeleteCount = 1,
                             });
                         }
 
                         break;
-                    case DiffEdit.Type.Insert:
+                    case EditKind.Insert:
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
-                            editInProgress.Start == edit.Position)
+                            editInProgress.Start == edit.OldIndex)
                         {
-                            editInProgress.Data.Add(newSemanticTokens[edit.NewTextPosition!.Value]);
+                            editInProgress.Data.Add(newSemanticTokens[edit.NewIndex]);
                         }
                         else
                         {
                             var semanticTokensEdit = new RoslynSemanticTokensEdit
                             {
-                                Start = edit.Position,
+                                Start = edit.OldIndex,
                                 Data = new List<int>
                                 {
-                                    newSemanticTokens[edit.NewTextPosition!.Value],
+                                    newSemanticTokens[edit.NewIndex],
                                 },
                                 DeleteCount = 0,
                             };
@@ -174,6 +162,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         }
 
                         break;
+                    default:
+                        throw new InvalidOperationException("Only EditKind.Insert and EditKind.Delete are valid.");
                 }
             }
 
@@ -181,24 +171,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return processedResults.ToArray();
         }
 
-        private sealed class SemanticTokensEditsDiffer : TextDiffer
+        private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
         {
-            private readonly int[] _oldSemanticTokens;
-            private readonly int[] _newSemanticTokens;
+            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
-            public SemanticTokensEditsDiffer(int[] oldSemanticTokens, int[] newSemanticTokens)
+            protected override bool ItemsEqual(
+                int[] oldSemanticTokens, int oldIndex,
+                int[] newSemanticTokens, int newIndex)
+                => oldSemanticTokens[oldIndex] == newSemanticTokens[newIndex];
+
+            public static IEnumerable<SequenceEdit> GetEdits(int[] oldSemanticTokens, int[] newSemanticTokens)
             {
-                _oldSemanticTokens = oldSemanticTokens;
-                _newSemanticTokens = newSemanticTokens;
-            }
+                try
+                {
+                    var edits = s_instance.GetEdits(
+                        oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
 
-            protected override int OldTextLength => _oldSemanticTokens.Length;
+                    // We don't care about updates and can ignore them since they don't indicate changes.
+                    var editsWithIgnoredUpdates = edits.Where(e => e.Kind is not EditKind.Update);
 
-            protected override int NewTextLength => _newSemanticTokens.Length;
-
-            protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
-            {
-                return _oldSemanticTokens[oldTextIndex] == _newSemanticTokens[newTextIndex];
+                    // By default, edits are returned largest -> smallest index. For computation purposes later on,
+                    // we can want to have the edits ordered smallest -> largest index.
+                    return editsWithIgnoredUpdates.Reverse();
+                }
+                catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
+                {
+                    // The algorithm is superlinear in memory usage so we might potentially run out in rare cases.
+                    // Report telemetry and return no edits.
+                    return SpecializedCollections.EmptyEnumerable<SequenceEdit>();
+                }
             }
         }
 
