@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -32,11 +33,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <param name="projectId">If specified, the checksum will only contain information about the 
         /// provided project (and any projects it depends on)</param>
-        public async Task<Checksum> GetChecksumAsync(
-            ProjectId projectId, IImmutableSet<ProjectId> dependentSet, CancellationToken cancellationToken)
+        public async Task<Checksum> GetChecksumAsync(ProjectId? projectId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(projectId);
-            Contract.ThrowIfNull(dependentSet);
+            if (projectId == null)
+                return await GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             ValueSource<SolutionStateChecksums>? lazyChecksum;
             lock (_lazyProjectChecksums)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksum))
                 {
                     lazyChecksum = new AsyncLazy<SolutionStateChecksums>(
-                        c => ComputeChecksumsAsync(dependentSet, c), cacheResult: true);
+                        c => ComputeChecksumsAsync(projectId, c), cacheResult: true);
                     _lazyProjectChecksums.Add(projectId, lazyChecksum);
                 }
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
-            IImmutableSet<ProjectId>? projectsToInclude, CancellationToken cancellationToken)
+            ProjectId? projectId, CancellationToken cancellationToken)
         {
             try
             {
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis
                     // get states by id order to have deterministic checksum.  Limit to the requested set of projects
                     // if applicable.
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
+                    var projectsToInclude = GetProjectsToInclude(projectId);
                     var projectChecksumTasks =
                         orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
                                          .Select(id => ProjectStates[id])
@@ -93,6 +94,29 @@ namespace Microsoft.CodeAnalysis
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private HashSet<ProjectId>? GetProjectsToInclude(ProjectId? projectId)
+        {
+            if (projectId == null)
+                return null;
+
+            var result = new HashSet<ProjectId>();
+            AddReferencedProjects(result, projectId);
+            return result;
+        }
+
+        private void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
+        {
+            if (!result.Add(projectId))
+                return;
+
+            var projectState = this.GetProjectState(projectId);
+            if (projectState == null)
+                return;
+
+            foreach (var refProject in projectState.ProjectReferences)
+                AddReferencedProjects(result, refProject.ProjectId);
         }
     }
 }
