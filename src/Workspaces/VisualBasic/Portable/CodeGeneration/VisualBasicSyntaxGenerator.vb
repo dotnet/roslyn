@@ -67,9 +67,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode
             Dim node = SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(nodes))
-            Return node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
-                    WithTrailingTrivia(node.GetTrailingTrivia()).
-                    WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
+            node = node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
+                    WithTrailingTrivia(node.GetTrailingTrivia())
+
+            If lastWhitespaceTrivia = Nothing Then
+                Return node.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString))
+            End If
+
+            Return node.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
         End Function
 
         Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -898,9 +903,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If initializer IsNot Nothing Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
+
             If refKind <> RefKind.None Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
+
             Return tokens
         End Function
 
@@ -1177,6 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return qname.Right.ToString()
                 End If
             End If
+
             Return GetName(declaration)
         End Function
 
@@ -1528,6 +1536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If name IsNot Nothing Then
                 Return Me.NamespaceImportDeclaration(name)
             End If
+
             Return TryCast(node, ImportsStatementSyntax)
         End Function
 
@@ -1547,6 +1556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                       CType(name, NameSyntax))))
 
             End If
+
             Throw New ArgumentException("name is not a NameSyntax.", NameOf(name))
         End Function
 
@@ -1714,6 +1724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return asClause.Attributes
                 End Select
             End If
+
             Return Nothing
         End Function
 
@@ -1857,6 +1868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return declaration.Parent
                     End If
             End Select
+
             Return declaration
         End Function
 
@@ -1879,6 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return stmt.WithImportsClauses(SyntaxFactory.SingletonSeparatedList(DirectCast(declaration, ImportsClauseSyntax)))
                     End If
             End Select
+
             Return declaration
         End Function
 
@@ -1973,6 +1986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.SimpleImportsClause
                     Return DirectCast(declaration, SimpleImportsClauseSyntax).Name.ToString()
             End Select
+
             Return String.Empty
         End Function
 
@@ -2061,6 +2075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return asClause.Type
                     End If
             End Select
+
             Return Nothing
         End Function
 
@@ -2138,6 +2153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return vd.AsClause
                     End If
             End Select
+
             Return Nothing
         End Function
 
@@ -2172,6 +2188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.VariableDeclarator
                     Return DirectCast(declaration, VariableDeclaratorSyntax).WithAsClause(asClause)
             End Select
+
             Return declaration
         End Function
 
@@ -2791,6 +2808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return ev.Value
                     End If
             End Select
+
             Return Nothing
         End Function
 
@@ -2799,6 +2817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If es IsNot Nothing Then
                 Return es.Expression
             End If
+
             Return DirectCast(node, ExpressionSyntax)
         End Function
 
@@ -2842,6 +2861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return WithEqualsValue(declaration, SyntaxFactory.EqualsValue(expr))
                     End If
             End Select
+
             Return declaration
         End Function
 
@@ -2862,6 +2882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.VariableDeclarator
                     Return DirectCast(declaration, VariableDeclaratorSyntax).Initializer
             End Select
+
             Return Nothing
         End Function
 
@@ -2880,6 +2901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return ReplaceWithTrivia(declaration, fd.Declarators(0), fd.Declarators(0).WithInitializer(ev))
                     End If
             End Select
+
             Return declaration
         End Function
 
@@ -3198,6 +3220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return eb.WithAccessors(eb.Accessors.Add(accessor))
                 End Select
             End If
+
             Return declaration
         End Function
 
@@ -3244,9 +3267,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If addAccessorStatements Is Nothing Then
                     addAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
                 End If
+
                 If removeAccessorStatements Is Nothing Then
                     removeAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
                 End If
+
                 If raiseAccessorStatements Is Nothing Then
                     raiseAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
                 End If
@@ -3308,6 +3333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Attribute
                     Return DirectCast(declaration, AttributeSyntax).ArgumentList
             End Select
+
             Return Nothing
         End Function
 
@@ -3321,6 +3347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Attribute
                     Return DirectCast(declaration, AttributeSyntax).WithArgumentList(argumentList)
             End Select
+
             Return declaration
         End Function
 

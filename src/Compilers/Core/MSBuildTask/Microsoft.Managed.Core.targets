@@ -81,7 +81,7 @@
     </PropertyGroup>
 
     <!-- PERF: For builds which are indirectly triggered inside Visual Studio from commands 
-               such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers to speed up the build.
+               such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers and nullable analysis to speed up the build.
                We only do so by default when 'TreatWarningsAsErrors' is not 'true'. For the scenario where
 			         'TreatWarningsAsErrors' is 'true', users can explicitly enable this functionality by setting
 			         'OptimizeImplicitlyTriggeredBuild' to 'true'.
@@ -93,6 +93,7 @@
                               ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
       <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
       <_SkipAnalyzers>true</_SkipAnalyzers>
+      <Features>run-nullable-analysis=never;$(Features)</Features>
     </PropertyGroup>
 
     <!-- Display a message to inform the users about us implicitly skipping analyzers for speeding up indirect builds. -->
@@ -186,14 +187,10 @@
     <!-- Transform the collected properties and items into an editor config file -->
     <GenerateMSBuildEditorConfig
       PropertyItems="@(_GeneratedEditorConfigProperty)"
-      MetadataItems="@(_GeneratedEditorConfigMetadata)">
-
-      <Output TaskParameter="ConfigFileContents"
-          PropertyName="_GeneratedEditorConfigFileContent" />
+      MetadataItems="@(_GeneratedEditorConfigMetadata)"
+      FileName="$(GeneratedMSBuildEditorConfigFile)">
     </GenerateMSBuildEditorConfig>
 
-    <!-- Write the output to the generated file, if it's changed -->
-    <WriteLinesToFile Lines="$(_GeneratedEditorConfigFileContent)" File="$(GeneratedMSBuildEditorConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
   </Target>
 
   <!--

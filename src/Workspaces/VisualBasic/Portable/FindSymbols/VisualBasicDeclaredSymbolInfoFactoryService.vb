@@ -267,6 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     If isExtension Then
                         AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
                     End If
+
                     Return
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = DirectCast(node, PropertyStatementSyntax)
@@ -464,6 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             If parameterList IsNot Nothing Then
                 AppendParameters(parameterList.Parameters, builder)
             End If
+
             builder.Append(")"c)
 
             Return pooledBuilder.ToStringAndFree()

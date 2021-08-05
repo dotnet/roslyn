@@ -215,57 +215,28 @@ namespace Microsoft.CodeAnalysis.Options
                 Debug.Assert(ShouldSerialize(optionKey));
 
                 if (!_serializableOptions.Contains(optionKey.Option))
-                {
                     continue;
-                }
 
-                var kind = OptionValueKind.Null;
-                object? valueToWrite = null;
-                if (value != null)
+                OptionValueKind kind;
+                switch (value)
                 {
-                    switch (value)
-                    {
-                        case ICodeStyleOption codeStyleOption:
-                            if (optionKey.Option.Type.GenericTypeArguments.Length != 1)
-                            {
-                                continue;
-                            }
-
-                            kind = OptionValueKind.CodeStyleOption;
-                            valueToWrite = codeStyleOption;
-                            break;
-
-                        case NamingStylePreferences stylePreferences:
-                            kind = OptionValueKind.NamingStylePreferences;
-                            valueToWrite = stylePreferences;
-                            break;
-
-                        case string str:
-                            kind = OptionValueKind.String;
-                            valueToWrite = str;
-                            break;
-
-                        default:
-                            var type = value.GetType();
-                            if (type.IsEnum)
-                            {
-                                kind = OptionValueKind.Enum;
-                                valueToWrite = (int)value;
-                                break;
-                            }
-
-                            if (optionKey.Option.Type.IsSerializable)
-                            {
-                                kind = OptionValueKind.Serializable;
-                                valueToWrite = value;
-                                break;
-                            }
-
+                    case ICodeStyleOption:
+                        if (optionKey.Option.Type.GenericTypeArguments.Length != 1)
                             continue;
-                    }
+
+                        kind = OptionValueKind.CodeStyleOption;
+                        break;
+
+                    case NamingStylePreferences:
+                        kind = OptionValueKind.NamingStylePreferences;
+                        break;
+
+                    default:
+                        kind = value != null && value.GetType().IsEnum ? OptionValueKind.Enum : OptionValueKind.Object;
+                        break;
                 }
 
-                valuesBuilder.Add(optionKey, (kind, valueToWrite));
+                valuesBuilder.Add(optionKey, (kind, value));
             }
 
             writer.WriteInt32(valuesBuilder.Count);
@@ -279,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Options
                     RoslynDebug.Assert(value != null);
                     writer.WriteInt32((int)value);
                 }
-                else if (kind == OptionValueKind.CodeStyleOption || kind == OptionValueKind.NamingStylePreferences)
+                else if (kind is OptionValueKind.CodeStyleOption or OptionValueKind.NamingStylePreferences)
                 {
                     RoslynDebug.Assert(value != null);
                     ((IObjectWritable)value).WriteTo(writer);
@@ -292,9 +263,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             writer.WriteInt32(_changedOptionKeysSerializable.Count);
             foreach (var changedKey in _changedOptionKeysSerializable.OrderBy(OptionKeyComparer.Instance))
-            {
                 SerializeOptionKey(changedKey);
-            }
 
             return;
 
@@ -341,10 +310,7 @@ namespace Microsoft.CodeAnalysis.Options
             var builder = ImmutableDictionary.CreateBuilder<OptionKey, object?>();
             for (var i = 0; i < count; i++)
             {
-                if (!TryDeserializeOptionKey(reader, lookup, out var optionKey))
-                {
-                    continue;
-                }
+                var optionKeyOpt = TryDeserializeOptionKey(reader, lookup);
 
                 var kind = (OptionValueKind)reader.ReadInt32();
                 var readValue = kind switch
@@ -355,17 +321,18 @@ namespace Microsoft.CodeAnalysis.Options
                     _ => reader.ReadValue(),
                 };
 
-                if (!serializableOptions.Contains(optionKey.Option))
-                {
+                if (optionKeyOpt == null)
                     continue;
-                }
+
+                var optionKey = optionKeyOpt.Value;
+                if (!serializableOptions.Contains(optionKey.Option))
+                    continue;
 
                 object? optionValue;
                 switch (kind)
                 {
                     case OptionValueKind.CodeStyleOption:
-                        var defaultValue = optionKey.Option.DefaultValue as ICodeStyleOption;
-                        if (defaultValue == null ||
+                        if (optionKey.Option.DefaultValue is not ICodeStyleOption defaultValue ||
                             optionKey.Option.Type.GenericTypeArguments.Length != 1)
                         {
                             continue;
@@ -386,10 +353,6 @@ namespace Microsoft.CodeAnalysis.Options
                         optionValue = Enum.ToObject(optionKey.Option.Type, readValue);
                         break;
 
-                    case OptionValueKind.Null:
-                        optionValue = null;
-                        break;
-
                     default:
                         optionValue = readValue;
                         break;
@@ -402,20 +365,19 @@ namespace Microsoft.CodeAnalysis.Options
             var changedKeysBuilder = ImmutableHashSet.CreateBuilder<OptionKey>();
             for (var i = 0; i < count; i++)
             {
-                if (TryDeserializeOptionKey(reader, lookup, out var optionKey))
-                {
+                if (TryDeserializeOptionKey(reader, lookup) is { } optionKey)
                     changedKeysBuilder.Add(optionKey);
-                }
             }
 
             var serializableOptionValues = builder.ToImmutable();
             var changedOptionKeysSerializable = changedKeysBuilder.ToImmutable();
             var workspaceOptionSet = new WorkspaceOptionSet(optionService);
 
-            return new SerializableOptionSet(languages, workspaceOptionSet, serializableOptions, serializableOptionValues,
+            return new SerializableOptionSet(
+                languages, workspaceOptionSet, serializableOptions, serializableOptionValues,
                 changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty);
 
-            static bool TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup, out OptionKey deserializedOptionKey)
+            static OptionKey? TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup)
             {
                 var name = reader.ReadString();
                 var feature = reader.ReadString();
@@ -427,23 +389,20 @@ namespace Microsoft.CodeAnalysis.Options
                     if (option.Feature == feature &&
                         option.IsPerLanguage == isPerLanguage)
                     {
-                        deserializedOptionKey = new OptionKey(option, language);
-                        return true;
+                        return new OptionKey(option, language);
                     }
                 }
 
-                deserializedOptionKey = default;
-                return false;
+                Debug.Fail($"Failed to deserialize: {name}-{feature}-{isPerLanguage}-{language}");
+                return null;
             }
         }
 
         private enum OptionValueKind
         {
-            Null,
             CodeStyleOption,
             NamingStylePreferences,
-            Serializable,
-            String,
+            Object,
             Enum
         }
 

@@ -48,6 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Ag
         public void TestGettingAnalyzerProvider() => TestGettingProvider<AnalyzerSetting>();
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public void TestGettingFormattingProvider() => TestGettingProvider<FormattingSetting>();
+        public void TestGettingWhitespaceProvider() => TestGettingProvider<WhitespaceSetting>();
     }
 }

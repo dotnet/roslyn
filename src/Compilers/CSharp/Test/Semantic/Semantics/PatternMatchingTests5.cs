@@ -522,7 +522,7 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, DiagnosticDescription.None, parseOptions: TestOptions.Regular10);
         }
 
         [Fact]
@@ -684,7 +684,7 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.Regular10);
         }
 
         [Fact]
@@ -1503,9 +1503,9 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,22): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property.Property").WithArguments("extended property patterns").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property.Property").WithArguments("extended property patterns", "10.0").WithLocation(8, 22),
                 // (8,22): error CS1001: Identifier expected
                 //         _ = this is (Property.Property: null, Property: null);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),
@@ -1829,6 +1829,34 @@ class C
                 // (14,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { Prop: not null } }' is not covered.
                 // _ = new C() switch // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { Prop: not null } }").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(55184, "https://github.com/dotnet/roslyn/issues/55184")]
+        public void Repro55184()
+        {
+            var source = @"
+var x = """";
+
+_ = x is { Error: { Length: > 0 } };
+_ = x is { Error.Length: > 0 };
+_ = x is { Length: { Error: > 0 } };
+_ = x is { Length.Error: > 0 };
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error: { Length: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(4, 12),
+                // (5,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error.Length: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(5, 12),
+                // (6,22): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length: { Error: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(6, 22),
+                // (7,19): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length.Error: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(7, 19)
                 );
         }
 
