@@ -30,17 +30,44 @@ namespace Microsoft.CodeAnalysis
             return collection.Checksum;
         }
 
-        private async Task<SolutionStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
+        /// <param name="projectId">If specified, the checksum will only contain information about the 
+        /// provided project (and any projects it depends on)</param>
+        public async Task<Checksum> GetChecksumAsync(
+            ProjectId projectId, IImmutableSet<ProjectId> dependentSet, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(projectId);
+            Contract.ThrowIfNull(dependentSet);
+
+            ValueSource<SolutionStateChecksums>? lazyChecksum;
+            lock (_lazyProjectChecksums)
+            {
+                if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksum))
+                {
+                    lazyChecksum = new AsyncLazy<SolutionStateChecksums>(
+                        c => ComputeChecksumsAsync(dependentSet, c), cacheResult: true);
+                    _lazyProjectChecksums.Add(projectId, lazyChecksum);
+                }
+            }
+
+            var collection = await lazyChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return collection.Checksum;
+        }
+
+        private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
+            IImmutableSet<ProjectId>? projectsToInclude, CancellationToken cancellationToken)
         {
             try
             {
                 using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    // get states by id order to have deterministic checksum
+                    // get states by id order to have deterministic checksum.  Limit to the requested set of projects
+                    // if applicable.
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
-                    var projectChecksumTasks = orderedProjectIds.Select(id => ProjectStates[id])
-                                                                .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                                .Select(s => s.GetChecksumAsync(cancellationToken));
+                    var projectChecksumTasks =
+                        orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
+                                         .Select(id => ProjectStates[id])
+                                         .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
+                                         .Select(s => s.GetChecksumAsync(cancellationToken));
 
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);

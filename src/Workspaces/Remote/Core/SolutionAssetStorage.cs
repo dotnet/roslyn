@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -32,10 +33,21 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
         /// </summary>
-        internal async ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+        internal ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+            => StoreAssetsAsync(solution, projectId: null, cancellationToken);
+
+        /// <summary>
+        /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
+        /// </summary>
+        internal ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
+            => StoreAssetsAsync(project.Solution, project.Id, cancellationToken);
+
+        private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var solutionChecksum = projectId == null
+                ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+                : await solutionState.GetChecksumAsync(projectId, GetDependentProjectIds(solution, projectId), cancellationToken).ConfigureAwait(false);
             var context = SolutionReplicationContext.Create();
 
             var id = Interlocked.Increment(ref s_scopeId);
@@ -43,11 +55,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 id,
                 fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                 solutionState.WorkspaceVersion,
-                solutionChecksum);
+                solutionChecksum,
+                projectId);
 
             Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
 
             return new Scope(this, solutionInfo);
+        }
+
+        private static IImmutableSet<ProjectId> GetDependentProjectIds(Solution solution, ProjectId projectId)
+        {
+            var depependencyGraph = solution.GetProjectDependencyGraph();
+            var dependsOn = depependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
+            return dependsOn.Add(projectId);
         }
 
         /// <summary>
