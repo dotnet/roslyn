@@ -22,10 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             AssertEx.Equal(
             {
-                New SequenceEdit(2, -1, EditKind.Delete),
-                New SequenceEdit(2, 1, EditKind.Insert),
-                New SequenceEdit(1, 0, EditKind.Update),
-                New SequenceEdit(0, -1, EditKind.Delete)
+                New SequenceEdit(2, -1),
+                New SequenceEdit(-1, 1),
+                New SequenceEdit(1, 0),
+                New SequenceEdit(0, -1)
             }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
@@ -37,10 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             AssertEx.Equal(
             {
-                New SequenceEdit(2, -1, EditKind.Delete),
-                New SequenceEdit(2, 1, EditKind.Insert),
-                New SequenceEdit(1, 0, EditKind.Update),
-                New SequenceEdit(0, -1, EditKind.Delete)
+                New SequenceEdit(2, -1),
+                New SequenceEdit(-1, 1),
+                New SequenceEdit(1, 0),
+                New SequenceEdit(0, -1)
             }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
@@ -52,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             AssertEx.Equal(
             {
-                New SequenceEdit(2, 2, EditKind.Update),
-                New SequenceEdit(1, -1, EditKind.Delete),
-                New SequenceEdit(0, 1, EditKind.Update),
-                New SequenceEdit(0, 0, EditKind.Insert)
+                New SequenceEdit(2, 2),
+                New SequenceEdit(1, -1),
+                New SequenceEdit(0, 1),
+                New SequenceEdit(-1, 0)
             }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
@@ -67,10 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             AssertEx.Equal(
             {
-                New SequenceEdit(2, 2, EditKind.Update),
-                New SequenceEdit(1, -1, EditKind.Delete),
-                New SequenceEdit(0, 1, EditKind.Update),
-                New SequenceEdit(0, 0, EditKind.Insert)
+                New SequenceEdit(2, 2),
+                New SequenceEdit(1, -1),
+                New SequenceEdit(0, 1),
+                New SequenceEdit(-1, 0)
             }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 

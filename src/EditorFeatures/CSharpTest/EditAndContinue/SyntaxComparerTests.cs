@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                new SequenceEdit(2, -1, EditKind.Delete),
-                new SequenceEdit(2, 1, EditKind.Insert),
-                new SequenceEdit(1, 0, EditKind.Update),
-                new SequenceEdit(0, -1, EditKind.Delete),
+                new SequenceEdit(2, -1),
+                new SequenceEdit(-1, 1),
+                new SequenceEdit(1, 0),
+                new SequenceEdit(0, -1),
             }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                new SequenceEdit(2, -1, EditKind.Delete),
-                new SequenceEdit(2, 1, EditKind.Insert),
-                new SequenceEdit(1, 0, EditKind.Update),
-                new SequenceEdit(0, -1, EditKind.Delete),
+                new SequenceEdit(2, -1),
+                new SequenceEdit(-1, 1),
+                new SequenceEdit(1, 0),
+                new SequenceEdit(0, -1),
             }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                new SequenceEdit(2, 2, EditKind.Update),
-                new SequenceEdit(1, -1, EditKind.Delete),
-                new SequenceEdit(0, 1, EditKind.Update),
-                new SequenceEdit(0, 0, EditKind.Insert),
+                new SequenceEdit(2, 2),
+                new SequenceEdit(1, -1),
+                new SequenceEdit(0, 1),
+                new SequenceEdit(-1, 0),
             }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                new SequenceEdit(2, 2, EditKind.Update),
-                new SequenceEdit(1, -1, EditKind.Delete),
-                new SequenceEdit(0, 1, EditKind.Update),
-                new SequenceEdit(0, 0, EditKind.Insert),
+                new SequenceEdit(2, 2),
+                new SequenceEdit(1, -1),
+                new SequenceEdit(0, 1),
+                new SequenceEdit(-1, 0),
             }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 

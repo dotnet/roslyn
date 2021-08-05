@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     Debug.Assert(yEnd > yMid);
                     xEnd--;
                     yEnd--;
-                    yield return new SequenceEdit(xEnd, yEnd, EditKind.Update);
+                    yield return new SequenceEdit(xEnd, yEnd);
                 }
 
                 // return the insert/delete between (xStart, yStart) and (xMid, yMid) = the vertical/horizontal part of the snake
@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.Differencing
                     if (xStart == xMid)
                     {
                         // insert
-                        yield return new SequenceEdit(xMid, --yMid, EditKind.Insert);
+                        yield return new SequenceEdit(-1, --yMid);
                     }
                     else
                     {
                         // delete
-                        yield return new SequenceEdit(--xMid, -1, EditKind.Delete);
+                        yield return new SequenceEdit(--xMid, -1);
                     }
                 }
 

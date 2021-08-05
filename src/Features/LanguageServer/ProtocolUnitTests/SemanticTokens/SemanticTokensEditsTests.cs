@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -214,6 +215,36 @@ class C
 }";
 
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
+            var caretLocation = locations["caret"].First();
+            var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
+            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+
+            // Edits to tokens conversion
+            var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
+            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensEdits)edits);
+
+            // Raw tokens
+            var rawTokens = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+
+            Assert.True(Enumerable.SequenceEqual(rawTokens.Data, editsToTokens));
+        }
+
+        [Fact, WorkItem(54671, "https://github.com/dotnet/roslyn/issues/54671")]
+        public async Task TestConvertSemanticTokenEditsIntoSemanticTokens_FragmentedTokens()
+        {
+            var originalText =
+@"fo {|caret:|}r (int i = 0;/*c*/; i++)
+{
+
+}";
+
+            var updatedText =
+@"for (int i = 0;/*c*/; i++)
+{
+
+}";
+
+            using var testLspServer = CreateTestLspServer(originalText, out var locations);
             var caretLocation = locations["caret"].First();
             var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
             UpdateDocumentText(updatedText, testLspServer.TestWorkspace);

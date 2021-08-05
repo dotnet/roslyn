@@ -18,9 +18,8 @@ namespace Microsoft.CodeAnalysis.Differencing
     {
         private readonly int _oldIndex;
         private readonly int _newIndex;
-        private readonly EditKind _kind;
 
-        internal SequenceEdit(int oldIndex, int newIndex, EditKind kind)
+        internal SequenceEdit(int oldIndex, int newIndex)
         {
             Debug.Assert(oldIndex >= -1);
             Debug.Assert(newIndex >= -1);
@@ -28,16 +27,31 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             _oldIndex = oldIndex;
             _newIndex = newIndex;
-            _kind = kind;
         }
 
         /// <summary>
         /// The kind of edit: <see cref="EditKind.Delete"/>, <see cref="EditKind.Insert"/>, or <see cref="EditKind.Update"/>.
         /// </summary>
-        public EditKind Kind => _kind;
+        public EditKind Kind
+        {
+            get
+            {
+                if (_oldIndex == -1)
+                {
+                    return EditKind.Insert;
+                }
+
+                if (_newIndex == -1)
+                {
+                    return EditKind.Delete;
+                }
+
+                return EditKind.Update;
+            }
+        }
 
         /// <summary>
-        /// Index in the old sequence.
+        /// Index in the old sequence, or -1 if the edit is insert.
         /// </summary>
         public int OldIndex => _oldIndex;
 
@@ -67,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     return result + " (" + _oldIndex + ")";
 
                 case EditKind.Insert:
-                    return result + " (" + _oldIndex + " -> " + _newIndex + ")";
+                    return result + " (" + _newIndex + ")";
 
                 case EditKind.Update:
                     return result + " (" + _oldIndex + " -> " + _newIndex + ")";

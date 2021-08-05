@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             IEnumerable<SequenceEdit> edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
+            var insertIndex = 0;
 
             // Go through and attempt to combine individual edits into larger edits.
             foreach (var edit in edits)
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
-                            editInProgress.Start == edit.OldIndex)
+                            editInProgress.Start == insertIndex)
                         {
                             editInProgress.Data.Add(newSemanticTokens[edit.NewIndex]);
                         }
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             var semanticTokensEdit = new RoslynSemanticTokensEdit
                             {
-                                Start = edit.OldIndex,
+                                Start = insertIndex,
                                 Data = new List<int>
                                 {
                                     newSemanticTokens[edit.NewIndex],
@@ -161,6 +162,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                             results.Add(semanticTokensEdit);
                         }
 
+                        break;
+                    case EditKind.Update:
+                        // For EditKind.Inserts, we need to keep track of where in the old sequence we should be
+                        // inserting. This location is based off the location of the previous update.
+                        insertIndex = edit.OldIndex + 1;
                         break;
                     default:
                         throw new InvalidOperationException("Only EditKind.Insert and EditKind.Delete are valid.");
@@ -187,12 +193,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     var edits = s_instance.GetEdits(
                         oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
 
-                    // We don't care about updates and can ignore them since they don't indicate changes.
-                    var editsWithIgnoredUpdates = edits.Where(e => e.Kind is not EditKind.Update);
-
                     // By default, edits are returned largest -> smallest index. For computation purposes later on,
                     // we can want to have the edits ordered smallest -> largest index.
-                    return editsWithIgnoredUpdates.Reverse();
+                    return edits.Reverse();
                 }
                 catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
                 {
