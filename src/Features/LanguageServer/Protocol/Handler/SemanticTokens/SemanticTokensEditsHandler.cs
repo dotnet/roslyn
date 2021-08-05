@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return Array.Empty<SemanticTokensEdit>();
             }
 
-            // We use a version of the Myers' Diff Algorithm to compute the minimal edits between
+            // We use Roslyn's version of the Myers' Diff Algorithm to compute the minimal edits between
             // the old and new tokens. Edits are computed on an int level, with five ints representing
             // one token. We compute on int level rather than token level to minimize the amount of
             // edits we send back to the client.
