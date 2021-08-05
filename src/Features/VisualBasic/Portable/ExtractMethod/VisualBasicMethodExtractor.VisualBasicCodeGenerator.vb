@@ -59,6 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Me.InsertionPoint.With(document).GetContext()
             End Function
 
+            Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
+                Return False
+            End Function
+
             Protected Overrides Function GenerateMethodDefinition(localFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
                 Dim result = CreateMethodBody(cancellationToken)
                 Dim statements = result.Data
@@ -72,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(),
-                    parameters:=CreateMethodParameters(),
+                    parameters:=CreateMethodParameters(localFunction),
                     statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
                 Return result.With(

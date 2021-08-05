@@ -4852,6 +4852,7 @@ class C
 }", codeActionIndex: 1);
         }
 
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractLocalMethodNaming()
         {
@@ -4871,7 +4872,6 @@ public class Tests
     {
         const string NAME = ""SOMETEXT"";
         [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
-        }
     }
 }";
 
@@ -4892,14 +4892,13 @@ public class Tests
         const string NAME = ""SOMETEXT"";
         {|Rename:NewMethod|}(NAME);
 
-            void NewMethod(string NAME1)
-            {
-                Assert.AreEqual(string.Format(NAME1, 0, 0), SomeOtherMethod(j));
-            }
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
         }
     }
 }";
-            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
         }
     }
 }
