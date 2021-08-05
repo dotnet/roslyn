@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private readonly IEnumerable<INewDocumentFormattingProvider> _providers;
 
-        public AbstractNewDocumentFormattingService(IEnumerable<INewDocumentFormattingProvider> providers)
+        protected AbstractNewDocumentFormattingService(IEnumerable<INewDocumentFormattingProvider> providers)
         {
             _providers = providers;
         }
