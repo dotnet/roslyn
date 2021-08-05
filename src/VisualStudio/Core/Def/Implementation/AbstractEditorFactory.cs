@@ -47,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string LanguageName { get; }
         protected abstract SyntaxGenerator SyntaxGenerator { get; }
         protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -340,23 +339,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
-
-            // Apply file header preferences
-            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
-            if (!string.IsNullOrEmpty(fileHeaderTemplate))
-            {
-                var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
-                var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                        SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
-                        newLineTrivia,
-                        addedDocument,
-                        cancellationToken).ConfigureAwait(true);
-
-                addedDocument = addedDocument.WithSyntaxRoot(rootWithFileHeader);
-                rootToFormat = rootWithFileHeader;
-            }
 
             // Organize using directives
             addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(true);
