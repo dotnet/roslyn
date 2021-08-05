@@ -335,6 +335,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
+            var formattingService = addedDocument.GetRequiredLanguageService<INewDocumentFormattingService>();
+            addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
+
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
 
