@@ -160,10 +160,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
-            // only solution with checksum can be in asset storage
-            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
+            if (solutionState.TryGetStateChecksums(out var stateChecksums))
+                await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
-            await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            foreach (var projectId in solutionState.ProjectIds)
+            {
+                if (solutionState.TryGetStateChecksums(projectId, out stateChecksums))
+                    await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         internal TestAccessor GetTestAccessor()

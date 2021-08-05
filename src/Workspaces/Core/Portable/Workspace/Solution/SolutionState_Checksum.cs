@@ -22,6 +22,22 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
+        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
+        {
+            ValueSource<SolutionStateChecksums>? value;
+            lock (_lazyProjectChecksums)
+            {
+                if (!_lazyProjectChecksums.TryGetValue(projectId, out value) ||
+                    value == null)
+                {
+                    stateChecksums = null;
+                    return false;
+                }
+            }
+
+            return value.TryGetValue(out stateChecksums);
+        }
+
         public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 

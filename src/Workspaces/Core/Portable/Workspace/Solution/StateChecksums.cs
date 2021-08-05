@@ -38,11 +38,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (searchingChecksumsLeft.Count == 0)
+                return;
 
             // verify input
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
-            Contract.ThrowIfFalse(this == stateChecksum);
-
             if (searchingChecksumsLeft.Remove(Checksum))
             {
                 result[Checksum] = this;
@@ -82,19 +81,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             foreach (var (_, projectState) in state.ProjectStates)
             {
-                // solution state checksum can't be created without project state checksums created first
-                // check unsupported projects
-                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
-                {
-                    Contract.ThrowIfTrue(RemoteSupportedLanguages.IsSupported(projectState.Language));
-                    continue;
-                }
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
+                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
 
-                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 if (searchingChecksumsLeft.Count == 0)
-                {
                     break;
-                }
             }
 
             ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
@@ -153,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
+
+            if (searchingChecksumsLeft.Count == 0)
+                return;
 
             if (searchingChecksumsLeft.Remove(Checksum))
             {
