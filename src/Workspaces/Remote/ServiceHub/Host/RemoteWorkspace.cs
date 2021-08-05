@@ -28,7 +28,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Guards updates to <see cref="_primaryBranchSolutionWithChecksum"/> and <see cref="_lastRequestedSolutionWithChecksum"/>.
         /// </summary>
-        private readonly SemaphoreSlim _availableSolutionsGate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _availableSolutionsGate = new(initialCount: 1);
+
+        /// <summary>
+        /// Guards updates to <see cref="_lastRequestedProjectIdToSolutionWithChecksum"/>
+        /// </summary>
+        private readonly SemaphoreSlim _availableProjectsGate = new(initialCount: 1);
 
         /// <summary>
         /// The last solution for the the primary branch fetched from the client.
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var solution = await CreateSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(assetProvider, solutionChecksum, shouldCacheSolution: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
             }
         }
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> CreateSolution_NoLockAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            bool fromPrimaryBranch,
+            bool shouldCacheSolution,
             int workspaceVersion,
             Solution baseSolution,
             CancellationToken cancellationToken)
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // create updated solution off the baseSolution
                     var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
 
-                    if (fromPrimaryBranch)
+                    if (shouldCacheSolution)
                     {
                         // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
                         return UpdateSolutionIfPossible(solution, workspaceVersion);
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // get new solution info and options
                 var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                if (fromPrimaryBranch)
+                if (shouldCacheSolution)
                 {
                     // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
                     if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
@@ -175,23 +180,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private Solution? TryGetAvailableSolution(Checksum solutionChecksum, ProjectId? projectId)
+        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
         {
-            if (projectId == null)
-            {
-                var currentSolution = _primaryBranchSolutionWithChecksum;
-                if (currentSolution?.Item1 == solutionChecksum)
-                    return currentSolution.Item2;
+            var currentSolution = _primaryBranchSolutionWithChecksum;
+            if (currentSolution?.Item1 == solutionChecksum)
+                return currentSolution.Item2;
 
-                var lastSolution = _lastRequestedSolutionWithChecksum;
-                if (lastSolution?.Item1 == solutionChecksum)
-                    return lastSolution.Item2;
-            }
-            else if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out (Checksum checksum, Solution solution) value) &&
-                    value.checksum == solutionChecksum)
-            {
-                return value.solution;
-            }
+            var lastSolution = _lastRequestedSolutionWithChecksum;
+            if (lastSolution?.Item1 == solutionChecksum)
+                return lastSolution.Item2;
 
             return null;
         }
@@ -204,35 +201,59 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId? projectId,
             CancellationToken cancellationToken)
         {
-            var availableSolution = TryGetAvailableSolution(solutionChecksum, projectId);
-            if (availableSolution != null)
-                return availableSolution;
-
-            // make sure there is always only one that creates a new solution
-            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            if (projectId == null)
             {
-                availableSolution = TryGetAvailableSolution(solutionChecksum, projectId);
+                var availableSolution = TryGetAvailableSolution(solutionChecksum);
                 if (availableSolution != null)
                     return availableSolution;
 
-                var solution = await CreateSolution_NoLockAsync(
-                    assetProvider,
-                    solutionChecksum,
-                    fromPrimaryBranch,
-                    workspaceVersion,
-                    CurrentSolution,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (projectId == null)
+                // make sure there is always only one that creates a new solution
+                using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    availableSolution = TryGetAvailableSolution(solutionChecksum);
+                    if (availableSolution != null)
+                        return availableSolution;
+
+                    var solution = await CreateSolution_NoLockAsync(
+                        assetProvider,
+                        solutionChecksum,
+                        shouldCacheSolution: fromPrimaryBranch,
+                        workspaceVersion,
+                        CurrentSolution,
+                        cancellationToken).ConfigureAwait(false);
+
                     _lastRequestedSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+                    return solution;
                 }
-                else
+            }
+            else
+            {
+                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out (Checksum checksum, Solution solution) value) &&
+                    value.checksum == solutionChecksum)
                 {
-                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = (solutionChecksum, solution);
+                    return value.solution;
                 }
 
-                return solution;
+                using (await _availableProjectsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out value) &&
+                        value.checksum == solutionChecksum)
+                    {
+                        return value.solution;
+                    }
+
+                    // Never try to cache the solution we're making for a one-off project  sync.
+                    var solution = await CreateSolution_NoLockAsync(
+                        assetProvider,
+                        solutionChecksum,
+                        shouldCacheSolution: false,
+                        workspaceVersion,
+                        CurrentSolution,
+                        cancellationToken).ConfigureAwait(false);
+
+                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = (solutionChecksum, solution);
+                    return solution;
+                }
             }
         }
 
