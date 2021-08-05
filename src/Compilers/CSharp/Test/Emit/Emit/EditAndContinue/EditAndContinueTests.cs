@@ -2455,27 +2455,17 @@ class C
             CheckAttributes(reader1,
                 new CustomAttributeRow(Handle(1, TableIndex.Event), Handle(10, TableIndex.MemberRef)));
 
-            CheckEncLog(reader1,
-                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+            CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
 
-            CheckEncMap(reader1,
-                Handle(12, TableIndex.TypeRef),
-                Handle(13, TableIndex.TypeRef),
-                Handle(14, TableIndex.TypeRef),
-                Handle(10, TableIndex.MemberRef),
+            CheckEncMapDefinitions(reader1,
                 Handle(8, TableIndex.CustomAttribute),
                 Handle(1, TableIndex.Event),
                 Handle(3, TableIndex.MethodSemantics),
-                Handle(4, TableIndex.MethodSemantics),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(4, TableIndex.MethodSemantics));
         }
 
         [Fact]
