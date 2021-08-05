@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -101,14 +100,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return Array.Empty<SemanticTokensEdit>();
             }
 
-            // We use Roslyn's version of the Myers' Diff Algorithm to compute the minimal edits
-            // between the old and new tokens. Edits are computed on an int level, with five ints
-            // representing one token. We compute on int level rather than token level to minimize
-            // the amount of edits we send back to the client.
-            var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldSemanticTokens, newSemanticTokens).ToArray();
+            // We use a version of the Myers' Diff Algorithm to compute the minimal edits between
+            // the old and new tokens. Edits are computed on an int level, with five ints representing
+            // one token. We compute on int level rather than token level to minimize the amount of
+            // edits we send back to the client.
+            var editsDiffer = new SemanticTokensEditsDiffer(oldSemanticTokens, newSemanticTokens);
+            IReadOnlyList<DiffEdit>? edits;
 
-            // Sort the edits by index so we can potentially combine them later on.
-            Array.Sort(edits, SequenceEditIndexComparer.Instance);
+            try
+            {
+                edits = editsDiffer.ComputeDiff();
+            }
+            catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
+            {
+                // The algorithm is superlinear in memory usage so we might potentially run out in
+                // rare cases. Report telemetry and return no edits.
+                return Array.Empty<LSP.SemanticTokensEdit>();
+            }
 
             var processedEdits = ProcessEdits(newSemanticTokens, edits);
             return processedEdits;
@@ -116,17 +124,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static LSP.SemanticTokensEdit[] ProcessEdits(
             int[] newSemanticTokens,
-            SequenceEdit[] edits)
+            IReadOnlyList<DiffEdit> edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
+
+            // Go through and attempt to combine individual edits into larger edits.
             foreach (var edit in edits)
             {
                 var editInProgress = results.Count > 0 ? results[^1] : null;
-                switch (edit.Kind)
+                switch (edit.Operation)
                 {
-                    case EditKind.Delete:
+                    case DiffEdit.Type.Delete:
                         if (editInProgress != null &&
-                            editInProgress.Start + editInProgress.DeleteCount == edit.OldIndex)
+                            editInProgress.Start + editInProgress.DeleteCount == edit.Position)
                         {
                             editInProgress.DeleteCount += 1;
                         }
@@ -134,28 +144,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             results.Add(new RoslynSemanticTokensEdit
                             {
-                                Start = edit.OldIndex,
+                                Start = edit.Position,
                                 DeleteCount = 1,
                             });
                         }
 
                         break;
-                    case EditKind.Insert:
+                    case DiffEdit.Type.Insert:
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
-                            editInProgress.Start + editInProgress.Data.Count == edit.NewIndex)
+                            editInProgress.Start == edit.Position)
                         {
-                            editInProgress.Data.Add(newSemanticTokens[edit.NewIndex]);
+                            editInProgress.Data.Add(newSemanticTokens[edit.NewTextPosition!.Value]);
                         }
                         else
                         {
                             var semanticTokensEdit = new RoslynSemanticTokensEdit
                             {
-                                Start = edit.NewIndex,
+                                Start = edit.Position,
                                 Data = new List<int>
                                 {
-                                    newSemanticTokens[edit.NewIndex],
+                                    newSemanticTokens[edit.NewTextPosition!.Value],
                                 },
                                 DeleteCount = 0,
                             };
@@ -164,9 +174,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         }
 
                         break;
-                    default:
-                        throw new InvalidOperationException(
-                            "Only EditKind.Insert and EditKind.Delete are supported.");
                 }
             }
 
@@ -174,56 +181,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return processedResults.ToArray();
         }
 
-        private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
+        private sealed class SemanticTokensEditsDiffer : TextDiffer
         {
-            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
+            private readonly int[] _oldSemanticTokens;
+            private readonly int[] _newSemanticTokens;
 
-            protected override bool ItemsEqual(
-                int[] oldSemanticTokens, int oldIndex,
-                int[] newSemanticTokens, int newIndex)
-                => oldSemanticTokens[oldIndex] == newSemanticTokens[newIndex];
-
-            public static IEnumerable<SequenceEdit> GetEdits(
-                int[] oldSemanticTokens, int[] newSemanticTokens)
+            public SemanticTokensEditsDiffer(int[] oldSemanticTokens, int[] newSemanticTokens)
             {
-                var edits = s_instance.GetEdits(
-                    oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length).ToArray();
-
-                var reducedEdits = ReduceUpdateEdits(edits);
-                return reducedEdits;
+                _oldSemanticTokens = oldSemanticTokens;
+                _newSemanticTokens = newSemanticTokens;
             }
 
-            private static IEnumerable<SequenceEdit> ReduceUpdateEdits(SequenceEdit[] edits)
-            {
-                // To make our lives easier down the road, we'll convert all EditKind.Update edits to
-                // EditKind.Insert and EditKind.Delete.
-                var updatedEdits = new List<SequenceEdit>();
-                for (var i = 0; i < edits.Length; i++)
-                {
-                    var edit = edits[i];
-                    switch (edit.Kind)
-                    {
-                        case EditKind.Update:
-                            updatedEdits.Add(new SequenceEdit(edit.OldIndex, -1));
-                            updatedEdits.Add(new SequenceEdit(-1, edit.NewIndex));
-                            break;
-                        case EditKind.Insert:
-                        case EditKind.Delete:
-                            updatedEdits.Add(edit);
-                            break;
-                        default:
-                            throw new InvalidOperationException(
-                                "Only EditKind.Insert, EditKind.Delete, and EditKind.Update are supported.");
-                    }
-                }
+            protected override int OldTextLength => _oldSemanticTokens.Length;
 
-                return updatedEdits;
+            protected override int NewTextLength => _newSemanticTokens.Length;
+
+            protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
+            {
+                return _oldSemanticTokens[oldTextIndex] == _newSemanticTokens[newTextIndex];
             }
         }
 
         // We need to have a shim class because SemanticTokensEdit.Data is an array type, so if we
-        // operate on it directly then every time we append an element we're allocating an entire
-        // new array.
+        // operate on it directly then every time we append an element we're allocating a new array.
         private class RoslynSemanticTokensEdit
         {
             public int Start { get; set; }
@@ -238,44 +218,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     Start = Start,
                     DeleteCount = DeleteCount,
                 };
-            }
-        }
-
-        private class SequenceEditIndexComparer : IComparer<SequenceEdit>
-        {
-            private SequenceEditIndexComparer()
-            {
-            }
-
-            public static SequenceEditIndexComparer Instance { get; } = new SequenceEditIndexComparer();
-
-            public int Compare(SequenceEdit x, SequenceEdit y)
-            {
-                Contract.ThrowIfNull(x);
-                Contract.ThrowIfNull(y);
-
-                if (x.Kind is EditKind.Insert && y.Kind is EditKind.Insert)
-                {
-                    return x.NewIndex.CompareTo(y.NewIndex);
-                }
-
-                if (x.Kind is EditKind.Delete && y.Kind is EditKind.Delete)
-                {
-                    return x.OldIndex.CompareTo(y.OldIndex);
-                }
-
-                if (x.Kind is EditKind.Insert && y.Kind is EditKind.Delete)
-                {
-                    return x.NewIndex.CompareTo(y.OldIndex);
-                }
-
-                if (x.Kind is EditKind.Delete && y.Kind is EditKind.Insert)
-                {
-                    return x.OldIndex.CompareTo(y.NewIndex);
-                }
-
-                throw new InvalidOperationException(
-                    "SequenceEdits must be either of type EditKind.Insert or EditKind.Delete.");
             }
         }
     }
