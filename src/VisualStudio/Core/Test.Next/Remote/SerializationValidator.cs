@@ -100,10 +100,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
-            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var (solutionInfo, options) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
-            return workspace.AddSolution(solutionInfo);
+            var solution = workspace.AddSolution(solutionInfo);
+            return solution.WithOptions(options);
         }
 
         public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
