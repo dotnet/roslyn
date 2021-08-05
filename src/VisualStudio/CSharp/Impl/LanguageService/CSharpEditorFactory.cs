@@ -34,11 +34,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         protected override string LanguageName => LanguageNames.CSharp;
         protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
         protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
-
-        protected override async Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
-        {
-            var organizedDocument = await base.OrganizeUsingsCreatedFromTemplateAsync(document, cancellationToken).ConfigureAwait(false);
-            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, cancellationToken).ConfigureAwait(false);
-        }
     }
 }

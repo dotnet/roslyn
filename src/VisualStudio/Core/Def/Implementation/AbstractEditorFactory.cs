@@ -291,9 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
-        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
-            => Formatter.OrganizeImportsAsync(document, cancellationToken);
-
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
@@ -339,10 +336,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
-
-            // Organize using directives
-            addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(true);
-            rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
 
             // Add access modifier
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
