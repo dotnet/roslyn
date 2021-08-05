@@ -170,6 +170,64 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveComplexEvent() As Task
+            Dim initialMarkup = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+        Public Shared Custom Event Cl[||]ick As EventHandler
+            AddHandler(ByVal value As EventHandler)
+                Events.AddHandler(""ClickEvent"", value)
+            End AddHandler
+            RemoveHandler(ByVal value As EventHandler)
+                Events.RemoveHandler(""ClickEvent"", value)
+            End RemoveHandler
+            RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+                CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+            End RaiseEvent
+        End Event
+    End Class
+End Namespace
+        </Document>
+    </Project>
+</Workspace>
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Click")
+            Dim expectedText = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
+    Class Class1Helpers
+        Public Shared Custom Event Click As EventHandler
+            AddHandler(ByVal value As EventHandler)
+                Events.AddHandler(""ClickEvent"", value)
+            End AddHandler
+            RemoveHandler(ByVal value As EventHandler)
+                Events.RemoveHandler(""ClickEvent"", value)
+            End RemoveHandler
+            RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+                CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+            End RaiseEvent
+        End Event
+    End Class
+End Namespace
+</Document>
+    </Project>
+</Workspace>"
+            Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveFunction() As Task
             Dim initialMarkup = "
 <Workspace>
@@ -229,7 +287,7 @@ End Namespace
 "
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim selection = ImmutableArray.Create("TestSub")
             Dim expectedText = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
@@ -770,12 +828,12 @@ End Namespace
 
         Public Shared Event TestEvent As EventHandler
 
+        Public Shared Sub TestSub()
+        End Sub
+
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-
-        Public Shared Sub TestSub()
-        End Sub
     End Class
 End Namespace
 </Document>
