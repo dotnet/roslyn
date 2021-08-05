@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
@@ -33,14 +31,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var immutable = directory.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var microsoftCodeAnalysis = directory.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
 
+            var originalDirectory = directory.CreateDirectory("Analyzer");
             var analyzerDependencyFile = CreateAnalyzerDependency();
             var analyzerMainFile = CreateMainAnalyzerWithDependency(analyzerDependencyFile);
             var loader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(directory.Path, "AnalyzerAssemblyLoader"));
 
             var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
-            analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception.Message);
+            analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
             var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile.Path, loader);
-            analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception.Message);
+            analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
 
             var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
             Assert.Equal(1, analyzers.Length);
@@ -78,7 +77,7 @@ public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
                    },
                    s_dllWithMaxWarningLevel);
 
-                return directory.CreateDirectory("AnalyzerDependency").CreateFile("AnalyzerDependency.dll").WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
+                return originalDirectory.CreateFile("AnalyzerDependency.dll").WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
             }
 
             TempFile CreateMainAnalyzerWithDependency(TempFile analyzerDependency)
@@ -106,7 +105,7 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
                    },
                    s_dllWithMaxWarningLevel);
 
-                return directory.CreateDirectory("AnalyzerMain").CreateFile("AnalyzerMain.dll").WriteAllBytes(analyzerMainCompilation.EmitToArray());
+                return originalDirectory.CreateFile("AnalyzerMain.dll").WriteAllBytes(analyzerMainCompilation.EmitToArray());
             }
         }
 
@@ -123,11 +122,11 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
 
             Assembly gamma = loader.LoadFromPath(_testResources.Gamma.Path);
             var g = gamma.CreateInstance("Gamma.G");
-            g.GetType().GetMethod("Write").Invoke(g, new object[] { sb, "Test G" });
+            g!.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
             Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E");
-            e.GetType().GetMethod("Write").Invoke(e, new object[] { sb, "Test E" });
+            e!.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" }); 
 
             var actual = sb.ToString();
             if (ExecutionConditionUtil.IsCoreClr)

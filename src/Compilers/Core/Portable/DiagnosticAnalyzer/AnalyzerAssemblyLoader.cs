@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Public API
 
-        public void AddDependencyLocation(string fullPath)
+        public virtual void AddDependencyLocation(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
@@ -153,12 +153,32 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
+#nullable enable
         public bool ShouldLoad(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
-            return _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths) && paths.Contains(fullPath);
+            if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
+            {
+                return false;
+            }
+
+            if (!paths.Contains(fullPath))
+            {
+                return false;
+            }
+
+            return true;
         }
+
+        /// <summary>
+        /// Allows substituting an assembly path after we've identified the context to load an assembly in, but before the assembly is actually loaded from disk.
+        /// </summary>
+        public virtual string GetPathToLoad(string fullPath)
+        {
+            return fullPath;
+        }
+#nullable disable
 
         public Assembly Load(string displayName)
         {

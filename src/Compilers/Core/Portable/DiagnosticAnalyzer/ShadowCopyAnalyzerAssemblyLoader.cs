@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -35,6 +36,9 @@ namespace Microsoft.CodeAnalysis
         /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
+
+        private object _guard = new();
+        private Dictionary<string, string> originalPathToShadowPath = new();
 
         public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
         {
@@ -98,13 +102,34 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadFromPathImpl(string fullPath)
+#nullable enable
+        public override void AddDependencyLocation(string fullPath)
         {
+            base.AddDependencyLocation(fullPath);
+
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-
-            return base.LoadFromPathImpl(shadowCopyPath);
+            lock (_guard)
+            {
+                Debug.Assert(!originalPathToShadowPath.ContainsKey(fullPath));
+                originalPathToShadowPath[fullPath] = shadowCopyPath;
+            }
         }
+
+        public override string GetPathToLoad(string fullPath)
+        {
+            string? shadowPath = null;
+            lock (_guard)
+            {
+                if (!originalPathToShadowPath.TryGetValue(fullPath, out shadowPath))
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+
+            return shadowPath;
+        }
+#nullable disable
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
