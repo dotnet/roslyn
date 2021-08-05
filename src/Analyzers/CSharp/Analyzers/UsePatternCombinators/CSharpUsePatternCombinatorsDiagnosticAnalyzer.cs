@@ -165,11 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Operations.IInstanceReferenceOperation;
         }
 
-        // Blantantly stolen from here :
-        // https://www.meziantou.net/checking-if-a-property-is-an-auto-implemented-property-in-roslyn.htm
-        //
-        // For such a small snippet of code, I have a hard time seeing how you could be original given how
-        // many variations there are online. If I still shouldn't do that, please let me know ^^"
         private static bool IsAutoProperty(IPropertySymbol propertySymbol)
         {
             // Get fields declared in the same type as the property
