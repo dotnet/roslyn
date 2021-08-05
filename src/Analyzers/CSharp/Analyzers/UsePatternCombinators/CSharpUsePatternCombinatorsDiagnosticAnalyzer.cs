@@ -20,27 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+
         private static readonly LocalizableResourceString s_safePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_unsafe_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-
-        private static readonly DiagnosticDescriptor s_safeDescriptor = CreateDescriptorWithId(
-                    IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-                    EnforceOnBuildValues.UsePatternCombinators,
-                    title: s_safePatternTitle,
-                    messageFormat: s_safePatternTitle);
-
-        private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
-                    IDEDiagnosticIds.UseUnsafePatternCombinatorsDiagnosticsId,
-                    EnforceOnBuildValues.UsePatternCombinators,
-                    title: s_unsafePatternTitle,
-                    messageFormat: s_unsafePatternTitle);
+        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
-            : base(
-                  new Dictionary<DiagnosticDescriptor, Options.ILanguageSpecificOption> {
-                      { s_safeDescriptor, CSharpCodeStyleOptions.PreferPatternMatching },
-                      { s_unsafeDescriptor, CSharpCodeStyleOptions.PreferPatternMatching }
-                  }.ToImmutableDictionary(), LanguageNames.CSharp)
+            : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                EnforceOnBuildValues.UsePatternCombinators,
+                CSharpCodeStyleOptions.PreferPatternMatching,
+                LanguageNames.CSharp,
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -92,16 +82,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (HasIllegalPatternVariables(pattern, isTopLevel: true))
                 return;
 
-            // If we are sure the codefix would not have side-effects, then use the "safe" description
-            // Otherwise use the "unsafe" description
-            var desc = IsPure(pattern) ? s_safeDescriptor : s_unsafeDescriptor;
+            // if the target (the common expression in the pattern) is a method call,
+            // then we can't guarantee that the rewritting won't have side-effects,
+            // so we should warn the user
+            var isSafe = pattern.Target is not Operations.IInvocationOperation;
+
+            var desc = CreateDescriptorWithId(
+                    IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                    EnforceOnBuildValues.UsePatternCombinators,
+                    isSafe ? s_safePatternTitle : s_unsafePatternTitle);
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 desc,
                 expression.GetLocation(),
                 styleOption.Notification.Severity,
                 additionalLocations: null,
-                properties: null));
+                properties: isSafe  // so that the codefix can display the right text
+                    ? ImmutableDictionary<string, string>.Empty.Add("safe", "")
+                    : null));
         }
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
@@ -146,32 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Binary _ => false,
                 _ => true
             };
-        }
-
-        private static bool IsPure(AnalyzedPattern pattern)
-        {
-            if (pattern is Constant)
-                return true;
-
-            if (pattern.Target is Operations.IPropertyReferenceOperation prop)
-            {
-                return IsAutoProperty(prop.Property);
-            }
-
-            return pattern.Target is
-                Operations.ILocalReferenceOperation or
-                Operations.IParameterReferenceOperation or
-                Operations.IFieldReferenceOperation or
-                Operations.IInstanceReferenceOperation;
-        }
-
-        private static bool IsAutoProperty(IPropertySymbol propertySymbol)
-        {
-            // Get fields declared in the same type as the property
-            var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
-
-            // Check if one field is associated to
-            return fields.Any(field => SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, propertySymbol));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -151,14 +151,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
 
-        /// <summary>
-        /// Reported when using IDE0078 code-fix might have unexpected side-effects
-        /// <br/>
-        /// <br/>
-        /// See https://github.com/dotnet/roslyn/issues/50462
-        /// </summary>
-        public const string UseUnsafePatternCombinatorsDiagnosticsId = "IDE0085";
-
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
         public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";

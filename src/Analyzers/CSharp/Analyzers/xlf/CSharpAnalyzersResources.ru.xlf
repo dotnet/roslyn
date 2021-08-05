@@ -257,6 +257,11 @@
         <target state="translated">Используйте сопоставление шаблонов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_have_side_effects">
+        <source>Use pattern matching (may have side effects)</source>
+        <target state="new">Use pattern matching (may have side effects)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Использовать оператор диапазона</target>
@@ -270,11 +275,6 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="translated">Использовать выражение switch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_unsafe_pattern_matching">
-        <source>Use pattern matching (this could have side effects !)</source>
-        <target state="new">Use pattern matching (this could have side effects !)</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
