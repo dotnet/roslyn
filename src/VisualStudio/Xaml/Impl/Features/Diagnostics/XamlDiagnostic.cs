@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
         public int Length { get; set; }
         public string? Tool { get; set; }
         public string? ExtendedMessage { get; set; }
+        public string? HelpLink { get; set; }
         public string[]? CustomTags { get; set; }
     }
 }
