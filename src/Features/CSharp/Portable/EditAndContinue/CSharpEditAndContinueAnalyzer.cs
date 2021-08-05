@@ -186,24 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return model.AnalyzeDataFlow(memberBody).Captured;
         }
 
-        protected override bool AreFixedSizeBufferSizesEqual(IFieldSymbol oldField, IFieldSymbol newField, CancellationToken cancellationToken)
-        {
-            // TODO: replace with symbolic API once available (https://github.com/dotnet/roslyn/issues/54799)
-
-            Debug.Assert(oldField.IsFixedSizeBuffer);
-            Debug.Assert(oldField.DeclaringSyntaxReferences.Length == 1);
-            Debug.Assert(newField.IsFixedSizeBuffer);
-            Debug.Assert(newField.DeclaringSyntaxReferences.Length == 1);
-
-            var oldSyntax = (VariableDeclaratorSyntax)oldField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-            var newSyntax = (VariableDeclaratorSyntax)newField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-
-            Debug.Assert(oldSyntax.ArgumentList != null);
-            Debug.Assert(newSyntax.ArgumentList != null);
-
-            return AreEquivalent(oldSyntax.ArgumentList, newSyntax.ArgumentList);
-        }
-
         protected override bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod)
             => true;
 
@@ -1373,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
             {
                 return null;
             }
@@ -1915,6 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:

@@ -313,15 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
             var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
 
-            if ((object)illegalGenericInstantiationSymbol != null)
+            if (illegalGenericInstantiationSymbol is not null)
             {
                 symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
             }
             else
             {
                 var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
-
-                if ((object)ambiguousCanonicalTypeSymbol != null)
+                if (ambiguousCanonicalTypeSymbol is not null)
                 {
                     symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
                 }
@@ -329,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
 
-                    if ((object)missingCanonicalTypeSymbol != null)
+                    if (missingCanonicalTypeSymbol is not null)
                     {
                         symbolName = missingCanonicalTypeSymbol.FullTypeName;
                     }
@@ -338,16 +337,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var partKind = GetPartKind(symbol);
 
-            if (symbolName == null)
-            {
-                symbolName = symbol.Name;
-            }
+            symbolName ??= symbol.Name;
+
+            var renderSimpleAnonymousDelegate =
+                symbol.TypeKind == TypeKind.Delegate &&
+                !symbol.CanBeReferencedByName &&
+                !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
                 string.IsNullOrEmpty(symbolName))
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
+            }
+            else if (renderSimpleAnonymousDelegate)
+            {
+                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
             }
             else
             {
@@ -365,7 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (symbol.Arity > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
+            else if (!renderSimpleAnonymousDelegate &&
+                     symbol.Arity > 0 &&
+                     format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
                 // It would be nice to handle VB symbols too, but it's not worth the effort.
                 if (underlyingTypeSymbol is UnsupportedMetadataTypeSymbol || underlyingTypeSymbol is MissingMetadataTypeSymbol || symbol.IsUnboundGenericType)
@@ -380,9 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ImmutableArray<ImmutableArray<CustomModifier>> modifiers = GetTypeArgumentsModifiers(underlyingTypeSymbol);
-                    AddTypeArguments(symbol, modifiers);
-
+                    AddTypeArguments(symbol, GetTypeArgumentsModifiers(underlyingTypeSymbol));
                     AddDelegateParameters(symbol);
 
                     // TODO: do we want to skip these if we're being visited as a containing type?

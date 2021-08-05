@@ -1876,7 +1876,6 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' }}')
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
-
 ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
@@ -1909,10 +1908,93 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' }}')
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }}"", IsImplicit) (Syntax: ' }}')
-
 ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
+        {
+            var code = @"
+#pragma warning disable CS0219 // Unused local
+object o1;
+object o2;
+object o3;
+_ = /*<bind>*/$""{o1 = null}"" + $""{o2 = null}"" + $""{o3 = null}"" + 1/*</bind>*/;
+";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) });
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{o1 = nul ...  null}"" + 1')
+  Left:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{o1 = nul ... o3 = null}""')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{o1 = nul ... o2 = null}""')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{o1 = null}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{o1 = null}')
+                    Expression:
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'o1 = null')
+                        Left:
+                          ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
+                        Right:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{o2 = null}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{o2 = null}')
+                    Expression:
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'o2 = null')
+                        Left:
+                          ILocalReferenceOperation: o2 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o2')
+                        Right:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+      Right:
+        IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{o3 = null}""')
+          Parts(1):
+              IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{o3 = null}')
+                Expression:
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'o3 = null')
+                    Left:
+                      ILocalReferenceOperation: o3 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o3')
+                    Right:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                Alignment:
+                  null
+                FormatString:
+                  null
+  Right:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
+                                                                                         expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
     }
 }
