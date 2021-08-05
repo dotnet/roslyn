@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 return new MoveStaticMembersOptions(
                     // TODO: generate unique file name based off of existing folder documents
                     viewModel.DestinationName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
-                    selectedType.ContainingNamespace.ToDisplayString() + "." + viewModel.DestinationName,
+                    string.Join(".", containingNamespaceDisplay, viewModel.DestinationName),
                     selectMembersViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
             }
 

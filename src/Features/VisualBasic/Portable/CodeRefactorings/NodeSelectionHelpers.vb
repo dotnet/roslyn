@@ -11,10 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             Dim methodMember = Await context.TryGetRelevantNodeAsync(Of MethodBaseSyntax)().ConfigureAwait(False)
             If methodMember IsNot Nothing Then
                 Return methodMember
-            Else
-                ' Gets field members, which are not methods
-                Return Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
             End If
+            ' Gets field variable declarations (with not including the keywords), which are not methods
+            Dim fieldDeclaration = Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
+            If fieldDeclaration IsNot Nothing Then
+                Return fieldDeclaration
+            End If
+            ' Gets the identifier + type of the field itself, since it is nested in the variable declaration
+            ' And so the token's parent is not a variable declaration
+            Return Await context.TryGetRelevantNodeAsync(Of ModifiedIdentifierSyntax).ConfigureAwait(False)
         End Function
     End Module
 End Namespace

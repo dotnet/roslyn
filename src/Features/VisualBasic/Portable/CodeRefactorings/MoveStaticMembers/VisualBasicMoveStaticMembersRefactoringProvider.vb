@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers
@@ -12,10 +13,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers
     Friend Class VisualBasicMoveStaticMembersRefactoringProvider
         Inherits AbstractMoveStaticMembersRefactoringProvider
 
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            MyBase.New(Nothing)
+            Me.New(Nothing)
+        End Sub
+
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
+        Public Sub New(service As IMoveStaticMembersOptionsService)
+            MyBase.New(service)
         End Sub
 
         Protected Overrides Async Function GetSelectedNodeAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode)
