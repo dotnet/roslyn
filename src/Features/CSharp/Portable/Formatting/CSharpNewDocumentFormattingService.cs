@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpNewDocumentFormattingService([ImportMany] IEnumerable<INewDocumentFormattingProvider> providers)
+        public CSharpNewDocumentFormattingService([ImportMany(LanguageNames.CSharp)] IEnumerable<INewDocumentFormattingProvider> providers)
             : base(providers)
         {
         }

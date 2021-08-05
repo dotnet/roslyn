@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
 {
-    [Export(typeof(INewDocumentFormattingProvider)), Shared]
+    [Export(LanguageNames.CSharp, typeof(INewDocumentFormattingProvider)), Shared]
     internal class CSharpAddFileBannerNewDocumentFormattingProvider : AbstractAddFileBannerNewDocumentFormattingProvider
     {
         [ImportingConstructor]

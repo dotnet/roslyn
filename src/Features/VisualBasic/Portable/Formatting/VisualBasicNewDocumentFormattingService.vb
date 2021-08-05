@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(<ImportMany> providers As IEnumerable(Of INewDocumentFormattingProvider))
+        Public Sub New(<ImportMany(LanguageNames.VisualBasic)> providers As IEnumerable(Of INewDocumentFormattingProvider))
             MyBase.New(providers)
         End Sub
     End Class
