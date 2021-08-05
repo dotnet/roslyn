@@ -329,20 +329,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
+            // Call out to various new document formatters to tweak what they want
             var formattingService = addedDocument.GetRequiredLanguageService<INewDocumentFormattingService>();
             addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
-
-            // Add access modifier
-            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
-            if (addedDocument.Project.Language == LanguageNames.CSharp &&
-                accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
-            {
-                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(true);
-                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            }
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
@@ -372,32 +364,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
                 formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
-        }
-
-        private static async Task<Document> AddAccessibilityModifiersAsync(
-            Document document, AccessibilityModifiersRequired option, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
-            var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
-
-            foreach (var declaration in typeDeclarations)
-            {
-                if (!service.ShouldUpdateAccessibilityModifier(syntaxFacts, declaration, option, out _))
-                    continue;
-
-                var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                if (type == null)
-                    continue;
-
-                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
-            }
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
     }
 }
