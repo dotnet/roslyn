@@ -504,6 +504,47 @@ $@"namespace NS1
         }
 
         [Fact]
+        public async Task DocumentAtRoot_NoDiagnostic()
+        {
+            var folder = CreateFolderPath();
+
+            var code = $@"
+namespace {DefaultNamespace}
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "File1.cs",
+                code,
+                folder);
+        }
+
+        [Fact]
+        public async Task DocumentAtRoot_ChangeNamespace()
+        {
+            var folder = CreateFolderPath();
+
+            var code = $@"
+namespace {DefaultNamespace}.Test
+{{
+    class C {{ }}
+}}";
+
+            var fixedCode = $@"
+namespace {DefaultNamespace}
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "File1.cs",
+                code,
+                folder,
+                fixedCode: fixedCode);
+        }
+
+        [Fact]
         public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
         {
             var declaredNamespace = $"Bar.Baz";
