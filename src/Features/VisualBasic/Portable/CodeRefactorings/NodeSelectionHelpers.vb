@@ -12,12 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
             If methodMember IsNot Nothing Then
                 Return methodMember
             End If
-            ' Gets field variable declarations (with not including the keywords), which are not methods
+            ' Gets field variable declarations (not including the keywords like Public/Shared, etc), which are not methods
             Dim fieldDeclaration = Await context.TryGetRelevantNodeAsync(Of FieldDeclarationSyntax).ConfigureAwait(False)
             If fieldDeclaration IsNot Nothing Then
                 Return fieldDeclaration
             End If
-            ' Gets the identifier + type of the field itself, since it is nested in the variable declaration
+            ' Gets the identifier + type of the field itself (ex. TestField As Integer), since it is nested in the variable declaration
             ' And so the token's parent is not a variable declaration
             Return Await context.TryGetRelevantNodeAsync(Of ModifiedIdentifierSyntax).ConfigureAwait(False)
         End Function
