@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -39,10 +40,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
+        private readonly ConcurrentDictionary<ProjectId, (Checksum, Solution)> _primaryBranchProjectIdToSolutionWithChecksum = new();
+        private readonly ConcurrentDictionary<ProjectId, (Checksum, Solution)> _lastRequestedProjectIdToSolutionWithChecksum = new();
+
         /// <summary>
         /// Guards setting current workspace solution.
         /// </summary>
-        private readonly object _currentSolutionGate = new object();
+        private readonly object _currentSolutionGate = new();
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward.
@@ -169,20 +173,31 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
+        private Solution? TryGetAvailableSolution(Checksum solutionChecksum, ProjectId? projectId)
         {
-            var currentSolution = _primaryBranchSolutionWithChecksum;
-            if (currentSolution?.Item1 == solutionChecksum)
+            if (projectId == null)
             {
-                // asked about primary solution
-                return currentSolution.Item2;
-            }
+                var currentSolution = _primaryBranchSolutionWithChecksum;
+                if (currentSolution?.Item1 == solutionChecksum)
+                    return currentSolution.Item2;
 
-            var lastSolution = _lastRequestedSolutionWithChecksum;
-            if (lastSolution?.Item1 == solutionChecksum)
+                var lastSolution = _lastRequestedSolutionWithChecksum;
+                if (lastSolution?.Item1 == solutionChecksum)
+                    return lastSolution.Item2;
+            }
+            else
             {
-                // asked about last solution
-                return lastSolution.Item2;
+                if (_primaryBranchProjectIdToSolutionWithChecksum.TryGetValue(projectId, out (Checksum checksum, Solution solution) value) &&
+                    value.checksum == solutionChecksum)
+                {
+                    return value.solution;
+                }
+
+                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out value) &&
+                    value.checksum == solutionChecksum)
+                {
+                    return value.solution;
+                }
             }
 
             return null;
@@ -193,22 +208,19 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
             int workspaceVersion,
+            ProjectId? projectId,
             CancellationToken cancellationToken)
         {
-            var availableSolution = TryGetAvailableSolution(solutionChecksum);
+            var availableSolution = TryGetAvailableSolution(solutionChecksum, projectId);
             if (availableSolution != null)
-            {
                 return availableSolution;
-            }
 
             // make sure there is always only one that creates a new solution
             using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                availableSolution = TryGetAvailableSolution(solutionChecksum);
+                availableSolution = TryGetAvailableSolution(solutionChecksum, projectId);
                 if (availableSolution != null)
-                {
                     return availableSolution;
-                }
 
                 var solution = await CreateSolution_NoLockAsync(
                     assetProvider,
@@ -218,7 +230,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     CurrentSolution,
                     cancellationToken).ConfigureAwait(false);
 
-                _lastRequestedSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+                if (projectId == null)
+                {
+                    _lastRequestedSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+                }
+                else
+                {
+                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = (solutionChecksum, solution);
+                }
 
                 return solution;
             }
