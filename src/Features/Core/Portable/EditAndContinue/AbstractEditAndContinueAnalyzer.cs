@@ -288,7 +288,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
 
-        protected abstract bool AreFixedSizeBufferSizesEqual(IFieldSymbol oldField, IFieldSymbol newField, CancellationToken cancellationToken);
         protected abstract bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod);
 
         // diagnostic spans:
@@ -3353,9 +3352,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     rudeEdit = RudeEditKind.InitializerUpdate;
                 }
 
-                if (oldField.IsFixedSizeBuffer &&
-                    newField.IsFixedSizeBuffer &&
-                    !AreFixedSizeBufferSizesEqual(oldField, newField, cancellationToken))
+                if (oldField.FixedSize != newField.FixedSize)
                 {
                     rudeEdit = RudeEditKind.FixedSizeFieldUpdate;
                 }
