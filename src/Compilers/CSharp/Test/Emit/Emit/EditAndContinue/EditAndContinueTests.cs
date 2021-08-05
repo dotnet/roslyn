@@ -1046,6 +1046,74 @@ class C
                 Handle(2, TableIndex.StandAloneSig));
         }
 
+        [Fact]
+        public void Lambda_SynthesizedDelegate()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => a</N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => b</N:0>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>F{00000001}`3", "C", "<>c");       // <>F{00000001}`3 is the synthesized delegate for the lambda
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows. 
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0");
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
+
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(3, TableIndex.MethodDef),
+                Handle(7, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(4, TableIndex.Param),
+                Handle(2, TableIndex.StandAloneSig));
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
