@@ -190,8 +190,6 @@ End Class
             Dim source0 =
 "
 Class C
-    Shared Sub Main
-    End Sub
     Shared Function F(i As Integer) As Integer
         Return i
     End Function
@@ -200,14 +198,12 @@ End Class
             Dim source1 =
 "
 Class C
-    Shared Sub Main
-    End Sub
     Shared Function F(x As Integer) As Integer
         Return x
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugExe, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll, references:={ValueTupleRef, SystemRuntimeFacadeRef})
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -232,11 +228,11 @@ End Class
 
                     CheckEncLogDefinitions(reader1,
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(1, TableIndex.Param, EditAndContinueOperation.Default))
 
                     CheckEncMapDefinitions(reader1,
-                        Handle(3, TableIndex.MethodDef),
+                        Handle(2, TableIndex.MethodDef),
                         Handle(1, TableIndex.Param),
                         Handle(2, TableIndex.StandAloneSig))
                 End Using
