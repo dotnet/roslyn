@@ -1758,6 +1758,7 @@ Additional information: {1}</value>
   </data>
   <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
     <value>Move Static Members to Another Type:</value>
+  </data>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
   </data>
