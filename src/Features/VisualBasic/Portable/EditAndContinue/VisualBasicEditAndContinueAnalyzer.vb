@@ -2372,10 +2372,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Semantic Rude Edits"
-        Protected Overrides Function AreFixedSizeBufferSizesEqual(oldField As IFieldSymbol, newField As IFieldSymbol, cancellationToken As CancellationToken) As Boolean
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
         Protected Overrides Function AreHandledEventsEqual(oldMethod As IMethodSymbol, newMethod As IMethodSymbol) As Boolean
             Return oldMethod.HandledEvents.SequenceEqual(
                 newMethod.HandledEvents,
