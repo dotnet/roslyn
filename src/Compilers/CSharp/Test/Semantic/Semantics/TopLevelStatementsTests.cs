@@ -9484,5 +9484,88 @@ public partial class Program { }
             var cMember = comp.GetMember<NamedTypeSymbol>("Program");
             Assert.Equal("", cMember.GetDocumentationCommentXml());
         }
+
+        [Fact]
+        public void SpeakableEntryPoint_TypeOf()
+        {
+            var src = @"
+C.M();
+
+public class C
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(Program));
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Program");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Ordering_InFileScopedNamespace_01()
+        {
+            var src = @"
+namespace NS;
+System.Console.Write(42);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Write").WithLocation(3, 16),
+                // (3,22): error CS1026: ) expected
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "42").WithLocation(3, 22),
+                // (3,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void Ordering_InFileScopedNamespace_02()
+        {
+            var src = @"
+namespace NS;
+var x = 1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(3, 1),
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void Ordering_AfterNamespace()
+        {
+            var src = @"
+namespace NS
+{
+}
+
+var x = 1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "var x = 1;").WithLocation(6, 1),
+                // (6,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // var x = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 5)
+                );
+        }
     }
 }

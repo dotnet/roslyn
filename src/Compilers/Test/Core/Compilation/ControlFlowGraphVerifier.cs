@@ -1917,13 +1917,12 @@ endRegion:
             return symbol is IMethodSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
-                ContainingType: { } containingType
-            }
-            && containingType is INamedTypeSymbol
-            {
-                Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                ContainingType: null,
-                ContainingNamespace: { IsGlobalNamespace: true }
+                ContainingType: INamedTypeSymbol
+                {
+                    Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                    ContainingType: null,
+                    ContainingNamespace: { IsGlobalNamespace: true }
+                }
             };
         }
     }
