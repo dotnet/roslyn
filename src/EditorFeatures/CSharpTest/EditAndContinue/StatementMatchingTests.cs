@@ -939,7 +939,7 @@ F(a =>
         }
 
         [Fact]
-        public void Lambdas_ParmaeterToDiscard()
+        public void Lambdas_ParameterToDiscard()
         {
             var src1 = "var x = F((a, b) => 1);";
             var src2 = "var x = F((_, _) => 2);";
