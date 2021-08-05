@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -21,21 +22,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _languageServices;
         private readonly string _languageName;
         private bool _initialized = false;
 
-        public AbstractCreateServicesOnTextViewConnection(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
+        public AbstractCreateServicesOnTextViewConnection(
+            VisualStudioWorkspace workspace,
+            IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices,
+            string languageName)
         {
-            _languageServices = languageServices;
+            _workspace = workspace;
             _languageName = languageName;
+            _languageServices = languageServices;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             if (!_initialized)
             {
-                CreateServices(_languageName);
+                CreateServicesOnUIThread();
+                CreateServicesInBackground();
                 _initialized = true;
             }
         }
@@ -47,16 +54,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Must be invoked from the UI thread.
         /// </summary>
-        private void CreateServices(string languageName)
+        private void CreateServicesOnUIThread()
         {
             var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
             foreach (var languageService in _languageServices)
             {
                 if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
-                    languageService.Metadata.Language == languageName)
+                    languageService.Metadata.Language == _languageName)
                 {
                     _ = languageService.Value;
                     break;
+                }
+            }
+        }
+
+        private void CreateServicesInBackground()
+        {
+            _ = Task.Run(ImportCompeltionProviders);
+
+            void ImportCompeltionProviders()
+            {
+                if (_workspace.Services.GetLanguageService<CompletionService>(_languageName) is CompletionServiceWithProviders service)
+                {
+                    _ = service.GetImportedProviders().SelectAsArray(p => p.Value);
                 }
             }
         }
