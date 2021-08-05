@@ -72,7 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             _ = Task.Run(ImportCompeltionProviders);
 
-            void ImportCompeltionProviders()
+            // Preload completion providers on a background thread since assembly loads can be slow
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
+            void ImportCompletionProviders()
             {
                 if (_workspace.Services.GetLanguageService<CompletionService>(_languageName) is CompletionServiceWithProviders service)
                 {
