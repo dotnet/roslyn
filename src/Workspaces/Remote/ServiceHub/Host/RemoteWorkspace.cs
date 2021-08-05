@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
-        private readonly ConcurrentDictionary<ProjectId, (Checksum, Solution)> _primaryBranchProjectIdToSolutionWithChecksum = new();
+        /// <summary>
+        /// The last partial solution snapshot corresponding to a particular project requested by a service.
+        /// </summary>
         private readonly ConcurrentDictionary<ProjectId, (Checksum, Solution)> _lastRequestedProjectIdToSolutionWithChecksum = new();
 
         /// <summary>
@@ -185,19 +187,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (lastSolution?.Item1 == solutionChecksum)
                     return lastSolution.Item2;
             }
-            else
+            else if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out (Checksum checksum, Solution solution) value) &&
+                    value.checksum == solutionChecksum)
             {
-                if (_primaryBranchProjectIdToSolutionWithChecksum.TryGetValue(projectId, out (Checksum checksum, Solution solution) value) &&
-                    value.checksum == solutionChecksum)
-                {
-                    return value.solution;
-                }
-
-                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out value) &&
-                    value.checksum == solutionChecksum)
-                {
-                    return value.solution;
-                }
+                return value.solution;
             }
 
             return null;
