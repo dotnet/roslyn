@@ -572,8 +572,8 @@ namespace N
     {
         void M()
         {
-            var c = new Banned();
-            var d = new Banned(1);
+            var c = {|#0:new Banned()|};
+            var d = {|#1:new Banned(1)|};
         }
     }
 }";
@@ -584,12 +584,12 @@ namespace N
             await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText1,
-                GetCSharpResultAt(13, 21, 33, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned()", ""));
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned()", ""));
 
             await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText2,
-                GetCSharpResultAt(14, 21, 34, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned(int)", ""));
+                GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned(int)", ""));
         }
 
         [Fact]
