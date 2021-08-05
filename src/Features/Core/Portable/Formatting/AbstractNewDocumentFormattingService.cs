@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal class AbstractNewDocumentFormattingService : INewDocumentFormattingService
+    internal abstract class AbstractNewDocumentFormattingService : INewDocumentFormattingService
     {
         private readonly IEnumerable<INewDocumentFormattingProvider> _providers;
 
