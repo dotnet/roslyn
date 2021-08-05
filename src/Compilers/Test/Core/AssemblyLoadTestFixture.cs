@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class AssemblyLoadTestFixture : IDisposable
+    public sealed class AssemblyLoadTestFixture : IDisposable
     {
         private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
