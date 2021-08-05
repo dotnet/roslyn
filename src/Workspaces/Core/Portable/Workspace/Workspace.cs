@@ -271,35 +271,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            var newOptions = _optionService.GetSerializableOptionsSnapshot(GetRemoteSupportedProjectLanguages(this.CurrentSolution.State));
+            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetRemoteSupportedProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
-        }
-
-        private static readonly ImmutableHashSet<string> _csLanguage = ImmutableHashSet.Create(LanguageNames.CSharp);
-        private static readonly ImmutableHashSet<string> _vbLanguage = ImmutableHashSet.Create(LanguageNames.VisualBasic);
-        private static readonly ImmutableHashSet<string> _csAndVbLanguage = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
-
-        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(SolutionState solutionState)
-        {
-            var hasCS = false;
-            var hasVB = false;
-
-            foreach (var projectState in solutionState.ProjectStates)
-            {
-                if (hasCS && hasVB)
-                    break;
-
-                hasCS = hasCS || projectState.Value.Language == LanguageNames.CSharp;
-                hasVB = hasVB || projectState.Value.Language == LanguageNames.VisualBasic;
-            }
-
-            return (hasCS, hasVB) switch
-            {
-                (true, true) => _csAndVbLanguage,
-                (true, false) => _csLanguage,
-                (false, true) => _vbLanguage,
-                (false, false) => ImmutableHashSet<string>.Empty,
-            };
         }
 
         /// <summary>

@@ -492,7 +492,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
-                dependencyGraph: newDependencyGraph);
+                dependencyGraph: newDependencyGraph,
+                options: this.Options.WithLanguages(GetRemoteSupportedProjectLanguages(newStateMap)));
         }
 
         /// <summary>
@@ -584,7 +585,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
-                dependencyGraph: newDependencyGraph);
+                dependencyGraph: newDependencyGraph,
+                options: Options.WithLanguages(GetRemoteSupportedProjectLanguages(newStateMap)));
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -2002,5 +2004,35 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
+
+        private static readonly ImmutableHashSet<string> _csLanguage = ImmutableHashSet.Create(LanguageNames.CSharp);
+        private static readonly ImmutableHashSet<string> _vbLanguage = ImmutableHashSet.Create(LanguageNames.VisualBasic);
+        private static readonly ImmutableHashSet<string> _csAndVbLanguage = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => GetRemoteSupportedProjectLanguages(this.ProjectStates);
+
+        internal static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> stateMap)
+        {
+            var hasCS = false;
+            var hasVB = false;
+
+            foreach (var projectState in stateMap)
+            {
+                if (hasCS && hasVB)
+                    break;
+
+                hasCS = hasCS || projectState.Value.Language == LanguageNames.CSharp;
+                hasVB = hasVB || projectState.Value.Language == LanguageNames.VisualBasic;
+            }
+
+            return (hasCS, hasVB) switch
+            {
+                (true, true) => _csAndVbLanguage,
+                (true, false) => _csLanguage,
+                (false, true) => _vbLanguage,
+                (false, false) => ImmutableHashSet<string>.Empty,
+            };
+        }
     }
 }

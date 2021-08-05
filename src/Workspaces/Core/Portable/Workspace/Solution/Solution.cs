@@ -1813,7 +1813,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithOptions(SerializableOptionSet options)
         {
-            var newState = _state.WithOptions(options: options);
+            var newState = _state.WithOptions(options: options.WithLanguages(_state.GetRemoteSupportedProjectLanguages()));
             if (newState == _state)
             {
                 return this;
