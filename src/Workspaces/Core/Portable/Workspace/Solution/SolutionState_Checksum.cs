@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -94,7 +95,9 @@ namespace Microsoft.CodeAnalysis
 
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
-                    var optionsChecksum = serializer.CreateChecksum(Options, cancellationToken);
+
+                    var options = GetOptionsToSerialize(projectsToInclude);
+                    var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -116,6 +119,21 @@ namespace Microsoft.CodeAnalysis
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private SerializableOptionSet GetOptionsToSerialize(HashSet<ProjectId>? projectsToInclude)
+        {
+            // we're syncing the entire solution, so sync all the options.
+            if (projectsToInclude == null)
+                return this.Options;
+
+            // we're syncing a subset of projects, so only sync the options for the particular languages
+            // we're syncing over.
+            var languages = projectsToInclude.Select(id => ProjectStates[id].Language)
+                                             .Where(s => RemoteSupportedLanguages.IsSupported(s))
+                                             .ToImmutableHashSet();
+
+            return this.Options.WithLanguages(languages);
         }
 
         private HashSet<ProjectId>? GetProjectsToInclude(ProjectId? projectId)
