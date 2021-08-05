@@ -369,6 +369,42 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddUnsafeEvent()
             {
                 var input = "class [|C|] { }";
@@ -416,6 +452,28 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -919,6 +977,34 @@ class C
                     type: typeof(int),
                     modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
                     setterAccessibility: Accessibility.Internal);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
