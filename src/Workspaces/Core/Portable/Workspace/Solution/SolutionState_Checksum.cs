@@ -70,11 +70,10 @@ namespace Microsoft.CodeAnalysis
                     // if applicable.
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
                     var projectsToInclude = GetProjectsToInclude(projectId);
-                    var projectChecksumTasks =
-                        orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
-                                         .Select(id => ProjectStates[id])
-                                         .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                         .Select(s => s.GetChecksumAsync(cancellationToken));
+                    var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
+                                                                .Select(id => ProjectStates[id])
+                                                                .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
+                                                                .Select(s => s.GetChecksumAsync(cancellationToken));
 
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
