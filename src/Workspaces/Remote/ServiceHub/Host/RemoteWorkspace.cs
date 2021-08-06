@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// The last partial solution snapshot corresponding to a particular project-cone requested by a service.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, Tuple<Checksum, Solution>> _lastRequestedProjectIdToSolutionWithChecksum = new();
+        private readonly ConcurrentDictionary<ProjectId, StrongBox<(Checksum checksum, Solution solution)>> _lastRequestedProjectIdToSolutionWithChecksum = new();
 
         /// <summary>
         /// Guards setting current workspace solution.
@@ -234,13 +235,13 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             // Attempt to just read without incurring any other costs.
-            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var tuple) &&
-                tuple.Item1 == solutionChecksum)
+            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
+                box.Value.checksum == solutionChecksum)
             {
-                return new(tuple.Item2);
+                return new(box.Value.Item2);
             }
 
-            return GetProjectSubsetSolutionSlowAsync(tuple?.Item2 ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
+            return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
 
             async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
                 Solution baseSolution,
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
                 // in general this should be fine as we're primarily storing this to make future calls to synchronize
                 // this project cone fast.
-                _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new(solutionChecksum, result);
+                _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
                 return result;
             }
         }
