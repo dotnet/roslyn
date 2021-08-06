@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 
@@ -21,8 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(<ImportMany> languageServices As IEnumerable(Of Lazy(Of ILanguageService, LanguageServiceMetadata)))
-            MyBase.New(languageServices, LanguageNames.VisualBasic)
+        Public Sub New(workspace As VisualStudioWorkspace, <ImportMany> languageServices As IEnumerable(Of Lazy(Of ILanguageService, LanguageServiceMetadata)))
+            MyBase.New(workspace, languageServices, languageName:=LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

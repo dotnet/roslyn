@@ -288,7 +288,7 @@ Program.Test();
 System.Console.WriteLine(new alias1::C1());
 System.Console.WriteLine(new alias1::NS3.C4());
 
-class Program
+partial class Program
 {
     public static void Test()
     {
@@ -332,7 +332,7 @@ Program.Test();
 System.Console.WriteLine(new alias1::C1());
 System.Console.WriteLine(new alias1::NS3.C4());
 
-class Program
+partial class Program
 {
     public static void Test()
     {
@@ -393,7 +393,7 @@ extern alias alias1;
 global using A = alias1::C1;
 global using B = alias1::NS3;
 
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -620,7 +620,7 @@ Program.Test();
 System.Console.WriteLine(new A());
 System.Console.WriteLine(new B.C4());
 
-class Program
+partial class Program
 {
     public static void Test()
     {
@@ -750,7 +750,7 @@ System.Console.WriteLine(new B.C4());
 
             test(source2,
                  @"
-class Program
+partial class Program
 {
     public static void Test()
     {
@@ -1309,7 +1309,7 @@ Program.Test();
 System.Console.WriteLine(new C2());
 System.Console.WriteLine(new C4());
 
-class Program
+partial class Program
 {
     public static void Test()
     {
@@ -1428,7 +1428,7 @@ System.Console.WriteLine(new C4());
 
             test(source2,
                  @"
-class Program
+partial class Program
 {
     public static void Test()
     {

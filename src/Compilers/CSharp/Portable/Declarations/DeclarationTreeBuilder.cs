@@ -150,13 +150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
             return new SingleTypeDeclaration(
-                kind: DeclarationKind.SimpleProgram,
+                kind: DeclarationKind.Class,
                 name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 arity: 0,
-                modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
+                modifiers: DeclarationModifiers.Partial,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
-                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None),
+                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,

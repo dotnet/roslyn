@@ -11917,17 +11917,17 @@ Console.WriteLine(""Hello World"");
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
-            var method1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var method0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
+            var method1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<Program>$");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "Program");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine", /*Program.*/".ctor");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 md0,
@@ -11950,8 +11950,8 @@ Console.WriteLine(""Hello World"");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
@@ -11964,8 +11964,8 @@ Console.WriteLine(""Hello World"");
                 Handle(10, TableIndex.TypeRef),
                 Handle(1, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(6, TableIndex.MemberRef),
                 Handle(7, TableIndex.MemberRef),
+                Handle(8, TableIndex.MemberRef),
                 Handle(2, TableIndex.AssemblyRef));
         }
     }
