@@ -11,7 +11,6 @@ steps:
 
 - task: ComponentGovernanceComponentDetection@0
   displayName: Component Detection
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
 - task: Ref12Analyze@0
   displayName: Ref12 (Codex) Analyze
