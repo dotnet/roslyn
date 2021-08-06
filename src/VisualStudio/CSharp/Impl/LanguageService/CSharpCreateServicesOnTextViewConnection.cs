@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -24,8 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCreateServicesOnTextViewConnection([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices)
-            : base(languageServices, LanguageNames.CSharp)
+        public CSharpCreateServicesOnTextViewConnection(
+            VisualStudioWorkspace workspace,
+            [ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices)
+            : base(workspace, languageServices, LanguageNames.CSharp)
         {
         }
     }

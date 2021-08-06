@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts, string? rootNamespace = null)
         {
             var parts = folders.SelectMany(folder => folder.Split(NamespaceSeparatorArray)).SelectAsArray(syntaxFacts.EscapeIdentifier);
+
+            if (parts.IsDefaultOrEmpty)
+            {
+                return rootNamespace;
+            }
 
             var constructedNamespace = parts.All(syntaxFacts.IsValidIdentifier)
                 ? string.Join(".", parts)
