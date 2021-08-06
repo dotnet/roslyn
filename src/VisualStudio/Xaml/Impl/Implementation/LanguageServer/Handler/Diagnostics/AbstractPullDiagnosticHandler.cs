@@ -189,7 +189,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             return result.ToArray();
         }
-
-        
     }
 }
