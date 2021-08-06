@@ -104,13 +104,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                     $"The token ends at index {currentChar + tokenLength}, which exceeds the line length of {lineLength}.");
             }
         }
-
-        protected static LSP.SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
-            => new()
-            {
-                Start = start,
-                DeleteCount = deleteCount,
-                Data = data
-            };
     }
 }

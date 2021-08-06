@@ -117,17 +117,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
             var insertIndex = 0;
 
-            // Go through and attempt to combine individual edits into larger edits.
+            // Go through and attempt to combine individual edits into larger edits. The edits
+            // passed into this method have already been ordered from smallest original index ->
+            // largest original index.
             foreach (var edit in edits)
             {
+                // Retrieve the most recent edit to see if it can be expanded.
                 var editInProgress = results.Count > 0 ? results[^1] : null;
+
                 switch (edit.Kind)
                 {
                     case EditKind.Delete:
+                        // If we have a deletion edit, we should see if there's an edit in progress
+                        // we can combine with. If not, we'll generate a new edit.
+                        //
+                        // Note we've set up the logic such that deletion edits can be combined with
+                        // an insertion edit in progress, but not vice versa. This works out
+                        // because the edits list passed into this method always orders the
+                        // insertions for a given start index before deletions.
                         if (editInProgress != null &&
                             editInProgress.Start + editInProgress.DeleteCount == edit.OldIndex)
                         {
-                            editInProgress.DeleteCount += 1;
+                            editInProgress.DeleteCount++;
                         }
                         else
                         {
@@ -140,6 +151,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                         break;
                     case EditKind.Insert:
+                        // If we have an insertion edit, we should see if there's an insertion edit
+                        // in progress we can combine with. If not, we'll generate a new edit.
+                        //
+                        // As mentioned above, we only combine insertion edits with in-progress
+                        // insertion edits.
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
@@ -210,8 +226,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         // operate on it directly then every time we append an element we're allocating a new array.
         private class RoslynSemanticTokensEdit
         {
+            /// <summary>
+            /// Index where edit begins in the original sequence.
+            /// </summary>
             public int Start { get; set; }
+
+            /// <summary>
+            /// Number of values to delete from tokens array.
+            /// </summary>
             public int DeleteCount { get; set; }
+
+            /// <summary>
+            /// Values to add to tokens array.
+            /// </summary>
             public IList<int>? Data { get; set; }
 
             public SemanticTokensEdit ToSemanticTokensEdit()

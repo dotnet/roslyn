@@ -43,7 +43,7 @@ static class C { }";
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = GenerateEdit(start: 5, deleteCount: 1, data: new int[] { 2 });
+            var expectedEdit = new LSP.SemanticTokensEdit { Start = 5, DeleteCount = 1, Data = new int[] { 2 } };
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
@@ -65,7 +65,7 @@ static class C { }";
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = GenerateEdit(start: 5, deleteCount: 25, data: System.Array.Empty<int>());
+            var expectedEdit = new LSP.SemanticTokensEdit { Start = 5, DeleteCount = 25, Data = System.Array.Empty<int>() };
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
@@ -89,8 +89,12 @@ static class C { }
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = GenerateEdit(
-                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 });
+            var expectedEdit = new LSP.SemanticTokensEdit
+            {
+                Start = 30,
+                DeleteCount = 0,
+                Data = new int[] { 1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 }
+            };
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
@@ -117,16 +121,19 @@ static class C { }
 
             // 1. Updates length of token (10 to 5) and updates token type (comment to keyword)
             // 2. Creates new token for '// Comment'
-            var expectedEdit = GenerateEdit(
-                start: 2, deleteCount: 0,
-                data: new int[]
+            var expectedEdit = new LSP.SemanticTokensEdit
+            {
+                Start = 2,
+                DeleteCount = 0,
+                Data = new int[]
                 {
                     // 'class'
                     /* 0, 0, */ 5, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword], 0,
 
                     // '// Comment'
                     1, 0, /* 10,  SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 */
-                });
+                }
+            };
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits?[0]);
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
