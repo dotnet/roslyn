@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis
             return checksums.Checksum;
         }
 
+        /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
+        /// to get a checksum for the entire solution</param>
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
             HashSet<ProjectId>? projectsToInclude,
             SerializableOptionSet options,
