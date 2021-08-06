@@ -500,6 +500,207 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
         }
 
+        [Fact]
+        public async Task TestPartialProjectSync_GetSolutionFirst()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+
+            solution = project2.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var syncedFullSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
+
+            Assert.Equal(solutionChecksum, await syncedFullSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(2, syncedFullSolution.Projects.Count());
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project1.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_GetSolutionLast()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+
+            solution = project2.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project1.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var syncedFullSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
+
+            Assert.Equal(solutionChecksum, await syncedFullSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(2, syncedFullSolution.Projects.Count());
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_GetDependentProjects1()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+            var project3 = project2.Solution.AddProject("P3", "P3", LanguageNames.CSharp);
+
+            solution = project3.Solution.AddProjectReference(project3.Id, new(project3.Solution.Projects.Single(p => p.Name == "P2").Id));
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+
+            // syncing project 3 should since project 2 as well because of the p2p ref
+            var project3Checksum = await solution.State.GetChecksumAsync(project3.Id, CancellationToken.None);
+            var project3SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project3Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(2, project3SyncedSolution.Projects.Count());
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_GetDependentProjects2()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+            var project3 = project2.Solution.AddProject("P3", "P3", LanguageNames.CSharp);
+
+            solution = project3.Solution.AddProjectReference(project3.Id, new(project3.Solution.Projects.Single(p => p.Name == "P2").Id));
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            // syncing project 3 should since project 2 as well because of the p2p ref
+            var project3Checksum = await solution.State.GetChecksumAsync(project3.Id, CancellationToken.None);
+            var project3SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project3Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(2, project3SyncedSolution.Projects.Count());
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_GetDependentProjects3()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+            var project3 = project2.Solution.AddProject("P3", "P3", LanguageNames.CSharp);
+
+            solution = project3.Solution.AddProjectReference(project3.Id, new(project2.Id))
+                                        .AddProjectReference(project2.Id, new(project1.Id));
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            // syncing project3 should since project2 and project1 as well because of the p2p ref
+            var project3Checksum = await solution.State.GetChecksumAsync(project3.Id, CancellationToken.None);
+            var project3SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project3Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(3, project3SyncedSolution.Projects.Count());
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(2, project2SyncedSolution.Projects.Count());
+            Assert.True(project2SyncedSolution.Projects.Select(p => p.Name).SetEquals(new[] { project2.Name, project1.Name }));
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_GetDependentProjects4()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+            var project3 = project2.Solution.AddProject("P3", "P3", LanguageNames.CSharp);
+
+            solution = project3.Solution.AddProjectReference(project3.Id, new(project2.Id))
+                                        .AddProjectReference(project3.Id, new(project1.Id));
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            // syncing project3 should since project2 and project1 as well because of the p2p ref
+            var project3Checksum = await solution.State.GetChecksumAsync(project3.Id, CancellationToken.None);
+            var project3SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project3Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(3, project3SyncedSolution.Projects.Count());
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);

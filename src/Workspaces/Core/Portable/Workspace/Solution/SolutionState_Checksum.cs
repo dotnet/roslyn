@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <param name="projectId">If specified, the checksum will only contain information about the 
         /// provided project (and any projects it depends on)</param>
-        public async Task<Checksum> GetChecksumAsync(ProjectId? projectId, CancellationToken cancellationToken)
+        public async Task<SolutionStateChecksums> GetStateChecksumsAsync(ProjectId? projectId, CancellationToken cancellationToken)
         {
             if (projectId == null)
-                return await GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                return await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             ValueSource<SolutionStateChecksums>? lazyChecksum;
             lock (_lazyProjectChecksums)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var collection = await lazyChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
             ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId)
@@ -74,6 +74,14 @@ namespace Microsoft.CodeAnalysis
                 return new AsyncLazy<SolutionStateChecksums>(
                     c => ComputeChecksumsAsync(projectId, c), cacheResult: true);
             }
+        }
+
+        /// <param name="projectId">If specified, the checksum will only contain information about the 
+        /// provided project (and any projects it depends on)</param>
+        public async Task<Checksum> GetChecksumAsync(ProjectId? projectId, CancellationToken cancellationToken)
+        {
+            var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+            return checksums.Checksum;
         }
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
