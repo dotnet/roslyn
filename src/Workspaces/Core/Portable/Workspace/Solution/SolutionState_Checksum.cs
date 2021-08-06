@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
+                    // If we ware only syncing a subset of projects over to the OOP side, we may only need to
+                    // sync a subset of options as well.
                     var options = GetOptionsToSerialize(projectsToInclude);
                     var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
 
