@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var solutionState = solution.State;
             var solutionChecksum = projectId == null
-                ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
                 : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
             var context = SolutionReplicationContext.Create();
 
