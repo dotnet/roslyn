@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
             var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(true);

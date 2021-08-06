@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, document.Project.Language);

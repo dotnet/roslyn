@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, CancellationToken.None);
+                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, CancellationToken.None);
 
                 // Format to match what AbstractEditorFactory does
                 formattedDocument = await Formatter.FormatAsync(formattedDocument);

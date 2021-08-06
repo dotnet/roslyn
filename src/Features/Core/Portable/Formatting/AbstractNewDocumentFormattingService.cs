@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return _providerValues;
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
             foreach (var provider in GetProviders())
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // other, so this shouldn't cause problems.
                 try
                 {
-                    document = await provider.FormatNewDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                    document = await provider.FormatNewDocumentAsync(document, hintDocument, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {
