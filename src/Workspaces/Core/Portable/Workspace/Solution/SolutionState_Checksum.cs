@@ -55,14 +55,12 @@ namespace Microsoft.CodeAnalysis
             return collection.Checksum;
         }
 
-        /// <param name="projectId">If specified, the checksum will only contain information about the 
-        /// provided project (and any projects it depends on)</param>
+        /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
         public async Task<SolutionStateChecksums> GetStateChecksumsAsync(
-            ProjectId? projectId,
+            ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            if (projectId == null)
-                return await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(projectId);
 
             (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums) value;
             lock (_lazyProjectChecksums)
@@ -109,9 +107,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <param name="projectId">If specified, the checksum will only contain information about the 
-        /// provided project (and any projects it depends on)</param>
-        public async Task<Checksum> GetChecksumAsync(ProjectId? projectId, CancellationToken cancellationToken)
+        /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
+        public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
             return checksums.Checksum;

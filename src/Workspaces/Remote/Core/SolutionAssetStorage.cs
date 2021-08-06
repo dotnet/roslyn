@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+            var solutionChecksum = projectId == null
+                ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
             var context = SolutionReplicationContext.Create();
 
             var id = Interlocked.Increment(ref s_scopeId);
