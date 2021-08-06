@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async ValueTask<Solution> GetSolutionAsync(
+        public ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
@@ -122,41 +122,41 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId? projectId,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return projectId == null
-                    ? await GetFullSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, workspaceVersion, cancellationToken).ConfigureAwait(false)
-                    : await GetProjectSubsetSolutionAsync(assetProvider, solutionChecksum, projectId, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            return projectId == null
+                ? GetFullSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, workspaceVersion, cancellationToken)
+                : GetProjectSubsetSolutionAsync(assetProvider, solutionChecksum, projectId, cancellationToken);
         }
 
         private async ValueTask<Solution> GetFullSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, bool fromPrimaryBranch, int workspaceVersion, CancellationToken cancellationToken)
         {
-            var availableSolution = TryGetAvailableSolution(solutionChecksum);
-            if (availableSolution != null)
-                return availableSolution;
-
-            // make sure there is always only one that creates a new solution
-            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
-                availableSolution = TryGetAvailableSolution(solutionChecksum);
+                var availableSolution = TryGetAvailableSolution(solutionChecksum);
                 if (availableSolution != null)
                     return availableSolution;
 
-                var solution = await CreateFullSolution_NoLockAsync(
-                    assetProvider,
-                    solutionChecksum,
-                    fromPrimaryBranch,
-                    workspaceVersion,
-                    CurrentSolution,
-                    cancellationToken).ConfigureAwait(false);
+                // make sure there is always only one that creates a new solution
+                using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    availableSolution = TryGetAvailableSolution(solutionChecksum);
+                    if (availableSolution != null)
+                        return availableSolution;
 
-                _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
-                return solution;
+                    var solution = await CreateFullSolution_NoLockAsync(
+                        assetProvider,
+                        solutionChecksum,
+                        fromPrimaryBranch,
+                        workspaceVersion,
+                        CurrentSolution,
+                        cancellationToken).ConfigureAwait(false);
+
+                    _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
+                    return solution;
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -234,49 +234,56 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            // Attempt to just read without incurring any other costs.
-            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
-                box.Value.checksum == solutionChecksum)
+            try
             {
-                return new(box.Value.Item2);
+                // Attempt to just read without incurring any other costs.
+                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
+                    box.Value.checksum == solutionChecksum)
+                {
+                    return new(box.Value.Item2);
+                }
+
+                return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
+
+                async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
+                    Solution baseSolution,
+                    AssetProvider assetProvider,
+                    Checksum solutionChecksum,
+                    ProjectId projectId,
+                    CancellationToken cancellationToken)
+                {
+                    var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+
+                    // check whether solution is update to the given base solution
+                    Solution result;
+                    if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                    {
+                        // create updated solution off the baseSolution
+                        result = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // we need new solution. bulk sync all asset for the solution first.
+                        await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                        // get new solution info and options
+                        var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                        var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                        result = workspace.CurrentSolution;
+                    }
+
+                    // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
+                    // in general this should be fine as we're primarily storing this to make future calls to synchronize
+                    // this project cone fast.
+                    Contract.ThrowIfNull(result.GetProject(projectId));
+                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
+                    return result;
+                }
             }
-
-            return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
-
-            async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
-                Solution baseSolution,
-                AssetProvider assetProvider,
-                Checksum solutionChecksum,
-                ProjectId projectId,
-                CancellationToken cancellationToken)
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
-
-                // check whether solution is update to the given base solution
-                Solution result;
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
-                {
-                    // create updated solution off the baseSolution
-                    result = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
-                }
-                else
-                {
-                    // we need new solution. bulk sync all asset for the solution first.
-                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                    // get new solution info and options
-                    var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                    var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-                    result = workspace.CurrentSolution;
-                }
-
-                // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
-                // in general this should be fine as we're primarily storing this to make future calls to synchronize
-                // this project cone fast.
-                Contract.ThrowIfNull(result.GetProject(projectId));
-                _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
-                return result;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
