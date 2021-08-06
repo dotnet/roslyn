@@ -270,6 +270,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     result = workspace.CurrentSolution;
                 }
 
+                // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
+                // in general this should be fine as we're primarily storing this to make future calls to synchronize
+                // this project cone fast.
                 _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new(solutionChecksum, result);
                 return result;
             }
