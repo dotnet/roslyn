@@ -80,11 +80,32 @@ namespace Microsoft.CodeAnalysis
             // Extracted as a local function to prevent delegate allocations when not needed.
             (SerializableOptionSet, ValueSource<SolutionStateChecksums>) Compute(ProjectId projectId)
             {
-                var projectsToInclude = GetProjectsToInclude(projectId);
-                var options = GetOptionsToSerialize(projectsToInclude);
+                var projectsToInclude = new HashSet<ProjectId>();
+                AddReferencedProjects(projectsToInclude, projectId);
+
+                // we're syncing a subset of projects, so only sync the options for the particular languages
+                // we're syncing over.
+                var languages = projectsToInclude.Select(id => ProjectStates[id].Language)
+                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s))
+                                                 .ToImmutableHashSet();
+
+                var options = this.Options.WithLanguages(languages);
 
                 return (options, new AsyncLazy<SolutionStateChecksums>(
                     c => ComputeChecksumsAsync(projectsToInclude, options, c), cacheResult: true));
+            }
+
+            void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
+            {
+                if (!result.Add(projectId))
+                    return;
+
+                var projectState = this.GetProjectState(projectId);
+                if (projectState == null)
+                    return;
+
+                foreach (var refProject in projectState.ProjectReferences)
+                    AddReferencedProjects(result, refProject.ProjectId);
             }
         }
 
@@ -141,44 +162,6 @@ namespace Microsoft.CodeAnalysis
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private SerializableOptionSet GetOptionsToSerialize(HashSet<ProjectId>? projectsToInclude)
-        {
-            // we're syncing the entire solution, so sync all the options.
-            if (projectsToInclude == null)
-                return this.Options;
-
-            // we're syncing a subset of projects, so only sync the options for the particular languages
-            // we're syncing over.
-            var languages = projectsToInclude.Select(id => ProjectStates[id].Language)
-                                             .Where(s => RemoteSupportedLanguages.IsSupported(s))
-                                             .ToImmutableHashSet();
-
-            return this.Options.WithLanguages(languages);
-        }
-
-        private HashSet<ProjectId>? GetProjectsToInclude(ProjectId? projectId)
-        {
-            if (projectId == null)
-                return null;
-
-            var result = new HashSet<ProjectId>();
-            AddReferencedProjects(result, projectId);
-            return result;
-        }
-
-        private void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
-        {
-            if (!result.Add(projectId))
-                return;
-
-            var projectState = this.GetProjectState(projectId);
-            if (projectState == null)
-                return;
-
-            foreach (var refProject in projectState.ProjectReferences)
-                AddReferencedProjects(result, refProject.ProjectId);
         }
     }
 }
