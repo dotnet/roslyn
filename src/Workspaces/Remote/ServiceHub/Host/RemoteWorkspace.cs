@@ -31,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SemaphoreSlim _availableSolutionsGate = new(initialCount: 1);
 
         /// <summary>
-        /// Guards updates to <see cref="_lastRequestedProjectIdToSolutionWithChecksum"/>.  This is a separate
-        /// lock from <see cref="_availableSolutionsGate"/> so that we don't block a project sync while doing a
-        /// full solution sync.
-        /// </summary>
-        private readonly SemaphoreSlim _availableProjectsGate = new(initialCount: 1);
-
-        /// <summary>
         /// The last solution for the the primary branch fetched from the client.
         /// </summary>
         private volatile Tuple<Checksum, Solution>? _primaryBranchSolutionWithChecksum;
@@ -48,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
         /// <summary>
-        /// The last partial solution snapshot corresponding to a particular project requested by a service.
+        /// The last partial solution snapshot corresponding to a particular project-cone requested by a service.
         /// </summary>
         private readonly ConcurrentDictionary<ProjectId, Tuple<Checksum, Solution>> _lastRequestedProjectIdToSolutionWithChecksum = new();
 
@@ -175,31 +168,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return workspace.CurrentSolution;
         }
 
-        private async Task<Solution> CreateProjectSubsetSolution_NoLockAsync(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            Solution baseSolution,
-            CancellationToken cancellationToken)
-        {
-            var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
-
-            // check whether solution is update to the given base solution
-            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
-            {
-                // create updated solution off the baseSolution
-                return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
-            }
-
-            // we need new solution. bulk sync all asset for the solution first.
-            await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            // get new solution info and options
-            var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-            return workspace.CurrentSolution;
-        }
-
         private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
         {
             var currentSolution = _primaryBranchSolutionWithChecksum;
@@ -259,35 +227,51 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask<Solution> GetProjectSubsetSolutionAsync(
+        private ValueTask<Solution> GetProjectSubsetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            // First see if we 
+            // Attempt to just read without incurring any other costs.
             if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var tuple) &&
                 tuple.Item1 == solutionChecksum)
             {
-                return tuple.Item2;
+                return new(tuple.Item2);
             }
 
-            using (await _availableProjectsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            return GetProjectSubsetSolutionSlowAsync(tuple?.Item2 ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
+
+            async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
+                Solution baseSolution,
+                AssetProvider assetProvider,
+                Checksum solutionChecksum,
+                ProjectId projectId,
+                CancellationToken cancellationToken)
             {
-                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out tuple) &&
-                    tuple.Item1 == solutionChecksum)
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+
+                // check whether solution is update to the given base solution
+                Solution result;
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
                 {
-                    return tuple.Item2;
+                    // create updated solution off the baseSolution
+                    result = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                }
+                else
+                {
+                    // we need new solution. bulk sync all asset for the solution first.
+                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                    // get new solution info and options
+                    var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                    var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                    result = workspace.CurrentSolution;
                 }
 
-                var solution = await CreateProjectSubsetSolution_NoLockAsync(
-                    assetProvider,
-                    solutionChecksum,
-                    tuple?.Item2 ?? CurrentSolution,
-                    cancellationToken).ConfigureAwait(false);
-
-                _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new(solutionChecksum, solution);
-                return solution;
+                _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new(solutionChecksum, result);
+                return result;
             }
         }
 
