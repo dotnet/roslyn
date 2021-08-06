@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
         /// <summary>
-        /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
-        /// to an OOP host.
+        /// Mapping from project-id to the options and checksums needed to synchronize it (and the projects it depends on) over 
+        /// to an OOP host.  Options are stored as well so that when we are attempting to match a request for a particular project-subset
+        /// we can return the options specific to that project-subset (whihc may be different from the <see cref="Options"/> defined
+        /// for the entire solution).  Lock this specific field before reading/writing to it.
         /// </summary>
         private readonly Dictionary<ProjectId, (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums)> _lazyProjectChecksums = new();
 
