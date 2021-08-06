@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
+        public ImmutableHashSet<string> Languages => _languages;
+
         /// <summary>
         /// Returns an option set with all the serializable option values prefetched for given <paramref name="languages"/>,
         /// while also retaining all the explicitly changed option values in this option set for any language.

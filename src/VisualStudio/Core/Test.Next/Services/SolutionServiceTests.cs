@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -699,6 +700,48 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_Options1()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+            var project2 = solution.AddProject("P2", "P2", LanguageNames.VisualBasic);
+
+            solution = project2.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var syncedFullSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
+
+            Assert.Equal(solutionChecksum, await syncedFullSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(2, syncedFullSolution.Projects.Count());
+            var options = (SerializableOptionSet)syncedFullSolution.Options;
+            Assert.Equal(2, options.Languages.Count);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project1.Id, CancellationToken.None);
+            Assert.Equal(1, project1SyncedSolution.Projects.Count());
+            Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
+            var project1Options = (SerializableOptionSet)project1SyncedSolution.Options;
+            Assert.Equal(1, project1Options.Languages.Count);
+            Assert.Contains(LanguageNames.CSharp, project1Options.Languages);
+
+            var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
+            var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
+            Assert.Equal(1, project2SyncedSolution.Projects.Count());
+            Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
+            var project2Options = (SerializableOptionSet)project1SyncedSolution.Options;
+            Assert.Equal(1, project2Options.Languages.Count);
+            Assert.Contains(LanguageNames.VisualBasic, project2Options.Languages);
         }
 
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
