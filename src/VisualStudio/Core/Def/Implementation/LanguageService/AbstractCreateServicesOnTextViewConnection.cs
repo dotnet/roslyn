@@ -61,11 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var languageServices = _workspace.Services.GetExtendedLanguageServices(_languageName);
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
             _ = languageServices.GetService<ISnippetInfoService>();
-
-            await TaskScheduler.Default;
 
             // Preload completion providers on a background thread since assembly loads can be slow
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
