@@ -58,16 +58,17 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 #endif
             var newLineTrivia = EndOfLine(newLineText);
 
-            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, cancellationToken);
+            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken);
         }
 
-        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, CancellationToken cancellationToken)
+        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, string? fileHeaderTemplate, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
-                || string.IsNullOrEmpty(fileHeaderTemplate))
+            if (string.IsNullOrEmpty(fileHeaderTemplate)
+                && (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate)
+                || string.IsNullOrEmpty(fileHeaderTemplate)))
             {
                 // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
                 throw ExceptionUtilities.Unreachable;

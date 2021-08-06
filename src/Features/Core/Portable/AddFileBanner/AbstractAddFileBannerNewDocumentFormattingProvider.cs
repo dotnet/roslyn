@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                         FileHeaderHelper,
                         newLineTrivia,
                         document,
+                        fileHeaderTemplate,
                         cancellationToken).ConfigureAwait(true);
 
                 return document.WithSyntaxRoot(rootWithFileHeader);
