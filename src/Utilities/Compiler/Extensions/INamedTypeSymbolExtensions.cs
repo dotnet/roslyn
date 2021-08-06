@@ -280,11 +280,7 @@ namespace Analyzer.Utilities.Extensions
         /// Check if the given <paramref name="typeSymbol"/> is an implicitly generated type for top level statements.
         /// </summary>
         public static bool IsTopLevelStatementsEntryPointType([NotNullWhen(true)] this INamedTypeSymbol? typeSymbol)
-            => typeSymbol?.IsStatic == true && typeSymbol.Name switch
-            {
-                "$Program" => true,
-                "<Program>$" => true,
-                _ => false
-            };
+            => typeSymbol is not null &&
+               typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.IsTopLevelStatementsEntryPointMethod());
     }
 }
