@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public bool Equals(BoundDagEvaluation other)
         {
-            return this.IsEquivalentTo(other) &&
+            return this == other ||
+                this.IsEquivalentTo(other) &&
                 this.Input.Equals(other.Input);
         }
 
         public virtual bool IsEquivalentTo(BoundDagEvaluation other)
         {
-            return this == other ||
-                this.Kind == other.Kind &&
+            return this.Kind == other.Kind &&
                 Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
         public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.IsEquivalentTo(obj) &&
+            return base.IsEquivalentTo(obj) &&
                 // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
         }
@@ -98,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
         public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.IsEquivalentTo(obj) &&
+            return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
     }
@@ -109,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
         public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.IsEquivalentTo(obj) &&
+            return base.IsEquivalentTo(obj) &&
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
         }

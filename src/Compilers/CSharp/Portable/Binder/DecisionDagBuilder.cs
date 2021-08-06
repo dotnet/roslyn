@@ -1902,8 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override Tests RewriteNestedLengthTests()
                 {
                     BoundDagTest test = Test;
-                    BoundDagTemp input = test.Input;
-                    if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
+                    if (test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                     {
                         if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                         {
