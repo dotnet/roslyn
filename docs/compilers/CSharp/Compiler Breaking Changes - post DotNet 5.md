@@ -70,3 +70,18 @@ record Derived(int I) // The positional member 'Base.I' found corresponding to t
         public static void M(this object x, System.Action y) { }
     }
     ```
+
+5. In .NET 5 and Visual Studio 16.9 (and earlier), top-level statements could be used in a program containing a type named `Program`. In .NET 6 and Visual Studio 17.0, top-level statements generate a partial declaration of a `Program` class, so any user-defined `Program` type must also be a partial class.
+
+```csharp
+System.Console.Write("top-level");
+Method();
+
+partial class Program
+{
+    static void Method()
+    {
+    }
+}
+```
+

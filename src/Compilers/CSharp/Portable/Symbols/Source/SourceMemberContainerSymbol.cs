@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly NamespaceOrTypeSymbol _containingSymbol;
         protected readonly MergedTypeDeclaration declaration;
 
+        // The entry point symbol (resulting from top-level statements) is needed to construct non-type members because
+        // it contributes to their binders, so we have to compute it first.
+        // The value changes from "uninitialized" to "real value". The transition from "uninitialized" can only happen once.
+        private SimpleProgramEntryPointInfo? _lazySimpleProgramEntryPoint = SimpleProgramEntryPointInfo.UninitializedSentinel;
+
         // To compute explicitly declared members, binding must be limited (to avoid race conditions where binder cache captures symbols that aren't part of the final set)
         // The value changes from "uninitialized" to "real value" to null. The transition from "uninitialized" can only happen once.
         private DeclaredMembersAndInitializers? _lazyDeclaredMembersAndInitializers = DeclaredMembersAndInitializers.UninitializedSentinel;
@@ -182,6 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TupleExtraData? tupleData = null)
             : base(tupleData)
         {
+            // If we're dealing with a simple program, then we must be in the global namespace
+            Debug.Assert(containingSymbol is NamespaceSymbol { IsGlobalNamespace: true } || !declaration.Declarations.Any(d => d.IsSimpleProgram));
+
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
 
@@ -1517,6 +1525,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (membersAndInitializers is null)
             {
+                if (member is SynthesizedSimpleProgramEntryPointSymbol)
+                {
+                    RoslynDebug.AssertOrFailFast(GetSimpleProgramEntryPoints().Contains(m => m == (object)member));
+                    return;
+                }
+
                 var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
                 RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
@@ -2572,6 +2586,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private sealed class SimpleProgramEntryPointInfo
+        {
+            public readonly ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> SimpleProgramEntryPoints;
+
+            public static readonly SimpleProgramEntryPointInfo UninitializedSentinel = new SimpleProgramEntryPointInfo();
+
+            private SimpleProgramEntryPointInfo()
+            {
+            }
+
+            public SimpleProgramEntryPointInfo(ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> simpleProgramEntryPoints)
+            {
+                Debug.Assert(simpleProgramEntryPoints.All(ep => ep is not null));
+                this.SimpleProgramEntryPoints = simpleProgramEntryPoints;
+            }
+        }
+
         protected sealed class DeclaredMembersAndInitializers
         {
             public readonly ImmutableArray<Symbol> NonTypeMembers;
@@ -2813,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
+        protected MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             var declaredMembersAndInitializers = getDeclaredMembersAndInitializers();
             if (declaredMembersAndInitializers is null)
@@ -2911,8 +2942,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> GetSimpleProgramEntryPoints()
+        {
+            if (this.ContainingSymbol is not NamespaceSymbol { IsGlobalNamespace: true }
+                || this.Name != WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)
+            {
+                return ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+            }
+
+            SimpleProgramEntryPointInfo? simpleProgramEntryPointInfo = _lazySimpleProgramEntryPoint;
+            if (simpleProgramEntryPointInfo == SimpleProgramEntryPointInfo.UninitializedSentinel)
+            {
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                simpleProgramEntryPointInfo = buildSimpleProgramEntryPoint(diagnostics);
+
+                var alreadyKnown = Interlocked.CompareExchange(ref _lazySimpleProgramEntryPoint, simpleProgramEntryPointInfo, SimpleProgramEntryPointInfo.UninitializedSentinel);
+                if (alreadyKnown == SimpleProgramEntryPointInfo.UninitializedSentinel)
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
+
+                diagnostics.Free();
+            }
+
+            return _lazySimpleProgramEntryPoint?.SimpleProgramEntryPoints ?? ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol>.Empty;
+
+            SimpleProgramEntryPointInfo? buildSimpleProgramEntryPoint(BindingDiagnosticBag diagnostics)
+            {
+                ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
+
+                foreach (var singleDecl in declaration.Declarations)
+                {
+                    if (singleDecl.IsSimpleProgram)
+                    {
+                        if (builder is null)
+                        {
+                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+                        }
+                        else
+                        {
+                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
+                        }
+
+                        builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
+                    }
+                }
+
+                if (builder is null)
+                {
+                    return null;
+                }
+
+                return new SimpleProgramEntryPointInfo(builder.ToImmutableAndFree());
+            }
+        }
+
         private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
+            if (TypeKind is TypeKind.Class)
+            {
+                AddSynthesizedSimpleProgramEntryPointIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+            }
+
             switch (TypeKind)
             {
                 case TypeKind.Struct:
@@ -2979,14 +3070,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var parameterList = recordDecl.ParameterList;
                         noteRecordParameters(recordDecl, parameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
-
-                        // We will allow declaring parameterless constructors
-                        // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-                        if (syntax.Kind() == SyntaxKind.RecordStructDeclaration && parameterList?.ParameterCount == 0)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
-                        }
-
                         break;
 
                     default:
@@ -3424,13 +3507,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
+                        var location = m.Locations[0];
                         if (isEnum)
                         {
-                            diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, m.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, location);
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
+                            MessageID.IDS_FeatureParameterlessStructConstructors.CheckFeatureAvailability(diagnostics, m.DeclaringCompilation, location);
+                            if (m.DeclaredAccessibility != Accessibility.Public)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_NonPublicParameterlessStructConstructor, location);
+                            }
                         }
                     }
                 }
@@ -3452,9 +3540,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
-                    // '{0}': cannot have instance field initializers in structs
-                    diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, (initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt).Locations[0], this);
+                    var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
+                    MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
+            }
+        }
+
+        private void AddSynthesizedSimpleProgramEntryPointIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
+        {
+            var simpleProgramEntryPoints = GetSimpleProgramEntryPoints();
+            foreach (var member in simpleProgramEntryPoints)
+            {
+                builder.AddNonTypeMember(member, declaredMembersAndInitializers);
             }
         }
 
@@ -4098,7 +4195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
-            // We don't expect anything to be emitted, but it should be in the symbol table.
+            // The synthesized constructor will only be emitted if there are field initializers, but it should be in the symbol table.
             if ((!hasParameterlessInstanceConstructor && this.IsStructType()) ||
                 (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
@@ -4645,6 +4742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
+
+        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
 
         internal class SynthesizedExplicitImplementations
         {

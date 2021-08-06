@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -124,10 +126,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
+            if (!item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                // They should always be available from items provided by Roslyn CompletionSource.
+                // Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
@@ -220,9 +223,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
+            var provider = GetCompletionProvider(completionService, roslynItem);
+            if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
-                provider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
+                customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
@@ -285,6 +289,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+
+            if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
+            {
+                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    // Make sure the notification isn't sent on UI thread.
+                    await TaskScheduler.Default;
+                    _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
+                });
+            }
 
             if (includesCommitCharacter)
             {

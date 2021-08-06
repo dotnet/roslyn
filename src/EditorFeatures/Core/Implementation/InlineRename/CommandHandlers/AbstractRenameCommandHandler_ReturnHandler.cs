@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_renameService.ActiveSession != null)
             {
+                // Prevent Editor's typing responsiveness auto canceling the rename operation.
+                // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+                context.OperationContext.TakeOwnership();
+
                 _renameService.ActiveSession.Commit();
                 SetFocusToTextView(args.TextView);
                 return true;

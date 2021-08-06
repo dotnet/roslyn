@@ -417,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                foreach (var (_, projects) in this._projectSystemNameToProjectsMap)
+                foreach (var (_, projects) in _projectSystemNameToProjectsMap)
                 {
                     foreach (var project in projects)
                     {
@@ -1272,7 +1272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     $"This Workspace does not support changing a document's {nameof(document.Id)}.");
             }
 
-            if (document.Folders != updatedInfo.Folders)
+            if (document.Folders != updatedInfo.Folders && !document.Folders.SequenceEqual(updatedInfo.Folders))
             {
                 throw new InvalidOperationException(
                     $"This Workspace does not support changing a document's {nameof(document.Folders)}.");

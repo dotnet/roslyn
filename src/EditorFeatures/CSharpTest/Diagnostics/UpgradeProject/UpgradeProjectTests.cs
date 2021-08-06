@@ -1054,7 +1054,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMemebers_CS8704()
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
         {
             await TestLanguageVersionUpgradedAsync(
 @"
@@ -1070,6 +1070,21 @@ class C1 : [|I1|]
 ",
                 expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForTargetTypedConditional()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class C
+{
+    void M(bool b)
+    {
+        int? i = [|b ? 1 : null|];
+    }
+}",
+                expected: LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

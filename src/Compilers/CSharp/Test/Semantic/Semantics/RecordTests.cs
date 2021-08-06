@@ -5000,7 +5000,7 @@ record C1;
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -5016,18 +5016,18 @@ record C1;
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  brfalse.s  IL_0033
+  IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
-  IL_0028:  ldstr      "" ""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""}""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldloc.0
-  IL_0040:  callvirt   ""string object.ToString()""
-  IL_0045:  ret
+  IL_0028:  ldc.i4.s   32
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.s   125
+  IL_0033:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_0038:  pop
+  IL_0039:  ldloc.0
+  IL_003a:  callvirt   ""string object.ToString()""
+  IL_003f:  ret
 }
 ");
         }
@@ -5075,7 +5075,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -5091,18 +5091,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  brfalse.s  IL_0033
+  IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
-  IL_0028:  ldstr      "" ""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""}""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldloc.0
-  IL_0040:  callvirt   ""string object.ToString()""
-  IL_0045:  ret
+  IL_0028:  ldc.i4.s   32
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.s   125
+  IL_0033:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_0038:  pop
+  IL_0039:  ldloc.0
+  IL_003a:  callvirt   ""string object.ToString()""
+  IL_003f:  ret
 }
 ");
         }
@@ -5154,7 +5154,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -5170,18 +5170,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool Base.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  brfalse.s  IL_0033
+  IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
-  IL_0028:  ldstr      "" ""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""}""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003e:  pop
-  IL_003f:  ldloc.0
-  IL_0040:  callvirt   ""string object.ToString()""
-  IL_0045:  ret
+  IL_0028:  ldc.i4.s   32
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.s   125
+  IL_0033:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(char)""
+  IL_0038:  pop
+  IL_0039:  ldloc.0
+  IL_003a:  callvirt   ""string object.ToString()""
+  IL_003f:  ret
 }
 ");
         }
@@ -5249,6 +5249,26 @@ record C1(int P);
 
             var comp = CreateCompilation(src);
             comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendStringAndChar()
+        {
+            var src = @"
+record C1(int P);
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendChar);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
                 // record C1(int P);
@@ -5539,25 +5559,22 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       50 (0x32)
+  // Code size       43 (0x2b)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldflda     ""int C1.field""
-  IL_001f:  constrained. ""int""
-  IL_0025:  callvirt   ""string object.ToString()""
-  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_002f:  pop
-  IL_0030:  ldc.i4.1
-  IL_0031:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""int C1.field""
+  IL_0018:  constrained. ""int""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
 }
 ");
         }
@@ -5581,25 +5598,22 @@ record C1<T> where T : struct
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       50 (0x32)
+  // Code size       43 (0x2b)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldflda     ""T C1<T>.field""
-  IL_001f:  constrained. ""T""
-  IL_0025:  callvirt   ""string object.ToString()""
-  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_002f:  pop
-  IL_0030:  ldc.i4.1
-  IL_0031:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""T C1<T>.field""
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
 }
 ");
         }
@@ -5623,23 +5637,20 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       39 (0x27)
+  // Code size       32 (0x20)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldfld      ""string C1.field""
-  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0024:  pop
-  IL_0025:  ldc.i4.1
-  IL_0026:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""string C1.field""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_001d:  pop
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
 }
 ");
         }
@@ -5667,24 +5678,21 @@ record C1<T>
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       44 (0x2c)
+  // Code size       37 (0x25)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldfld      ""T C1<T>.field""
-  IL_001f:  box        ""T""
-  IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0029:  pop
-  IL_002a:  ldc.i4.1
-  IL_002b:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""T C1<T>.field""
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0022:  pop
+  IL_0023:  ldc.i4.1
+  IL_0024:  ret
 }
 ");
         }
@@ -5752,40 +5760,29 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       88 (0x58)
+  // Code size       57 (0x39)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field1""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  ldfld      ""string C1.field1""
-  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0024:  pop
-  IL_0025:  ldarg.1
-  IL_0026:  ldstr      "", ""
-  IL_002b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0030:  pop
-  IL_0031:  ldarg.1
-  IL_0032:  ldstr      ""field2""
-  IL_0037:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_003c:  pop
-  IL_003d:  ldarg.1
-  IL_003e:  ldstr      "" = ""
-  IL_0043:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0048:  pop
-  IL_0049:  ldarg.1
-  IL_004a:  ldarg.0
-  IL_004b:  ldfld      ""string C1.field2""
-  IL_0050:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0055:  pop
-  IL_0056:  ldc.i4.1
-  IL_0057:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field1 = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""string C1.field1""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_001d:  pop
+  IL_001e:  ldarg.1
+  IL_001f:  ldstr      "", field2 = ""
+  IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0029:  pop
+  IL_002a:  ldarg.1
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""string C1.field2""
+  IL_0031:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0036:  pop
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
 }
 ");
         }
@@ -5817,30 +5814,26 @@ record C1(int Property)
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       53 (0x35)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (int V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""Property""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldstr      "" = ""
-  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0017:  pop
-  IL_0018:  ldarg.1
-  IL_0019:  ldarg.0
-  IL_001a:  call       ""int C1.Property.get""
-  IL_001f:  stloc.0
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  constrained. ""int""
-  IL_0028:  callvirt   ""string object.ToString()""
-  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0032:  pop
-  IL_0033:  ldc.i4.1
-  IL_0034:  ret
-}
-");
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""Property = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""int C1.Property.get""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  constrained. ""int""
+  IL_0021:  callvirt   ""string object.ToString()""
+  IL_0026:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002b:  pop
+  IL_002c:  ldc.i4.1
+  IL_002d:  ret
+}");
         }
 
         [Fact]
@@ -5883,9 +5876,9 @@ record C1(int A1, int B1) : Base(A1)
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 { A1 = 42, A2 = 100, B1 = 43, B2 = 101 }", verify: Verification.Skipped /* init-only */);
 
-            v.VerifyIL("C1.PrintMembers", @"
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size      134 (0x86)
+  // Code size       98 (0x62)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5897,43 +5890,31 @@ record C1(int A1, int B1) : Base(A1)
   IL_000f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_0014:  pop
   IL_0015:  ldarg.1
-  IL_0016:  ldstr      ""B1""
+  IL_0016:  ldstr      ""B1 = ""
   IL_001b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_0020:  pop
   IL_0021:  ldarg.1
-  IL_0022:  ldstr      "" = ""
-  IL_0027:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_002c:  pop
-  IL_002d:  ldarg.1
-  IL_002e:  ldarg.0
-  IL_002f:  call       ""int C1.B1.get""
-  IL_0034:  stloc.0
-  IL_0035:  ldloca.s   V_0
-  IL_0037:  constrained. ""int""
-  IL_003d:  callvirt   ""string object.ToString()""
+  IL_0022:  ldarg.0
+  IL_0023:  call       ""int C1.B1.get""
+  IL_0028:  stloc.0
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  constrained. ""int""
+  IL_0031:  callvirt   ""string object.ToString()""
+  IL_0036:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003b:  pop
+  IL_003c:  ldarg.1
+  IL_003d:  ldstr      "", B2 = ""
   IL_0042:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_0047:  pop
   IL_0048:  ldarg.1
-  IL_0049:  ldstr      "", ""
-  IL_004e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0053:  pop
-  IL_0054:  ldarg.1
-  IL_0055:  ldstr      ""B2""
+  IL_0049:  ldarg.0
+  IL_004a:  ldflda     ""int C1.B2""
+  IL_004f:  constrained. ""int""
+  IL_0055:  callvirt   ""string object.ToString()""
   IL_005a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_005f:  pop
-  IL_0060:  ldarg.1
-  IL_0061:  ldstr      "" = ""
-  IL_0066:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_006b:  pop
-  IL_006c:  ldarg.1
-  IL_006d:  ldarg.0
-  IL_006e:  ldflda     ""int C1.B2""
-  IL_0073:  constrained. ""int""
-  IL_0079:  callvirt   ""string object.ToString()""
-  IL_007e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0083:  pop
-  IL_0084:  ldc.i4.1
-  IL_0085:  ret
+  IL_0060:  ldc.i4.1
+  IL_0061:  ret
 }
 ");
         }
@@ -16380,6 +16361,7 @@ public record B : A {
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T>
     {
@@ -16391,7 +16373,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -17323,6 +17306,7 @@ public record B : A {
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T>
     {
@@ -17334,7 +17318,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 
@@ -17421,6 +17406,7 @@ public record A {
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T>
     {
@@ -17432,7 +17418,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -17515,6 +17502,7 @@ public record A {
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
+    public struct Char { }
     public struct Int32 { }
     public interface IEquatable<T>
     {
@@ -17526,7 +17514,8 @@ namespace System.Text
     public class StringBuilder
     {
         public StringBuilder Append(string s) => null;
-        public StringBuilder Append(object s) => null;
+        public StringBuilder Append(char c) => null;
+        public StringBuilder Append(object o) => null;
     }
 }
 ";
@@ -28103,6 +28092,148 @@ public class Outer
 
             CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
             compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_Cycle_01()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.Inner = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Rec
+{
+    public Rec Inner;
+}
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_02()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.Inner = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Base
+{
+    public Rec Inner;
+}
+
+public record Rec : Base { }
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_03()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.RecStruct.Rec = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Rec
+{
+    public RecStruct RecStruct;
+}
+
+public record struct RecStruct
+{
+    public Rec Rec;
+}
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_04()
+        {
+            var src = @"
+public record Rec
+{
+    public RecStruct RecStruct;
+}
+
+public record struct RecStruct
+{
+    public Rec Rec;
+}
+";
+            var comp = CreateCompilation(src);
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Rec.PrintMembers", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""RecStruct = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""RecStruct Rec.RecStruct""
+  IL_0018:  constrained. ""RecStruct""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
+}");
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack);
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Rec.PrintMembers", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""RecStruct = ""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""RecStruct Rec.RecStruct""
+  IL_0013:  constrained. ""RecStruct""
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0023:  pop
+  IL_0024:  ldc.i4.1
+  IL_0025:  ret
+}");
         }
 
         [Fact]

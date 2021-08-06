@@ -152,10 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
             {
-                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
                 return new BoundConversion(
                     syntax,
-                    BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
+                    BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast && !wasCompilerGenerated,
@@ -334,8 +333,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
-            if (targetTyped && !destination.IsErrorType())
-                MessageID.IDS_FeatureTargetTypedConditional.CheckFeatureAvailability(diagnostics, source.Syntax);
+            if (targetTyped && !destination.IsErrorType() && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureTargetTypedConditional))
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_NoImplicitConvTargetTypedConditional,
+                    source.Syntax.Location,
+                    Compilation.LanguageVersion.ToDisplayString(),
+                    source.Consequence.Display,
+                    source.Alternative.Display,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
+            }
 
             return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
                 .WithSuppression(source.IsSuppressed);
@@ -549,20 +556,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
+            if ((destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType()) &&
+                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
                 BoundLambda boundLambda;
                 if (delegateType is { })
                 {
-                    if (destination.IsNonGenericExpressionType())
+                    bool isExpressionTree = destination.IsNonGenericExpressionType();
+                    if (isExpressionTree)
                     {
                         delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
                         delegateType.AddUseSiteInfo(ref useSiteInfo);
                     }
-                    boundLambda = unboundLambda.Bind(delegateType);
+                    boundLambda = unboundLambda.Bind(delegateType, isExpressionTree);
                 }
                 else
                 {
@@ -583,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 _ = unboundLambda.InferDelegateType(ref discardedUseSiteInfo);
 #endif
-                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
                 diagnostics.AddRange(boundLambda.Diagnostics);
                 return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
             }
@@ -619,9 +627,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (destination.SpecialType == SpecialType.System_Delegate)
+            if (destination.SpecialType == SpecialType.System_Delegate &&
+                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);

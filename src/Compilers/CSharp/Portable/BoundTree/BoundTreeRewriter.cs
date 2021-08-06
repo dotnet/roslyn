@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression?)this.Visit(binary.Right);
                 Debug.Assert(right is { });
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ConstrainedToTypeOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.Data, binary.ResultKind, left, right, type);
             }
             while (stack.Count > 0);
 

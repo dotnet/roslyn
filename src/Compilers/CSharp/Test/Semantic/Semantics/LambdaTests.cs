@@ -4173,6 +4173,30 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 50));
         }
 
+        [WorkItem(55013, "https://github.com/dotnet/roslyn/issues/55013")]
+        [Fact]
+        public void NullableTypeArraySwitchPattern()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    object? field;
+    string Prop => field switch
+    {
+        string?[] a => ""a""
+    };
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,13): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     object? field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 13),
+                // (5,26): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     string Prop => field switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
+        }
+
         [Fact]
         public void LambdaAttributes_DoesNotReturn()
         {
@@ -4654,6 +4678,7 @@ class Program
     {
         Delegate d;
         d = (ref void () => { });
+        d = (ref readonly void () => { });
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -4663,9 +4688,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
+                // (8,14): error CS8917: The delegate type could not be inferred.
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref readonly void () => { }").WithLocation(8, 14),
+                // (8,27): error CS1547: Keyword 'void' cannot be used in this context
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaReturnType_12()
         {
@@ -4790,9 +4822,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,29): error CS1073: Unexpected token 'ref'
                 //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
@@ -4943,9 +4972,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async (ref string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,41): error CS1988: Async methods cannot have ref, in or out parameters
                 //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(8, 41),

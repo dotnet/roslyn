@@ -11331,7 +11331,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
             Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.False(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
@@ -11350,7 +11350,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
             Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.True(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.True(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact]
@@ -13381,6 +13381,54 @@ class Test
             CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
                 // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        /// <summary>
+        /// Verify that a synthesized (and emitted) parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct. Compare
+        /// with previous test where no parameterless constructor is emitted for the struct type.
+        /// </summary>
+        [Theory]
+        [InlineData(
+@"#pragma warning disable 414
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        private int F = 1; // requires synthesized parameterless .ctor
+    }
+}")]
+        [InlineData(
+@"namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        // explicit parameterless .ctor
+        public IsReadOnlyAttribute() { }
+    }
+}")]
+        public void WellKnownTypeAsStruct_ParameterlessConstructor_IsReadOnlyAttribute(string sourceAttribute)
+        {
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        int i = 42;
+        A.M(in i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference();
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "42");
         }
 
         [Fact]

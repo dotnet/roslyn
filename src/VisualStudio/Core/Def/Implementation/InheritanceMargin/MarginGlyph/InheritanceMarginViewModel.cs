@@ -61,9 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             InheritanceMarginTag tag,
-            double scaleFactor)
+            double zoomLevel)
         {
             var members = tag.MembersOnLine;
+
+            // ZoomLevel is 100 based. (e.g. 150%, 100%)
+            // ScaleFactor is 1 based. (e.g. 1.5, 1)
+            var scaleFactor = zoomLevel / 100;
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];

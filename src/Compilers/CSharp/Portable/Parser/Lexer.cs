@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case '\"':
                 case '\'':
-                    this.ScanStringLiteral(ref info);
+                    this.ScanStringLiteral(ref info, inDirective: false);
                     break;
 
                 case '/':
@@ -764,7 +764,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '@':
                     if (TextWindow.PeekChar(1) == '"')
                     {
-                        this.ScanVerbatimStringLiteral(ref info);
+                        var errorCode = this.ScanVerbatimStringLiteral(ref info, allowNewlines: true);
+                        if (errorCode is ErrorCode code)
+                            this.AddError(code);
                     }
                     else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
                     {
@@ -2907,7 +2909,7 @@ top:
                     break;
 
                 case '\"':
-                    this.ScanStringLiteral(ref info, false);
+                    this.ScanStringLiteral(ref info, inDirective: true);
                     break;
 
                 case '\\':

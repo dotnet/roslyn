@@ -418,9 +418,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.ImplicitClass:
                     return new ImplicitNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
-                case DeclarationKind.SimpleProgram:
-                    return new SimpleProgramNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind);
             }
