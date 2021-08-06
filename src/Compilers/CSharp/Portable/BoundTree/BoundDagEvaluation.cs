@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Input.Equals(other.Input);
         }
 
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the input.
+        /// </summary>
         public virtual bool IsEquivalentTo(BoundDagEvaluation other)
         {
             return this.Kind == other.Kind &&
