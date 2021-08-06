@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public async Task CreateFromTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, languageName: LanguageNames.CSharp);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync(@"using System");
