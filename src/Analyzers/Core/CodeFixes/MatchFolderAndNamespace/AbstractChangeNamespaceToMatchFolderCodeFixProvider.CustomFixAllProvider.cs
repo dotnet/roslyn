@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
                     foreach (var project in fixAllContext.Solution.Projects)
                     {
-                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
+                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                         diagnostics.AddRange(projectDiagnostics);
                     }
 
