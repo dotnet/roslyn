@@ -77,6 +77,11 @@
         <target state="translated">为始终保持清楚起见</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
         <target state="translated">分析器</target>
@@ -367,11 +372,6 @@
         <target state="translated">设置文档的格式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">格式设置</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">基于设置生成 .editorconfig 文件</target>
@@ -510,6 +510,11 @@
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
         <target state="translated">本地元数据</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1267,6 +1272,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">警告</target>
@@ -1290,6 +1300,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">此工作区不支持更新 Visual Basic 编译选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">

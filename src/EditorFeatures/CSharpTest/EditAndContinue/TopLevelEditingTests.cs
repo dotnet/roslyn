@@ -23,7 +23,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         #region Usings
 
         [Fact]
-        public void UsingDelete1()
+        public void Using_Global_Insert()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+";
+            var src2 = @"
+global using D = System.Diagnostics;
+global using System.Collections;
+using System.Collections.Generic;
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [global using D = System.Diagnostics;]@2",
+                "Insert [global using System.Collections;]@40");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Delete1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -37,7 +57,7 @@ using System.Diagnostics;
         }
 
         [Fact]
-        public void UsingDelete2()
+        public void Using_Delete2()
         {
             var src1 = @"
 using D = System.Diagnostics;
@@ -57,7 +77,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingInsert()
+        public void Using_Insert()
         {
             var src1 = @"
 using System.Collections.Generic;
@@ -77,7 +97,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate1()
+        public void Using_Update1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -98,7 +118,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate2()
+        public void Using_Update2()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -119,7 +139,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingUpdate3()
+        public void Using_Update3()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -140,7 +160,7 @@ using System.Collections.Generic;
         }
 
         [Fact]
-        public void UsingReorder1()
+        public void Using_Reorder1()
         {
             var src1 = @"
 using System.Diagnostics;
@@ -159,7 +179,7 @@ using System.Diagnostics;
         }
 
         [Fact]
-        public void UsingInsertDelete1()
+        public void Using_InsertDelete1()
         {
             var src1 = @"
 namespace N
@@ -189,7 +209,7 @@ namespace M
         }
 
         [Fact]
-        public void UsingInsertDelete2()
+        public void Using_InsertDelete2()
         {
             var src1 = @"
 namespace N
@@ -5204,8 +5224,8 @@ class B : System.Attribute {}
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
-
         }
+
         [Fact]
         public void Namespace_InsertNested()
         {
@@ -5222,7 +5242,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceDelete()
+        public void Namespace_DeleteNested()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { }";
@@ -5237,7 +5257,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceMove1()
+        public void Namespace_Move()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { } namespace D { }";
@@ -5252,7 +5272,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceReorder1()
+        public void Namespace_Reorder1()
         {
             var src1 = @"namespace C { namespace D { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { } class T { } namespace D { } }";
@@ -5267,7 +5287,7 @@ class B : System.Attribute {}
         }
 
         [Fact]
-        public void NamespaceReorder2()
+        public void Namespace_Reorder2()
         {
             var src1 = @"namespace C { namespace D1 { } namespace D2 { } namespace D3 { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { }                                    class T { } namespace D1 { } namespace D2 { } namespace D3 { } }";
@@ -5279,6 +5299,36 @@ class B : System.Attribute {}
                 "Reorder [namespace E { }]@77 -> @14");
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Namespace_FileScoped_Insert()
+        {
+            var src1 = @"";
+            var src2 = @"namespace C;";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [namespace C;]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
+        }
+
+        [Fact]
+        public void Namespace_FileScoped_Delete()
+        {
+            var src1 = @"namespace C;";
+            var src2 = @"";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [namespace C;]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.namespace_));
         }
 
         #endregion
@@ -15496,7 +15546,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15521,7 +15571,7 @@ var name = Console.ReadLine();
                 "Insert [Console.WriteLine(\"What is your name?\");]@54",
                 "Insert [var name = Console.ReadLine();]@96");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15539,7 +15589,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15560,7 +15610,7 @@ Console.WriteLine(""World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"World\");]@48");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15600,7 +15650,7 @@ Console.WriteLine(""Hello"");
 
             edits.VerifyEdits("Delete [Console.WriteLine(\"World\");]@48");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -16021,7 +16071,7 @@ Console.WriteLine(1);
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16052,7 +16102,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16081,7 +16131,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16107,7 +16157,7 @@ public class C { }
 
             // Since each individual statement is a separate update to a separate node, this just validates we correctly
             // only analyze the things once
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -16148,7 +16198,7 @@ public class B
                 new[]
                 {
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")) }),
+                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")) }),
                 });
         }
 

@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -21,13 +22,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
-        private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _languageServices;
+        private readonly VisualStudioWorkspace _workspace;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
         private readonly string _languageName;
         private bool _initialized = false;
 
-        public AbstractCreateServicesOnTextViewConnection(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
+        public AbstractCreateServicesOnTextViewConnection(
+            VisualStudioWorkspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
+            string languageName)
         {
-            _languageServices = languageServices;
+            _workspace = workspace;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _threadingContext = threadingContext;
             _languageName = languageName;
         }
 
@@ -35,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (!_initialized)
             {
-                CreateServices(_languageName);
+                var token = _listener.BeginAsyncOperation(nameof(InitializeServicesAsync));
+                InitializeServicesAsync().CompletesAsyncOperation(token);
+
                 _initialized = true;
             }
         }
@@ -44,20 +55,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        /// <summary>
-        /// Must be invoked from the UI thread.
-        /// </summary>
-        private void CreateServices(string languageName)
+        private async Task InitializeServicesAsync()
         {
-            var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
-            foreach (var languageService in _languageServices)
+            await TaskScheduler.Default;
+
+            var languageServices = _workspace.Services.GetExtendedLanguageServices(_languageName);
+
+            _ = languageServices.GetService<ISnippetInfoService>();
+
+            // Preload completion providers on a background thread since assembly loads can be slow
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
+            if (languageServices.GetService<CompletionService>() is CompletionServiceWithProviders service)
             {
-                if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
-                    languageService.Metadata.Language == languageName)
-                {
-                    _ = languageService.Value;
-                    break;
-                }
+                _ = service.GetImportedProviders().SelectAsArray(p => p.Value);
             }
         }
     }

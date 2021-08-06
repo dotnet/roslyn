@@ -2394,6 +2394,167 @@ class C
         }
 
         [Fact]
+        public void ReplaceType_AsyncLambda()
+        {
+            var source0 = @"
+using System.Threading.Tasks;
+class C
+{
+    void F(int x) { Task.Run(async() => {}); }
+}
+";
+            var source1 = @"
+using System.Threading.Tasks;
+class C
+{
+    void F(bool y) { Task.Run(async() => {}); }
+}
+";
+            var source2 = @"
+using System.Threading.Tasks;
+class C
+{
+    void F(uint z) { Task.Run(async() => {}); }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+            var f2 = c2.GetMember<MethodSymbol>("F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c", "<<F>b__0_0>d");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            // A new nested type <>c is generated in C#1
+            CheckNames(readers, reader1.GetTypeDefNames(), "C#1", "<>c", "<<F>b__0#1_0#1>d");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C#1", "<>c", "<<F>b__0#1_0#1>d");
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            // A new nested type <>c is generated in C#2
+            CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "<>c", "<<F>b__0#2_0#2>d");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C#2", "<>c", "<<F>b__0#2_0#2>d");
+        }
+
+        [Fact]
+        public void ReplaceType_AsyncLambda_InNestedType()
+        {
+            var source0 = @"
+using System.Threading.Tasks;
+class C
+{
+    class D
+    {
+        void F(int x) { Task.Run(async() => {}); }
+    }
+}
+";
+            var source1 = @"
+using System.Threading.Tasks;
+class C
+{
+    class D
+    {
+        void F(bool y) { Task.Run(async() => {}); }
+    }
+}
+";
+            var source2 = @"
+using System.Threading.Tasks;
+class C
+{
+    class D
+    {
+        void F(uint z) { Task.Run(async() => {}); }
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+            var f2 = c2.GetMember<MethodSymbol>("F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "D", "<>c", "<<F>b__0_0>d");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            // A new nested type <>c is generated in C#1
+            CheckNames(readers, reader1.GetTypeDefNames(), "C#1", "D", "<>c", "<<F>b__0#1_0#1>d");
+            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C#1", "D", "<>c", "<<F>b__0#1_0#1>d");
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            // A new nested type <>c is generated in C#2
+            CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "D", "<>c", "<<F>b__0#2_0#2>d");
+            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C#2", "D", "<>c", "<<F>b__0#2_0#2>d");
+        }
+
+        [Fact]
         public void AddNestedTypeAndMembers()
         {
             var source0 =
@@ -11756,17 +11917,17 @@ Console.WriteLine(""Hello World"");
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
-            var method1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var method0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
+            var method1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<Program>$");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "Program");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine", /*Program.*/".ctor");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 md0,
@@ -11789,8 +11950,8 @@ Console.WriteLine(""Hello World"");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
@@ -11803,8 +11964,8 @@ Console.WriteLine(""Hello World"");
                 Handle(10, TableIndex.TypeRef),
                 Handle(1, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(6, TableIndex.MemberRef),
                 Handle(7, TableIndex.MemberRef),
+                Handle(8, TableIndex.MemberRef),
                 Handle(2, TableIndex.AssemblyRef));
         }
     }

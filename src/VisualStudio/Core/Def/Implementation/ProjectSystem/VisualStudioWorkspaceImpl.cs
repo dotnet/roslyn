@@ -1272,8 +1272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     $"This Workspace does not support changing a document's {nameof(document.Id)}.");
             }
 
-            if (document.Folders != updatedInfo.Folders &&
-                !document.Folders.SequenceEqual(updatedInfo.Folders))
+            if (document.Folders != updatedInfo.Folders && !document.Folders.SequenceEqual(updatedInfo.Folders))
             {
                 throw new InvalidOperationException(
                     $"This Workspace does not support changing a document's {nameof(document.Folders)}.");

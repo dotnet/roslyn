@@ -1678,8 +1678,8 @@ Additional information: {1}</value>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Formatting" xml:space="preserve">
-    <value>Formatting</value>
+  <data name="Whitespace" xml:space="preserve">
+    <value>Whitespace</value>
   </data>
   <data name="Id" xml:space="preserve">
     <value>Id</value>
@@ -1761,6 +1761,15 @@ Additional information: {1}</value>
   </data>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
+  </data>
+  <data name="Analyzer_Defaults" xml:space="preserve">
+    <value>Analyzer Defaults</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Visual_Studio_Settings" xml:space="preserve">
+    <value>Visual Studio Settings</value>
   </data>
   <data name="Sync_Namespaces" xml:space="preserve">
     <value>Sync Namespaces</value>

@@ -288,7 +288,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
 
-        protected abstract bool AreFixedSizeBufferSizesEqual(IFieldSymbol oldField, IFieldSymbol newField, CancellationToken cancellationToken);
         protected abstract bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod);
 
         // diagnostic spans:
@@ -3353,9 +3352,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     rudeEdit = RudeEditKind.InitializerUpdate;
                 }
 
-                if (oldField.IsFixedSizeBuffer &&
-                    newField.IsFixedSizeBuffer &&
-                    !AreFixedSizeBufferSizesEqual(oldField, newField, cancellationToken))
+                if (oldField.FixedSize != newField.FixedSize)
                 {
                     rudeEdit = RudeEditKind.FixedSizeFieldUpdate;
                 }
@@ -4576,18 +4573,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
+            using var oldLambdaBodyEnumerator = GetLambdaBodies(oldMemberBody).GetEnumerator();
+            using var newLambdaBodyEnumerator = GetLambdaBodies(newMemberBody).GetEnumerator();
+            var oldHasLambdas = oldLambdaBodyEnumerator.MoveNext();
+            var newHasLambdas = newLambdaBodyEnumerator.MoveNext();
+
+            // Exit early if there are no lambdas in the method to avoid expensive data flow analysis:
+            if (!oldHasLambdas && !newHasLambdas)
+            {
+                return;
+            }
+
             var oldCaptures = GetCapturedVariables(oldModel, oldMemberBody);
             var newCaptures = GetCapturedVariables(newModel, newMemberBody);
 
             // { new capture index -> old capture index }
-            var reverseCapturesMap = ArrayBuilder<int>.GetInstance(newCaptures.Length, 0);
+            using var _1 = ArrayBuilder<int>.GetInstance(newCaptures.Length, fillWithValue: 0, out var reverseCapturesMap);
 
             // { new capture index -> new closure scope or null for "this" }
-            var newCapturesToClosureScopes = ArrayBuilder<SyntaxNode?>.GetInstance(newCaptures.Length, null);
+            using var _2 = ArrayBuilder<SyntaxNode?>.GetInstance(newCaptures.Length, fillWithValue: null, out var newCapturesToClosureScopes);
 
             // Can be calculated from other maps but it's simpler to just calculate it upfront.
             // { old capture index -> old closure scope or null for "this" }
-            var oldCapturesToClosureScopes = ArrayBuilder<SyntaxNode?>.GetInstance(oldCaptures.Length, null);
+            using var _3 = ArrayBuilder<SyntaxNode?>.GetInstance(oldCaptures.Length, fillWithValue: null, out var oldCapturesToClosureScopes);
 
             CalculateCapturedVariablesMaps(
                 oldCaptures,
@@ -4617,8 +4625,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
-            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
+            using var _11 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
+            using var _12 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
 
             BuildIndex(oldCapturesIndex, oldCaptures);
             BuildIndex(newCapturesIndex, newCaptures);
@@ -4706,42 +4714,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var containingTypeDeclaration = TryGetContainingTypeDeclaration(newMemberBody);
             var isInInterfaceDeclaration = containingTypeDeclaration != null && IsInterfaceDeclaration(containingTypeDeclaration);
 
-            foreach (var newLambda in newMemberBody.DescendantNodesAndSelf())
+            var newHasLambdaBodies = newHasLambdas;
+            while (newHasLambdaBodies)
             {
-                if (TryGetLambdaBodies(newLambda, out var newLambdaBody1, out var newLambdaBody2))
+                var (newLambda, newLambdaBody1, newLambdaBody2) = newLambdaBodyEnumerator.Current;
+
+                if (!map.Reverse.ContainsKey(newLambda))
                 {
-                    if (!map.Reverse.ContainsKey(newLambda))
+                    if (!CanAddNewLambda(newLambda, capabilities, matchedLambdas))
                     {
-                        if (!CanAddNewLambda(newLambda, capabilities, matchedLambdas))
-                        {
-                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
-                        }
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/37128
-                        // Local functions are emitted directly to the type containing the containing method.
-                        // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.
-                        if (isInInterfaceDeclaration && IsLocalFunction(newLambda))
-                        {
-                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda));
-                        }
-
-                        ReportMultiScopeCaptures(newLambdaBody1, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
-
-                        if (newLambdaBody2 != null)
-                        {
-                            ReportMultiScopeCaptures(newLambdaBody2, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
-                        }
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
                     }
 
-                    syntaxMapRequired = true;
+                    // TODO: https://github.com/dotnet/roslyn/issues/37128
+                    // Local functions are emitted directly to the type containing the containing method.
+                    // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.
+                    if (isInInterfaceDeclaration && IsLocalFunction(newLambda))
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda));
+                    }
+
+                    ReportMultiScopeCaptures(newLambdaBody1, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+
+                    if (newLambdaBody2 != null)
+                    {
+                        ReportMultiScopeCaptures(newLambdaBody2, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+                    }
                 }
+
+                newHasLambdaBodies = newLambdaBodyEnumerator.MoveNext();
             }
 
             // Similarly for addition. We don't allow removal of lambda that has captures from multiple scopes.
 
-            foreach (var oldLambda in oldMemberBody.DescendantNodesAndSelf())
+            var oldHasMoreLambdas = oldHasLambdas;
+            while (oldHasMoreLambdas)
             {
-                if (TryGetLambdaBodies(oldLambda, out var oldLambdaBody1, out var oldLambdaBody2) && !map.Forward.ContainsKey(oldLambda))
+                var (oldLambda, oldLambdaBody1, oldLambdaBody2) = oldLambdaBodyEnumerator.Current;
+
+                if (!map.Forward.ContainsKey(oldLambda))
                 {
                     ReportMultiScopeCaptures(oldLambdaBody1, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
 
@@ -4750,11 +4761,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         ReportMultiScopeCaptures(oldLambdaBody2, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
                     }
                 }
+
+                oldHasMoreLambdas = oldLambdaBodyEnumerator.MoveNext();
             }
 
-            reverseCapturesMap.Free();
-            newCapturesToClosureScopes.Free();
-            oldCapturesToClosureScopes.Free();
+            syntaxMapRequired = newHasLambdas;
+        }
+
+        private IEnumerable<(SyntaxNode lambda, SyntaxNode lambdaBody1, SyntaxNode? lambdaBody2)> GetLambdaBodies(SyntaxNode body)
+        {
+            foreach (var node in body.DescendantNodesAndSelf())
+            {
+                if (TryGetLambdaBodies(node, out var body1, out var body2))
+                {
+                    yield return (node, body1, body2);
+                }
+            }
         }
 
         private bool CanAddNewLambda(SyntaxNode newLambda, EditAndContinueCapabilities capabilities, IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas)

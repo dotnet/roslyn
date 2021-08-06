@@ -3483,6 +3483,36 @@ internal class Goo
 index: 1);
         }
 
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/pull/54493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static [|Goo|]
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static Goo
+    }
+}
+
+internal class Goo
+{
+}",
+index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInDelegateConstructor()
         {
