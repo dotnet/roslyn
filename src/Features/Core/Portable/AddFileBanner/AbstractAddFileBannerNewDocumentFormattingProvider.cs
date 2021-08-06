@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
@@ -38,6 +39,16 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                         cancellationToken).ConfigureAwait(true);
 
                 return document.WithSyntaxRoot(rootWithFileHeader);
+            }
+            else if (hintDocument is not null)
+            {
+                // If there is no file header preference, see if we can use the one in the hint document
+                var syntaxFacts = hintDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+                var fileBanner = syntaxFacts.GetFileBanner(hintSyntaxRoot);
+
+                var rootWithBanner = rootToFormat.WithPrependedLeadingTrivia(fileBanner);
+                return document.WithSyntaxRoot(rootWithBanner);
             }
 
             return document;
