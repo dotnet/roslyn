@@ -4,11 +4,11 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteAnalyzerAssemblyLoaderService()
         {
-            _loader = new(Path.GetDirectoryName(Path.GetFullPath(typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location)));
+            var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location));
+            Debug.Assert(baseDirectory != null);
+
+            _loader = new(baseDirectory);
             _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
         }
 
@@ -34,35 +37,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         // For analyzers shipped in Roslyn, different set of assemblies might be used when running
         // in-proc and OOP e.g. in-proc (VS) running on desktop clr and OOP running on ServiceHub .Net6
-        // host. We need to make sure to use the right one for OOP.
+        // host. We need to make sure to use the ones from the same location as the remote.
         private class RemoteAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
         {
-            private readonly string? _baseDirectory;
+            private readonly string _baseDirectory;
 
             protected override Assembly LoadImpl(string fullPath)
                 => base.LoadImpl(FixPath(fullPath));
 
-            public RemoteAnalyzerAssemblyLoader(string? baseDirectory)
+            public RemoteAnalyzerAssemblyLoader(string baseDirectory)
             {
                 _baseDirectory = baseDirectory;
             }
 
             private string FixPath(string fullPath)
             {
-                if (_baseDirectory == null)
-                {
-                    return fullPath;
-                }
-
-                var assemblyName = Path.GetFileName(fullPath);
-                var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, assemblyName));
-
-                if (!PathUtilities.PathsEqual(fixedPath, Path.GetFullPath(fullPath)) && File.Exists(fixedPath))
-                {
-                    return fixedPath;
-                }
-
-                return fullPath;
+                var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(fullPath)));
+                return File.Exists(fixedPath) ? fixedPath : fullPath;
             }
         }
     }
