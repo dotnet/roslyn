@@ -19,6 +19,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             => TestWorkspace.CreateCSharp(testCode);
 
         [Fact]
+        public async Task TestOrganizeUsingsWithNoUsings()
+        {
+            var testCode = @"namespace Goo
+{
+}";
+            await TestAsync(
+                testCode: testCode,
+                expected: testCode,
+                options:
+                    (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error)));
+        }
+
+        [Fact]
         public async Task TestFileBanners()
         {
             await TestAsync(testCode: @"using System;
