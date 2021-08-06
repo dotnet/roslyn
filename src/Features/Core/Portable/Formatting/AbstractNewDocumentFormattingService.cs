@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // If a single formatter has a bug, we still want to keep trying the others.
+                // Since they are unordered it would be inappropriate for them to depend on each
+                // other, so this shouldn't cause problems.
                 try
                 {
                     document = await provider.FormatNewDocumentAsync(document, cancellationToken).ConfigureAwait(false);
