@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <param name="projectId">If specified, the checksum will only contain information about the 
         /// provided project (and any projects it depends on)</param>
-        public async Task<SolutionStateChecksums> GetStateChecksumsAsync(ProjectId? projectId, CancellationToken cancellationToken)
+        public async Task<SolutionStateChecksums> GetStateChecksumsAsync(
+            ProjectId? projectId,
+            CancellationToken cancellationToken)
         {
             if (projectId == null)
                 return await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
@@ -67,10 +69,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out value))
                 {
-                    var projectsToInclude = GetProjectsToInclude(projectId);
-                    var options = GetOptionsToSerialize(projectsToInclude);
-                    var lazyChecksum = CreateLazyChecksum(projectId, options);
-                    value = (options, lazyChecksum);
+                    value = Compute(projectId);
                     _lazyProjectChecksums.Add(projectId, value);
                 }
             }
@@ -79,10 +78,13 @@ namespace Microsoft.CodeAnalysis
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId, SerializableOptionSet options)
+            (SerializableOptionSet, ValueSource<SolutionStateChecksums>) Compute(ProjectId projectId)
             {
-                return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectId, options, c), cacheResult: true);
+                var projectsToInclude = GetProjectsToInclude(projectId);
+                var options = GetOptionsToSerialize(projectsToInclude);
+
+                return (options, new AsyncLazy<SolutionStateChecksums>(
+                    c => ComputeChecksumsAsync(projectsToInclude, options, c), cacheResult: true));
             }
         }
 
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
-            ProjectId? projectId,
+            HashSet<ProjectId>? projectsToInclude,
             SerializableOptionSet options,
             CancellationToken cancellationToken)
         {
@@ -106,7 +108,6 @@ namespace Microsoft.CodeAnalysis
                     // get states by id order to have deterministic checksum.  Limit to the requested set of projects
                     // if applicable.
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
-                    var projectsToInclude = GetProjectsToInclude(projectId);
                     var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
                                                                 .Select(id => ProjectStates[id])
                                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
