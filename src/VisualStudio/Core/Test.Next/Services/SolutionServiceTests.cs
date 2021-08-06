@@ -739,7 +739,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
             Assert.Equal(1, project2SyncedSolution.Projects.Count());
             Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
-            var project2Options = (SerializableOptionSet)project1SyncedSolution.Options;
+            var project2Options = (SerializableOptionSet)project2SyncedSolution.Options;
             Assert.Equal(1, project2Options.Languages.Count);
             Assert.Contains(LanguageNames.VisualBasic, project2Options.Languages);
         }

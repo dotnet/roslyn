@@ -168,8 +168,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (remainingChecksumsToFind.Count == 0)
                     break;
 
-                if (solutionState.TryGetStateChecksums(projectId, out stateChecksums))
-                    await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                if (solutionState.TryGetStateChecksums(projectId, out var tuple))
+                    await tuple.checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
 

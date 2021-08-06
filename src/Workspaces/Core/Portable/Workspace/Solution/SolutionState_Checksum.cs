@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId, SerializableOptionSet options)
             {
                 return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectId, solutionOptions: null, projectSubsetOptions: options, c), cacheResult: true);
+                    c => ComputeChecksumsAsync(projectId, options, c), cacheResult: true);
             }
         }
 
@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
             ProjectId? projectId,
-            SerializableOptionSet? solutionOptions,
-            SerializableOptionSet? projectSubsetOptions,
+            SerializableOptionSet options,
             CancellationToken cancellationToken)
         {
             try
@@ -117,8 +116,7 @@ namespace Microsoft.CodeAnalysis
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
-                    var solutionOptionsChecksum = solutionOptions == null ? Checksum.Null : serializer.CreateChecksum(solutionOptions, cancellationToken);
-                    var projectSubsetOptionsChecksum = projectSubsetOptions == null ? Checksum.Null : serializer.CreateChecksum(projectSubsetOptions, cancellationToken);
+                    var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                         _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(attributesChecksum, solutionOptionsChecksum, projectSubsetOptionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
+                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

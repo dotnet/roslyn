@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
             var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
-            var options = await GetAssetAsync<SerializableOptionSet>(
-                solutionChecksums.SolutionOptions != Checksum.Null ? solutionChecksums.SolutionOptions : solutionChecksums.ProjectSubsetOptions,
-                cancellationToken).ConfigureAwait(false);
+            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksums.Options, cancellationToken).ConfigureAwait(false);
             return (info, options);
         }
 

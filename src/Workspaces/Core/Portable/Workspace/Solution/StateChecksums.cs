@@ -16,13 +16,12 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         public SolutionStateChecksums(
             Checksum attributesChecksum,
-            Checksum solutionOptionsChecksum,
-            Checksum projectSubsetOptionsChecksum,
+            Checksum optionsChecksum,
             ChecksumCollection projectChecksums,
             ChecksumCollection analyzerReferenceChecksums,
             Checksum frozenSourceGeneratedDocumentIdentity,
             Checksum frozenSourceGeneratedDocumentText)
-            : this(new object[] { attributesChecksum, solutionOptionsChecksum, projectSubsetOptionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
+            : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
         {
         }
 
@@ -31,12 +30,11 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         public Checksum Attributes => (Checksum)Children[0];
-        public Checksum SolutionOptions => (Checksum)Children[1];
-        public Checksum ProjectSubsetOptions => (Checksum)Children[2];
-        public ChecksumCollection Projects => (ChecksumCollection)Children[3];
-        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[4];
-        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[5];
-        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[6];
+        public Checksum Options => (Checksum)Children[1];
+        public ChecksumCollection Projects => (ChecksumCollection)Children[2];
+        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[3];
+        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[4];
+        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[5];
 
         public async Task FindAsync(
             SolutionState state,
@@ -59,20 +57,22 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Attributes] = state.SolutionAttributes;
             }
 
-            if (SolutionOptions != Checksum.Null && searchingChecksumsLeft.Remove(SolutionOptions))
+            if (searchingChecksumsLeft.Remove(Options))
             {
-                result[SolutionOptions] = state.Options;
-            }
-
-            if (ProjectSubsetOptions != Checksum.Null && searchingChecksumsLeft.Remove(ProjectSubsetOptions))
-            {
-                foreach (var projectId in state.ProjectIds)
+                if (state.TryGetStateChecksums(out var stateChecksums) && stateChecksums.Options == Options)
                 {
-                    if (state.TryGetStateChecksums(projectId, out var tuple) &&
-                        tuple.checksums.ProjectSubsetOptions == ProjectSubsetOptions)
+                    result[Options] = state.Options;
+                }
+                else
+                {
+                    foreach (var projectId in state.ProjectIds)
                     {
-                        result[ProjectSubsetOptions] = tuple.options;
-                        break;
+                        if (state.TryGetStateChecksums(projectId, out var tuple) &&
+                            tuple.checksums.Options == Options)
+                        {
+                            result[Options] = tuple.options;
+                            break;
+                        }
                     }
                 }
             }
