@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
         /// to an OOP host.
         /// </summary>
-        private readonly Dictionary<ProjectId, ValueSource<SolutionStateChecksums>> _lazyProjectChecksums = new();
+        private readonly Dictionary<ProjectId, (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums)> _lazyProjectChecksums = new();
 
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(c => ComputeChecksumsAsync(projectId: null, c), cacheResult: true);
+            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
+                c => ComputeChecksumsAsync(projectId: null, solutionOptions: Options, projectSubsetOptions: null, c), cacheResult: true);
 
             CheckInvariants();
 

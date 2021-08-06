@@ -23,20 +23,27 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
-        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
+        public bool TryGetStateChecksums(ProjectId projectId, out (SerializableOptionSet options, SolutionStateChecksums checksums) result)
         {
-            ValueSource<SolutionStateChecksums>? value;
+            (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums) value;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out value) ||
-                    value == null)
+                    value.checksums == null)
                 {
-                    stateChecksums = null;
+                    result = default;
                     return false;
                 }
             }
 
-            return value.TryGetValue(out stateChecksums);
+            if (!value.checksums.TryGetValue(out var stateChecksums))
+            {
+                result = default;
+                return false;
+            }
+
+            result = (value.options, stateChecksums);
+            return true;
         }
 
         public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
@@ -55,24 +62,27 @@ namespace Microsoft.CodeAnalysis
             if (projectId == null)
                 return await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            ValueSource<SolutionStateChecksums>? lazyChecksum;
+            (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums) value;
             lock (_lazyProjectChecksums)
             {
-                if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksum))
+                if (!_lazyProjectChecksums.TryGetValue(projectId, out value))
                 {
-                    lazyChecksum = CreateLazyChecksum(projectId);
-                    _lazyProjectChecksums.Add(projectId, lazyChecksum);
+                    var projectsToInclude = GetProjectsToInclude(projectId);
+                    var options = GetOptionsToSerialize(projectsToInclude);
+                    var lazyChecksum = CreateLazyChecksum(projectId, options);
+                    value = (options, lazyChecksum);
+                    _lazyProjectChecksums.Add(projectId, value);
                 }
             }
 
-            var collection = await lazyChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var collection = await value.checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId)
+            ValueSource<SolutionStateChecksums> CreateLazyChecksum(ProjectId? projectId, SerializableOptionSet options)
             {
                 return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectId, c), cacheResult: true);
+                    c => ComputeChecksumsAsync(projectId, solutionOptions: null, projectSubsetOptions: options, c), cacheResult: true);
             }
         }
 
@@ -85,7 +95,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
-            ProjectId? projectId, CancellationToken cancellationToken)
+            ProjectId? projectId,
+            SerializableOptionSet? solutionOptions,
+            SerializableOptionSet? projectSubsetOptions,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -104,10 +117,8 @@ namespace Microsoft.CodeAnalysis
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
-                    // If we ware only syncing a subset of projects over to the OOP side, we may only need to
-                    // sync a subset of options as well.
-                    var options = GetOptionsToSerialize(projectsToInclude);
-                    var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
+                    var solutionOptionsChecksum = solutionOptions == null ? Checksum.Null : serializer.CreateChecksum(solutionOptions, cancellationToken);
+                    var projectSubsetOptionsChecksum = projectSubsetOptions == null ? Checksum.Null : serializer.CreateChecksum(projectSubsetOptions, cancellationToken);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -122,7 +133,7 @@ namespace Microsoft.CodeAnalysis
                         _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
+                    return new SolutionStateChecksums(attributesChecksum, solutionOptionsChecksum, projectSubsetOptionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
