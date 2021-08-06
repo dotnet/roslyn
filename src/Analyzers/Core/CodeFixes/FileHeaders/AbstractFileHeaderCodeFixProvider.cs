@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(fileHeaderTemplate)
+            if (fileHeaderTemplate is null
                 && (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate)))
             {
