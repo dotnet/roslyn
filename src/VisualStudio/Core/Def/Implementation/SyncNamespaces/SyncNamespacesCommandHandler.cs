@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -137,7 +138,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)
             {
-                _workspace.TryApplyChanges(solution);
+                if (_workspace.CurrentSolution.GetChanges(solution).GetProjectChanges().Any())
+                {
+                    _workspace.TryApplyChanges(solution);
+                    MessageDialog.Show(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Namespaces_have_been_updated, MessageDialogCommandSet.Ok);
+                }
+                else
+                {
+                    MessageDialog.Show(ServicesVSResources.Sync_Namespaces, ServicesVSResources.No_namespaces_needed_updating, MessageDialogCommandSet.Ok);
+                }
             }
         }
     }

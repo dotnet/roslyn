@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 actions.AddIfNotNull(renameAction);
             }
 
-            if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
+            if (newDocumentFolders != null && newDocumentFolders != document.Folders)
             {
                 var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
                 actions.AddIfNotNull(action);

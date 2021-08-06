@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SyncNamespaces
             CodeFixProvider = codeFixProvider;
         }
 
-        public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get;  }
+        public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; }
 
         public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; }
     }

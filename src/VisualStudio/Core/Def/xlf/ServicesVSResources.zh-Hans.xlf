@@ -572,6 +572,11 @@
         <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="new">Namespaces have been updated.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -741,6 +746,11 @@
         <source>Newline (\\n)</source>
         <target state="translated">换行(\\n)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="new">No namespaces needed updating.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>

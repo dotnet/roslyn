@@ -1770,4 +1770,12 @@ Additional information: {1}</value>
     <value>Updating namespaces...</value>
     <comment>"namespaces" is the programming language concept</comment>
   </data>
+  <data name="Namespaces_have_been_updated" xml:space="preserve">
+    <value>Namespaces have been updated.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="No_namespaces_needed_updating" xml:space="preserve">
+    <value>No namespaces needed updating.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
 </root>
