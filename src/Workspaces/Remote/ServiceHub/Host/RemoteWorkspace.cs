@@ -101,19 +101,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
-        {
-            var currentSolution = _primaryBranchSolutionWithChecksum;
-            if (currentSolution?.Item1 == solutionChecksum)
-                return currentSolution.Item2;
-
-            var lastSolution = _lastRequestedSolutionWithChecksum;
-            if (lastSolution?.Item1 == solutionChecksum)
-                return lastSolution.Item2;
-
-            return null;
-        }
-
         public ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
@@ -226,6 +213,25 @@ namespace Microsoft.CodeAnalysis.Remote
             // otherwise, just return new solution
             var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
             return workspace.CurrentSolution;
+        }
+
+        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
+        {
+            var currentSolution = _primaryBranchSolutionWithChecksum;
+            if (currentSolution?.Item1 == solutionChecksum)
+            {
+                // asked about primary solution
+                return currentSolution.Item2;
+            }
+
+            var lastSolution = _lastRequestedSolutionWithChecksum;
+            if (lastSolution?.Item1 == solutionChecksum)
+            {
+                // asked about last solution
+                return lastSolution.Item2;
+            }
+
+            return null;
         }
 
         private ValueTask<Solution> GetProjectSubsetSolutionAsync(
