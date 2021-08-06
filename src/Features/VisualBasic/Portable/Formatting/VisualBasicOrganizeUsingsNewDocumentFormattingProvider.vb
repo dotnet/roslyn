@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <Export(LanguageNames.VisualBasic, GetType(INewDocumentFormattingProvider)), [Shared]>
+    <ExportNewDocumentFormattingProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicOrganizeUsingsNewDocumentFormattingProvider
         Implements INewDocumentFormattingProvider
 

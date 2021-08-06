@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    [Export(LanguageNames.CSharp, typeof(INewDocumentFormattingProvider)), Shared]
+    [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
     internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
     {
         [ImportingConstructor]

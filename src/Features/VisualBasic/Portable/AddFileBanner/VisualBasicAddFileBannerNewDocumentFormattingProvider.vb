@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.FileHeaders
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
-    <Export(LanguageNames.VisualBasic, GetType(INewDocumentFormattingProvider)), [Shared]>
+    <ExportNewDocumentFormattingProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAddFileBannerNewDocumentFormattingProvider
         Inherits AbstractAddFileBannerNewDocumentFormattingProvider
 

@@ -4,11 +4,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal interface INewDocumentFormattingProvider : ILanguageService
+    internal interface INewDocumentFormattingProvider
     {
         /// <inheritdoc cref="INewDocumentFormattingService.FormatNewDocumentAsync(Document, CancellationToken)"/>
         Task<Document> FormatNewDocumentAsync(Document document, CancellationToken cancellationToken);

@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(<ImportMany(LanguageNames.VisualBasic)> providers As IEnumerable(Of INewDocumentFormattingProvider))
+        Public Sub New(<ImportMany> providers As IEnumerable(Of Lazy(Of INewDocumentFormattingProvider, LanguageMetadata)))
             MyBase.New(providers)
         End Sub
+
+        Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
     End Class
 End Namespace

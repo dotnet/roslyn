@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [Export(LanguageNames.CSharp, typeof(INewDocumentFormattingProvider))]
-    [Shared]
+    [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
     internal class CSharpOrganizeUsingsNewDocumentFormattingProvider : INewDocumentFormattingProvider
     {
         [ImportingConstructor]

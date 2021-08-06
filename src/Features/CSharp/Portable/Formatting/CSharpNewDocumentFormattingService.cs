@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -16,9 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpNewDocumentFormattingService([ImportMany(LanguageNames.CSharp)] IEnumerable<INewDocumentFormattingProvider> providers)
+        public CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers)
             : base(providers)
         {
         }
+
+        protected override string Language => LanguageNames.CSharp;
     }
 }
