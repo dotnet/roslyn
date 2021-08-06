@@ -31,19 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasAnyNontypeMembers = 1 << 5,
 
             /// <summary>
-            /// Simple program uses await expressions. Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Simple program uses await expressions. Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             HasAwaitExpressions = 1 << 6,
 
             /// <summary>
-            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             IsIterator = 1 << 7,
 
             /// <summary>
-            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             HasReturnWithExpression = 1 << 8,
+
+            IsSimpleProgram = 1 << 9,
         }
 
         internal SingleTypeDeclaration(
@@ -164,6 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.IsIterator) != 0;
+            }
+        }
+
+        public bool IsSimpleProgram
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
 

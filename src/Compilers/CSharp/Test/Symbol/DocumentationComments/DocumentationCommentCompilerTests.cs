@@ -3548,7 +3548,7 @@ class C<T>
 /// <typeparamref name=""U"">Text</typeparamref>
 /// <typeparamref name=""V"">Text</typeparamref>
 /// {0}
-delegate void D<U, V>(U u, V v) {{ }}
+delegate void D<U, V>(U u, V v);
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
@@ -3617,7 +3617,7 @@ delegate void D<U, V>(U u, V v) {{ }}
 /// <typeparamref name=""U"">Text</typeparamref>
 /// <typeparamref name=""V"">Text</typeparamref>
 /// {0}
-delegate void D<U, V>(U u, V v) {{ }}
+delegate void D<U, V>(U u, V v);
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
