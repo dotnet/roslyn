@@ -55,7 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return DirectCast(reusableSyntax.GetBlockFromBegin(), StatementSyntax)
-                'Return reusableSyntax
             End If
 
             Dim declaration = GenerateMethodDeclarationWorker(method, destination, options)
