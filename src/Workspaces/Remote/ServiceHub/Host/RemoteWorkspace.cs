@@ -116,34 +116,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async ValueTask<Solution> GetFullSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, bool fromPrimaryBranch, int workspaceVersion, CancellationToken cancellationToken)
         {
-            try
+            var availableSolution = TryGetAvailableSolution(solutionChecksum);
+            if (availableSolution != null)
+                return availableSolution;
+
+            // make sure there is always only one that creates a new solution
+            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var availableSolution = TryGetAvailableSolution(solutionChecksum);
+                availableSolution = TryGetAvailableSolution(solutionChecksum);
                 if (availableSolution != null)
                     return availableSolution;
 
-                // make sure there is always only one that creates a new solution
-                using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    availableSolution = TryGetAvailableSolution(solutionChecksum);
-                    if (availableSolution != null)
-                        return availableSolution;
+                var solution = await CreateFullSolution_NoLockAsync(
+                    assetProvider,
+                    solutionChecksum,
+                    fromPrimaryBranch,
+                    workspaceVersion,
+                    CurrentSolution,
+                    cancellationToken).ConfigureAwait(false);
 
-                    var solution = await CreateFullSolution_NoLockAsync(
-                        assetProvider,
-                        solutionChecksum,
-                        fromPrimaryBranch,
-                        workspaceVersion,
-                        CurrentSolution,
-                        cancellationToken).ConfigureAwait(false);
-
-                    _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
-                    return solution;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
+                _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
+                return solution;
             }
         }
 
@@ -177,42 +170,49 @@ namespace Microsoft.CodeAnalysis.Remote
             Solution baseSolution,
             CancellationToken cancellationToken)
         {
-            var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
-
-            // check whether solution is update to the given base solution
-            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+            try
             {
-                // create updated solution off the baseSolution
-                var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+
+                // check whether solution is update to the given base solution
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                {
+                    // create updated solution off the baseSolution
+                    var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+
+                    if (fromPrimaryBranch)
+                    {
+                        // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
+                        return UpdateSolutionIfPossible(solution, workspaceVersion);
+                    }
+
+                    // otherwise, just return the solution
+                    return solution;
+                }
+
+                // we need new solution. bulk sync all asset for the solution first.
+                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                // get new solution info and options
+                var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 if (fromPrimaryBranch)
                 {
-                    // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    return UpdateSolutionIfPossible(solution, workspaceVersion);
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
+                    if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
+                    {
+                        return solution;
+                    }
                 }
 
-                // otherwise, just return the solution
-                return solution;
+                // otherwise, just return new solution
+                var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                return workspace.CurrentSolution;
             }
-
-            // we need new solution. bulk sync all asset for the solution first.
-            await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            // get new solution info and options
-            var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            if (fromPrimaryBranch)
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
-                {
-                    return solution;
-                }
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // otherwise, just return new solution
-            var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-            return workspace.CurrentSolution;
         }
 
         private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
