@@ -49,6 +49,21 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <Target Name="SetEnvironmentVariablesForXUnit" BeforeTargets="RunTests">
+    <PropertyGroup>
+      <_OriginalNuGetPackageRoot>$(NuGetPackageRoot)</_OriginalNuGetPackageRoot>
+
+      <!-- Use the first variable in the definition of $(_XUnitConsoleExePath) to change environment variables as part of launching tests -->
+      <NuGetPackageRoot>cmd" /c &amp; (set DOTNET_MULTILEVEL_LOOKUP=) &amp; (set DOTNET_INSTALL_DIR=) &amp; (set DOTNET_ROOT=) &amp; "$(NuGetPackageRoot)</NuGetPackageRoot>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="RestoreBuildState" AfterTargets="RunTests">
+    <PropertyGroup>
+      <NuGetPackageRoot>$(_OriginalNuGetPackageRoot)</NuGetPackageRoot>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="PrepareVsixProjectReferences"
           BeforeTargets="ResolveProjectReferences"
           DependsOnTargets="PrepareProjectReferences">
