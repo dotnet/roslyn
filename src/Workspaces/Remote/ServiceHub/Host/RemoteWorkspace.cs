@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var solution = await CreateFullSolution_NoLockAsync(assetProvider, solutionChecksum, shouldCacheSolution: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateFullSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
             }
         }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> CreateFullSolution_NoLockAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            bool shouldCacheSolution,
+            bool fromPrimaryBranch,
             int workspaceVersion,
             Solution baseSolution,
             CancellationToken cancellationToken)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // create updated solution off the baseSolution
                 var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
 
-                if (shouldCacheSolution)
+                if (fromPrimaryBranch)
                 {
                     // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
                     return UpdateSolutionIfPossible(solution, workspaceVersion);
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // get new solution info and options
             var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            if (shouldCacheSolution)
+            if (fromPrimaryBranch)
             {
                 // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
                 if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solution = await CreateFullSolution_NoLockAsync(
                     assetProvider,
                     solutionChecksum,
-                    shouldCacheSolution: fromPrimaryBranch,
+                    fromPrimaryBranch,
                     workspaceVersion,
                     CurrentSolution,
                     cancellationToken).ConfigureAwait(false);
