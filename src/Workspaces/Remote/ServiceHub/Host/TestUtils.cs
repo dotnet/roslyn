@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var project in solution.Projects)
             {
-                solutionChecksums = await solution.State.GetStateChecksumsAsync(project.Id, cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                var projectSubsetChecksums = await solution.State.GetStateChecksumsAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                await projectSubsetChecksums.FindAsync(solution.State, Flatten(projectSubsetChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
