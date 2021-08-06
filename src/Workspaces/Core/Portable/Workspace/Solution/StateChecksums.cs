@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Attributes] = state.SolutionAttributes;
             }
 
+            // The Options field could be referring to the full solution-options, or it could be referring to a
+            // partially computed options for a project-subset.  Check for both cases.
             if (searchingChecksumsLeft.Remove(Options))
             {
                 if (state.TryGetStateChecksums(out var stateChecksums) && stateChecksums.Options == Options)
