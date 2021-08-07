@@ -240,23 +240,23 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            try
+            // Attempt to just read without incurring any other costs.
+            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
+                box.Value.checksum == solutionChecksum)
             {
-                // Attempt to just read without incurring any other costs.
-                if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
-                    box.Value.checksum == solutionChecksum)
-                {
-                    return new(box.Value.Item2);
-                }
+                return new(box.Value.Item2);
+            }
 
-                return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
+            return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
 
-                async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
-                    Solution baseSolution,
-                    AssetProvider assetProvider,
-                    Checksum solutionChecksum,
-                    ProjectId projectId,
-                    CancellationToken cancellationToken)
+            async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
+                Solution baseSolution,
+                AssetProvider assetProvider,
+                Checksum solutionChecksum,
+                ProjectId projectId,
+                CancellationToken cancellationToken)
+            {
+                try
                 {
                     var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
 
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
                     return result;
                 }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
         }
 
