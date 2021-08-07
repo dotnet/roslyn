@@ -2274,16 +2274,22 @@ class C
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] or [..null] => 1,
-            [var unreachable] => 2,
+            [_] => 2, // unreachable
+        };
+        _ = a switch // exhaustive
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] => 1,
+            [_] => 2,
         };
     }
 }" + TestSources.GetSubArray;
             var comp = CreateCompilationWithIndexAndRange(src);
-            // PROTOYPE(list-patterns) Should we disregard the missing null slice?
             comp.VerifyEmitDiagnostics(
                 // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             [var unreachable] => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(11, 13));
+                //             [_] => 2, // unreachable
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
         }
 
         [Theory]
