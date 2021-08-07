@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             while (true)
             {
-                partsBuilder.AddRange(((BoundInterpolatedString)node.Right).Parts);
+                partsBuilder.AddRange(((BoundInterpolatedString)node.Right).Parts.Reverse());
 
                 if (node.Left is BoundBinaryOperator next)
                 {
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    partsBuilder.AddRange(((BoundInterpolatedString)node.Left).Parts);
+                    partsBuilder.AddRange(((BoundInterpolatedString)node.Left).Parts.Reverse());
                     break;
                 }
             }

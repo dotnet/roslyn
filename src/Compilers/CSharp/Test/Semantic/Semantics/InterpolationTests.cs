@@ -12182,6 +12182,33 @@ value:3
 ");
         }
 
+        [Theory]
+        [InlineData(@"$""({i1}),"" + $""[{i2}],"" + $""{{{i3}}}""")]
+        [InlineData(@"($""({i1}),"" + $""[{i2}],"") + $""{{{i3}}}""")]
+        [InlineData(@"$""({i1}),"" + ($""[{i2}],"" + $""{{{i3}}}"")")]
+        public void InterpolatedStringsAddedUnderObjectAddition2(string expression)
+        {
+            var code = $@"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+System.Console.WriteLine({expression});";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            CompileAndVerify(comp, expectedOutput: @"
+(
+value:1
+),
+[
+value:2
+],
+{
+value:3
+}
+");
+        }
+
         [Fact]
         public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
         {
