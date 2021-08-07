@@ -1939,13 +1939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                         int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
-                                        return knownResult(BinaryOperatorKind.Equal, lengthValue) ??
-                                               new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
+                                        Debug.Assert(lengthValue >= 0);
+                                        return new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                         int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
+                                        Debug.Assert(lengthValue >= 0);
                                         return knownResult(t.Relation, lengthValue) ??
                                                new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
@@ -1960,7 +1961,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                 Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
                                 int lengthValue = t.Value.Int32Value;
-                                return knownResult(t.Relation, lengthValue) ?? this;
+                                Debug.Assert(lengthValue >= 0);
+                                return lengthValue == 0 ? True.Instance : this;
                             }
                         }
                     }
