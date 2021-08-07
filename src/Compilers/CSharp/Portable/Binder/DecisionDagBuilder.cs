@@ -463,7 +463,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
                 var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
                 output = convertedInput;
-                tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
+                if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
+                {
+                    // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
+                    tests.Add(Tests.False.Instance);
+                }
+                else
+                {
+                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
+                }
                 return Tests.AndSequence.Create(tests);
             }
         }
@@ -1936,20 +1944,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (test)
                             {
                                 case BoundDagValueTest t when !t.Value.IsBad:
-                                    {
-                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
-                                        Debug.Assert(lengthValue >= 0);
-                                        return new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
-                                    }
+                                    Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                    return new One(new BoundDagValueTest(t.Syntax,
+                                        ConstantValue.Create(safeAdd(t.Value.Int32Value, offset)), lengthTemp));
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
-                                    {
-                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
-                                        Debug.Assert(lengthValue >= 0);
-                                        return knownResult(t.Relation, lengthValue) ??
-                                               new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
-                                    }
+                                    Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                    return new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind,
+                                        ConstantValue.Create(safeAdd(t.Value.Int32Value, offset)), lengthTemp));
                             }
                         }
                         else if (e.Syntax.IsKind(SyntaxKind.ListPattern))
@@ -1969,15 +1970,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this;
 
-                    static Tests? knownResult(BinaryOperatorKind relation, int lengthValue)
-                    {
-                        var lengthValues = ValueSetFactory.ForLength.Related(relation, lengthValue);
-                        if (lengthValues.IsEmpty)
-                            return False.Instance;
-                        if (lengthValues.Complement().IsEmpty)
-                            return True.Instance;
-                        return null;
-                    }
                     static int safeAdd(int value, int offset)
                     {
                         Debug.Assert(value >= 0); // Tests with negative values should never be created.
