@@ -6,7 +6,7 @@ usage()
 {
     echo "Usage: $0 [BuildArch] [CodeName] [lldbx.y] [--skipunmount] --rootfsdir <directory>]"
     echo "BuildArch can be: arm(default), armel, arm64, x86"
-    echo "CodeName - optional, Code name for Linux, can be: trusty, xenial(default), zesty, bionic, alpine, alpine3.9 or alpine3.13. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
+    echo "CodeName - optional, Code name for Linux, can be: xenial(default), zesty, bionic, alpine, alpine3.9 or alpine3.13. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
     echo "                              for FreeBSD can be: freebsd11, freebsd12, freebsd13"
     echo "                              for illumos can be: illumos."
     echo "lldbx.y - optional, LLDB version, can be: lldb3.9(default), lldb4.0, lldb5.0, lldb6.0 no-lldb. Ignored for alpine and FreeBSD"
@@ -146,11 +146,6 @@ while :; do
         no-lldb)
             unset __LLDB_Package
             ;;
-        trusty) # Ubuntu 14.04
-            if [ "$__CodeName" != "jessie" ]; then
-                __CodeName=trusty
-            fi
-            ;;
         xenial) # Ubuntu 16.04
             if [ "$__CodeName" != "jessie" ]; then
                 __CodeName=xenial
@@ -223,7 +218,7 @@ while :; do
             __FreeBSDABI="13"
             __BuildArch=x64
             __SkipUnmount=1
-            ;;            
+            ;;
         illumos)
             __CodeName=illumos
             __BuildArch=x64
@@ -372,13 +367,6 @@ elif [[ -n $__CodeName ]]; then
 
     if [ $__SkipUnmount == 0 ]; then
         umount $__RootfsDir/* || true
-    fi
-
-    if [[ "$__BuildArch" == "arm" && "$__CodeName" == "trusty" ]]; then
-        pushd $__RootfsDir
-        patch -p1 < $__CrossDir/$__BuildArch/trusty.patch
-        patch -p1 < $__CrossDir/$__BuildArch/trusty-lttng-2.4.patch
-        popd
     fi
 
     if [[ "$__BuildArch" == "armel" && "$__CodeName" == "jessie" ]]; then
