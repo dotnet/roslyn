@@ -309,8 +309,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
                 {
-                    var formattingService = newDocument.GetRequiredLanguageService<INewDocumentFormattingService>();
-                    codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
+                    var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
+                    if (formattingService is not null)
+                    {
+                        codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
+                    }
                 }
 
                 // Now, take the code that would be generated and actually create an edit that would

@@ -330,8 +330,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             // Call out to various new document formatters to tweak what they want
-            var formattingService = addedDocument.GetRequiredLanguageService<INewDocumentFormattingService>();
-            addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
+            var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
+            {
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+            }
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);

@@ -66,12 +66,19 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (fileHeaderTemplate is null
-                && (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate)
-                || string.IsNullOrEmpty(fileHeaderTemplate)))
+            // If we weren't given a header lets get the one from editorconfig
+            if (fileHeaderTemplate is null &&
+                !document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate))
             {
-                // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
-                throw ExceptionUtilities.Unreachable;
+                // No header supplied, no editorconfig setting, nothing to do
+                return root;
+            }
+
+            if (string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // Header template is empty, nothing to do. This shouldn't be possible if this method is called in
+                // reaction to a diagnostic, but this method is also used when creating new documents so lets be defensive.
+                return root;
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
