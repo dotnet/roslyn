@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public virtual bool IsEquivalentTo(BoundDagEvaluation other)
         {
-            return this.Kind == other.Kind &&
-                Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
+            return this == other ||
+               this.Kind == other.Kind &&
+               Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private Symbol? Symbol

@@ -1390,6 +1390,52 @@ class X
             CompileAndVerify(compilation, expectedOutput: "-10121");
         }
 
+        [Theory]
+        [InlineData(
+            "{ null, null, new(0, 0) }",
+            "[..{ Length: >=2 }, { X: 0, Y: 0 }]",
+            "Length, this[0..^1], this[^1], X, Y, True")]
+        [InlineData(
+            "{ null, null, new(0, 0) }",
+            "[.., { X: 0, Y: 0 }]",
+            "Length, this[^1], X, Y, True")]
+        [InlineData(
+            "{ new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "Length, this[^1], X, Y, this[0], X, Y, True")]
+        public void SlicePattern_OrderOfEvaluation(string array, string pattern, string expectedOutput)
+        {
+            var source = @"
+using static System.Console;
+using static Helper;
+
+Write(new MyArray(new Point[] " + array + @") is " + pattern + @");
+
+class Point
+{
+    private int x, y;
+    public Point(int x, int y) => (this.x, this.y) = (x, y);
+    public int X { get { Print(nameof(X)); return x; } }
+    public int Y { get { Print(nameof(Y)); return y; } }
+}
+class MyArray
+{
+    private Point[] array;
+    public MyArray(Point[] array) => this.array = array;
+    public Point this[System.Index index] { get { Print($""this[{index}]""); return array[index]; } }
+    public Point[] this[System.Range range] { get { Print($""this[{range}]""); return array[range]; } }
+    public int Length { get { Print(nameof(Length)); return array.Length; } }
+}
+static class Helper
+{
+    public static void Print(string s) => Write(s + "", "");
+}
+" + TestSources.GetSubArray;
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         [Fact]
         public void ListPattern_NarrowedTypes()
         {
@@ -1421,7 +1467,7 @@ class X
         }
 
         [Fact]
-        public void ListPattern_ImpossiblePattern()
+        public void ImpossiblePattern()
         {
             var source = @"
 using System;
@@ -1442,6 +1488,7 @@ class X
         _ = a is {Length:-1};         // 6
         _ = a is [.., >0] and [<0];   // 7
         _ = a is [.., >0, _] and [_, <=0, ..];
+        _ = new { a } is { a.Length:-1 }; // 8
     } 
 }
 ";
@@ -1467,8 +1514,10 @@ class X
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13),
                 // (18,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [.., >0] and [<0];   // 7
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [.., >0] and [<0]").WithArguments("int[]").WithLocation(18, 13)
-                );
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [.., >0] and [<0]").WithArguments("int[]").WithLocation(18, 13),
+                //         _ = new { a } is { a.Length:-1 }; // 8
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { a } is { a.Length:-1 }").WithArguments("<anonymous type: int[] a>").WithLocation(20, 13)
+            );
         }
 
         [Fact]
@@ -1991,40 +2040,66 @@ class C
         public void Subsumption_05()
         {
             var src = @"
+using System;
 class C
 {
-    void Test(int[] a)
+    static int Test(int[] a)
     {
         switch (a)
         {
-            case [1, 2, 3]:
-            case [1, .., 3]:
-                break;
+            case [1, 2, 3]: return 1;
+            case [1, .., 3]: return 2;
+            default: return 3;
         }
     }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[]{1,2,3}));
+        Console.WriteLine(Test(new[]{1,0,3}));
+        Console.WriteLine(Test(new[]{1,2,0}));
+    }
 }";
-            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var expectedOutput = @"
+1
+2
+3
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void Subsumption_06()
         {
             var src = @"
+using System;
 class C
 {
-    void Test(int[] a)
+    static int Test(int[] a)
     {
         switch (a)
         {
-            case [42]:
-            case [..,42]:
-                break;
+            case [42]: return 1;
+            case [..,42]: return 2;
+            default: return 3;
         }
     }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[]{42}));
+        Console.WriteLine(Test(new[]{42, 42}));
+        Console.WriteLine(Test(new[]{42, 43}));
+    }
 }";
-            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var expectedOutput = @"
+1
+2
+3
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2151,6 +2226,66 @@ class C
                 );
         }
 
+        [Fact]
+        public void Subsumption_11()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+
+    public void Deconstruct(out C c1, out C c2) => throw null;
+
+    static void Test(C[] a) 
+    {
+        switch (a)
+        {
+            case [.., (_, { X: 0 })]:
+            case [({ X: 0 }, _)]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [.., (_, { X: 0 })]:
+            case [(_, { X: 0 })]: // err
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (20,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [(_, { X: 0 })]: // err
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[(_, { X: 0 })]").WithLocation(20, 18));
+        }
+
+        [Fact]
+        public void Subsumption_12()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] or [..null] => 1,
+            [var unreachable] => 2,
+        };
+    }
+}" + TestSources.GetSubArray;
+            var comp = CreateCompilationWithIndexAndRange(src);
+            // PROTOYPE(list-patterns) Should we disregard the missing null slice?
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [var unreachable] => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(11, 13));
+        }
+
         [Theory]
         [CombinatorialData]
         public void Subsumption_Slice_00(
@@ -2250,18 +2385,18 @@ class C
     {
         _ = a switch
         {
-            [.., >=0] or [<0] or { Length: 0 or > 1 } => 0
+            [.., >=0] or [<0] or { Length: 0 or >1 } => 0
         };
 
         _ = a switch
         {
-            [.., >=0] or [..[.., <0] ] or [] => 0
+            [.., >=0] or [..[.., <0]] or [] => 0
         };
 
         _ = a switch
         {
             [..[>=0] ] or [<0] or
-            { Length: 0 or > 1 } => 0
+            { Length: 0 or >1 } => 0
         };
 
         _ = a switch
@@ -2271,13 +2406,23 @@ class C
 
         _ = a switch
         {
-            [_, ..{ Length: <= (int.MaxValue - 1) }] or [] => 0
+            [_, ..{ Length: < int.MaxValue }] or [] or { Length: int.MaxValue } => 0
+        };
+
+        _ = a switch
+        {
+            [..{ Length: <= int.MaxValue }, _] or []  => 0
+        };
+
+        _ = a switch
+        {
+            [_, ..{ Length: <= int.MaxValue }, _] or { Length: 0 or 1 } => 0
         };
 
         _ = b switch
         { 
-            [.., { X: >=0, Y: <0}] or [ { Y: >=0, X: <0} ] or
-            [.., { Y: >=0, X: <0}] or [ { X: >=0, Y: <0} ] or
+            [.., { X: >=0, Y: <0 }] or [ { Y: >=0, X: <0 } ] or
+            [.., { Y: >=0, X: <0 }] or [ { X: >=0, Y: <0 } ] or
             [.., { X: <=0 }] or [{ X: >0 }] or 
             { Length: 0 or > 1 } => 0
         };

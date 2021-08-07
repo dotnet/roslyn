@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct IntTC : INumericTC<int>
+        private struct PositiveIntTC : INumericTC<int>
         {
-            int INumericTC<int>.MinValue => int.MinValue;
+            int INumericTC<int>.MinValue => 0;
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
@@ -46,11 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.Prev(int value)
             {
-                Debug.Assert(value != int.MinValue);
+                Debug.Assert(value != 0);
                 return value - 1;
             }
 
-            public int FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0 : constantValue.Int32Value;
+            public int FromConstantValue(ConstantValue constantValue)
+            {
+                // We could have a negate value in source, but it won't get past PositiveIntValueSetFactory.Related
+                return constantValue.IsBad ? 0 : constantValue.Int32Value;
+            }
 
             public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int Random(Random random)
             {
-                return (random.Next() << 10) ^ random.Next();
+                return Math.Abs((random.Next() << 10) ^ random.Next());
             }
         }
     }

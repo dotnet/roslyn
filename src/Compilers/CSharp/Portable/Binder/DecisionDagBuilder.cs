@@ -554,12 +554,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Tests.AndSequence.Create(tests);
 
-            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount = false)
+            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount)
             {
                 if (member is null)
                     return false;
 
-                if (tryMakeSubpatternMemberTests(member.Receiver, ref input))
+                // int doesn't have a property, so isLengthOrCount could never be true
+                if (tryMakeSubpatternMemberTests(member.Receiver, ref input, isLengthOrCount: false))
                 {
                     // If this is not the first member, add null test, unwrap nullables, and continue.
                     input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
@@ -966,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool foundExplicitNullTest)
         {
             stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
-            whenTrue = stateForCase.UpdateRemainingTests(whenTrueTests);
-            whenFalse = stateForCase.UpdateRemainingTests(whenFalseTests);
+            whenTrue = stateForCase.WithRemainingTests(whenTrueTests);
+            whenFalse = stateForCase.WithRemainingTests(whenFalseTests);
         }
 
         private void SplitCases(
@@ -1121,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="other"></param>
         /// <param name="whenTrueValues">The possible values of test.Input when <paramref name="test"/> has succeeded.</param>
         /// <param name="whenFalseValues">The possible values of test.Input when <paramref name="test"/> has failed.</param>
-        /// <param name="lengthTest">The precondition that the implied status of the <paramref name="other"/> test is dependent upon.</param>
+        /// <param name="precondition">The pre-condition that the implied status of the <paramref name="other"/> test is dependent upon.</param>
         /// <param name="trueTestPermitsTrueOther">set if <paramref name="test"/> being true would permit <paramref name="other"/> to succeed</param>
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
@@ -1133,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet? whenTrueValues,
             IValueSet? whenFalseValues,
             SyntaxNode syntax,
-            out Tests lengthTest,
+            out Tests precondition,
             out bool trueTestPermitsTrueOther,
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
@@ -1145,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             falseTestPermitsTrueOther = true;
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
-            lengthTest = Tests.True.Instance;
+            precondition = Tests.True.Instance;
 
             // if the tests are for unrelated things, there is no implication from one to the other
             BoundDagTemp input1 = test.Input;
@@ -1156,7 +1157,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (input1.Source, input2.Source)
                     {
+                        // Even though the two tests appear unrelated (with different inputs),
+                        // it is possible that they are in fact related under certain conditions.
+                        // For instance, the inputs [0] and [^1] point to the same element when length is 1.
                         case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                            // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                            // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
                             (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
                             (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
                             Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
@@ -1174,33 +1180,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
                                     var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                    if (lengthValues.IsEmpty)
-                                    {
-                                        return;
-                                    }
+                                    // We do not expect an empty set here because an indexer evaluation is always preceded by
+                                    // a length test of which an impossible match would have made the rest of the tests unreachable.
+                                    Debug.Assert(!lengthValues.IsEmpty);
 
                                     // Compute the length value that would make these two indices point to the same element.
                                     int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
                                     if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
                                     {
-                                        // If the length is known to be exact, the two can definitely point to the same element.
+                                        // If the length is known to be exact, the two are considered to point to the same element.
                                         break;
                                     }
                                     if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                     {
                                         // Otherwise, we add a test to make the result conditional on the length value.
-                                        lengthTest = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                        precondition = new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
                                         break;
                                     }
                                 }
                             }
-                            return;
-                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
+                            return; // tests are unrelated
+
+                        // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
+                        // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
+                        // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
+                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && input1.Index == input2.Index:
+                            Debug.Assert(input1.Type.Equals(input2.Type, TypeCompareKind.AllIgnoreOptions));
                             input1 = s1.Input;
                             input2 = s2.Input;
                             continue;
+
                         default:
-                            return;
+                            return; // tests are unrelated
                     }
                     break;
                 }
@@ -1379,12 +1390,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isRuntimeSimilar(TypeSymbol expressionType, TypeSymbol patternType)
             {
-                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: var sz1, Rank: var r1 } &&
-                       patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
-                       sz1 == sz2 && r1 == r2)
+                while (expressionType is ArrayTypeSymbol array1 &&
+                       patternType is ArrayTypeSymbol array2 &&
+                       array1.IsSZArray == array2.IsSZArray &&
+                       array1.Rank == array2.Rank)
                 {
-                    e1 = e1.EnumUnderlyingTypeOrSelf();
-                    e2 = e2.EnumUnderlyingTypeOrSelf();
+                    TypeSymbol e1 = array1.ElementType.EnumUnderlyingTypeOrSelf();
+                    TypeSymbol e2 = array2.ElementType.EnumUnderlyingTypeOrSelf();
                     switch (e1.SpecialType, e2.SpecialType)
                     {
                         // The following support CLR behavior that is required by
@@ -1763,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Hash.Combine(RemainingTests.GetHashCode(), Index);
             }
 
-            public StateForCase UpdateRemainingTests(Tests newRemainingTests)
+            public StateForCase WithRemainingTests(Tests newRemainingTests)
             {
                 return newRemainingTests.Equals(RemainingTests)
                     ? this
@@ -1772,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public StateForCase RewriteNestedLengthTests()
             {
-                return this.UpdateRemainingTests(RemainingTests.RewriteNestedLengthTests());
+                return this.WithRemainingTests(RemainingTests.RewriteNestedLengthTests());
             }
         }
 
@@ -1797,6 +1809,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref bool foundExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
+            /// <summary>
+            ///  Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
+            /// </summary>
             public virtual Tests RewriteNestedLengthTests() => this;
             public abstract string Dump(Func<BoundDagTest, string> dump);
 
@@ -1869,14 +1884,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         whenTrueValues: whenTrueValues,
                         whenFalseValues: whenFalseValues,
                         syntax: test.Syntax,
-                        lengthTest: out Tests lengthTest,
+                        precondition: out Tests precondition,
                         trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                         falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : trueDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(lengthTest), this);
-                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(lengthTest, this) : falseDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(lengthTest), this);
+                    // Given T0 as a test that has already occurred, T1 as a subsequent test, and P as a pre-condition, we proceed as follow:
+                    //  - If T0=True implies T1, we rewrite T1 as (P ? True : T1) which reduces to (P || T1)
+                    //    Because we have determined that given T0=True, T1 would always succeed if P evaluates to True.
+                    //    Note: If there is no pre-condition, i.e. P is True, the above will be further simplified as True which means T1 is insignificant.
+                    //  - If T0=True disallows T1, we rewrite T1 as (P ? False : T1) which reduces to (!P && T1)
+                    //    Because we have determined that given T0=True, T1 would never succeed if P evaluates to True.
+                    //    Note: If there is no pre-condition, i.e. P is True, the above will be further simplified as False which means T1 is impossible.
+                    //  - Otherwise, T1 is not rewritten -- the two are considered independent or there is no implication from one to the other.
+                    whenTrue = trueDecisionImpliesTrueOther ? makeOrSequence(precondition, this) : trueDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(precondition), this);
+                    // Similarly for the opposite branch where T0=False
+                    whenFalse = falseDecisionImpliesTrueOther ? makeOrSequence(precondition, this) : falseDecisionPermitsTrueOther ? this : makeAndSequence(Not.Create(precondition), this);
 
                     static Tests makeOrSequence(Tests t1, Tests.One t2)
                     {
@@ -1907,19 +1931,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                         {
+                            // If this is a nested length test in a slice subpattern, update the matched
+                            // value based on the number of additional elements in the containing list.
                             switch (test)
                             {
                                 case BoundDagValueTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = safeAdd(t.Value.Int32Value, offset);
+                                        int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
                                         return knownResult(BinaryOperatorKind.Equal, lengthValue) ??
                                                new One(new BoundDagValueTest(t.Syntax, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
                                     {
                                         Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        int lengthValue = safeAdd(t.Value.Int32Value, offset);
+                                        int lengthValue = safeAdd(t.Value.Int32Value, offset: offset);
                                         return knownResult(t.Relation, lengthValue) ??
                                                new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, ConstantValue.Create(lengthValue), lengthTemp));
                                     }
@@ -1927,15 +1953,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (e.Syntax.IsKind(SyntaxKind.ListPattern))
                         {
-                            switch (test)
+                            // Normally this kind of test is never created, we do this here because we're rewriting nested tests
+                            // to check the top-level length instead. If we never create this test, the length temp gets removed.
+                            if (test is BoundDagRelationalTest t && !t.Value.IsBad)
                             {
-                                case BoundDagRelationalTest t when !t.Value.IsBad:
-                                    {
-                                        Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                        Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
-                                        int lengthValue = t.Value.Int32Value;
-                                        return knownResult(t.Relation, lengthValue) ?? this;
-                                    }
+                                Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
+                                int lengthValue = t.Value.Int32Value;
+                                return knownResult(t.Relation, lengthValue) ?? this;
                             }
                         }
                     }
@@ -1951,14 +1976,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return True.Instance;
                         return null;
                     }
-                    static int safeAdd(int a, int b)
+                    static int safeAdd(int value, int offset)
                     {
-                        return (a, b) switch
-                        {
-                            ( > 0, > 0) when b > (int.MaxValue - a) => int.MaxValue,
-                            ( < 0, < 0) when b < (int.MinValue - a) => int.MinValue,
-                            _ => a + b
-                        };
+                        Debug.Assert(value >= 0); // Tests with negative values should never be created.
+                        Debug.Assert(offset >= 0); // The number of elements in a list is always positive.
+                        // We don't expect offset to be very large, but the value could
+                        // be anything given that it comes from a constant in the source.
+                        return offset > (int.MaxValue - value) ? int.MaxValue : value + offset;
                     }
                 }
             }
