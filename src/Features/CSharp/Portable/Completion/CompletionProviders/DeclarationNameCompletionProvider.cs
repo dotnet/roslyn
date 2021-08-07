@@ -297,13 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: BaseMethodDeclarationSyntax baseMethod } })
                 return;
 
-            var overloads = GetOverloads(baseMethod, namedType);
-
-            if (!overloads.Any())
-                return;
-
             var methodParameterType = semanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
             if (methodParameterType is null)
+                return;
+
+            var overloads = GetOverloads(namedType, baseMethod);
+            if (overloads.IsEmpty)
                 return;
 
             var currentParameterNames = baseMethod.ParameterList.Parameters.Select(p => p.Identifier.ValueText).ToImmutableHashSet();
@@ -323,13 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return;
 
             // Local functions
-            static IEnumerable<IMethodSymbol> GetOverloads(BaseMethodDeclarationSyntax baseMethod, INamedTypeSymbol namedType)
+            static ImmutableArray<IMethodSymbol> GetOverloads(INamedTypeSymbol namedType, BaseMethodDeclarationSyntax baseMethod)
             {
                 return baseMethod switch
                 {
-                    MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>(),
-                    ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>(),
-                    _ => Enumerable.Empty<IMethodSymbol>()
+                    MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).WhereAsArray(m => m.Kind == SymbolKind.Method).CastArray<IMethodSymbol>(),
+                    ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).WhereAsArray(m => m.Kind == SymbolKind.Method).CastArray<IMethodSymbol>(),
+                    _ => ImmutableArray<IMethodSymbol>.Empty
                 };
             }
         }
