@@ -12213,11 +12213,13 @@ value:3
         public void InterpolatedStringsAddedUnderObjectAddition3()
         {
             var code = @"
+#nullable enable
+
 using System;
 
 try
 {
-    string s = string.Empty;
+    var s = string.Empty;
     Console.WriteLine($""{s = null}{s.Length}"" + $"""");
 }
 catch (Exception ex)
@@ -12266,7 +12268,11 @@ catch (Exception ex)
   }
   IL_003f:  ret
 }
-");
+").VerifyDiagnostics(
+    // (9,36): warning CS8602: Dereference of a possibly null reference.
+    //     Console.WriteLine($"{s = null}{s.Length}" + $"");
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 36)
+    );
         }
 
         [Fact]
