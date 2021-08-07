@@ -14491,7 +14491,8 @@ class C
 
             edits.VerifySemantics(
                ActiveStatementsDescription.Empty,
-               new[] {
+               new[]
+               {
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
                },
                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
