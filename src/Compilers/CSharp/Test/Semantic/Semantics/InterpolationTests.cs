@@ -12210,6 +12210,66 @@ value:3
         }
 
         [Fact]
+        public void InterpolatedStringsAddedUnderObjectAddition3()
+        {
+            var code = @"
+using System;
+
+try
+{
+    string s = string.Empty;
+    Console.WriteLine($""{s = null}{s.Length}"" + $"""");
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            CompileAndVerify(comp, expectedOutput: @"System.NullReferenceException: Object reference not set to an instance of an object.
+   at Program.<Main>$(String[] args)
+").VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (string V_0, //s
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  .try
+  {
+    IL_0000:  ldsfld     ""string string.Empty""
+    IL_0005:  stloc.0
+    IL_0006:  ldc.i4.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_000d:  stloc.1
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  ldnull
+    IL_0011:  dup
+    IL_0012:  stloc.0
+    IL_0013:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+    IL_0018:  ldloca.s   V_1
+    IL_001a:  ldloc.0
+    IL_001b:  callvirt   ""int string.Length.get""
+    IL_0020:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+    IL_0025:  ldloca.s   V_1
+    IL_0027:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_002c:  call       ""void System.Console.WriteLine(string)""
+    IL_0031:  leave.s    IL_003f
+  }
+  catch System.Exception
+  {
+    IL_0033:  callvirt   ""string object.ToString()""
+    IL_0038:  call       ""void System.Console.WriteLine(string)""
+    IL_003d:  leave.s    IL_003f
+  }
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
         public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
         {
             var code = @"
