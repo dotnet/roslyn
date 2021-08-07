@@ -1535,6 +1535,33 @@ class X
         }
 
         [Fact]
+        public void BadConstant()
+        {
+            var source = @"
+using System;
+class X
+{
+    public void M(int[] a)
+    {
+        const int bad = a;
+        _ = a is { Length: bad };
+        _ = new { a } is { a.Length: bad };
+        _ = a is [..{ Length: bad }];
+        _ = a is [..{ Length: < bad }];
+        _ = a is [..{ Length: <= bad }];
+        _ = a is [..{ Length: >= bad }];
+        _ = a is [..{ Length: > bad }];
+    } 
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
+                //         const int bad = a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a").WithArguments("int[]", "int").WithLocation(7, 25));
+        }
+
+        [Fact]
         public void ListPattern_Interface()
         {
             var source = @"

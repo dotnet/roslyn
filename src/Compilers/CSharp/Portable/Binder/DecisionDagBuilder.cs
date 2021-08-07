@@ -1957,13 +1957,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Normally this kind of test is never created, we do this here because we're rewriting nested tests
                             // to check the top-level length instead. If we never create this test, the length temp gets removed.
-                            if (test is BoundDagRelationalTest t && !t.Value.IsBad)
+                            if (test is BoundDagRelationalTest t)
                             {
                                 Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                 Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
-                                int lengthValue = t.Value.Int32Value;
-                                Debug.Assert(lengthValue >= 0);
-                                return lengthValue == 0 ? True.Instance : this;
+                                Debug.Assert(t.Value.Int32Value >= 0);
+                                return t.Value.Int32Value == 0 ? True.Instance : this;
                             }
                         }
                     }
