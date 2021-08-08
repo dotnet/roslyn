@@ -12224,15 +12224,13 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine(ex.ToString());
+    Console.WriteLine(ex.Message);
 }
 ";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
 
-            CompileAndVerify(comp, expectedOutput: @"System.NullReferenceException: Object reference not set to an instance of an object.
-   at Program.<Main>$(String[] args)
-").VerifyIL("<top-level-statements-entry-point>", @"
+            CompileAndVerify(comp, expectedOutput: "Object reference not set to an instance of an object.").VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       64 (0x40)
   .maxstack  3
@@ -12262,7 +12260,7 @@ catch (Exception ex)
   }
   catch System.Exception
   {
-    IL_0033:  callvirt   ""string object.ToString()""
+    IL_0033:  callvirt   ""string System.Exception.Message.get""
     IL_0038:  call       ""void System.Console.WriteLine(string)""
     IL_003d:  leave.s    IL_003f
   }
