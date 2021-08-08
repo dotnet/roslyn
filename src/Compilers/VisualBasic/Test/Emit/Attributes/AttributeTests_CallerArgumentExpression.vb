@@ -134,7 +134,7 @@ End Class
             Dim source As String = "
 Imports System
 Imports System.Runtime.CompilerServices
-Public Module Program
+Public Module Program2
     Sub Main()
         Log(123)
     End Sub
@@ -147,8 +147,8 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
-            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program", "
-.class public auto ansi sealed Program
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program2", "
+.class public auto ansi sealed Program2
 	extends [System.Runtime]System.Object
 {
 	.custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = (
@@ -169,9 +169,9 @@ End Module
 		.entrypoint
 		IL_0000: ldc.i4.s 123
 		IL_0002: ldstr ""123""
-		IL_0007: call void Program::Log(int32, string)
+		IL_0007: call void Program2::Log(int32, string)
 		IL_000c: ret
-	} // end of method Program::Main
+	} // end of method Program2::Main
 	.method public static 
 		void Log (
 			int32 p,
@@ -188,10 +188,10 @@ End Module
 		IL_0000: ldarg.1
 		IL_0001: call void [System.Console]System.Console::WriteLine(string)
 		IL_0006: ret
-	} // end of method Program::Log
-} // end of class Program
+	} // end of method Program2::Log
+} // end of class Program2
 ")
-            Dim csCompilation = CreateCSharpCompilation("Program.Log(5 + 2);", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp, {compilation.EmitToImageReference()}), compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            Dim csCompilation = CreateCSharpCompilation("Program2.Log(5 + 2);", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp, {compilation.EmitToImageReference()}), compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication))
             CompileAndVerify(csCompilation, expectedOutput:="5 + 2").VerifyDiagnostics()
         End Sub
 

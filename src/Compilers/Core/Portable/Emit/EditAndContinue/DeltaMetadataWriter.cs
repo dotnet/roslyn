@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var def in _changedTypeDefs)
             {
-                types.Add(MetadataTokens.TypeDefinitionHandle(_typeDefs.GetRowId(def)));
+                types.Add(GetTypeDefinitionHandle(def));
             }
         }
 
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    int typeRowId = _typeDefs.GetRowId(member.ContainingTypeDefinition);
+                    int typeRowId = MetadataTokens.GetRowNumber(GetTypeDefinitionHandle(member.ContainingTypeDefinition));
                     int mapRowId = map.GetRowId(typeRowId);
 
                     metadata.AddEncLogEntry(
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (index.IsAddedNotChanged(member))
                 {
                     metadata.AddEncLogEntry(
-                        entity: MetadataTokens.TypeDefinitionHandle(_typeDefs.GetRowId(member.ContainingTypeDefinition)),
+                        entity: GetTypeDefinitionHandle(member.ContainingTypeDefinition),
                         code: addCode);
                 }
 
