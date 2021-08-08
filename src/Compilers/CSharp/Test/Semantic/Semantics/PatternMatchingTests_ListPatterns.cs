@@ -2333,6 +2333,31 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
         }
 
+        [Fact]
+        public void Subsumption_13()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            [.., >0] => 1,
+            [<0, ..] => 2,
+            [0, ..] => 3,
+            { Length: not 1 } => 4,
+            [var unreachable] => 5,
+        };
+    }
+}" + TestSources.GetSubArray;
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(6, 15));
+        }
+
         [Theory]
         [CombinatorialData]
         public void Subsumption_Slice_00(
