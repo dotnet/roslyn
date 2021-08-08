@@ -2545,5 +2545,49 @@ class Program
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task WithNormalFuncSynthesizedLambdaType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = (int i) => i.ToString();
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method()
+    {
+        System.Func<int, string> x = (int i) => i.ToString();
+    }
+}";
+            // The type is not apparent and not intrinsic
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task WithAnonymousSynthesizedLambdaType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = (ref int i) => i.ToString();
+    }
+}";
+            // The type is apparent and not intrinsic
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
+        }
     }
 }

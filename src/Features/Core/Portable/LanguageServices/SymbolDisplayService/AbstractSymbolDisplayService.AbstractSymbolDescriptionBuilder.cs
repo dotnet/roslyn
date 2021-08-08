@@ -496,7 +496,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddSymbolDescription(symbol);
 
-                if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
+                if (!symbol.IsUnboundGenericType &&
+                    !TypeArgumentsAndParametersAreSame(symbol) &&
+                    !symbol.IsAnonymousDelegateType())
                 {
                     var allTypeParameters = symbol.GetAllTypeParameters().ToList();
                     var allTypeArguments = symbol.GetAllTypeArguments().ToList();
@@ -517,8 +519,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (symbol.TypeKind == TypeKind.Delegate)
                 {
                     var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        symbol.OriginalDefinition.ToDisplayParts(style));
+
+                    // Under the covers anonymous delegates are represented with generic types.  However, we don't want
+                    // to see the unbound form of that generic.  We want to see the fully instantiated signature.
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, symbol.IsAnonymousDelegateType()
+                        ? symbol.ToDisplayParts(style)
+                        : symbol.OriginalDefinition.ToDisplayParts(style));
                 }
                 else
                 {

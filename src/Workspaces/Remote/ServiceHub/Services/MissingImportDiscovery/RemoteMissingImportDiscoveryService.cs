@@ -63,6 +63,34 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
+        public ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
+            DocumentId documentId,
+            TextSpan span,
+            ImmutableArray<string> diagnosticIds,
+            bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
+
+                var service = document.GetLanguageService<IAddImportFeatureService>();
+
+                var symbolSearchService = new SymbolSearchService(_callback, callbackId);
+
+                var result = await service.GetUniqueFixesAsync(
+                    document, span, diagnosticIds,
+                    symbolSearchService, searchReferenceAssemblies,
+                    packageSources, cancellationToken).ConfigureAwait(false);
+
+                return result;
+            }, cancellationToken);
+        }
+
         /// <summary>
         /// Provides an implementation of the <see cref="ISymbolSearchService"/> on the remote side so that
         /// Add-Import can find results in nuget packages/reference assemblies.  This works

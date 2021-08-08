@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
             => ImmutableArray<CompletionProvider>.Empty;
 
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
         {
             if (_importedProviders == null)
             {
