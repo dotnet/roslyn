@@ -870,9 +870,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             const string ValueName = "value";
 
             var valueNode = generator.IdentifierName(ValueName);
-            var arguments = tupleType.TupleElements.SelectAsArray(
-               field => generator.Argument(
-                   generator.MemberAccessExpression(valueNode, field.Name)));
+            var arguments = tupleType.TupleElements.SelectAsArray<IFieldSymbol, SyntaxNode>(
+                field => generator.Argument(
+                    generator.MemberAccessExpression(valueNode, field.Name)));
 
             var convertToTupleStatement = generator.ReturnStatement(
                 generator.TupleExpression(arguments));
