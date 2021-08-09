@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 Source = GetType().Name,
                 Code = diagnosticData.Id,
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
                 Message = diagnosticData.Message,
                 Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                 Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
