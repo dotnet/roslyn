@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
-                Editing.DeclarationModifiers.Static,
+                DeclarationModifiers.Static,
                 TypeKind.Class,
                 moveOptions.TypeName,
                 typeParameters: typeParameters);
@@ -90,8 +94,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 fileBanner,
                 cancellationToken).ConfigureAwait(false);
 
+            var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var locationsToDoc = memberReferenceLocations.ToLookup(loc => loc.location.Document.Id);
+            var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType, cancellationToken).ConfigureAwait(false);
+
             // Get back symbols using annotations
-            sourceDoc = newDoc.Project.Solution.GetRequiredDocument(sourceDoc.Id);
+            sourceDoc = reReferencedSolution.GetRequiredDocument(sourceDoc.Id);
             root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var members = memberNodes
@@ -100,13 +108,100 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
 
             // get back type declaration in the newly created file
+            newDoc = reReferencedSolution.GetRequiredDocument(newDoc.Id);
             var destRoot = await newDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newType = destSemanticModel.GetDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
+            newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
             var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
+
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
+        }
+
+        private static async Task<Solution> RefactorReferencesAsync(
+            ILookup<DocumentId, (ReferenceLocation location, bool isExtension)> locationsToDoc,
+            Solution solution,
+            INamedTypeSymbol newType,
+            CancellationToken cancellationToken)
+        {
+            var solutionEditor = new SolutionEditor(solution);
+            foreach (var docGroup in locationsToDoc)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var docEditor = await solutionEditor.GetDocumentEditorAsync(docGroup.Key, cancellationToken).ConfigureAwait(false);
+                await FixReferencesSingleDocumentAsync(docGroup.AsImmutable(), docEditor, newType, cancellationToken).ConfigureAwait(false);
+            }
+
+            return solutionEditor.GetChangedSolution();
+        }
+
+        private static async Task FixReferencesSingleDocumentAsync(
+            ImmutableArray<(ReferenceLocation location, bool isExtension)> referenceLocations,
+            DocumentEditor docEditor,
+            INamedTypeSymbol newType,
+            CancellationToken cancellationToken)
+        {
+            foreach (var (refLoc, isExtension) in referenceLocations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // All of these references are not easily fixable and possibly incorrect, so we are ok with ignoring these, even if it produces an error
+                if (refLoc.IsCandidateLocation || refLoc.IsImplicit || refLoc.Alias != null)
+                {
+                    continue;
+                }
+
+                var doc = docEditor.OriginalDocument;
+
+                var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
+                var refNode = docEditor.OriginalRoot.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+
+                // add imports for each reference as there may be multiple locations that we need to add to
+                // if the import is already there, we shouldn't add it again
+                var addImports = doc.GetRequiredLanguageService<IAddImportsService>();
+                var compilation = await doc.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                docEditor.ReplaceNode(docEditor.OriginalRoot, (node, generator) => addImports.AddImport(
+                    compilation,
+                    node,
+                    refNode,
+                    generator.NamespaceImportDeclaration(
+                        newType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
+                        .WithAdditionalAnnotations(Simplification.Simplifier.Annotation, Formatting.Formatter.Annotation),
+                    generator,
+                    true,
+                    doc.CanAddImportsInHiddenRegions(),
+                    cancellationToken));
+
+                // now change the actual references to use the new type name
+                // extension methods do not need to be changed as we do not reference the class name
+                if (isExtension)
+                {
+                    continue;
+                }
+
+                if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
+                {
+                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
+                    if (expression != null)
+                    {
+                        docEditor.ReplaceNode(expression, (node, generator) => generator.TypeExpression(newType).WithTriviaFrom(node));
+                    }
+                }
+            }
+        }
+
+        private static async Task<ImmutableArray<(ReferenceLocation location, bool isExtension)>> FindMemberReferencesAsync(
+            ImmutableArray<ISymbol> members,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            var tasks = members.Select(symbol => SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken));
+            var symbolRefs = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return symbolRefs
+                .Flatten()
+                .SelectMany(refSymbol => refSymbol.Locations.Select(loc => (loc, refSymbol.Definition.IsExtensionMethod())))
+                .ToImmutableArray();
         }
     }
 }
