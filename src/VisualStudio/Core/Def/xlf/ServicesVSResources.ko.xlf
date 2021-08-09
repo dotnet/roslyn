@@ -232,6 +232,11 @@
         <target state="translated">설명</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">포함하는 멤버</target>
@@ -486,6 +491,11 @@
         <source>Kind</source>
         <target state="translated">종류</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -884,7 +894,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">간단한 부울 식을 기본으로 사용</target>
+        <target state="translated">단순화된 부울 식을 기본으로 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -900,6 +910,11 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">멤버 풀하기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -970,6 +985,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1190,11 +1210,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">심각도를 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">코드 분석에 64비트 프로세스 사용(다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">

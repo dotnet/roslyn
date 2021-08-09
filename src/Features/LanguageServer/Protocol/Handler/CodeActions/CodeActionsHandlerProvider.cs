@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.MSLSPMethods.TextDocumentCodeActionResolveName)]
+    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
     [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {

@@ -232,6 +232,11 @@
         <target state="translated">Açıklamalar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Kapsayan Üye</target>
@@ -486,6 +491,11 @@
         <source>Kind</source>
         <target state="translated">Tür</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -902,6 +912,11 @@
         <target state="translated">Üyeleri Yukarı Çek</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Sadece Yeniden Düzenlenme</target>
@@ -970,6 +985,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0} Öğesinde Code Analysis Çalıştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1190,11 +1210,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">Önem derecesi güncelleştiriliyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">Kod analizi için 64 bit işlemi kullanın (yeniden başlatma gerekir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
