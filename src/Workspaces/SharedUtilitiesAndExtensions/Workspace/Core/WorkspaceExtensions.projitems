@@ -57,6 +57,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\IChangeNamespaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\InternalRenameDocumentAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\RenameSymbolDocumentAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\SyncNamespaceDocumentAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IProgressTracker.cs" />
@@ -64,6 +68,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\WorkspacePathUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\ISemanticModelReuseWorkspaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\SemanticModelReuseWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />

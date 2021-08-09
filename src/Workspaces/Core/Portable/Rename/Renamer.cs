@@ -87,13 +87,19 @@ namespace Microsoft.CodeAnalysis.Rename
             if (newDocumentName != null && !newDocumentName.Equals(document.Name))
             {
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
-                actions.AddIfNotNull(renameAction);
+                if (renameAction is not null)
+                {
+                    actions.Add(new RenameDocumentAction(renameAction));
+                }
             }
 
             if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
             {
                 var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
-                actions.AddIfNotNull(action);
+                if (action is not null)
+                {
+                    actions.Add(new RenameDocumentAction(action));
+                }
             }
 
             newDocumentName ??= document.Name;

@@ -42,21 +42,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             var targetNamespace = diagnostics.First().Properties[MatchFolderAndNamespaceConstants.TargetNamespace];
             RoslynDebug.AssertNotNull(targetNamespace);
 
-            // Use the Renamer.RenameDocumentAsync API to sync namespaces in the document. This allows
-            // us to keep in line with the sync methodology that we have as a public API and not have 
-            // to rewrite or move the complex logic. RenameDocumentAsync is designed to behave the same
-            // as the intent of this analyzer/codefix pair.
             var targetFolders = PathMetadataUtilities.BuildFoldersFromNamespace(targetNamespace, document.Project.DefaultNamespace);
-            var documentWithNoFolders = document.WithFolders(Array.Empty<string>());
-            var renameActionSet = await Renamer.RenameDocumentAsync(
-                documentWithNoFolders,
-                documentWithNoFolders.Name,
-                newDocumentFolders: targetFolders,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var action = SyncNamespaceDocumentAction.TryCreate(document, targetFolders, cancellationToken);
+            if (action is not null)
+            {
+                return await action.GetModifiedSolutionAsync(document, document.Project.Solution.Options, cancellationToken).ConfigureAwait(false);
+            }
 
-            var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(newSolution != document.Project.Solution);
-            return newSolution;
+            return document.Project.Solution;
         }
 
         public override FixAllProvider? GetFixAllProvider()

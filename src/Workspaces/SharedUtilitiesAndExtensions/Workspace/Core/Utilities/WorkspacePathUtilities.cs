@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 return null;
             }
 
-            return IOUtilities.PerformIO(() => Path.GetFileNameWithoutExtension(document.Name));
+            return Path.GetFileNameWithoutExtension(document.Name);
         }
     }
 }
