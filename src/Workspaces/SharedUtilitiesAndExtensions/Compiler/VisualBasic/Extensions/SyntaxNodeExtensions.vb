@@ -1285,5 +1285,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return node
             End If
         End Function
+
+        <Extension>
+        Public Function GetDeclarationBlockFromBegin(node As DeclarationStatementSyntax) As DeclarationStatementSyntax
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+                End Select
+            End If
+
+            If begin Is node Then
+                ' Every one of these parent casts is of a subtype of DeclarationStatementSyntax
+                ' So if the cast worked above, it will work here
+                Return DirectCast(parent, DeclarationStatementSyntax)
+            Else
+                Return node
+            End If
+        End Function
     End Module
 End Namespace
