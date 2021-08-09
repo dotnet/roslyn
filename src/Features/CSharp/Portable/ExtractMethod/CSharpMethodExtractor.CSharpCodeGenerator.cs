@@ -582,14 +582,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
-
                 var arguments = new List<ArgumentSyntax>();
-                foreach (var argument in AnalyzerResult.MethodParameters)
-                {
-                    var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
 
-                    arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)))
+                {
+                    foreach (var argument in AnalyzerResult.MethodParameters)
+                    {
+                        var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
+                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+
+                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    }
                 }
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,

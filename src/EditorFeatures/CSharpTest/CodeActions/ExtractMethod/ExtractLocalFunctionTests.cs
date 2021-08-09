@@ -1864,10 +1864,10 @@ class Program
     void M()
     {
         int a = 1;
-        var t = {|Rename:GetT|}(a);
+        var t = {|Rename:GetT|}();
         System.Console.Write(t.a);
 
-        (int a, int b) GetT(int a)
+        (int a, int b) GetT()
         {
             return (a, b: 2);
         }
@@ -1893,10 +1893,10 @@ class Program
     void M()
     {
         int x, y;
-        {|Rename:NewMethod|}(out x, out y);
+        {|Rename:NewMethod|}();
         System.Console.Write(x + y);
 
-        void NewMethod(out int x, out int y)
+        void NewMethod()
         {
             var (x, y) = (1, 2);
         }
@@ -1922,10 +1922,10 @@ class Program
     void M()
     {
         int x, y;
-        {|Rename:NewMethod|}(out x, out y);
+        {|Rename:NewMethod|}();
         System.Console.Write(x + y);
 
-        void NewMethod(out int x, out int y)
+        void NewMethod()
         {
             (x, y) = (1, 2);
         }
@@ -3234,9 +3234,9 @@ class Program
     static void Main(string[] args)
     {
         bool b = true;
-        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
 
-        bool NewMethod(bool b)
+        bool NewMethod()
         {
             return b != true;
         }
@@ -3261,9 +3261,9 @@ class Program
     static void Main(string[] args)
     {
         bool b = true;
-        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
 
-        bool NewMethod(bool b)
+        bool NewMethod()
         {
             return b != true;
         }
@@ -4890,7 +4890,7 @@ public class Tests
     public void Test1()
     {
         const string NAME = ""SOMETEXT"";
-        {|Rename:NewMethod|}(NAME);
+        {|Rename:NewMethod|}();
 
         void NewMethod()
         {
