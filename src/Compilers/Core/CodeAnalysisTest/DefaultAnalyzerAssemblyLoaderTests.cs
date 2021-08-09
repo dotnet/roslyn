@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
-        private readonly AssemblyLoadTestFixture _testResources;
-        public DefaultAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testResources)
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public DefaultAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testFixture)
         {
-            _testResources = testResources;
+            _testFixture = testFixture;
         }
 
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
@@ -141,8 +141,8 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
         public void BasicLoad()
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Alpha.Path);
-            Assembly alpha = loader.LoadFromPath(_testResources.Alpha.Path);
+            loader.AddDependencyLocation(_testFixture.Alpha.Path);
+            Assembly alpha = loader.LoadFromPath(_testFixture.Alpha.Path);
 
             Assert.NotNull(alpha);
         }
@@ -153,17 +153,17 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
             StringBuilder sb = new StringBuilder();
 
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Alpha.Path);
-            loader.AddDependencyLocation(_testResources.Beta.Path);
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Delta1.Path);
+            loader.AddDependencyLocation(_testFixture.Alpha.Path);
+            loader.AddDependencyLocation(_testFixture.Beta.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
 
-            Assembly alpha = loader.LoadFromPath(_testResources.Alpha.Path);
+            Assembly alpha = loader.LoadFromPath(_testFixture.Alpha.Path);
 
             var a = alpha.CreateInstance("Alpha.A")!;
             a.GetType().GetMethod("Write")!.Invoke(a, new object[] { sb, "Test A" });
 
-            Assembly beta = loader.LoadFromPath(_testResources.Beta.Path);
+            Assembly beta = loader.LoadFromPath(_testFixture.Beta.Path);
 
             var b = beta.CreateInstance("Beta.B")!;
             b.GetType().GetMethod("Write")!.Invoke(b, new object[] { sb, "Test B" });
@@ -181,9 +181,9 @@ Delta: Gamma: Beta: Test B
         public void AssemblyLoading_AssemblyLocationNotAdded()
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Delta1.Path);
-            Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(_testResources.Beta.Path));
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+            Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(_testFixture.Beta.Path));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -191,9 +191,9 @@ Delta: Gamma: Beta: Test B
         {
             StringBuilder sb = new StringBuilder();
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Beta.Path);
-            Assembly beta = loader.LoadFromPath(_testResources.Beta.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Beta.Path);
+            Assembly beta = loader.LoadFromPath(_testFixture.Beta.Path);
 
             var b = beta.CreateInstance("Beta.B")!;
             var writeMethod = b.GetType().GetMethod("Write")!;
@@ -211,16 +211,16 @@ Delta: Gamma: Beta: Test B
             StringBuilder sb = new StringBuilder();
 
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Delta1.Path);
-            loader.AddDependencyLocation(_testResources.Epsilon.Path);
-            loader.AddDependencyLocation(_testResources.Delta2.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
 
-            Assembly gamma = loader.LoadFromPath(_testResources.Gamma.Path);
+            Assembly gamma = loader.LoadFromPath(_testFixture.Gamma.Path);
             var g = gamma.CreateInstance("Gamma.G")!;
             g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-            Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E")!;
             e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -249,15 +249,15 @@ Delta: Epsilon: Test E
             StringBuilder sb = new StringBuilder();
 
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Delta1.Path);
-            loader.AddDependencyLocation(_testResources.Epsilon.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
 
-            Assembly gamma = loader.LoadFromPath(_testResources.Gamma.Path);
+            Assembly gamma = loader.LoadFromPath(_testFixture.Gamma.Path);
             var g = gamma.CreateInstance("Gamma.G")!;
             g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-            Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E")!;
             var eWrite = e.GetType().GetMethod("Write")!;
 

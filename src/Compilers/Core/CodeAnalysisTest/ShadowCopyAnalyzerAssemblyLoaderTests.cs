@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public sealed class ShadowCopyAnalyzerAssemblyLoaderTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
-        private readonly AssemblyLoadTestFixture _testResources;
-        public ShadowCopyAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testResources)
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public ShadowCopyAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testFixture)
         {
-            _testResources = testResources;
+            _testFixture = testFixture;
         }
 
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
@@ -115,16 +115,16 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
             StringBuilder sb = new StringBuilder();
 
             var loader = new DefaultAnalyzerAssemblyLoader();
-            loader.AddDependencyLocation(_testResources.Gamma.Path);
-            loader.AddDependencyLocation(_testResources.Delta1.Path);
-            loader.AddDependencyLocation(_testResources.Epsilon.Path);
-            loader.AddDependencyLocation(_testResources.Delta2.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
 
-            Assembly gamma = loader.LoadFromPath(_testResources.Gamma.Path);
+            Assembly gamma = loader.LoadFromPath(_testFixture.Gamma.Path);
             var g = gamma.CreateInstance("Gamma.G");
             g!.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-            Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E");
             e!.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 

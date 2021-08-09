@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class AnalyzerFileReferenceTests : TestBase
     {
         private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
-        private readonly AssemblyLoadTestFixture _testResources;
-        public AnalyzerFileReferenceTests(AssemblyLoadTestFixture testResources)
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public AnalyzerFileReferenceTests(AssemblyLoadTestFixture testFixture)
         {
-            _testResources = testResources;
+            _testFixture = testFixture;
         }
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors3()
         {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ValidAnalyzerReference_DisplayName()
         {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
         }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void ValidAnalyzerReference_Id()
         {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testResources.Alpha.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out var expectedIdentity);
 

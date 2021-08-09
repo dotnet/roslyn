@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AssemblyUtilitiesTests : TestBase
     {
-        private readonly AssemblyLoadTestFixture _testResources;
+        private readonly AssemblyLoadTestFixture _testFixture;
 
-        public AssemblyUtilitiesTests(AssemblyLoadTestFixture testResources)
+        public AssemblyUtilitiesTests(AssemblyLoadTestFixture testFixture)
         {
-            _testResources = testResources;
+            _testFixture = testFixture;
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testResources.Alpha.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
             AssertEx.SetEqual(new[] { alphaDll.Path }, results);
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testResources.Alpha.Path);
-            var betaDll = directory.CopyFile(_testResources.Beta.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
+            var betaDll = directory.CopyFile(_testFixture.Beta.Path);
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
             AssertEx.SetEqual(new[] { alphaDll.Path }, results);
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testResources.Alpha.Path);
-            var gammaDll = directory.CopyFile(_testResources.Gamma.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
+            var gammaDll = directory.CopyFile(_testFixture.Gamma.Path);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
@@ -67,22 +67,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FindAssemblySet_TransitiveDependencies()
         {
-            var results = AssemblyUtilities.FindAssemblySet(_testResources.Alpha.Path);
+            var results = AssemblyUtilities.FindAssemblySet(_testFixture.Alpha.Path);
 
             AssertEx.SetEqual(new[]
             {
-                _testResources.Alpha.Path,
-                _testResources.Gamma.Path,
-                _testResources.Delta1.Path
+                _testFixture.Alpha.Path,
+                _testFixture.Gamma.Path,
+                _testFixture.Delta1.Path
             }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void ReadMVid()
         {
-            var assembly = Assembly.Load(File.ReadAllBytes(_testResources.Alpha.Path));
+            var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha.Path));
 
-            var result = AssemblyUtilities.ReadMvid(_testResources.Alpha.Path);
+            var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha.Path);
 
             Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
         }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IdentifyMissingDependencies_OnlyNetstandardMissing()
         {
-            var results = AssemblyUtilities.IdentifyMissingDependencies(_testResources.Alpha.Path, new[] { _testResources.Alpha.Path, _testResources.Gamma.Path, _testResources.Delta1.Path });
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path, _testFixture.Gamma.Path, _testFixture.Delta1.Path });
 
             Assert.Equal(expected: 1, actual: results.Length);
             Assert.Equal(expected: "netstandard", actual: results[0].Name);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IdentifyMissingDependencies_MultipleMissing()
         {
-            var results = AssemblyUtilities.IdentifyMissingDependencies(_testResources.Alpha.Path, new[] { _testResources.Alpha.Path }).Select(identity => identity.Name);
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path }).Select(identity => identity.Name);
 
             AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
         }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetAssemblyIdentity()
         {
-            var result = AssemblyUtilities.GetAssemblyIdentity(_testResources.Alpha.Path);
+            var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha.Path);
             Assert.Equal(expected: "Alpha", actual: result.Name);
         }
     }
