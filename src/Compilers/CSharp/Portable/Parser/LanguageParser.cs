@@ -3312,7 +3312,7 @@ parse_member_name:;
                 }
                 else if (explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
                 {
-                    // Not likely an explicit interface implementation. Likely a begining of the next member on the next line.
+                    // Not likely an explicit interface implementation. Likely a beginning of the next member on the next line.
                     this.Reset(ref point);
                     style = this.EatToken();
                     explicitInterfaceOpt = null;
@@ -10169,7 +10169,7 @@ tryAgain:
             Relational,
             Shift,
             Additive,
-            Mutiplicative,
+            Multiplicative,
             Switch,
             Range,
             Unary,
@@ -10238,7 +10238,7 @@ tryAgain:
                 case SyntaxKind.MultiplyExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
-                    return Precedence.Mutiplicative;
+                    return Precedence.Multiplicative;
                 case SyntaxKind.UnaryPlusExpression:
                 case SyntaxKind.UnaryMinusExpression:
                 case SyntaxKind.BitwiseNotExpression:
