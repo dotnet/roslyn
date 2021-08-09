@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private int _assemblyDirectoryId;
 
-        private object _guard = new();
-        private Dictionary<string, string> originalPathToShadowPath = new();
 
         public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
         {
@@ -103,31 +101,11 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        public override void AddDependencyLocation(string fullPath)
-        {
-            base.AddDependencyLocation(fullPath);
-
-            string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-            lock (_guard)
-            {
-                Debug.Assert(!originalPathToShadowPath.ContainsKey(fullPath));
-                originalPathToShadowPath[fullPath] = shadowCopyPath;
-            }
-        }
-
         public override string GetPathToLoad(string fullPath)
         {
-            string? shadowPath = null;
-            lock (_guard)
-            {
-                if (!originalPathToShadowPath.TryGetValue(fullPath, out shadowPath))
-                {
-                    throw new InvalidOperationException();
-                }
-            }
-
-            return shadowPath;
+            string assemblyDirectory = CreateUniqueDirectoryForAssembly();
+            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
+            return shadowCopyPath;
         }
 #nullable disable
 

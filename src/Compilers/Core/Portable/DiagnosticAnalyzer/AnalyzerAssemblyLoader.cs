@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Public API
 
-        public virtual void AddDependencyLocation(string fullPath)
+        public void AddDependencyLocation(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);

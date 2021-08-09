@@ -126,7 +126,7 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
 
             Assembly epsilon = loader.LoadFromPath(_testResources.Epsilon.Path);
             var e = epsilon.CreateInstance("Epsilon.E");
-            e!.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" }); 
+            e!.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
             var actual = sb.ToString();
             if (ExecutionConditionUtil.IsCoreClr)
