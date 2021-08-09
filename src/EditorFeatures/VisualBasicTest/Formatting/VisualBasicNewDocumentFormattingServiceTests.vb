@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities.Formatting
@@ -14,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
 
         Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
-        Protected Overrides Function CreateTestWorkspace(testCode As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(testCode)
+        Protected Overrides Function CreateTestWorkspace(testCode As String, parseOptions As ParseOptions) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(testCode, parseOptions)
         End Function
 
         <Fact>
@@ -33,7 +32,7 @@ Imports System
 Namespace Goo
 
 End Namespace",
-                (CodeStyleOptions2.FileHeaderTemplate, "This is a banner."))
+                options:={(CodeStyleOptions2.FileHeaderTemplate, "This is a banner.")})
         End Function
 
         <Fact>
@@ -50,8 +49,7 @@ Imports Aaa
 
 Namespace Goo
 
-End Namespace",
-                Array.Empty(Of (Option2(Of Object), Object)))
+End Namespace")
         End Function
     End Class
 End Namespace
