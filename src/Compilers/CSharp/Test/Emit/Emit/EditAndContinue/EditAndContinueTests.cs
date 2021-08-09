@@ -4011,7 +4011,7 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             diff1.VerifyIL("C.Main",
-@"{
+ @"{
   // Code size       22 (0x16)
   .maxstack  2
   .locals init ([unchanged] V_0,
@@ -8251,9 +8251,9 @@ class C
             var bytes0 = compilation0.EmitToArray();
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var diff1 = compilation1.EmitDifference(
-        EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
-        ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
-        testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
+EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
+testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
 
             diff1.EmitResult.Diagnostics.Verify(
                 // error CS0041: Unexpected error writing debug information -- 'MockSymUnmanagedWriter error message'
