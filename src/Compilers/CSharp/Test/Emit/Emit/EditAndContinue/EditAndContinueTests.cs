@@ -538,7 +538,7 @@ class C
         public void ModifyMethod_WithAttributes2()
         {
             var source0 =
-        @"[System.ComponentModel.Browsable(false)]
+@"[System.ComponentModel.Browsable(false)]
 class C
 {
     static void Main() { }
@@ -553,7 +553,7 @@ class D
 }
 ";
             var source1 =
-        @"
+@"
 [System.ComponentModel.Browsable(false)]
 class C
 {
@@ -664,20 +664,20 @@ class D
         public void ModifyMethod_DeleteAttributes1()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
     static string F() { return null; }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void Main() { }
     static string F() { return string.Empty; }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
@@ -792,13 +792,13 @@ class D
         public void ModifyMethod_DeleteAttributes2()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void Main() { }
     static string F() { return null; }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
@@ -1006,12 +1006,12 @@ class D
         public void Method_WithAttributes_Add()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void Main() { }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
@@ -1086,18 +1086,18 @@ class D
         public void Method_WithParameterAttributes_AddThenUpdate()
         {
             var source0 =
-        @"class A : System.Attribute { }
+@"class A : System.Attribute { }
 class C
 {
 }";
             var source1 =
-        @"class A : System.Attribute { }
+@"class A : System.Attribute { }
 class C
 {
     [return:A]static object F(int arg = 1) => arg;
 }";
             var source2 =
-        @"class A : System.Attribute { }
+@"class A : System.Attribute { }
 class C
 {
     [return:A]static object F(int arg = 1) => null;
@@ -1181,7 +1181,7 @@ class C
         public void Method_WithEmbeddedAttributes_AndThenUpdate()
         {
             var source0 =
-        @"
+@"
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
@@ -1192,7 +1192,7 @@ namespace N
 }
 ";
             var source1 =
-        @"
+@"
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
@@ -1208,7 +1208,7 @@ namespace N
     }
 }";
             var source2 =
-        @"
+@"
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
@@ -1222,7 +1222,7 @@ namespace N
     }
 }";
             var source3 =
-        @"
+@"
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
@@ -1477,12 +1477,12 @@ namespace N
         public void Field_Add()
         {
             var source0 =
-        @"class C
+@"class C
 {
     string F = ""F"";
 }";
             var source1 =
-        @"class C
+@"class C
 {
     string F = ""F"";
     string G = ""G"";
@@ -1540,12 +1540,12 @@ namespace N
         public void Property_Accessor_Update()
         {
             var source0 =
-        @"class C
+@"class C
 {
     object P { get { return 1; } }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     object P { get { return 2; } }
 }";
@@ -2146,7 +2146,7 @@ class C
         public void AddNestedTypeAndMembers()
         {
             var source0 =
-        @"class A
+@"class A
 {
     class B { }
     static object F()
@@ -2155,7 +2155,7 @@ class C
     }
 }";
             var source1 =
-        @"class A
+@"class A
 {
     class B { }
     class C
@@ -2251,7 +2251,7 @@ class C
         public void AddNestedTypesOrder()
         {
             var source0 =
-        @"class A
+@"class A
 {
     class B1
     {
@@ -2263,7 +2263,7 @@ class C
     }
 }";
             var source1 =
-        @"class A
+@"class A
 {
     class B1
     {
@@ -2309,7 +2309,7 @@ class C
         public void AddNestedGenericType()
         {
             var source0 =
-        @"class A
+@"class A
 {
     class B<T>
     {
@@ -2320,7 +2320,7 @@ class C
     }
 }";
             var source1 =
-        @"class A
+@"class A
 {
     class B<T>
     {
@@ -2420,13 +2420,13 @@ class C
         public void AddNamespace()
         {
             var source0 =
-        @"
+@"
 class C
 {
     static void Main() { }
 }";
             var source1 =
-        @"
+@"
 namespace N
 {
     class D { public static void F() { } } 
@@ -2437,7 +2437,7 @@ class C
     static void Main() => N.D.F();
 }";
             var source2 =
-        @"
+@"
 namespace N
 {
     class D { public static void F() { } } 
@@ -2500,7 +2500,7 @@ class C
         public void ModifyExplicitImplementation()
         {
             var source =
-        @"interface I
+@"interface I
 {
     void M();
 }
@@ -2551,7 +2551,7 @@ class C : I
         public void AddThenModifyExplicitImplementation()
         {
             var source0 =
-        @"interface I
+@"interface I
 {
     void M();
 }
@@ -2564,7 +2564,7 @@ class B : I
     public void M() { }
 }";
             var source1 =
-        @"interface I
+@"interface I
 {
     void M();
 }
@@ -2895,7 +2895,7 @@ interface I
         public void AddAttributeReferences()
         {
             var source0 =
-        @"class A : System.Attribute { }
+@"class A : System.Attribute { }
 class B : System.Attribute { }
 class C
 {
@@ -2907,7 +2907,7 @@ class C
 delegate void D();
 ";
             var source1 =
-        @"class A : System.Attribute { }
+@"class A : System.Attribute { }
 class B : System.Attribute { }
 class C
 {
@@ -3051,13 +3051,13 @@ delegate void D();
         public void AssemblyAndModuleAttributeReferences()
         {
             var source0 =
-        @"[assembly: System.CLSCompliantAttribute(true)]
+@"[assembly: System.CLSCompliantAttribute(true)]
 [module: System.CLSCompliantAttribute(true)]
 class C
 {
 }";
             var source1 =
-        @"[assembly: System.CLSCompliantAttribute(true)]
+@"[assembly: System.CLSCompliantAttribute(true)]
 [module: System.CLSCompliantAttribute(true)]
 class C
 {
@@ -3103,7 +3103,7 @@ class C
         public void OtherReferences()
         {
             var source0 =
-        @"delegate void D();
+@"delegate void D();
 class C
 {
     object F;
@@ -3114,7 +3114,7 @@ class C
     }
 }";
             var source1 =
-        @"delegate void D();
+@"delegate void D();
 class C
 {
     object F;
@@ -3222,7 +3222,7 @@ class C
                 Handle(2, TableIndex.AssemblyRef));
 
             diff1.VerifyIL(
-        @"{
+@"{
   // Code size       25 (0x19)
   .maxstack  4
   IL_0000:  nop
@@ -3249,7 +3249,7 @@ class C
 }");
 
             diff1.VerifyPdb(new[] { 0x06000001 },
-        @"<symbols>
+@"<symbols>
   <files>
     <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""15-9B-5B-24-28-37-02-4F-D2-2E-40-DB-1A-89-9F-4D-54-D5-95-89"" />
   </files>
@@ -3277,14 +3277,14 @@ class C
         public void PInvokeModuleRefAndImplMap()
         {
             var source0 =
-        @"using System.Runtime.InteropServices;
+@"using System.Runtime.InteropServices;
 class C
 {
     [DllImport(""msvcrt.dll"")]
     public static extern int getchar();
 }";
             var source1 =
-        @"using System.Runtime.InteropServices;
+@"using System.Runtime.InteropServices;
 class C
 {
     [DllImport(""msvcrt.dll"")]
@@ -3329,7 +3329,7 @@ class C
         public void ClassAndFieldLayout()
         {
             var source0 =
-        @"using System.Runtime.InteropServices;
+@"using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Explicit, Pack=2)]
 class A
 {
@@ -3337,7 +3337,7 @@ class A
     [FieldOffset(2)]internal byte G;
 }";
             var source1 =
-        @"using System.Runtime.InteropServices;
+@"using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Explicit, Pack=2)]
 class A
 {
@@ -3392,7 +3392,7 @@ class B
         public void NamespacesAndOverloads()
         {
             var compilation0 = CreateCompilation(options: TestOptions.DebugDll, source:
-        @"class C { }
+@"class C { }
 namespace N
 {
     class C { }
@@ -3440,7 +3440,7 @@ namespace M
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMembers("M.C.M1")[2])));
 
             diff1.VerifyIL(
-        @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  8
   IL_0000:  nop
@@ -3474,7 +3474,7 @@ namespace M
                                                                         compilation2.GetMember<MethodSymbol>("M.C.M2"))));
 
             diff2.VerifyIL(
-        @"{
+@"{
   // Code size       26 (0x1a)
   .maxstack  8
   IL_0000:  nop
@@ -3498,7 +3498,7 @@ namespace M
         public void TypesAndOverloads()
         {
             const string source =
-        @"using System;
+@"using System;
 struct A<T>
 {
     internal class B<U> { }
@@ -3596,7 +3596,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMembers("C.M")[0], compilation1.GetMembers("C.M")[0])));
 
             diff1.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3620,7 +3620,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation1.GetMembers("C.M")[1], compilation2.GetMembers("C.M")[1])));
 
             diff2.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3644,7 +3644,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation2.GetMembers("C.M")[2], compilation3.GetMembers("C.M")[2])));
 
             diff3.VerifyIL(
-        @"{
+@"{
   // Code size       21 (0x15)
   .maxstack  8
   IL_0000:  nop
@@ -3669,7 +3669,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation3.GetMembers("C.M")[3], compilation4.GetMembers("C.M")[3])));
 
             diff4.VerifyIL(
-        @"{
+@"{
   // Code size       22 (0x16)
   .maxstack  8
   IL_0000:  nop
@@ -3694,7 +3694,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation4.GetMembers("C.M")[4], compilation5.GetMembers("C.M")[4])));
 
             diff5.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3718,7 +3718,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation5.GetMembers("C.M")[5], compilation6.GetMembers("C.M")[5])));
 
             diff6.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3742,7 +3742,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation6.GetMembers("C.M")[6], compilation7.GetMembers("C.M")[6])));
 
             diff7.VerifyIL(
-        @"{
+@"{
   // Code size       18 (0x12)
   .maxstack  1
   IL_0000:  nop
@@ -3768,7 +3768,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation7.GetMembers("C.M")[7], compilation8.GetMembers("C.M")[7])));
 
             diff8.VerifyIL(
-        @"{
+@"{
   // Code size       21 (0x15)
   .maxstack  8
   IL_0000:  nop
@@ -3793,7 +3793,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation8.GetMembers("C.M")[8], compilation9.GetMembers("C.M")[8])));
 
             diff9.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3817,7 +3817,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation9.GetMembers("C.M")[9], compilation10.GetMembers("C.M")[9])));
 
             diff10.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3890,7 +3890,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation10.GetMembers("C.M")[12], compilation11.GetMembers("C.M")[12])));
 
             diff11.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3914,7 +3914,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation11.GetMembers("C.M")[13], compilation12.GetMembers("C.M")[13])));
 
             diff12.VerifyIL(
-        @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  8
   IL_0000:  nop
@@ -3936,7 +3936,7 @@ class C
         public void DeletedValueTypeLocal()
         {
             var source0 =
-        @"struct S1
+@"struct S1
 {
     internal S1(int a, int b) { A = a; B = b; }
     internal int A;
@@ -3957,7 +3957,7 @@ class C
     }
 }";
             var source1 =
-        @"struct S1
+@"struct S1
 {
     internal S1(int a, int b) { A = a; B = b; }
     internal int A;
@@ -3985,7 +3985,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
             testData0.GetMethodData("C.Main").VerifyIL(
-        @"
+@"
 {
   // Code size       31 (0x1f)
   .maxstack  3
@@ -4011,7 +4011,7 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             diff1.VerifyIL("C.Main",
-        @"{
+@"{
   // Code size       22 (0x16)
   .maxstack  2
   .locals init ([unchanged] V_0,
@@ -4037,7 +4037,7 @@ class C
         public void PrivateImplementationDetails()
         {
             var source =
-        @"class C
+@"class C
 {
     static int[] F = new int[] { 1, 2, 3 };
     int[] G = new int[] { 4, 5, 6 };
@@ -4095,7 +4095,7 @@ class C
         public void PrivateImplementationDetails_ArrayInitializer_FromMetadata()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void M()
     {
@@ -4104,7 +4104,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void M()
     {
@@ -4113,7 +4113,7 @@ class C
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static void M()
     {
@@ -4130,7 +4130,7 @@ class C
             var methodData0 = testData0.GetMethodData("C.M");
 
             methodData0.VerifyIL(
-        @"    {
+@"    {
       // Code size       29 (0x1d)
       .maxstack  3
       .locals init (int[] V_0) //a
@@ -4160,7 +4160,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       30 (0x1e)
   .maxstack  4
   .locals init (int[] V_0) //a
@@ -4195,7 +4195,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       48 (0x30)
   .maxstack  4
   .locals init ([unchanged] V_0,
@@ -4248,7 +4248,7 @@ class C
         {
             // PrivateImplementationDetails not needed initially.
             var source0 =
-        @"class C
+@"class C
 {
     static object F1() { return null; }
     static object F2() { return null; }
@@ -4256,7 +4256,7 @@ class C
     static object F4() { return null; }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static object F1() { return new[] { 1, 2, 3 }; }
     static object F2() { return new[] { 4, 5, 6 }; }
@@ -4264,7 +4264,7 @@ class C
     static object F4() { return new[] { 7, 8, 9 }; }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static object F1() { return new[] { 1, 2, 3 } ?? new[] { 10, 11, 12 }; }
     static object F2() { return new[] { 4, 5, 6 }; }
@@ -4287,7 +4287,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("C.F4"), compilation1.GetMember<MethodSymbol>("C.F4"))));
 
             diff1.VerifyIL("C.F1",
-        @"{
+@"{
   // Code size       24 (0x18)
   .maxstack  4
   .locals init (object V_0)
@@ -4312,7 +4312,7 @@ class C
   IL_0017:  ret
 }");
             diff1.VerifyIL("C.F4",
-        @"{
+@"{
   // Code size       25 (0x19)
   .maxstack  4
   .locals init (object V_0)
@@ -4343,7 +4343,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Update, compilation1.GetMember<MethodSymbol>("C.F3"), compilation2.GetMember<MethodSymbol>("C.F3"))));
 
             diff2.VerifyIL("C.F1",
-        @"{
+@"{
   // Code size       49 (0x31)
   .maxstack  4
   .locals init (object V_0)
@@ -4385,7 +4385,7 @@ class C
   IL_0030:  ret
 }");
             diff2.VerifyIL("C.F3",
-        @"{
+@"{
   // Code size       27 (0x1b)
   .maxstack  4
   .locals init (object V_0)
@@ -4420,7 +4420,7 @@ class C
         public void PrivateImplementationDetails_ComputeStringHash()
         {
             var source =
-        @"class C
+@"class C
 {
     static int F(string s)
     {
@@ -4481,7 +4481,7 @@ class C
         public void UniqueIds()
         {
             var source0 =
-        @"class C
+@"class C
 {
     int F()
     {
@@ -4496,7 +4496,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     int F()
     {
@@ -4510,7 +4510,7 @@ class C
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     int F()
     {
@@ -4536,7 +4536,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMembers("C.F")[1], compilation1.GetMembers("C.F")[1])));
 
             diff1.VerifyIL("C.F",
-        @"{
+@"{
   // Code size       40 (0x28)
   .maxstack  2
   .locals init (System.Func<int> V_0, //f
@@ -4565,7 +4565,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation1.GetMembers("C.F")[1], compilation2.GetMembers("C.F")[1])));
 
             diff2.VerifyIL("C.F",
-        @"{
+@"{
   // Code size       40 (0x28)
   .maxstack  2
   .locals init (System.Func<int> V_0, //g
@@ -4598,13 +4598,13 @@ class C
         public void ReferencesInIL()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void F() { System.Console.WriteLine(1); }
     static void G() { System.Console.WriteLine(2); }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void F() { System.Console.WriteLine(1); }
     static void G() { System.Console.Write(2); }
@@ -4645,7 +4645,7 @@ class C
         public void PreserveLocalSlots()
         {
             var source0 =
-        @"class A<T> { }
+@"class A<T> { }
 class B : A<B>
 {
     static B F()
@@ -4672,7 +4672,7 @@ class B : A<B>
             var methodNames0 = new[] { "A<T>..ctor", "B.F", "B.M", "B.N" };
 
             var source1 =
-        @"class A<T> { }
+@"class A<T> { }
 class B : A<B>
 {
     static B F()
@@ -4696,7 +4696,7 @@ class B : A<B>
     }
 }";
             var source2 =
-        @"class A<T> { }
+@"class A<T> { }
 class B : A<B>
 {
     static B F()
@@ -4719,7 +4719,7 @@ class B : A<B>
     }
 }";
             var source3 =
-        @"class A<T> { }
+@"class A<T> { }
 class B : A<B>
 {
     static B F()
@@ -4763,7 +4763,7 @@ class B : A<B>
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL(
-        @"{
+@"{
   // Code size       36 (0x24)
   .maxstack  1
   IL_0000:  nop       
@@ -4821,7 +4821,7 @@ class B : A<B>
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL(
-        @"{
+@"{
   // Code size       30 (0x1e)
   .maxstack  1
   IL_0000:  nop
@@ -4879,7 +4879,7 @@ class B : A<B>
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
 
             diff3.VerifyIL(
-        @"{
+@"{
   // Code size       28 (0x1c)
   .maxstack  1
   IL_0000:  nop
@@ -4933,11 +4933,11 @@ class B : A<B>
         public void PreserveLocalSlots_NewMethod()
         {
             var source0 =
-        @"class C
+@"class C
 {
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void M()
     {
@@ -4946,7 +4946,7 @@ class B : A<B>
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static void M()
     {
@@ -4973,7 +4973,7 @@ class B : A<B>
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m1, m2, GetEquivalentNodesMap(m2, m1), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init ([object] V_0,
@@ -5024,7 +5024,7 @@ class B : A<B>
         public void PreserveLocalTypes()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void Main()
     {
@@ -5034,7 +5034,7 @@ class B : A<B>
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void Main()
     {
@@ -5082,7 +5082,7 @@ class B : A<B>
         public void PreserveLocalVariablesFlag()
         {
             var source =
-        @"class C
+@"class C
 {
     static System.IDisposable F() { return null; }
     static void M()
@@ -5156,7 +5156,7 @@ class B : A<B>
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, preserveLocalVariables: true)));
 
             diff1b.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       44 (0x2c)
   .maxstack  1
   .locals init (System.IDisposable V_0,
@@ -5205,7 +5205,7 @@ class B : A<B>
         public void ChangeLocalType()
         {
             var source0 =
-        @"enum E { }
+@"enum E { }
 class C
 {
     static void M1()
@@ -5225,7 +5225,7 @@ class C
 }";
             // Change locals in one method to type added.
             var source1 =
-        @"enum E { }
+@"enum E { }
 class A { }
 class C
 {
@@ -5246,7 +5246,7 @@ class C
 }";
             // Change locals in another method.
             var source2 =
-        @"enum E { }
+@"enum E { }
 class A { }
 class C
 {
@@ -5267,7 +5267,7 @@ class C
 }";
             // Change locals in same method.
             var source3 =
-        @"enum E { }
+@"enum E { }
 class A { }
 class C
 {
@@ -5305,7 +5305,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M1",
-        @"{
+@"{
   // Code size       17 (0x11)
   .maxstack  1
   .locals init ([unchanged] V_0,
@@ -5333,7 +5333,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M2",
-        @"{
+@"{
   // Code size       17 (0x11)
   .maxstack  1
   .locals init ([unchanged] V_0,
@@ -5361,7 +5361,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
 
             diff3.VerifyIL("C.M2",
-        @"{
+@"{
   // Code size       18 (0x12)
   .maxstack  1
   .locals init ([unchanged] V_0,
@@ -5582,7 +5582,7 @@ class C
         public void AnonymousTypes()
         {
             var source0 =
-        @"namespace N
+@"namespace N
 {
     class A
     {
@@ -5602,7 +5602,7 @@ namespace M
     }
 }";
             var source1 =
-        @"namespace N
+@"namespace N
 {
     class A
     {
@@ -5676,7 +5676,7 @@ namespace M
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
-        @".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
+@".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
 // Valid signature, although not sequential index
 .class '<>f__AnonymousType2'<'<A>j__TPar', '<B>j__TPar'> extends object
 {
@@ -5712,7 +5712,7 @@ namespace M
   }
 }";
             var source0 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -5720,7 +5720,7 @@ namespace M
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -5746,7 +5746,7 @@ namespace M
 
             using var md1 = diff1.GetMetadata();
             diff1.VerifyIL("C.F",
-        @"{
+@"{
   // Code size       31 (0x1f)
   .maxstack  2
   .locals init (<>f__AnonymousType2<object, int> V_0, //x
@@ -5777,7 +5777,7 @@ namespace M
         public void AnonymousTypes_SkipGeneration()
         {
             var source0 = MarkedSource(
-        @"class A { }
+@"class A { }
 class B
 {
     static object F()
@@ -5792,7 +5792,7 @@ class B
     }
 }");
             var source1 = MarkedSource(
-        @"class A { }
+@"class A { }
 class B
 {
     static object F()
@@ -5807,7 +5807,7 @@ class B
     }
 }");
             var source2 = MarkedSource(
-        @"class A { }
+@"class A { }
 class B
 {
     static object F()
@@ -5823,7 +5823,7 @@ class B
     }
 }");
             var source3 = MarkedSource(
-        @"class A { }
+@"class A { }
 class B
 {
     static object F()
@@ -5960,7 +5960,7 @@ class B
         public void AnonymousTypes_SkipGeneration_2()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -5974,7 +5974,7 @@ class B
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -5988,7 +5988,7 @@ class B
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6002,7 +6002,7 @@ class B
     }
 }";
             var source3 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6082,7 +6082,7 @@ class B
         public void AnonymousTypes_AddThenDelete()
         {
             var source0 =
-        @"class C
+@"class C
 {
     object A;
     static object F()
@@ -6093,7 +6093,7 @@ class B
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6103,7 +6103,7 @@ class B
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6114,7 +6114,7 @@ class B
     }
 }";
             var source3 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6124,7 +6124,7 @@ class B
     }
 }";
             var source4 =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6237,7 +6237,7 @@ class C
 
             // the first two slots can't be reused since the type changed
             diff1.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       17 (0x11)
   .maxstack  2
   .locals init ([unchanged] V_0,
@@ -6264,7 +6264,7 @@ class C
 
             // we can reuse slot for "x", it's type haven't changed
             diff2.VerifyIL("C.M",
-        @"{
+@"{
   // Code size       18 (0x12)
   .maxstack  2
   .locals init ([unchanged] V_0,
@@ -6751,7 +6751,7 @@ class C
             // Equivalent to C#, but with extra local and required modifier on
             // expected local. Used to generate initial (unsupported) metadata.
             var ilSource =
-        @".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
 .assembly '<<GeneratedFileName>>' { }
 .class C
 {
@@ -6779,7 +6779,7 @@ class C
   }
 }";
             var source =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -6812,7 +6812,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M1",
-        @"{
+@"{
   // Code size       15 (0xf)
   .maxstack  1
   .locals init (object V_0) //o
@@ -6836,7 +6836,7 @@ class C
             // Equivalent method signature to C#, but
             // with optional modifier on locals.
             var ilSource =
-        @".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
 .assembly '<<GeneratedFileName>>' { }
 .class public C
 {
@@ -6855,7 +6855,7 @@ class C
   }
 }";
             var source =
-        @"class C
+@"class C
 {
     static object F(System.IDisposable d)
     {
@@ -6934,7 +6934,7 @@ class C
             // Use increment as an example of a compiler generated
             // temporary that does not span multiple statements.
             var source =
-        @"class C
+@"class C
 {
     int P { get; set; }
     static int M()
@@ -6997,7 +6997,7 @@ class C
         public void Bug782270()
         {
             var source =
-        @"class C
+@"class C
 {
     static System.IDisposable F()
     {
@@ -7089,7 +7089,7 @@ class C
             // Equivalent to C#, but with unnamed locals.
             // Used to generate initial metadata.
             var ilSource =
-        @".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
+@".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
 .assembly '<<GeneratedFileName>>' { }
 .class C extends object
 {
@@ -7105,7 +7105,7 @@ class C
   }
 }";
             var source0 =
-        @"class C
+@"class C
 {
     static System.IDisposable F()
     {
@@ -7116,7 +7116,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static System.IDisposable F()
     {
@@ -7179,7 +7179,7 @@ class C
         public void TemporaryLocals_ReferencedType()
         {
             var source =
-        @"class C
+@"class C
 {
     static object F()
     {
@@ -7210,7 +7210,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
-        @"
+@"
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -7233,7 +7233,7 @@ class C
         public void DynamicOperations()
         {
             var source =
-        @"class A
+@"class A
 {
     static object F = null;
     object x = ((dynamic)F) + 1;
@@ -7726,7 +7726,7 @@ class C
         public void NoPIAReferences()
         {
             var sourcePIA =
-        @"using System;
+@"using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""_.dll"")]
 [assembly: Guid(""35DB1A6B-D635-4320-A062-28D42921E2B3"")]
@@ -7753,7 +7753,7 @@ public struct S
     public object F;
 }";
             var source0 =
-        @"class C<T>
+@"class C<T>
 {
     static object F = typeof(IC);
     static void M1()
@@ -7771,7 +7771,7 @@ public struct S
 }";
             var source1A = source0;
             var source1B =
-        @"class C<T>
+@"class C<T>
 {
     static object F = typeof(IC);
     static void M1()
@@ -7820,7 +7820,7 @@ public struct S
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables: true)));
 
             diff1B.VerifyIL("C<T>.M1",
-        @"{
+@"{
   // Code size        9 (0x9)
   .maxstack  1
   .locals init ([unchanged] V_0,
@@ -7843,7 +7843,7 @@ public struct S
         public void NoPIATypeInNamespace()
         {
             var sourcePIA =
-        @"using System;
+@"using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""_.dll"")]
 [assembly: Guid(""35DB1A6B-D635-4320-A062-28D42920E2A5"")]
@@ -7861,7 +7861,7 @@ public interface IB
 {
 }";
             var source =
-        @"class C<T>
+@"class C<T>
 {
     static void M(object o)
     {
@@ -7892,7 +7892,7 @@ public interface IB
                 Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("IB"));
 
             diff1.VerifyIL("C<T>.M",
-        @"{
+@"{
   // Code size       26 (0x1a)
   .maxstack  1
   IL_0000:  nop
@@ -7917,7 +7917,7 @@ public interface IB
         public void UnrecognizedLocalOfTypeFromAssembly()
         {
             var source =
-        @"class E : System.Exception
+@"class E : System.Exception
 {
 }
 class C
@@ -8001,7 +8001,7 @@ class C
         public void UnrecognizedLocalOfAnonymousTypeFromAssembly()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8014,7 +8014,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8028,7 +8028,7 @@ class C
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8095,7 +8095,7 @@ class C
         public void BrokenOutputStreams()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8103,7 +8103,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8180,7 +8180,7 @@ class C
         public void BrokenPortablePdbStream()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8188,7 +8188,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static string F()
     {
@@ -8236,11 +8236,11 @@ class C
         public void SymWriterErrors()
         {
             var source0 =
-        @"class C
+@"class C
 {
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void Main() { }
 }";
@@ -8267,7 +8267,7 @@ class C
         public void BlobContainsInvalidValues()
         {
             var source0 =
-        @"class C
+@"class C
 {
     static void F()
     {
@@ -8275,7 +8275,7 @@ class C
     }
 }";
             var source1 =
-        @"class C
+@"class C
 {
     static void F()
     {
@@ -8283,7 +8283,7 @@ class C
     }
 }";
             var source2 =
-        @"class C
+@"class C
 {
     static void F()
     {
@@ -8534,7 +8534,7 @@ public class C
         public void ManyGenerations()
         {
             var source =
-        @"class C
+@"class C
 {{
     static int F() {{ return {0}; }}
 }}";
@@ -11330,7 +11330,7 @@ class C
         public void Records_AddWellKnownMember()
         {
             var source0 =
-        @"
+@"
 #nullable enable
 namespace N
 {
@@ -11340,7 +11340,7 @@ namespace N
 }
 ";
             var source1 =
-        @"
+@"
 #nullable enable
 namespace N
 {
@@ -11435,7 +11435,7 @@ namespace N
         public void Records_RemoveWellKnownMember()
         {
             var source0 =
-        @"
+@"
 namespace N
 {
     record R(int X)
@@ -11448,7 +11448,7 @@ namespace N
 }
 ";
             var source1 =
-        @"
+@"
 namespace N
 {
     record R(int X)

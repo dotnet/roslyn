@@ -196,22 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
             => CheckNames(readers, methodHandles, (reader, handle) => reader.GetMethodDefinition((MethodDefinitionHandle)handle).Name, handle => handle, expectedNames);
 
-        internal static void CheckNames<THandle>(
+        private static void CheckNames<THandle>(
             IList<MetadataReader> readers,
-            IEnumerable<THandle> entityHandles,
+            ImmutableArray<THandle> entityHandles,
             Func<MetadataReader, Handle, StringHandle> getName,
             Func<THandle, Handle> toHandle,
-            string[] expectedNames,
-            string message = null)
+            string[] expectedNames)
         {
-            //// If there is only one reader we don't need to aggregate anything
-            //if (readers.Count == 1)
-            //{
-            //    MetadataReader reader = readers[0];
-            //    AssertEx.Equal(expectedNames, entityHandles.Select(handle => reader.GetString(getName(reader, toHandle(handle)))), message: message);
-            //    return;
-            //}
-
             var aggregator = new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
 
             AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
@@ -221,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
                 var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
                 return readers[nameGeneration].GetString(genNameHandle);
-            }), message: message);
+            }));
         }
 
         internal static string EncLogRowToString(EditAndContinueLogEntry row)
