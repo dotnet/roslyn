@@ -27,15 +27,15 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, document.Project.Language);
             if (accessibilityPreferences.Value == AccessibilityModifiersRequired.Never)
             {
                 return document;
             }
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);

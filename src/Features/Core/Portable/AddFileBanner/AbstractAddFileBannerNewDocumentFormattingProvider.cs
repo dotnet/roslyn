@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
-            var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
+            var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                         newLineTrivia,
                         document,
                         fileHeaderTemplate,
-                        cancellationToken).ConfigureAwait(true);
+                        cancellationToken).ConfigureAwait(false);
 
                 return document.WithSyntaxRoot(rootWithFileHeader);
             }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             {
                 // If there is no file header preference, see if we can use the one in the hint document
                 var syntaxFacts = hintDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-                var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+                var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fileBanner = syntaxFacts.GetFileBanner(hintSyntaxRoot);
 
                 var rootWithBanner = rootToFormat.WithPrependedLeadingTrivia(fileBanner);
