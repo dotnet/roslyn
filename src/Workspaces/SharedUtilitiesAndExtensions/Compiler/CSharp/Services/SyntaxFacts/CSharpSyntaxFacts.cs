@@ -435,10 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => c == '@';
 
         public bool IsValidIdentifier(string identifier)
-        {
-            var token = SyntaxFactory.ParseToken(identifier);
-            return this.IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length;
-        }
+            => SyntaxFacts.IsValidIdentifier(identifier);
 
         public bool IsVerbatimIdentifier(string identifier)
         {
