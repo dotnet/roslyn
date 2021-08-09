@@ -622,7 +622,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return New BoundObjectInitializerExpression(objectCreationSyntax.Initializer,
                                                             True,
-                                                            Me,
                                                             variableOrTempPlaceholder,
                                                             boundAssignmentValues.AsImmutableOrNull,
                                                             initializedObjectType,
@@ -744,7 +743,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundObjectInitializerExpression(objectCreationSyntax.Initializer,
                                                         createTemporary,
-                                                        Me,
                                                         variableOrTempPlaceholder,
                                                         memberAssignments.ToImmutableAndFree,
                                                         initializedObjectType)

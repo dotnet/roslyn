@@ -37,6 +37,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Creating a new type definition.
         /// </summary>
-        NewTypeDefinition = 1 << 4
+        NewTypeDefinition = 1 << 4,
+
+        /// <summary>
+        /// Adding, updating and deleting of custom attributes (as distinct from pseudo-custom attributes)
+        /// </summary>
+        ChangeCustomAttributes = 1 << 5,
     }
 }

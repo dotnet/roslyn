@@ -214,17 +214,17 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
         <source>Remove &amp;Unused References...</source>
-        <target state="new">Remove &amp;Unused References...</target>
+        <target state="translated">Odebrat nepo&amp;užívané odkazy...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
         <source>RemoveUnusedReferences</source>
-        <target state="new">RemoveUnusedReferences</target>
+        <target state="translated">RemoveUnusedReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
         <source>RemoveUnusedReferences</source>
-        <target state="new">RemoveUnusedReferences</target>
+        <target state="translated">RemoveUnusedReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
@@ -420,6 +420,21 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">Přejít na implementaci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="new">Track Value Source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="new">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ViewEditorConfigSettings</source>
+        <target state="new">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

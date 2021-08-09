@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
@@ -38,9 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
-
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new();
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -61,11 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
             : base(threadingContext)
         {
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
         }
 
         public void Dispose()
@@ -106,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
                     ProcessTodoCommentInfosAsync,
+                    _asyncListener,
                     cancellationToken));
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -142,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                     workspaceKinds: WorkspaceKind.Host));
         }
 
-        private Task ProcessTodoCommentInfosAsync(
+        private ValueTask ProcessTodoCommentInfosAsync(
             ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -181,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 }
             }
 
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
 
         private void AddFilteredInfos(

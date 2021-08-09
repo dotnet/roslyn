@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments: null,
                     declarationOnlyCompilation: null,
                     generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                    generatedDocumentsAreFinal: false);
+                    generatedDocumentsAreFinal: false,
+                    generatorDriver: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -52,6 +53,13 @@ namespace Microsoft.CodeAnalysis
                 /// documents are to be considered final and can be reused, or whether they're from a prior snapshot which needs to be recomputed.
                 /// </summary>
                 public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
+
+                /// <summary>
+                /// The <see cref="GeneratorDriver"/> that was used for the last run, to allow for incremental reuse. May be null
+                /// if we don't have generators in the first place, haven't ran generators yet for this project, or had to get rid of our
+                /// driver for some reason.
+                /// </summary>
+                public GeneratorDriver? GeneratorDriver { get; }
 
                 /// <summary>
                 /// Whether the generated documents in <see cref="GeneratedDocuments"/> are final and should not be regenerated. It's important
@@ -78,6 +86,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
                     Compilation? declarationOnlyCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
                 {
                     // Declaration-only compilations should never have any references
@@ -86,12 +95,14 @@ namespace Microsoft.CodeAnalysis
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
+                    GeneratorDriver = generatorDriver;
                     GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
                 }
 
                 public static State Create(
                     Compilation compilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
@@ -101,8 +112,8 @@ namespace Microsoft.CodeAnalysis
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
-                        ? new FullDeclarationState(compilation, generatedDocuments, generatedDocumentsAreFinal: false)
-                        : (State)new InProgressState(compilation, generatedDocuments, compilationWithGeneratedDocuments, intermediateProjects);
+                        ? new FullDeclarationState(compilation, generatedDocuments, generatorDriver, generatedDocumentsAreFinal: false)
+                        : new InProgressState(compilation, generatedDocuments, generatorDriver, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -121,7 +132,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                /// <summary>
+                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+                /// the state of the project prior to the mutation.
+                /// </summary>
+                public ImmutableArray<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating them by
@@ -134,11 +149,13 @@ namespace Microsoft.CodeAnalysis
                 public InProgressState(
                     Compilation inProgressCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatedDocuments,
+                           generatorDriver,
                            generatedDocumentsAreFinal: false) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -156,10 +173,12 @@ namespace Microsoft.CodeAnalysis
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
                     : base(compilationWithoutGeneratedDocuments: null,
                            declarationOnlyCompilation,
                            generatedDocuments,
+                           generatorDriver,
                            generatedDocumentsAreFinal)
                 {
                 }
@@ -173,10 +192,12 @@ namespace Microsoft.CodeAnalysis
             {
                 public FullDeclarationState(Compilation declarationCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatedDocuments,
+                           generatorDriver,
                            generatedDocumentsAreFinal)
                 {
                 }
@@ -220,10 +241,12 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
+                           generatorDriver: generatorDriver,
                            generatedDocumentsAreFinal: true) // when we're in a final state, we've ran generators and should not run again
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
@@ -248,6 +271,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver,
                     Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
@@ -263,7 +287,9 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
-                        generatedDocuments, unrootedSymbolSet);
+                        generatedDocuments,
+                        generatorDriver,
+                        unrootedSymbolSet);
                 }
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)

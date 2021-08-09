@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool ShouldAnalyze(ParseOptions options);
+        protected abstract bool ShouldAnalyze(Compilation compilation);
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             context.RegisterCompilationStartAction(startContext =>
             {
+                if (!ShouldAnalyze(startContext.Compilation))
+                {
+                    return;
+                }
+
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
@@ -82,10 +87,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             IMethodSymbol? referenceEqualsMethodOpt)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
-            if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
-            {
-                return;
-            }
 
             var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)

@@ -486,6 +486,9 @@
   <data name="Convert_to_switch_expression" xml:space="preserve">
     <value>Convert to 'switch' expression</value>
   </data>
+  <data name="Use_recursive_patterns" xml:space="preserve">
+    <value>Use recursive patterns</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
   </data>
@@ -611,5 +614,8 @@
   </data>
   <data name="record_" xml:space="preserve">
     <value>record</value>
+  </data>
+  <data name="record_struct" xml:space="preserve">
+    <value>record struct</value>
   </data>
 </root>

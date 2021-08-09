@@ -84,6 +84,34 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPreviousFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterUsingInFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+using U;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterUsingInNamespace()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"namespace N
+{
+    using U;
+    $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousNamespace_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -105,6 +133,26 @@ $$");
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"extern alias goo;
 $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternInFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+extern alias A;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExternInNamespace()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"namespace N
+{
+    extern alias A;
+    $$
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [Shared]
     internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private const int ImplicitCacheTimeoutInMS = 10000;
+        private static readonly TimeSpan s_implicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 return new ProjectCacheService(workspaceServices.Workspace);
             }
 
-            var service = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            var service = new ProjectCacheService(workspaceServices.Workspace, s_implicitCacheTimeout);
 
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>

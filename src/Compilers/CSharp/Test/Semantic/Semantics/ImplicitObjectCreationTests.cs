@@ -4659,5 +4659,29 @@ public class C : System.Attribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
                 );
         }
+
+        [Fact, WorkItem(54193, "https://github.com/dotnet/roslyn/issues/54193")]
+        public void InSwitchExpression()
+        {
+            var source = @"
+using static System.Console;
+
+var c0 = 0 switch { 1 => new C(), int n => new() { n = n } };
+C c1 = 1 switch { int n => new() { n = n } };
+C c2 = 2 switch { int n => n switch { int u => new() { n = n + u } } };
+
+Write(c0.n);
+Write(c1.n);
+Write(c2.n);
+
+class C 
+{
+    public int n;
+}
+";
+            var compilation = CreateCompilation(source);
+            CompileAndVerify(compilation, expectedOutput: "014")
+                .VerifyDiagnostics();
+        }
     }
 }

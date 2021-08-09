@@ -236,12 +236,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             If includeRepl Then
                 data.SetData(InteractiveClipboardFormat.Tag, json)
             End If
+
             If isLineCopy Then
                 data.SetData(ClipboardLineBasedCutCopyTag, True)
             End If
+
             If isBoxCopy Then
                 data.SetData(BoxSelectionCutCopyTag, True)
             End If
+
             clipboard.SetDataObject(data)
         End Sub
 

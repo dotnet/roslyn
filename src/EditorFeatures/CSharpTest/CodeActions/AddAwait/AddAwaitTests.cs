@@ -1448,5 +1448,21 @@ class Program
         return await (null as Task<int>); }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [WorkItem(1345322, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1345322")]
+        public async Task TestOnTaskTypeItself()
+        {
+            await TestMissingAsync(
+@"using System.Threading.Tasks;
+
+class Program
+{
+    static async [||]Task Main(string[] args)
+    {
+    }
+}
+");
+        }
     }
 }

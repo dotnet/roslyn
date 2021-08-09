@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
@@ -24,7 +25,15 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         {
             // may return null in tests
             var assetSource = RemoteWorkspaceManager.Default.TryGetAssetSource();
-            return assetSource?.IsExperimentEnabledAsync(experimentName, CancellationToken.None).Result ?? false;
+            if (assetSource is null)
+                return false;
+
+            var isEnabledValueTask = assetSource.IsExperimentEnabledAsync(experimentName, CancellationToken.None);
+            if (isEnabledValueTask.IsCompleted)
+                return isEnabledValueTask.Result;
+
+            isEnabledValueTask.Forget();
+            return false;
         }
     }
 }

@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         {
             public ForEachToForCodeAction(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
+                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
             {
             }
         }

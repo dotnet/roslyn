@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -16,14 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarPresentedItem(
             string text,
             Glyph glyph,
-            ImmutableArray<TextSpan> spans,
-            ImmutableArray<NavigationBarItem> childItems = default,
-            bool bolded = false,
-            bool grayed = false)
+            ImmutableArray<ITrackingSpan> trackingSpans,
+            ITrackingSpan? navigationTrackingSpan,
+            ImmutableArray<NavigationBarItem> childItems,
+            bool bolded,
+            bool grayed)
             : base(
                   text,
                   glyph,
-                  spans,
+                  trackingSpans,
+                  navigationTrackingSpan,
                   childItems,
                   indent: 0,
                   bolded: bolded,

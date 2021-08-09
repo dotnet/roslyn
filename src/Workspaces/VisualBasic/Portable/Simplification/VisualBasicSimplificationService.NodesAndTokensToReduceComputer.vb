@@ -73,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Me._simplifyAllDescendants Then
                         Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
                     End If
+
                     node = MyBase.Visit(node)
                 End If
 
@@ -127,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, MethodBlockSyntax).Update(node.Kind, DirectCast(b, MethodStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -135,6 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, OperatorBlockSyntax).Update(DirectCast(b, OperatorStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -143,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, ConstructorBlockSyntax).Update(DirectCast(b, SubNewStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 
@@ -151,6 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Function(n, b, s, e)
                         Return DirectCast(n, AccessorBlockSyntax).Update(node.Kind, DirectCast(b, AccessorStatementSyntax), s, e)
                     End Function
+
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
 

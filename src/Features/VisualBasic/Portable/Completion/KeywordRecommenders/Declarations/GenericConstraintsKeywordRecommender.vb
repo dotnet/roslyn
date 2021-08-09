@@ -37,9 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     If previousConstraints.Any(Function(constraint) Not constraint.IsKind(SyntaxKind.TypeConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "Structure")
                     End If
+
                     If previousConstraints.Any(Function(constraint) constraint.IsKind(SyntaxKind.ClassConstraint, SyntaxKind.StructureConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "Class")
                     End If
+
                     If previousConstraints.Any(Function(constraint) constraint.IsKind(SyntaxKind.NewConstraint, SyntaxKind.StructureConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "New")
                     End If

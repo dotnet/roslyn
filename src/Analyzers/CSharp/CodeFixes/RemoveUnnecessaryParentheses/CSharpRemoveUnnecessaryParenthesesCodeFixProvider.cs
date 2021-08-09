@@ -6,6 +6,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
@@ -22,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         {
         }
 
-        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel)
+        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel, CancellationToken cancellationToken)
             => current switch
             {
-                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, out _, out _),
+                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _),
                 ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
                 _ => false,
             };

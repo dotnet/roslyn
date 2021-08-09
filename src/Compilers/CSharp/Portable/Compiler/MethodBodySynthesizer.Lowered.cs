@@ -363,7 +363,7 @@ start:
                 argBuilder.Add(F.Parameter(param));
             }
 
-            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),
+            BoundExpression invocation = F.Call(methodToInvoke.IsStatic ? null : (useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This()),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 

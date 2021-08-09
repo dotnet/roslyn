@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
@@ -11,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal class WatsonTraceListener : TraceListener
     {
-        public override void Fail(string message, string detailMessage)
+        public override void Fail(string? message, string? detailMessage)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void Write(object o)
+        public override void Write(object? o)
         {
             if (Debugger.IsLogging())
             {
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void Write(object o, string category)
+        public override void Write(object? o, string? category)
         {
             if (Debugger.IsLogging())
             {
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void Write(string message)
+        public override void Write(string? message)
         {
             if (Debugger.IsLogging())
             {
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void Write(string message, string category)
+        public override void Write(string? message, string? category)
         {
             if (Debugger.IsLogging())
             {
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void WriteLine(object o)
+        public override void WriteLine(object? o)
         {
             if (Debugger.IsLogging())
             {
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void WriteLine(object o, string category)
+        public override void WriteLine(object? o, string? category)
         {
             if (Debugger.IsLogging())
             {
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void WriteLine(string message)
+        public override void WriteLine(string? message)
         {
             if (Debugger.IsLogging())
             {
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public override void WriteLine(string message, string category)
+        public override void WriteLine(string? message, string? category)
         {
             if (Debugger.IsLogging())
             {
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        private static void Exit(string message)
+        private static void Exit(string? message)
         {
             FatalError.ReportAndPropagate(new Exception(message));
         }

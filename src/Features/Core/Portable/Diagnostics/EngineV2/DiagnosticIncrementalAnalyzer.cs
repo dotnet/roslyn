@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
-        internal IPersistentStorageService PersistentStorageService { get; }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
@@ -51,12 +49,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(PersistentStorageService, analyzerInfoCache);
+            _stateManager = new StateManager(analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
@@ -66,17 +63,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54400", Constraint = "Avoid calling GetAllHostStateSets on this hot path.")]
         public bool ContainsDiagnostics(ProjectId projectId)
         {
-            foreach (var stateSet in _stateManager.GetStateSets(projectId))
-            {
-                if (stateSet.ContainsAnyDocumentOrProjectDiagnostics(projectId))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _stateManager.HasAnyHostStateSet(static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId)
+                || _stateManager.HasAnyProjectStateSet(projectId, static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)

@@ -292,16 +292,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
             {
                 var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
-                if (classificationType != ClassificationTypeNames.StaticSymbol)
+                if (classificationType == ClassificationTypeNames.StaticSymbol)
                 {
-                    // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
-                    // from integer to LSP token types).
-                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
+                    // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.Static;
+                }
+                else if (classificationType == ClassificationTypeNames.ReassignedVariable)
+                {
+                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.ReassignedVariable;
                 }
                 else
                 {
-                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.Static;
+                    // 6. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // from integer to LSP token types).
+                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
                 }
 
                 // Break out of the loop if we have no more classified spans left, or if the next classified span has

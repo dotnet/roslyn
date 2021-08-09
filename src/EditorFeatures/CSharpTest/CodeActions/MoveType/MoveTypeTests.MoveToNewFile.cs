@@ -321,6 +321,31 @@ class Class2 { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithFileScopedNamespace()
+        {
+            var code =
+@"namespace N1;
+
+[||]class Class1 { }
+class Class2 { }
+";
+
+            var codeAfterMove =
+@"namespace N1;
+class Class2 { }
+";
+
+            var expectedDocumentName = "Class1.cs";
+
+            var destinationDocumentText =
+@"namespace N1;
+
+class Class1 { }
+";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_Simple()
         {
             var code =
@@ -1407,6 +1432,52 @@ record CacheContext(String Message);
 ";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveClassInTopLevelStatements()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+
+class [||]C
+{
+    public string Hello => ""Hello"";
+}";
+
+            var codeAfterMove = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+";
+
+            var expectedDocumentName = "C.cs";
+            var destinationDocumentText = @"class C
+{
+    public string Hello => ""Hello"";
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MissingInTopLevelStatementsOnly()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new object();
+[||]Console.WriteLine(c.ToString());
+";
+
+            await TestMissingAsync(code);
         }
     }
 }

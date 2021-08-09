@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,30 +12,20 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LogHub;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
-        /// <summary>
-        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
-        /// server is restarted that we can have a new logstream for the new server.
-        /// </summary>
-        private static int s_logHubSessionId;
-
         private readonly string? _diagnosticsClientName;
-        private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly ILspLoggerFactory _lspLoggerFactory;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -90,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            VSShell.IAsyncServiceProvider asyncServiceProvider,
+            ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             string? diagnosticsClientName)
         {
@@ -100,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
-            _asyncServiceProvider = asyncServiceProvider;
+            _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
         }
 
@@ -145,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _lspWorkspaceRegistrationService,
-                _asyncServiceProvider,
+                _lspLoggerFactory,
                 _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
 
@@ -186,53 +175,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            ILspLoggerFactory lspLoggerFactory,
             string? clientName,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
-            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
+
             var serverTypeName = languageClient.GetType().Name;
-            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
                 lspWorkspaceRegistrationService,
-                logger ?? NoOpLspLogger.Instance);
+                logger);
 
             jsonRpc.StartListening();
             return server;
-        }
-
-        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
-            VSShell.IAsyncServiceProvider? asyncServiceProvider,
-            string serverTypeName,
-            string? clientName,
-            JsonRpc jsonRpc,
-            CancellationToken cancellationToken)
-        {
-            if (asyncServiceProvider == null)
-                return null;
-
-            var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
-            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget).FullName));
-
-            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
-            var service = serviceContainer.GetFullAccessServiceBroker();
-
-            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
-
-            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
-
-            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
-            // with our callers and the operations they are performing.
-            jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
-
-            return new LogHubLspLogger(configuration, traceSource);
         }
 
         public ILanguageServerTarget Create(

@@ -512,6 +512,12 @@ breaks
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            TestNormalizeDeclaration("namespace NS;class C{}", "namespace NS;\r\nclass C\r\n{\r\n}");
+        }
+
+        [Fact]
         public void TestSpacingOnRecord()
         {
             TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
@@ -540,12 +546,12 @@ breaks
             // no space between this and (
             TestNormalizeDeclaration(
                 "class C { C() : this () { } }",
-                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : this()\r\n  {\r\n  }\r\n}");
 
             // no space between base and (
             TestNormalizeDeclaration(
                 "class C { C() : base () { } }",
-                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : base()\r\n  {\r\n  }\r\n}");
 
             // no space between checked and (
             TestNormalizeExpression("checked (a)", "checked(a)");
@@ -921,6 +927,35 @@ $"  ///  </summary>{Environment.NewLine}" +
         }
 
         [Fact]
+        [WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
+        public void TestNormalizeColonInConstructorInitializer()
+        {
+            var content =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived():base(){}
+}";
+
+            var expected =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived() : base()
+  {
+  }
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
         [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
         public void TestNormalizeXmlInDocComment()
         {
@@ -940,6 +975,15 @@ $"  ///  </summary>{Environment.NewLine}" +
         public void TestNormalizeBlockAnonymousFunctions(string actual, string expected)
         {
             TestNormalizeStatement(actual, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

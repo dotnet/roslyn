@@ -619,6 +619,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Else
                 SetupDownloadPatch(clientMock, remoteControlMock)
             End If
+
             Return remoteControlMock
         End Function
 

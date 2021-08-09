@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -120,6 +121,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public Project? GetProject(ProjectId id)
             => _solution.GetProject(id);
 
+        public Project GetRequiredProject(ProjectId id)
+            => _solution.GetRequiredProject(id);
+
         public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
             => _solution.GetDocumentIdsWithFilePath(path);
 
@@ -210,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (null, DocumentState.None);
             }
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(document.DocumentState))
+            if (!document.DocumentState.SupportsEditAndContinue())
             {
                 return (null, DocumentState.DesignTimeOnly);
             }
@@ -305,30 +309,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async Task<IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>> GetMatchingDocumentsAsync(Solution solution, Func<Project, CompilationOutputs> compilationOutputsProvider, CancellationToken cancellationToken)
+        internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
+            IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            CancellationToken cancellationToken)
         {
-            var projectTasks = solution.Projects.Select(async project =>
+            var projectTasks = documentsByProject.Select(async projectDocumentStates =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var (project, documentStates) = projectDocumentStates;
+
+                // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
+                // Source files of these do not even need to be captured in the solution snapshot.
+                if (!project.SupportsEditAndContinue())
+                {
+                    return Array.Empty<DocumentId?>();
+                }
+
                 using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
                 if (debugInfoReaderProvider == null)
                 {
                     return Array.Empty<DocumentId?>();
                 }
 
-                // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
-                // Source files of these do not even need to be captured in the solution snapshot.
-                if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
-                {
-                    return Array.Empty<DocumentId?>();
-                }
-
                 var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
 
-                var documentTasks = project.State.DocumentStates.States.Select(async documentState =>
+                var documentTasks = documentStates.Select(async documentState =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (EditAndContinueWorkspaceService.SupportsEditAndContinue(documentState))
+                    if (documentState.SupportsEditAndContinue())
                     {
                         var sourceFilePath = documentState.FilePath;
                         Contract.ThrowIfNull(sourceFilePath);

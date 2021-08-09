@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -43,25 +41,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath)
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
         {
             return _threadingContext.JoinableTaskFactory.Run(() =>
-                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None));
+                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName: null, CancellationToken.None));
+        }
+
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath, string? assemblyName)
+        {
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName, CancellationToken.None));
         }
 
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
             string projectUniqueName,
-            string projectFilePath,
+            string? projectFilePath,
             Guid projectGuid,
-            object hierarchy,
-            string binOutputPath,
+            object? hierarchy,
+            string? binOutputPath,
+            string? assemblyName,
             CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var creationInfo = new VisualStudioProjectCreationInfo
             {
+                AssemblyName = assemblyName,
                 FilePath = projectFilePath,
                 Hierarchy = hierarchy as IVsHierarchy,
                 ProjectGuid = projectGuid,

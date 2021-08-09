@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(this.Document);
+            var document = await solution.GetDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
             var additionalProperties = this.AdditionalProperties;

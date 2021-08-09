@@ -256,6 +256,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
+        {
+            var document = GetDocument(documentId) ?? GetAdditionalDocument(documentId) ?? GetAnalyzerConfigDocument(documentId);
+            if (document != null)
+            {
+                return document;
+            }
+
+            return await GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Gets all source generated documents in this project.
         /// </summary>
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
@@ -263,7 +277,7 @@ namespace Microsoft.CodeAnalysis
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
-            return generatedDocumentStates.States.Select(state =>
+            return generatedDocumentStates.States.Values.Select(state =>
                 ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 

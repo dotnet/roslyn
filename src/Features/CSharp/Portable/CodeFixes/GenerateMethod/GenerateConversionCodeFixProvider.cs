@@ -46,17 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                    node is ExpressionSyntax;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
         {
             if (node is InvocationExpressionSyntax invocation)
-            {
                 return invocation.Expression.GetRightmostName();
-            }
 
             if (node is MemberBindingExpressionSyntax memberBindingExpression)
-            {
                 return memberBindingExpression.Name;
-            }
 
             return node;
         }

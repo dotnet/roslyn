@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                             node = structuredTriviaSyntax.ParentTrivia.Token.Parent;
                             continue;
                         }
+
                         return null;
 
                     default:

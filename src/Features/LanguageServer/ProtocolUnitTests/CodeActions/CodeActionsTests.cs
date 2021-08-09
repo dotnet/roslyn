@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     caretLocation,
                     customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
                 priority: PriorityLevel.Low,
-                groupName: "Roslyn4",
+                groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 

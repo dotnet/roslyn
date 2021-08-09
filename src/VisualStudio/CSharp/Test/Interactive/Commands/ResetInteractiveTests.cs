@@ -122,6 +122,7 @@ namespace ResetInteractiveTestsDocument
             {
                 expectedSubmissions.AddRange(expectedReferences.Select(r => r + newLineCharacter));
             }
+
             if (expectedUsings.Any())
             {
                 expectedSubmissions.Add(string.Join(newLineCharacter, expectedUsings) + newLineCharacter);

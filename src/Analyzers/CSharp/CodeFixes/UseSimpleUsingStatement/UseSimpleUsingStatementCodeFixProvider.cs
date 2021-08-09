@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     result.Add(anythingElse);
                     return default;
             }
+
             return default;
         }
 

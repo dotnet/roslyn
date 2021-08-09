@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     [Export(typeof(ILanguageServerFactory)), Shared]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
-        public const string UserVisibleName = "C#/Visual Basic Language Server Client";
+        public const string UserVisibleName = "Roslyn Language Server Client";
 
-        private readonly CSharpVisualBasicRequestDispatcherFactory _dispatcherFactory;
+        private readonly RequestDispatcherFactory _dispatcherFactory;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpVisualBasicLanguageServerFactory(CSharpVisualBasicRequestDispatcherFactory dispatcherFactory,
+        public CSharpVisualBasicLanguageServerFactory(RequestDispatcherFactory dispatcherFactory,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _dispatcherFactory = dispatcherFactory;

@@ -87,9 +87,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(If(visited, type), Nothing, diagnostics)
         End Function
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return _previousGeneration.Ordinal + 1
+                Return _changes
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return _previousGeneration
             End Get
         End Property
 
@@ -189,12 +195,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
-        Friend ReadOnly Property PreviousGeneration As EmitBaseline
-            Get
-                Return _previousGeneration
-            End Get
-        End Property
-
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
                 Return _previousDefinitions
@@ -232,12 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
-
-        Friend ReadOnly Property Changes As SymbolChanges
-            Get
-                Return _changes
-            End Get
-        End Property
 
         Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             For Each typeDef In GetAnonymousTypeDefinitions(context)

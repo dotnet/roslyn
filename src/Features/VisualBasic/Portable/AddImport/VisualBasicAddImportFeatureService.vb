@@ -47,12 +47,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                     If parent Is Nothing Then
                         Return False
                     End If
+
                     Dim method = TryCast(parent.Expression, MemberAccessExpressionSyntax)
                     If method IsNot Nothing Then
                         node = method.Name
                     Else
                         node = parent.Expression
                     End If
+
                     Exit Select
                 Case AddImportDiagnosticIds.BC36719
                     If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
@@ -171,8 +173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 

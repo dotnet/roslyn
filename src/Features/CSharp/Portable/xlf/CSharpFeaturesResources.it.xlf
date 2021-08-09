@@ -182,6 +182,11 @@
         <target state="translated">Rimuovi seal dalla classe '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="new">Use recursive patterns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">Avviso: incorporamento dell'elemento temporaneo nella chiamata a un metodo condizionale.</target>
@@ -204,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">alias extern</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -399,7 +404,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">record</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

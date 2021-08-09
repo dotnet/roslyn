@@ -70,6 +70,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
+        public static Task<DefinitionItem> ToNonClassifiedDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(
+                definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
+                options: FindReferencesSearchOptions.Default.With(unidirectionalHierarchyCascade: true), cancellationToken: cancellationToken);
+        }
+
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
             Solution solution,
