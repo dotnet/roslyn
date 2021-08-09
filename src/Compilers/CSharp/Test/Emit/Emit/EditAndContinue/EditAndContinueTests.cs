@@ -531,7 +531,8 @@ class C
                             Handle(4, TableIndex.StandAloneSig),
                             Handle(4, TableIndex.AssemblyRef)
                         });
-                    });
+                    })
+                .Verify();
         }
 
         [Fact]

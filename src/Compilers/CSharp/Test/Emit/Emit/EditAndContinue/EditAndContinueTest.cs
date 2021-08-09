@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private readonly List<IDisposable> _disposables = new();
         private readonly List<GenerationInfo> _generations = new();
 
+        private bool _hasVerified;
+
         public EditAndContinueTest(CSharpCompilationOptions? options, TargetFramework? targetFramework)
         {
             _options = options;
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal EditAndContinueTest AddGeneration(string source, Action<GenerationVerifier> verification)
         {
+            _hasVerified = false;
+
             Assert.Empty(_generations);
 
             var compilation = CSharpTestBase.CreateCompilation(source, options: _options, targetFramework: _targetFramework);
@@ -48,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal EditAndContinueTest AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> verification)
         {
+            _hasVerified = false;
+
             Assert.NotEmpty(_generations);
 
             var prevGeneration = _generations[^1];
@@ -66,8 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return this;
         }
 
-        internal void Verify()
+        internal EditAndContinueTest Verify()
         {
+            _hasVerified = true;
+
             Assert.NotEmpty(_generations);
 
             var readers = new List<MetadataReader>();
@@ -85,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
                 index++;
             }
+
+            return this;
         }
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(SemanticEditDescription[] edits, Compilation oldCompilation, Compilation newCompilation)
@@ -94,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public void Dispose()
         {
+            Assert.True(_hasVerified, "No Verify call since the last AddGeneration call.");
             foreach (var disposable in _disposables)
             {
                 disposable.Dispose();
