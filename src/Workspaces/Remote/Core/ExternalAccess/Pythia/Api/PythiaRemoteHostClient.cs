@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 
-#pragma warning disable 436
+#pragma warning disable 436 // duplicate types - can remove once PythiaRemoteHostClient is removed from Workspaces 
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
