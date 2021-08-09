@@ -204,13 +204,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string[] expectedNames,
             string message = null)
         {
-            // If there is only one reader we don't need to aggregate anything
-            if (readers.Count == 1)
-            {
-                MetadataReader reader = readers[0];
-                AssertEx.Equal(expectedNames, entityHandles.Select(handle => reader.GetString(getName(reader, toHandle(handle)))), message: message);
-                return;
-            }
+            //// If there is only one reader we don't need to aggregate anything
+            //if (readers.Count == 1)
+            //{
+            //    MetadataReader reader = readers[0];
+            //    AssertEx.Equal(expectedNames, entityHandles.Select(handle => reader.GetString(getName(reader, toHandle(handle)))), message: message);
+            //    return;
+            //}
 
             var aggregator = new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
 
@@ -219,10 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), out int typeGeneration);
                 var nameHandle = getName(readers[typeGeneration], genEntityHandle);
 
-                return readers.GetString(nameHandle);
-
-                //var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
-                //return readers[nameGeneration].GetString(genNameHandle);
+                var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
+                return readers[nameGeneration].GetString(genNameHandle);
             }), message: message);
         }
 
