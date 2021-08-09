@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SyncNamespaces
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         public abstract AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSyntaxKind, TNamespaceSyntax> DiagnosticAnalyzer { get; }
         public abstract AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; }
 
+        /// <inheritdoc/>
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
             CancellationToken cancellationToken)
@@ -90,25 +92,18 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
             var firstDiagnostic = diagnosticsByProject
                 .SelectMany(kvp => kvp.Value)
-                .Where(diagnostic => diagnostic.Location.SourceTree != null)
                 .FirstOrDefault();
-            RoslynDebug.AssertNotNull(firstDiagnostic);
+            RoslynDebug.AssertNotNull(firstDiagnostic?.Location?.SourceTree);
 
-            var document = solution.GetDocument(firstDiagnostic.Location.SourceTree);
-            RoslynDebug.AssertNotNull(document);
+            var document = solution.GetRequiredDocument(firstDiagnostic.Location.SourceTree);
 
             // This will allow us access to the equivalence key
             CodeAction? action = null;
-            var context = new CodeFixContext(document, firstDiagnostic,
-                (a, _) =>
-                {
-                    if (action == null)
-                    {
-                        action = a;
-                    }
-                },
+            var context = new CodeFixContext(
+                document,
+                firstDiagnostic,
+                (a, _) => action ??= a,
                 cancellationToken);
-
             await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
             return new FixAllContext(
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
         private class DiagnosticProvider : FixAllContext.DiagnosticProvider
         {
-            private static Task<IEnumerable<Diagnostic>> EmptyDignosticResult => Task.FromResult(Enumerable.Empty<Diagnostic>());
+            private static readonly Task<IEnumerable<Diagnostic>> EmptyDignosticResult = Task.FromResult(Enumerable.Empty<Diagnostic>());
 
             private readonly ImmutableDictionary<Project, ImmutableArray<Diagnostic>> _diagnosticsByProject;
 

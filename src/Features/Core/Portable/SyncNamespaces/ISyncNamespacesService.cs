@@ -11,6 +11,10 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 {
     internal interface ISyncNamespacesService : ILanguageService
     {
+        /// <summary>
+        /// This will update documents in the specified projects so that their namespace matches the RootNamespace
+        /// and their relative folder path.
+        /// </summary>
         Task<Solution> SyncNamespacesAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken);
     }
 }

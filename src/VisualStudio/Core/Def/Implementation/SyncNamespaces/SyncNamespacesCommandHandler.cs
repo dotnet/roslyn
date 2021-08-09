@@ -56,14 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             var command = (OleMenuCommand)sender;
 
             var visible = false;
-            var enabled = false;
 
             if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var projectHierarchy))
             {
                 // Is a project node. Are we C# project node?
-                visible = projectHierarchy.IsCapabilityMatch(".NET")
-                    && GetProjectsForHierarchy(projectHierarchy)
-                        .All(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
+                visible = projectHierarchy.IsCapabilityMatch(".NET & CSharp");
             }
             else
             {
@@ -72,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
                     .Any(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
             }
 
-            enabled = visible && !VisualStudioCommandHandlerHelpers.IsBuildActive();
+            var enabled = visible && !VisualStudioCommandHandlerHelpers.IsBuildActive();
 
             if (command.Visible != visible)
             {
@@ -89,20 +86,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         {
             if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var projectHierarchy))
             {
+                // The project node is selected, so get projects that this node represents.
                 var projects = GetProjectsForHierarchy(projectHierarchy);
 
                 SyncNamespaces(projects);
             }
             else
             {
+                // The solution node is selected, so collect all the C# projects for update.
                 var projects = _workspace.CurrentSolution.Projects
                     .Where(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase))
                     .ToImmutableArray();
-
-                if (_workspace.CurrentSolution.ProjectIds.Count != projects.Length)
-                {
-                    // Some projects are not C# projects.
-                }
 
                 SyncNamespaces(projects);
             }
@@ -130,10 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
             {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    solution = await syncService.SyncNamespacesAsync(projects, operationContext.UserCancellationToken).ConfigureAwait(false);
-                });
+                solution = ThreadHelper.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, operationContext.UserCancellationToken));
             });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)
