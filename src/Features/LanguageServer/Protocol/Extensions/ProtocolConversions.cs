@@ -346,6 +346,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLink)
+        {
+            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
+            {
+                return new LSP.CodeDescription
+                {
+                    Href = uri,
+                };
+            }
+
+            return null;
+        }
+
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
             if (Enum.TryParse<LSP.SymbolKind>(kind, out var symbolKind))
