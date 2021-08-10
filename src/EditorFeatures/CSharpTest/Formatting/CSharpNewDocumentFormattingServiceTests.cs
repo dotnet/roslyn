@@ -45,7 +45,7 @@ internal class C
         }
 
         [Fact]
-        public async Task TestFileScopedNamespaces_Invalid1()
+        public async Task TestFileScopedNamespaces_Invalid_MultipleNamespaces()
         {
             var testCode = @"
 namespace Goo
@@ -67,7 +67,7 @@ namespace Bar
         }
 
         [Fact]
-        public async Task TestFileScopedNamespaces_Invalid2()
+        public async Task TestFileScopedNamespaces_Invalid_WrongLanguageVersion()
         {
             var testCode = @"
 namespace Goo
