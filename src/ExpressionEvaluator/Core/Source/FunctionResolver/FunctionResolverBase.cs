@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     continue;
                 }
 
-                var resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
+                var resolver = CreateMetadataResolver(module, reader, onFunctionResolved);
                 resolver.Resolve(request, signature);
             }
         }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return;
                     }
-                    resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
+                    resolver = CreateMetadataResolver(module, reader, onFunctionResolved);
                 }
 
                 resolver.Resolve(request, signature);
@@ -131,12 +131,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private MetadataResolver<TProcess, TModule, TRequest> CreateMetadataResolver(
-            TProcess process,
             TModule module,
             MetadataReader reader,
             OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
-            return new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, IgnoreCase, onFunctionResolved);
+            return new MetadataResolver<TProcess, TModule, TRequest>(module, reader, IgnoreCase, onFunctionResolved);
         }
 
         private bool ShouldHandleRequest(TRequest request)
