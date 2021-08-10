@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
@@ -19,109 +21,94 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestSingleItemSubstitution()
+        public static IEnumerable<object[]> InvocationData
         {
-            await TestInRegularAndScriptAsync(
-@"using System;
+            get
+            {
+                // Every API so far starts to use a params object after 4 paramters following the formatted 
+                const int ParametersToCheck = 4;
 
-class T
-{
-    void M()
-    {
-        var a = [|string.Format(""{0}"", 1)|];
-    }
-}",
-@"using System;
+                // string.Format gets replaced with just the interpolated string
+                for (var i = 1; i <= ParametersToCheck; i++)
+                {
+                    var invocation = $"string.Format({MakeFormattedParameters(i)})";
+                    var result = $"${MakeInterpolatedString(i)}";
+                    yield return new[] { invocation, result };
+                }
 
-class T
-{
-    void M()
-    {
-        var a = $""{1}"";
-    }
-}");
+                // These functions remain, but will change to take the
+                // interpolated string rather than call the string format 
+                var functionsToCheck = new[]
+                {
+                    "Console.Write",
+                    "Console.WriteLine",
+                    "Debug.WriteLine",
+                    "Debug.Print",
+                    "Trace.TraceError",
+                    "Trace.TraceWarning",
+                    "Trace.TraceInformation",
+                    //"TraceSource.TraceInformation" TODO: Trace source needs NetCoreApp, which tests don't run in. 
+                };
+
+                for (var i = 1; i <= ParametersToCheck; i++)
+                {
+                    foreach (var function in functionsToCheck)
+                    {
+                        var invocation = $"{function}({MakeFormattedParameters(i)})";
+                        var result = $"{function}(${MakeInterpolatedString(i)})";
+                        yield return new[] { invocation, result };
+                    }
+                }
+
+                // Makes a string of form "{0} {1}..."
+                static string MakeInterpolatedString(int numberOfParameters)
+                {
+                    var interpolatedString = "\"";
+
+                    for (var i = 0; i < numberOfParameters; i++)
+                    {
+                        interpolatedString += $"{{{i}}}";
+                    }
+
+                    return interpolatedString + "\"";
+                }
+
+                // Makes a string of form "{0} {1}..., 0, 1, ..."
+                static string MakeFormattedParameters(int numberOfParameters)
+                {
+                    var formatString = MakeInterpolatedString(numberOfParameters);
+                    return formatString + "," + string.Join(",", Enumerable.Range(0, numberOfParameters));
+
+                }
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWriteLine()
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [MemberData(nameof(InvocationData))]
+        public async Task TestInvocationSubstitution(string before, string after)
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+@$"using System;
+using System.Diagnostics;
 
 class T
-{
+{{
     void M()
-    {
-        var i = 25;
-        [|Console.WriteLine(""{0}"", i)|];
-    }
-}",
-@"using System;
+    {{
+        [|{before}|];
+    }}
+}}",
+@$"using System;
+using System.Diagnostics;
 
 class T
-{
+{{
     void M()
-    {
-        var i = 25;
-        Console.WriteLine($""{i}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWriteLine_SelectionInString()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        Console.WriteLine(""[||]{0}"", i);
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        Console.WriteLine($""{i}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWrite_SelectionInString()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        Console.WriteLine(""[||]{0}"", i);
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        Console.WriteLine($""{i}"");
-    }
-}");
+    {{
+        {after};
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
@@ -159,219 +146,6 @@ class T
     }
 
     void GetString() => """";
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWriteLine_2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        [|Console.WriteLine(""{0} {1}"", i, j)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        Console.WriteLine($""{i} {j}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWriteLine_3()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        [|Console.WriteLine(""{0} {1} {2}"", i, j, k)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        Console.WriteLine($""{i} {j} {k}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWriteLine_4()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        var life = 42;
-        [|Console.WriteLine(""{0} {1} {2} {3}"", i, j, k, life)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        var life = 42;
-        Console.WriteLine($""{i} {j} {k} {life}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWrite()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        [|Console.Write(""{0}"", i)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        Console.Write($""{i}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWrite_2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        [|Console.Write(""{0} {1}"", i, j)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        Console.Write($""{i} {j}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWrite_3()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        [|Console.Write(""{0} {1} {2}"", i, j, k)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        Console.Write($""{i} {j} {k}"");
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
-        public async Task TestSingleItemSubstitution_ConsoleWrite_4()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        var life = 42;
-        [|Console.Write(""{0} {1} {2} {3}"", i, j, k, life)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var i = 25;
-        var j = 30;
-        var k = 35;
-        var life = 42;
-        Console.Write($""{i} {j} {k} {life}"");
-    }
 }");
         }
 

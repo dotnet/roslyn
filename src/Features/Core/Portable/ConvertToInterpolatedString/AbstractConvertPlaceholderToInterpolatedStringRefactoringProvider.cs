@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         where TLiteralExpressionSyntax : SyntaxNode
         where TArgumentListExpressionSyntax : SyntaxNode
     {
+
+        // Methods that are not string.Format but still should qualify to be replaced.
+        // Ex: Console.WriteLine("{0}", a) => Console.WriteLine($"{a}");
+        private static readonly (string? typeName, string[] methods)[] TypeMethodPairs = new (string?, string[])[]
+            {
+                (typeof(Console).FullName, new[] { nameof(Console.Write), nameof(Console.WriteLine) }),
+                (typeof(Debug).FullName, new[] { nameof(Debug.WriteLine), nameof(Debug.Print)}),
+                (typeof(Trace).FullName, new[] { nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation)}),
+                (typeof(TraceSource).FullName, new[] { nameof(TraceSource.TraceInformation)})
+            };
+
         protected abstract SyntaxNode GetInterpolatedString(string text);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -41,16 +53,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var consoleType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Console).FullName);
+            var replaceInvocationMethods = CollectMethods(stringType, nameof(string.Format));
+            var keepInvocationMethods = TypeMethodPairs
+                .SelectMany(pair => CollectMethods(semanticModel.Compilation.GetTypeByMetadataName(pair.typeName), pair.methods))
+                .ToImmutableArray();
 
-            var stringMethods = CollectMethods(stringType, nameof(string.Format));
-            var consoleMethods = CollectMethods(consoleType, nameof(Console.Write), nameof(Console.WriteLine));
+            var allInvocationMethods = replaceInvocationMethods.AddRange(keepInvocationMethods);
 
-
-            var replaceInvocationMethods = stringMethods;
-            var keepInvocationMethods = consoleMethods;
-
-            if (replaceInvocationMethods.Length == 0 && keepInvocationMethods.Length == 0)
+            if (allInvocationMethods.Length == 0)
             {
                 return;
             }
@@ -61,28 +71,24 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var addedRefactorings = await TryAddRefactoringsAsync(
-                context,
-                document,
-                textSpan,
-                semanticModel,
-                replaceInvocationMethods,
-                syntaxFactsService,
-                true,
-                cancellationToken).ConfigureAwait(false);
 
-            if (!addedRefactorings)
+            var (invocationSyntax, invocationSymbol) = await TryFindInvocationAsync(textSpan, document, semanticModel, allInvocationMethods, syntaxFactsService, context.CancellationToken).ConfigureAwait(false);
+            if (invocationSyntax is null || invocationSymbol is null)
             {
-                await TryAddRefactoringsAsync(
-                    context,
-                    document,
-                    textSpan,
-                    semanticModel,
-                    keepInvocationMethods,
-                    syntaxFactsService,
-                    false,
-                    cancellationToken).ConfigureAwait(false);
+                return;
             }
+
+            if (!IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocationSyntax), invocationSymbol, allInvocationMethods, semanticModel, syntaxFactsService, cancellationToken))
+            {
+                return;
+            }
+
+            var shouldReplaceInvocation = replaceInvocationMethods.Contains(invocationSymbol);
+
+            context.RegisterRefactoring(
+                    new ConvertToInterpolatedStringCodeAction(
+                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c)),
+                    invocationSyntax.Span);
 
             // Local Functions
 
@@ -100,31 +106,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     .Where(ShouldIncludeFormatMethod)
                     .ToImmutableArray();
             }
-        }
-
-        private async Task<bool> TryAddRefactoringsAsync(
-            CodeRefactoringContext context,
-            Document? document,
-            TextSpan textSpan,
-            SemanticModel? semanticModel,
-            ImmutableArray<IMethodSymbol> keepInvocationMethods,
-            ISyntaxFactsService? syntaxFactsService,
-            bool shouldReplaceInvocation,
-            CancellationToken cancellationToken)
-        {
-            var (keepInvocation, keepSymbol) = await TryFindInvocationAsync(textSpan, document, semanticModel, keepInvocationMethods, syntaxFactsService, context.CancellationToken).ConfigureAwait(false);
-            if (keepInvocation != null && keepSymbol != null &&
-                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(keepInvocation), keepSymbol, keepInvocationMethods, semanticModel, syntaxFactsService, cancellationToken))
-            {
-                context.RegisterRefactoring(
-                    new ConvertToInterpolatedStringCodeAction(
-                        c => CreateInterpolatedStringAsync(keepInvocation, document, syntaxFactsService, shouldReplaceInvocation, c)),
-                    keepInvocation.Span);
-
-                return true;
-            }
-
-            return false;
         }
 
         private async Task<(TInvocationExpressionSyntax?, ISymbol?)> TryFindInvocationAsync(
