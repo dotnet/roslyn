@@ -298,8 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         <Extension()>
         Public Function ContainedInValidType(node As SyntaxNode) As Boolean
             Contract.ThrowIfNull(node)
-            Dim typeContainer = node.FirstAncestorOrSelf(Of TypeStatementSyntax)()
-            For Each ancestor In typeContainer.AncestorsAndSelf
+            For Each ancestor In node.AncestorsAndSelf
                 If TryCast(ancestor, TypeStatementSyntax) IsNot Nothing Then
                     Return True
                 End If
