@@ -2108,7 +2108,6 @@ class Program
             Assert.NotNull(symbolInfo.Symbol);
         }
 
-        // TODO: it's not clear that this test is meaningful.
         [Fact]
         public void GenericAttribute_LookupSymbols()
         {
@@ -2116,13 +2115,18 @@ class Program
 using System;
 class Attr1<T> : Attribute { public Attr1(T t) { } }
 
-[/*<bind>*/Attr1<string>/*</bind>*/]
+[Attr1<string>(""a"")]
 class C { }";
 
-            var symbols = GetLookupSymbols(source);
-            Assert.Contains(@"Attr1<T>", symbols.ListToSortedString());
-        }
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var symbol = model.GetSymbolInfo(node);
+            Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
 
         #endregion
     }
