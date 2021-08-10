@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     return true;
                 }
+
                 if (ancestor is NamespaceDeclarationSyntax)
                 {
                     return false;
