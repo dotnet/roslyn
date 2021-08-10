@@ -2109,7 +2109,7 @@ class Program
         }
 
         [Fact]
-        public void GenericAttribute_LookupSymbols()
+        public void GenericAttribute_LookupSymbols_01()
         {
             var source = @"
 using System;
@@ -2126,6 +2126,21 @@ class C { }";
             var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
             var symbol = model.GetSymbolInfo(node);
             Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1</*<bind>*/string/*</bind>*/>]
+class C { }";
+
+            var names = GetLookupNames(source);
+            Assert.Contains("C", names);
+            Assert.Contains("Attr1", names);
         }
 
         #endregion

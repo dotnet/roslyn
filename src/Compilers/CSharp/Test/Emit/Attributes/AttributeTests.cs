@@ -10473,6 +10473,28 @@ class Program
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void GenericAttributeNested()
+        {
+            var source = @"
+using System;
+
+class Attr<T> : Attribute { }
+
+[Attr<Attr<string>>]
+class C { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var attrs = c.GetAttributes();
+                Assert.Equal(new[] { "Attr<Attr<System.String>>" }, GetAttributeStrings(attrs));
+            }
+        }
+
         #endregion
     }
 }
