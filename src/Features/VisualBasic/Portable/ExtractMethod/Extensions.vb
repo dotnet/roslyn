@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Public Function ContainedInValidType(node As SyntaxNode) As Boolean
             Contract.ThrowIfNull(node)
             For Each ancestor In node.AncestorsAndSelf
-                If TryCast(ancestor, TypeStatementSyntax) IsNot Nothing Then
+                If TryCast(ancestor, TypeBlockSyntax) IsNot Nothing Then
                     Return True
                 End If
 
