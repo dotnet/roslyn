@@ -456,7 +456,7 @@ class C { }
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the execeptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the exceptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
         public void Generator_HintName_MustBe_Unique()
         {
             var source = @"
@@ -1128,7 +1128,7 @@ class C { }
 
             var options = ((CSharpCompilationOptions)compilation.Options);
 
-            // generator driver diagnostics are reported seperately from the compilation
+            // generator driver diagnostics are reported separately from the compilation
             verifyDiagnosticsWithOptions(options,
                 Diagnostic("GEN001").WithLocation(1, 1),
                 Diagnostic("GEN002").WithLocation(1, 1));
