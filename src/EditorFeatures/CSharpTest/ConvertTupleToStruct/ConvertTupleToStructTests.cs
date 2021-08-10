@@ -168,6 +168,46 @@ internal record struct NewStruct(int a, int b)
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
+        {
+            var text = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int b)
+{
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
         {
             var text = @"

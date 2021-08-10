@@ -356,6 +356,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static void PromoteCommonCommitCharactersOntoList(LSP.VSCompletionList completionList)
             {
+                var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;
                 string[]? mostUsedCommitCharacters = null;
@@ -365,7 +366,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var commitCharacters = completionItem.CommitCharacters;
                     if (commitCharacters == null)
                     {
-                        continue;
+                        // The commit characters on the item are null, this means the commit characters are actually
+                        // the default commit characters we passed in the initialize request.
+                        commitCharacters = defaultCommitCharacters;
                     }
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);

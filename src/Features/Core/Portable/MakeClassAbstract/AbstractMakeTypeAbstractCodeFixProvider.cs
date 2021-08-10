@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.MakeTypeAbstract
                 if (IsValidRefactoringContext(diagnostics[i].Location?.FindNode(cancellationToken), out var typeDeclaration))
                 {
                     editor.ReplaceNode(typeDeclaration,
-                        (currentTypeDeclaration, generator) => generator.WithModifiers(currentTypeDeclaration, DeclarationModifiers.Abstract));
+                        (currentTypeDeclaration, generator) => generator.WithModifiers(currentTypeDeclaration, generator.GetModifiers(currentTypeDeclaration).WithIsAbstract(true)));
                 }
             }
 

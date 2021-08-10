@@ -111,6 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator? applyParentUnaryOperator)
         {
+            if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
+            {
+                Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
+                ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -120,6 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
+                // The regular visit mechanism will handle this.
+                if (current.InterpolatedStringHandlerData is not null)
+                {
+                    Debug.Assert(stack.Count >= 1);
+                    break;
+                }
+
                 stack.Push(current);
             }
 
@@ -128,12 +142,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundBinaryOperator original = stack.Pop();
                 BoundExpression loweredRight = VisitExpression(original.Right);
-                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.MethodOpt, original.ConstrainedToTypeOpt,
+                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.Method, original.ConstrainedToType,
                     applyParentUnaryOperator: (stack.Count == 0) ? applyParentUnaryOperator : null);
             }
 
             stack.Free();
             return loweredLeft;
+        }
+
+        private static ImmutableArray<BoundExpression> CollectBinaryOperatorInterpolatedStringParts(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+            Debug.Assert(node.InterpolatedStringHandlerData is not null);
+            var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            while (true)
+            {
+                partsBuilder.AddRange(((BoundInterpolatedString)node.Right).Parts);
+
+                if (node.Left is BoundBinaryOperator next)
+                {
+                    node = next;
+                }
+                else
+                {
+                    partsBuilder.AddRange(((BoundInterpolatedString)node.Left).Parts);
+                    break;
+                }
+            }
+
+            partsBuilder.ReverseContents();
+
+            ImmutableArray<BoundExpression> parts = partsBuilder.ToImmutableAndFree();
+            return parts;
         }
 
         private BoundExpression MakeBinaryOperator(
@@ -480,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return (oldNode != null) ?
-                oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ConstrainedToTypeOpt, oldNode.ResultKind, loweredLeft, loweredRight, type) :
+                oldNode.Update(operatorKind, oldNode.ConstantValue, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type) :
                 new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
@@ -1867,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
             {
-                return oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ConstrainedToTypeOpt, oldNode.ResultKind, loweredLeft, loweredRight, type);
+                return oldNode.Update(operatorKind, oldNode.ConstantValue, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type);
             }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, member);

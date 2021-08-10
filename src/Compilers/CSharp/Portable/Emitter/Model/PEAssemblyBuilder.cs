@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__Inherited, diagnostics, Location.None);
         }
     }
-
+#nullable enable
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase
     {
         public PEAssemblyBuilder(
@@ -504,6 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
         }
 
-        public override int CurrentGenerationOrdinal => 0;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
     }
 }

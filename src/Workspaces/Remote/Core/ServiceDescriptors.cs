@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.ValueTracking;
+using Microsoft.CodeAnalysis.UnusedReferences;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
             (typeof(IRemoteValueTrackingService), null),
             (typeof(IRemoteInheritanceMarginService), null),
+            (typeof(IRemoteUnusedReferenceAnalysisService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;

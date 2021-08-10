@@ -773,6 +773,28 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Field_Init_Recompile_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
         Public Sub Field_SingleAsNew_Recompile1()
             Dim src1 = "
 Class C
@@ -937,6 +959,28 @@ End Class
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
                 diagnostics:={Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)")})
+        End Sub
+
+        <Fact>
+        Public Sub Field_Generic_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 #End Region
 

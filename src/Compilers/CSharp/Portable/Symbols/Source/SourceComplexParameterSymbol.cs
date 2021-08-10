@@ -114,22 +114,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsIUnknownConstant
             => GetDecodedWellKnownAttributeData()?.HasIUnknownConstantAttribute == true;
 
-        private bool HasCallerLineNumberAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
+        internal override bool IsCallerLineNumber => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
 
-        private bool HasCallerFilePathAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
+        internal override bool IsCallerFilePath => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
 
-        private bool HasCallerMemberNameAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
+        internal override bool IsCallerMemberName => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        internal sealed override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
-
-        internal sealed override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
-
-        internal sealed override bool IsCallerMemberName => !HasCallerLineNumberAttribute
-                                                  && !HasCallerFilePathAttribute
-                                                  && HasCallerMemberNameAttribute;
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                return GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex ?? -1;
+            }
+        }
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
             => (GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments).NullToEmpty();
@@ -609,6 +606,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerMemberNameAttribute = true;
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
+                {
+                    var index = -1;
+                    var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out _);
+                    if (!attribute.HasErrors)
+                    {
+                        var constructorArguments = attribute.CommonConstructorArguments;
+                        Debug.Assert(constructorArguments.Length == 1);
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName))
+                        {
+                            var parameters = ContainingSymbol.GetParameters();
+                            for (int i = 0; i < parameters.Length; i++)
+                            {
+                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                                {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().CallerArgumentExpressionParameterIndex = index;
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -713,6 +734,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerMemberNameAttribute))
             {
                 ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
+            {
+                ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
@@ -989,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7082: The CallerFilePathAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
@@ -1022,15 +1047,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7081: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (HasCallerFilePathAttribute)
+            else if (IsCallerFilePath)
             {
                 // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+
+            diagnostics.Add(node.Name.Location, useSiteInfo);
+        }
+
+        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
+        {
+            // We intentionally don't report an error for earlier language versions here. The attribute already existed
+            // before the feature was developed. The error is only reported when the binder supplies a value
+            // based on the attribute.
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+
+            if (!IsValidCallerInfoContext(node))
+            {
+                // CS8966: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
+                //         member that is used in contexts that do not allow optional arguments
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteInfo))
+            {
+                // CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
+                TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
+            }
+            else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
+            {
+                // Unconsumed location checks happen first, so we require a default value.
+
+                // CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                diagnostics.Add(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, node.Name.Location);
+            }
+            else if (IsCallerLineNumber)
+            {
+                // CS8960: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (IsCallerFilePath)
+            {
+                // CS8961: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (IsCallerMemberName)
+            {
+                // CS8962: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (attribute.CommonConstructorArguments.Length == 1 &&
+                GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == -1)
+            {
+                // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            {
+                // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
             diagnostics.Add(node.Name.Location, useSiteInfo);

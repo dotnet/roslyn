@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             // Check that the feature is enabled before doing any work
             var optionValue = args.SubjectBuffer.GetOptionalFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste);
 
-            // If the feature is explicitly disabled we can exit early
-            if (optionValue.HasValue && !optionValue.Value)
+            // If the feature is not explicitly enabled we can exit early
+            if (optionValue != true)
             {
                 nextCommandHandler();
                 return;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             try
             {
-                ExecuteCommandWorker(args, executionContext, optionValue, trackingSpan);
+                ExecuteCommandWorker(args, executionContext, trackingSpan);
             }
             catch (OperationCanceledException)
             {
@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
         private void ExecuteCommandWorker(
             PasteCommandArgs args,
             CommandExecutionContext executionContext,
-            bool? optionValue,
             ITrackingSpan trackingSpan)
         {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
@@ -110,15 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
             if (document is null)
-            {
-                return;
-            }
-
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var enabled = optionValue.HasValue && optionValue.Value
-                || experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled);
-
-            if (!enabled)
             {
                 return;
             }

@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.MethodOpt is MethodSymbol method)
+            if (node.Method is MethodSymbol method)
             {
                 if (_inExpressionLambda && method.IsAbstract && method.IsStatic)
                 {

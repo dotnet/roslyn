@@ -19,6 +19,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
 
+        Public Shared ReadOnly ReloadableAttributeSrc As String = "
+Imports System.Runtime.CompilerServices
+Namespace System.Runtime.CompilerServices
+    Class CreateNewOnMetadataUpdateAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+"
+
         Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
             Return New VisualBasicEditAndContinueAnalyzer()
         End Function

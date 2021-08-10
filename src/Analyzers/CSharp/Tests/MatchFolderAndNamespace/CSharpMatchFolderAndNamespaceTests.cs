@@ -45,19 +45,16 @@ build_property.RootNamespace = {DefaultNamespace}
             var testState = new VerifyCS.Test
             {
                 EditorConfig = editorconfig ?? EditorConfig,
-                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck
+                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck,
+                LanguageVersion = LanguageVersion.CSharp10,
             };
 
             foreach (var (fileName, content) in originalSources)
-            {
                 testState.TestState.Sources.Add((fileName, content));
-            }
 
             fixedSources ??= Array.Empty<(string, string)>();
             foreach (var (fileName, content) in fixedSources)
-            {
                 testState.FixedState.Sources.Add((fileName, content));
-            }
 
             return testState.RunAsync();
         }
@@ -75,6 +72,26 @@ namespace A.B
     {
     }
 }";
+
+            return RunTestAsync(
+                "File1.cs",
+                code,
+                directory: folder);
+        }
+
+        [Fact]
+        public Task InvalidFolderName1_NoDiagnostic_FileScopedNamespace()
+        {
+            // No change namespace action because the folder name is not valid identifier
+            var folder = CreateFolderPath(new[] { "3B", "C" });
+            var code =
+@"
+namespace A.B;
+
+class Class1
+{
+}
+";
 
             return RunTestAsync(
                 "File1.cs",
@@ -168,6 +185,32 @@ namespace {DefaultNamespace}.a.b
         }
 
         [Fact]
+        public async Task SingleDocumentNoReference_FileScopedNamespace()
+        {
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace [|A.B|];
+
+class Class1
+{
+}
+";
+
+            var fixedCode =
+@$"namespace {DefaultNamespace}.B.C;
+
+class Class1
+{{
+}}
+";
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                fixedCode: fixedCode);
+        }
+
+        [Fact]
         public async Task SingleDocumentNoReference_NoDefaultNamespace()
         {
             var editorConfig = @$"
@@ -191,6 +234,38 @@ build_property.ProjectDir = {Directory}
     {{
     }}
 }}";
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                fixedCode: fixedCode,
+                editorConfig: editorConfig);
+        }
+
+        [Fact]
+        public async Task SingleDocumentNoReference_NoDefaultNamespace_FileScopedNamespace()
+        {
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+";
+
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace [|A.B|];
+
+class Class1
+{
+}
+";
+
+            var fixedCode =
+@$"namespace B.C;
+
+class Class1
+{{
+}}
+";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
@@ -426,6 +501,47 @@ $@"namespace NS1
             };
 
             await RunTestAsync(originalSources, fixedSources);
+        }
+
+        [Fact]
+        public async Task DocumentAtRoot_NoDiagnostic()
+        {
+            var folder = CreateFolderPath();
+
+            var code = $@"
+namespace {DefaultNamespace}
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "File1.cs",
+                code,
+                folder);
+        }
+
+        [Fact]
+        public async Task DocumentAtRoot_ChangeNamespace()
+        {
+            var folder = CreateFolderPath();
+
+            var code =
+$@"namespace [|{DefaultNamespace}.Test|]
+{{
+    class C {{ }}
+}}";
+
+            var fixedCode =
+$@"namespace {DefaultNamespace}
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "File1.cs",
+                code,
+                folder,
+                fixedCode: fixedCode);
         }
 
         [Fact]

@@ -122,6 +122,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private PendingSolutionUpdate? _pendingUpdate;
         private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
+#pragma warning disable IDE0052 // Remove unread private members
+        /// <summary>
+        /// Last array of module updates generated during the debugging session.
+        /// Useful for crash dump diagnostics.
+        /// </summary>
+        private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
+#pragma warning restore
+
         internal DebuggingSession(
             DebuggingSessionId id,
             Solution solution,
@@ -186,13 +194,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
 
             var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
-
-            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
-            // https://github.com/dotnet/roslyn/issues/52128
-            if (EditSession.InBreakState)
-            {
-                _telemetry.LogEditSession(editSessionTelemetryData);
-            }
+            _telemetry.LogEditSession(editSessionTelemetryData);
         }
 
         public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var outputs = GetCompilationOutputs(project);
-            if (!TryCreateInitialBaseline(outputs, out diagnostics, out var newBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var newBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
@@ -361,6 +363,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private static unsafe bool TryCreateInitialBaseline(
             CompilationOutputs compilationOutputs,
+            ProjectId projectId,
             out ImmutableArray<Diagnostic> diagnostics,
             [NotNullWhen(true)] out EmitBaseline? baseline,
             [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
@@ -411,6 +414,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e)
             {
+                EditAndContinueWorkspaceService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
+
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
                 diagnostics = ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message }));
             }
@@ -513,6 +518,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             CancellationToken cancellationToken)
         {
             var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+            LogSolutionUpdate(solutionUpdate);
+
             if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
                 StorePendingUpdate(solution, solutionUpdate);
@@ -521,6 +529,46 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
             return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits);
+        }
+
+        private void LogSolutionUpdate(SolutionUpdate update)
+        {
+            EditAndContinueWorkspaceService.Log.Write("Solution update status: {0}",
+                ((int)update.ModuleUpdates.Status, typeof(ManagedModuleUpdateStatus)));
+
+            if (update.ModuleUpdates.Updates.Length > 0)
+            {
+                var firstUpdate = update.ModuleUpdates.Updates[0];
+
+                EditAndContinueWorkspaceService.Log.Write("Solution update deltas: #{0} [types: #{1} (0x{2}:X8), methods: #{3} (0x{4}:X8)",
+                    update.ModuleUpdates.Updates.Length,
+                    firstUpdate.UpdatedTypes.Length,
+                    firstUpdate.UpdatedTypes.FirstOrDefault(),
+                    firstUpdate.UpdatedMethods.Length,
+                    firstUpdate.UpdatedMethods.FirstOrDefault());
+            }
+
+            if (update.Diagnostics.Length > 0)
+            {
+                var firstProjectDiagnostic = update.Diagnostics[0];
+
+                EditAndContinueWorkspaceService.Log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
+                    update.Diagnostics.Length,
+                    firstProjectDiagnostic.ProjectId,
+                    firstProjectDiagnostic.Diagnostics[0]);
+            }
+
+            if (update.DocumentsWithRudeEdits.Length > 0)
+            {
+                var firstDocumentWithRudeEdits = update.DocumentsWithRudeEdits[0];
+
+                EditAndContinueWorkspaceService.Log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
+                    update.DocumentsWithRudeEdits.Length,
+                    firstDocumentWithRudeEdits.DocumentId,
+                    firstDocumentWithRudeEdits.Diagnostics[0].Kind);
+            }
+
+            _lastModuleUpdatesLog = update.ModuleUpdates.Updates;
         }
 
         public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -951,8 +999,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
             {
                 map[SessionId] = debugSessionId;
-                map["SessionCount"] = debugSessionData.EditSessionData.Length;
+                map["SessionCount"] = debugSessionData.EditSessionData.Count(session => session.InBreakState);
                 map["EmptySessionCount"] = debugSessionData.EmptyEditSessionCount;
+                map["HotReloadSessionCount"] = debugSessionData.EditSessionData.Count(session => !session.InBreakState);
+                map["EmptyHotReloadSessionCount"] = debugSessionData.EmptyHotReloadEditSessionCount;
             }));
 
             foreach (var editSessionData in debugSessionData.EditSessionData)
@@ -971,6 +1021,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
                     map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
+                    map["InBreakState"] = editSessionData.InBreakState;
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)

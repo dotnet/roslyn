@@ -131,6 +131,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
                     block = ArrayBuilder<BoundStatement>.GetInstance();
+
+                    if (!ContainingType.IsRecordStruct)
+                    {
+                        var ensureStackMethod = F.WellKnownMethod(
+                            WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
+                            isOptional: true);
+                        if (ensureStackMethod is not null)
+                        {
+                            block.Add(F.ExpressionStatement(
+                                F.Call(receiver: null, ensureStackMethod)));
+                        }
+                    }
                 }
                 else
                 {

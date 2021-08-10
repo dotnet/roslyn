@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class PropertyDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<PropertyDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             PropertyDeclarationSyntax propertyDeclaration,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

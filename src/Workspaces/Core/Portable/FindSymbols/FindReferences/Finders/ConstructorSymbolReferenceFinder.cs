@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var aliasReferences = await FindAliasReferencesAsync(
-                nonAliasTypeReferences, methodSymbol, document, semanticModel,
-                findParentNode, cancellationToken).ConfigureAwait(false);
+                nonAliasTypeReferences, methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, methodSymbol, cancellationToken).ConfigureAwait(false);
             return normalReferences.Concat(aliasReferences, suppressionReferences);
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? -1
                 : symbol.Parameters.Length;
 
-            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
 
             static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsImplicitObjectCreation;

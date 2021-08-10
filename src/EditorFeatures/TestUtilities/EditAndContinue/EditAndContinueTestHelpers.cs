@@ -202,6 +202,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
 
+            var duplicateNonPartial = allEdits
+                .Where(e => e.PartialType == null)
+                .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            AssertEx.Empty(duplicateNonPartial, "Duplicate non-partial symbols");
+
             // check if we can merge edits without throwing:
             EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var _, out var _, CancellationToken.None);
         }
@@ -244,13 +252,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
                     Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
-                else if (editKind == SemanticEditKind.Insert)
+                else if (editKind is SemanticEditKind.Insert or SemanticEditKind.Replace)
                 {
                     Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
                 else
                 {
-                    Assert.False(true, "Only Update or Insert allowed");
+                    Assert.False(true, "Only Update, Insert or Replace allowed");
                 }
 
                 // Partial types must match:

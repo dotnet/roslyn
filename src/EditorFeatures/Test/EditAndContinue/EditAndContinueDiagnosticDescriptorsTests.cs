@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.RudeEdit), FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.Title);
-            Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.Updating_an_active_statement_will_prevent_the_debug_session_from_continuing),
+            Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application),
                 FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.MessageFormat);
 
             Assert.Equal("ENC0087", EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.ComplexQueryExpression).Id);

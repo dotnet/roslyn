@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+        System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,

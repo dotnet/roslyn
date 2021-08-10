@@ -11535,7 +11535,7 @@ System.NotImplementedException: 28
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
@@ -11567,6 +11567,7 @@ class C
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
+                errorlog: true,
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS0078", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
@@ -11584,7 +11585,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerSyntaxWarning()
         {
             // warning CS1522: Empty switch block
@@ -11619,7 +11620,7 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor);
+                analyzers: suppressor, errorlog: true);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
             Assert.Contains($"info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
@@ -11634,6 +11635,7 @@ class C
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
+                errorlog: true,
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
@@ -11644,7 +11646,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerSemanticWarning()
         {
             string source = @"
@@ -11673,7 +11675,7 @@ class C
                 suppressor.SuppressionDescriptor.Justification);
 
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
-                analyzers: suppressor);
+                analyzers: suppressor, errorlog: true);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
@@ -11688,6 +11690,7 @@ class C
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
+                errorlog: true,
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS0169", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
@@ -11747,7 +11750,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"
@@ -11777,6 +11780,7 @@ class C { }";
             var analyzerAndSuppressor = new DiagnosticAnalyzer[] { analyzer, suppressor };
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0,
                 includeCurrentAssemblyAsAnalyzerReference: false,
+                errorlog: true,
                 analyzers: analyzerAndSuppressor);
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -11794,6 +11798,7 @@ class C { }";
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0,
                 additionalFlags: new[] { "/warnAsError" },
                 includeCurrentAssemblyAsAnalyzerReference: false,
+                errorlog: true,
                 analyzers: analyzerAndSuppressor);
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);

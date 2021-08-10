@@ -442,6 +442,19 @@ Option Strict Off
         End Sub
 
         <Theory>
+        <InlineData("Class", "Structure")>
+        <InlineData("Class", "Module")>
+        <InlineData("Class", "Interface")>
+        Public Sub Type_Kind_Update_Reloadable(oldKeyword As String, newKeyword As String)
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>" & oldKeyword & " C : End " & oldKeyword
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>" & newKeyword & " C : End " & newKeyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Theory>
         <InlineData("Public")>
         Public Sub Type_Modifiers_Accessibility_Change(accessibility As String)
 
@@ -507,6 +520,15 @@ Option Strict Off
             edits.VerifySemantics()
         End Sub
 
+        <Fact>
+        Public Sub Type_Modifiers_Accessibility_Reloadable()
+            Dim src1 = ReloadableAttributeSrc + "<CreateNewOnMetadataUpdate>Friend Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc + "<CreateNewOnMetadataUpdate>Public Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
         <Theory>
         <InlineData("Class")>
         <InlineData("Structure")>
@@ -543,6 +565,34 @@ Option Strict Off
             edits.VerifySemantics()
         End Sub
 
+        <Theory>
+        <InlineData("Module")>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_PartialModifier_Add(keyword As String)
+            Dim src1 = keyword & " C : End " & keyword
+            Dim src2 = "Partial " & keyword & " C : End " & keyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [" & keyword & " C]@0 -> [Partial " & keyword & " C]@0")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Module_PartialModifier_Remove()
+            Dim src1 = "Partial Module C : End Module"
+            Dim src2 = "Module C : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Partial Module C]@0 -> [Module C]@0")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
         <Fact>
         Public Sub Type_Attribute_Update_NotSupportedByRuntime1()
             Dim attribute = "Public Class A1Attribute : Inherits System.Attribute : End Class" & vbCrLf &
@@ -576,32 +626,165 @@ Option Strict Off
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, keyword & " C", GetResource(keyword)))
         End Sub
 
-        <Theory>
-        <InlineData("Module")>
-        <InlineData("Class")>
-        <InlineData("Structure")>
-        <InlineData("Interface")>
-        Public Sub Type_PartialModifier_Add(keyword As String)
-            Dim src1 = keyword & " C : End " & keyword
-            Dim src2 = "Partial " & keyword & " C : End " & keyword
+        <Fact>
+        Public Sub Type_Attribute_Change_Reloadable()
+            Dim attributeSrc = "
+Public Class A1 : Inherits System.Attribute : End Class
+Public Class A2 : Inherits System.Attribute : End Class
+Public Class A3 : Inherits System.Attribute : End Class
+"
+            Dim src1 = ReloadableAttributeSrc & attributeSrc & "<CreateNewOnMetadataUpdate, A1, A2>Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & attributeSrc & "<CreateNewOnMetadataUpdate, A2, A3>Class C : End Class"
+
             Dim edits = GetTopEdits(src1, src2)
-
             edits.VerifyEdits(
-                "Update [" & keyword & " C]@0 -> [Partial " & keyword & " C]@0")
+                "Update [<CreateNewOnMetadataUpdate, A1, A2>Class C]@363 -> [<CreateNewOnMetadataUpdate, A2, A3>Class C]@363")
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
-        Public Sub Module_PartialModifier_Remove()
-            Dim src1 = "Partial Module C : End Module"
-            Dim src2 = "Module C : End Module"
+        Public Sub Type_Attribute_ReloadableRemove()
+
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
+        Public Sub Type_Attribute_ReloadableAdd()
+
+            Dim src1 = ReloadableAttributeSrc & "Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))},
+                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+        End Sub
+
+        <Fact>
+        Public Sub Type_Attribute_ReloadableBase()
+
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class B
+End Class
+
+Class C
+    Inherits B
+End Class
+"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class B
+End Class
+
+Class C
+    Inherits B
+
+    Sub F()
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        <InlineData("Interface")>
+        Public Sub Type_Rename1(keyword As String)
+            Dim src1 = keyword & " C : End " & keyword
+            Dim src2 = keyword & " c : End " & keyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits("Update [" & keyword & " C]@0 -> [" & keyword & " c]@0")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, keyword & " c", GetResource(keyword)))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Rename2()
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "Class D : End Class"
+
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Partial Module C]@0 -> [Module C]@0")
+                "Update [Class C]@0 -> [Class D]@0")
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Rename_AddAndDeleteMember()
+            Dim src1 = "
+Class C
+    Dim x As Integer = 1
+End Class"
+            Dim src2 = "
+Class D
+    Sub F()
+    End Sub
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
+        End Sub
+
+        <Fact>
+        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        Public Sub Type_Rename_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+End Class"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class D
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: expected: Replace edit of D
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
+        End Sub
+
+        <Fact>
+        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        Public Sub Type_Rename_Reloadable_AddAndDeleteMember()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim x As Integer = 1
+End Class"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class D
+    Sub F()
+    End Sub
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: expected: Replace edit of D
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -672,32 +855,6 @@ Option Strict Off
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub ClassRename1()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "class c : end class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits("Update [Class C]@0 -> [class c]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class c", FeaturesResources.class_))
-        End Sub
-
-        <Fact>
-        Public Sub ClassRename2()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class D : End Class"
-
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Class C]@0 -> [Class D]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -884,7 +1041,32 @@ Interface J : End Interface
         End Sub
 
         <Fact>
-        Public Sub ClassInsert_AbstractVirtualOverride()
+        Public Sub Type_Reloadable_NotSupportedByRuntime()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Sub F()
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Sub F()
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                diagnostics:={Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "Sub F()", "CreateNewOnMetadataUpdateAttribute")})
+        End Sub
+
+        <Fact>
+        Public Sub Type_Insert_AbstractVirtualOverride()
             Dim src1 = ""
             Dim src2 = "
 Public MustInherit Class C(Of T)
@@ -896,6 +1078,49 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Type_Insert_NotSupportedByRuntime()
+            Dim src1 = "
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub F()
+    End Sub
+End Class
+
+Class D
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                diagnostics:={Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class D", FeaturesResources.class_)})
+        End Sub
+
+        <Fact>
+        Public Sub Type_Insert_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
@@ -993,7 +1218,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub GenericType_InsertMembers()
+        Public Sub Type_Generic_InsertMembers()
             Dim src1 = "
 Imports System
 Class C(Of T)
@@ -1066,6 +1291,65 @@ End Class"
         End Sub
 
         <Fact>
+        Public Sub Type_Generic_InsertMembers_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+End Class
+"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim F1, F2 As New Object, F3 As Integer, F4 As New Object, F5(1, 2), F6? As Integer
+
+    Sub M()
+    End Sub
+
+    Property P1(i As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+
+    Property P2 As Integer
+    Property P3 As New Object
+
+    Event E1(sender As Object, e As System.EventArgs)
+
+    Event E2 As System.Action
+
+    Custom Event E3 As System.EventHandler
+        AddHandler(value As System.EventHandler)
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+        End RaiseEvent
+    End Event
+
+    Dim WithEvents WE As Object
+
+    Enum N
+        A
+    End Enum
+
+    Interface I
+    End Interface
+
+    Class D
+    End Class
+
+    Delegate Sub G()
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
         Public Sub Type_Delete()
             Dim src1 = "
 Class C
@@ -1100,7 +1384,7 @@ Delegate Sub D()
         End Sub
 
         <Fact>
-        Public Sub PartialType_Delete()
+        Public Sub Type_Partial_DeleteDeclaration()
             Dim srcA1 = "
 Partial Class C
   Sub F()
@@ -1136,7 +1420,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub PartialType_InsertFirstDeclaration()
+        Public Sub Type_Partial_InsertFirstDeclaration()
             Dim src1 = ""
             Dim src2 = "
 Partial Class C
@@ -1150,7 +1434,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub PartialType_InsertSecondDeclaration()
+        Public Sub Type_Partial_InsertSecondDeclaration()
             Dim srcA1 = "
 Partial Class C
   Sub F()
@@ -1177,6 +1461,43 @@ End Class"
                         semanticEdits:=
                         {
                             SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("G"), preserveLocalVariables:=False)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_Partial_Reloadable()
+            Dim srcA1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Partial Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Partial Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim srcB2 = "
+Partial Class C
+    Sub G()
+    End Sub
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"), partialType:="C")
                         })
                 })
         End Sub
@@ -1226,7 +1547,39 @@ Delegate Sub D()
         End Sub
 
         <Fact>
-        Public Sub GenericType_DeleteInsert()
+        Public Sub Type_DeleteInsert_Reloadable()
+            Dim srcA1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+  Sub F()
+  End Sub
+End Class
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = ReloadableAttributeSrc
+            Dim srcB2 = "
+<CreateNewOnMetadataUpdate>
+Class C
+  Sub F()
+  End Sub
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_Generic_DeleteInsert()
             Dim srcA1 = "
 Class C(Of T)
   Sub F()
@@ -1265,6 +1618,27 @@ End Interface
                             Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
                         })
                 })
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/54881")>
+        <WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")>
+        Public Sub Type_TypeParameter_Insert_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T, S)
+    Dim x As Integer = 1
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
@@ -1329,7 +1703,7 @@ End Class
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
                         })
                 })
         End Sub
@@ -1598,6 +1972,19 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Enum_MemberInitializer_Update_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Enum Color : Red = 1 : End Enum"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Enum Color : Red = 2 : End Enum"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Red = 1]@230 -> [Red = 2]@230")
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("Color"))})
+        End Sub
+
+        <Fact>
         Public Sub Enum_MemberInitializer_Insert()
             Dim src1 = "Enum Color : Red : End Enum"
             Dim src2 = "Enum Color : Red = 1 : End Enum"
@@ -1797,6 +2184,16 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Delegates_Parameter_Insert_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Public Delegate Function D() As Integer"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Friend Delegate Function D(a As Integer) As Boolean"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("D"))})
+        End Sub
+
+        <Fact>
         Public Sub Delegates_Parameter_Delete()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "Public Delegate Function D() As Integer"
@@ -1863,6 +2260,17 @@ End Class
             edits.VerifyEdits(
                 "Insert [(Of T)]@26",
                 "Insert [T]@30")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "T", FeaturesResources.type_parameter))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/54881")>
+        <WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")>
+        Public Sub Delegates_TypeParameter_Insert_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Public Delegate Function D(Of T)() As Integer"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Friend Delegate Function D(Of In T, Out S)(a As Integer) As Integer"
+            Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "T", FeaturesResources.type_parameter))
@@ -2070,6 +2478,56 @@ End Class
                 "Insert [b]@60")
 
             edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub NestedClass_Insert_ReloadableIntoReloadable1()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : <CreateNewOnMetadataUpdate>Class D : End Class : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
+        Public Sub NestedClass_Insert_ReloadableIntoReloadable2()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : <CreateNewOnMetadataUpdate>Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
+        Public Sub NestedClass_Insert_ReloadableIntoReloadable3()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
+        Public Sub NestedClass_Insert_ReloadableIntoReloadable4()
+            Dim src1 = ReloadableAttributeSrc & "Class C : End Class"
+            Dim src2 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                 semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D"))})
+        End Sub
+
+        <Fact>
+        Public Sub NestedClass_Insert_Member_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : End Class : End Class"
+            Dim src2 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : Dim X As Integer = 1 : End Class : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C.D"))})
         End Sub
 
         <Fact>
@@ -2485,7 +2943,7 @@ End Structure
                     DocumentResults(
                         semanticEdits:=
                         {
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"), partialType:="C")
                         }),
                     DocumentResults()
                 },
@@ -4319,7 +4777,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_DeleteInsert_DefinitionPart()
+        Public Sub Method_Partial_DeleteInsert_DefinitionPart()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcC1 = "Partial Class C : End Class"
@@ -4339,7 +4797,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_DeleteInsert_ImplementationPart()
+        Public Sub Method_Partial_DeleteInsert_ImplementationPart()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
             Dim srcC1 = "Partial Class C : End Class"
@@ -4359,7 +4817,7 @@ End Interface
         End Sub
 
         <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
-        Public Sub PartialMethod_Swap_ImplementationAndDefinitionParts()
+        Public Sub Method_Partial_Swap_ImplementationAndDefinitionParts()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
@@ -4377,7 +4835,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_DeleteImplementation()
+        Public Sub Method_Partial_DeleteImplementation()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
@@ -4394,7 +4852,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_DeleteBoth()
+        Public Sub Method_Partial_DeleteBoth()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
@@ -4411,7 +4869,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_DeleteInsertBoth()
+        Public Sub Method_Partial__DeleteInsertBoth()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
             Dim srcC1 = "Partial Class C : End Class"
@@ -4434,7 +4892,7 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub PartialMethod_Insert()
+        Public Sub Method_Partial_Insert()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C : End Class"
 
@@ -4447,6 +4905,23 @@ End Interface
                     DocumentResults(),
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Method_Partial_Insert_Reloadable()
+            Dim srcA1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"), partialType:="C")})
                 })
         End Sub
 #End Region
@@ -4466,6 +4941,17 @@ End Interface
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Public Shared " & newModifiers & " Operator CType(d As C)", FeaturesResources.operator_))
+        End Sub
+
+        <Fact>
+        Public Sub Operator_Modifiers_Update_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C" & vbCrLf & "Public Shared Narrowing Operator CType(d As C) As Integer : End Operator : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C" & vbCrLf & "Public Shared Widening Operator CType(d As C) As Integer : End Operator : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
@@ -4692,13 +5178,23 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub StaticCtorDelete()
+        Public Sub Constructor_Shared_Delete()
             Dim src1 = "Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim src2 = "Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(VBFeaturesResources.Shared_constructor, "New()")))
+        End Sub
+
+        <Fact>
+        Public Sub Constructor_Shared_Delete_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
+            Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
@@ -5626,6 +6122,49 @@ End Class
                         }),
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialDeclaration_Insert_Reloadable()
+            Dim srcA1 = ""
+            Dim srcB1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Partial Class C
+    Dim x = 1
+
+    Sub F()
+    End Sub
+End Class
+"
+            Dim srcA2 = "
+Partial Class C
+    Public Sub New()
+    End Sub
+
+    Sub F()
+    End Sub
+End Class"
+            Dim srcB2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Partial Class C
+    Dim x = 2
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"), partialType:="C")
+                        }),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"), partialType:="C")
+                        })
                 })
         End Sub
 

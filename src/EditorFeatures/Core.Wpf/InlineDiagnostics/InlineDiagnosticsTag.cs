@@ -31,8 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly DiagnosticData _diagnostic;
         private readonly INavigateToLinkService _navigateToLinkService;
         private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
+        private readonly IClassificationType? _classificationType;
+
+        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
+            IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
+            InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
@@ -40,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             Location = location;
             _navigateToLinkService = navigateToLinkService;
             _editorFormatMap = editorFormatMap;
+            _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
+            _classificationTypeRegistryService = classificationTypeRegistryService;
+            _classificationType = _classificationTypeRegistryService.GetClassificationType("url");
         }
 
         /// <summary>
@@ -57,13 +66,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             var idRun = GetRunForId(out var hyperlink);
-
             if (hyperlink is null)
             {
                 block.Inlines.Add(idRun);
             }
             else
             {
+                // Match the hyperlink color to what the classification is set to by the user
+                var linkColor = _classificationFormatMap.GetTextProperties(_classificationType);
+                hyperlink.Foreground = linkColor.ForegroundBrush;
+
                 block.Inlines.Add(hyperlink);
                 hyperlink.RequestNavigate += HandleRequestNavigate;
             }
@@ -151,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 {
                     link = new Hyperlink(id)
                     {
-                        NavigateUri = new Uri(_diagnostic.HelpLink)
+                        NavigateUri = new Uri(_diagnostic.HelpLink),
                     };
                 }
 

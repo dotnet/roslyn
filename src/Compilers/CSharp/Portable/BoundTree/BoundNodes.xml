@@ -405,14 +405,8 @@
 
   <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
-    <Field Name="MethodOpt" Type="MethodSymbol?"/>
-    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
-    <!--The set of method symbols from which this operator's method was chosen.
-        Only kept in the tree if the operator was an error and overload resolution
-        was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
@@ -2191,7 +2185,7 @@
 
   <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Initializer" Type="BoundExpressionStatement?"/>
+    <Field Name="Initializer" Type="BoundStatement?"/>
   </Node>
 
   <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->

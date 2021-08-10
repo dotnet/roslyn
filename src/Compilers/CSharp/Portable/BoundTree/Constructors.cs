@@ -382,11 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                constantValueOpt,
-                methodOpt,
-                constrainedToTypeOpt,
+                UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt),
                 resultKind,
-                originalUserDefinedOperatorsOpt,
                 left,
                 right,
                 type,
@@ -404,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt: default, left, right, type, hasErrors)
+            this(syntax, operatorKind, UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt: default), resultKind, left, right, type, hasErrors)
         {
         }
 
@@ -416,7 +413,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           BoundExpression left,
                                           BoundExpression right,
                                           TypeSymbol type)
-            => Update(operatorKind, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
+        {
+            var uncommonData = UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, OriginalUserDefinedOperatorsOpt);
+            return Update(operatorKind, uncommonData, resultKind, left, right, type);
+        }
+
+        public BoundBinaryOperator Update(UncommonData uncommonData)
+        {
+            return Update(OperatorKind, uncommonData, ResultKind, Left, Right, Type);
+        }
     }
 
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator

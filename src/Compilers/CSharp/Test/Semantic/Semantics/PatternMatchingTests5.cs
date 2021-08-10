@@ -1832,6 +1832,34 @@ class C
                 );
         }
 
+        [Fact, WorkItem(55184, "https://github.com/dotnet/roslyn/issues/55184")]
+        public void Repro55184()
+        {
+            var source = @"
+var x = """";
+
+_ = x is { Error: { Length: > 0 } };
+_ = x is { Error.Length: > 0 };
+_ = x is { Length: { Error: > 0 } };
+_ = x is { Length.Error: > 0 };
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error: { Length: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(4, 12),
+                // (5,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error.Length: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(5, 12),
+                // (6,22): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length: { Error: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(6, 22),
+                // (7,19): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length.Error: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(7, 19)
+                );
+        }
+
         public class FlowAnalysisTests : FlowTestBase
         {
             [Fact]

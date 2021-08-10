@@ -204,4 +204,7 @@
   <data name="FeatureName_ValueTracking" xml:space="preserve">
     <value>Value Tracking</value>
   </data>
+  <data name="FeatureName_UnusedReferenceAnalysis" xml:space="preserve">
+    <value>Unused reference analysis</value>
+  </data>
 </root>

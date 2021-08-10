@@ -69,6 +69,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         [Fact]
+        public async Task TestGetCompletions_PromotesNothingWhenNoCommitCharactersAsync()
+        {
+            var clientCapabilities = new LSP.VSClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new LSP.TextDocumentClientCapabilities()
+                {
+                    Completion = new LSP.VSCompletionSetting()
+                    {
+                        CompletionList = new LSP.VSCompletionListSetting()
+                        {
+                            CommitCharacters = true,
+                        }
+                    }
+                }
+            };
+            var markup =
+@"namespace M
+{{|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
+            var expectedCommitCharacters = expected.CommitCharacters;
+
+            // Null out the commit characters since we're expecting the commit characters will be lifted onto the completion list.
+            expected.CommitCharacters = null;
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities).ConfigureAwait(false);
+            Assert.All(results.Items, item => Assert.Null(item.CommitCharacters));
+            var vsCompletionList = Assert.IsAssignableFrom<LSP.VSCompletionList>(results);
+            Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
+        }
+
+        [Fact]
         public async Task TestGetCompletionsAsync()
         {
             var markup =
@@ -89,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
-                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
+                request: completionParams, document: document, commitCharacters: null, insertText: "A").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -116,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
-                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
+                request: completionParams, document: document, commitCharacters: null, insertText: "A").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
