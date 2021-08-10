@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'Wyrażenie „default” można uprościć</target>
+        <target state="translated">Wyrażenie „default” można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
