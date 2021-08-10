@@ -60,40 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
         End Function
 
         Protected Overrides Function TryGetVariableDeclaratorInSingleFieldDeclaration(node As SyntaxNode, ByRef singleVariableDeclarator As SyntaxNode) As Boolean
-            ' node is FieldDeclarationSyntax
-            ' e.g.
-            ' Public Class Bar
-            '   Publ$$ic i As Integer
-            ' End Class
-            Dim fieldDeclarationNode = TryCast(node, FieldDeclarationSyntax)
-            If fieldDeclarationNode IsNot Nothing Then
-                Dim declarators = fieldDeclarationNode.Declarators
-                If declarators.Count = 1 AndAlso declarators(0).Names.Count = 1 Then
-                    singleVariableDeclarator = declarators(0).Names(0)
-                    Return True
-                End If
-            End If
-
-            ' Case 1: node is the 'As' keyword is FieldDeclarationSyntax
-            ' e.g.
-            ' Public Class Bar
-            '   Public i A$$s Integer
-            ' End Class
-            '
-            ' Case 2: node is the 'Type' is FieldDeclarationSyntax
-            ' e.g.
-            ' Public Class Bar
-            '   Public i As Inte$$ger
-            ' End Class
-            Dim asClauseNode = If(TryCast(node, SimpleAsClauseSyntax), TryCast(node.Parent, SimpleAsClauseSyntax))
-            If asClauseNode IsNot Nothing Then
-                Dim variableDeclaratorNode = TryCast(asClauseNode.Parent, VariableDeclaratorSyntax)
-                If variableDeclaratorNode IsNot Nothing AndAlso TypeOf variableDeclaratorNode.Parent Is FieldDeclarationSyntax AndAlso variableDeclaratorNode.Names.Count = 1 Then
-                    singleVariableDeclarator = variableDeclaratorNode.Names(0)
-                    Return True
-                End If
-            End If
-
             singleVariableDeclarator = Nothing
             Return False
         End Function
