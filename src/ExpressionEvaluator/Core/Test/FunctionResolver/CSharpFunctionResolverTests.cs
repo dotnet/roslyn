@@ -453,6 +453,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         }
 
         [Fact]
+        [WorkItem(55475, "https://github.com/dotnet/roslyn/issues/55475")]
         public void BadMetadata()
         {
             var source = "class A { static void F() {} }";
