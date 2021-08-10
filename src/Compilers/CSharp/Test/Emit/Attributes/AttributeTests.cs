@@ -10325,8 +10325,8 @@ class Program
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/55190
-            // We expect to be able to reflect on such attributes and read them back in from metadata.
+            // The expected output here will change once we consume a runtime
+            // which has a fix for https://github.com/dotnet/runtime/issues/56492
             var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "CustomAttributeFormatException");
 
             verifier.VerifyTypeIL("Holder", @"
@@ -10359,6 +10359,9 @@ class Program
 
             void verifyMetadata(ModuleSymbol module)
             {
+                // https://github.com/dotnet/roslyn/issues/55190
+                // The compiler should be able to read this attribute argument from metadata.
+                // Once this is fixed, we should be able to use exactly the same 'verify' method for both source and metadata.
                 var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
                 var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
@@ -10392,6 +10395,82 @@ class Outer<T2>
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 15));
+        }
+
+        [Fact]
+        public void GenericAttributeOnAssembly()
+        {
+            var source = @"
+using System;
+
+[assembly: Attr<string>]
+[assembly: Attr<int>]
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class Attr<T> : Attribute { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verifySource);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var attrs = module.ContainingAssembly.GetAttributes();
+                Assert.Equal(new[]
+                {
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)",
+                    "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)",
+                    "Attr<System.String>",
+                    "Attr<System.Int32>"
+                }, GetAttributeStrings(attrs));
+            }
+
+            void verifySource(ModuleSymbol module)
+            {
+                var attrs = module.ContainingAssembly.GetAttributes();
+                Assert.Equal(new[]
+                {
+                    "Attr<System.String>",
+                    "Attr<System.Int32>"
+                }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttributeReflection_OpenGeneric()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+
+class Attr<T> : Attribute { }
+class Attr2<T> : Attribute { }
+
+[Attr<string>]
+[Attr2<int>]
+class Holder { }
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var attrs = CustomAttributeData.GetCustomAttributes(typeof(Holder), typeof(Attr<>));
+            foreach (var attr in attrs)
+            {
+                Console.Write(attr);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write(e.GetType().Name);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr[System.String]");
+            verifier.VerifyDiagnostics();
         }
 
         #endregion
