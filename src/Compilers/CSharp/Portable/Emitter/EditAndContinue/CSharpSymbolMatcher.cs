@@ -760,8 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
-                    (parameter.RefKind == other.RefKind) &&
+                return (parameter.RefKind == other.RefKind) &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
 

@@ -185,6 +185,60 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub ModifyMethod_RenameParameter()
+            Dim source0 =
+"
+Class C
+    Shared Function F(i As Integer) As Integer
+        Return i
+    End Function
+End Class
+"
+            Dim source1 =
+"
+Class C
+    Shared Function F(x As Integer) As Integer
+        Return x
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                CheckNames(reader0, reader0.GetParameterDefNames(), "i")
+
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+                Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                ' Verify delta metadata contains expected rows.
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
+                    CheckNames(readers, reader1.GetParameterDefNames(), "x")
+
+                    CheckEncLogDefinitions(reader1,
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default))
+
+                    CheckEncMapDefinitions(reader1,
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(1, TableIndex.Param),
+                        Handle(2, TableIndex.StandAloneSig))
+                End Using
+            End Using
+        End Sub
+
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()

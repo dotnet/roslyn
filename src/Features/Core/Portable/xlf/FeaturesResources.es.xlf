@@ -2180,6 +2180,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="new">Renaming {0} requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
         <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>

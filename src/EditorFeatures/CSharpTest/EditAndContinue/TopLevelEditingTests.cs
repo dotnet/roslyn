@@ -4052,7 +4052,16 @@ record C(int X)
                 "Update [int a]@22 -> [int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
+                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
@@ -6788,7 +6797,48 @@ class C
                 "Update [string[] args]@35 -> [string[] b]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "string[] b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateParameterAndBody()
+        {
+            var src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main(string[] b)
+    {
+        System.Console.Write(1);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
