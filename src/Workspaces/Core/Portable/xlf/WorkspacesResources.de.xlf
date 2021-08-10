@@ -112,11 +112,6 @@
         <target state="translated">Das Entfernen von Konfigurationsdokumenten des Analysetools wird nicht unterstützt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">"{0}" in "{1}" umbenennen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">Der angegebene Verweis ist nicht in der Projektmappe enthalten.</target>
@@ -200,11 +195,6 @@
       <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
         <source>Symbol's project could not be found in the provided solution</source>
         <target state="translated">Das Projekt des Symbols wurde in der angegebenen Projektmappe nicht gefunden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_namespace_to_folder_structure">
-        <source>Sync namespace to folder structure</source>
-        <target state="translated">Namespace mit Ordnerstruktur synchronisieren</target>
         <note />
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">

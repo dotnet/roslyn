@@ -112,11 +112,6 @@
         <target state="translated">분석기 구성 문서 제거는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">지정된 참조가 솔루션에 포함되어 있지 않습니다.</target>
@@ -200,11 +195,6 @@
       <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
         <source>Symbol's project could not be found in the provided solution</source>
         <target state="translated">제공된 솔루션에서 기호의 프로젝트를 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_namespace_to_folder_structure">
-        <source>Sync namespace to folder structure</source>
-        <target state="translated">네임스페이스를 폴더 구조로 동기화</target>
         <note />
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">

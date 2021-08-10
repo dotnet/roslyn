@@ -112,11 +112,6 @@
         <target state="translated">La rimozione di documenti di configurazione dell'analizzatore non è supportata.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Rinomina '{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">La soluzione non contiene il riferimento specificato</target>
@@ -200,11 +195,6 @@
       <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
         <source>Symbol's project could not be found in the provided solution</source>
         <target state="translated">Non è stato possibile trovare il progetto del simbolo nella soluzione specificata</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_namespace_to_folder_structure">
-        <source>Sync namespace to folder structure</source>
-        <target state="translated">Sincronizza lo spazio dei nomi con la struttura di cartelle</target>
         <note />
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
