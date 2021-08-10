@@ -1331,7 +1331,7 @@ value:4
 value:5
 ");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__TwoComponents|0_0()", @"
+            verifier.VerifyIL("Program.<<Main>$>g__TwoComponents|0_0()", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -1345,7 +1345,7 @@ value:5
 }
 ");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ThreeComponents|0_1()", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ThreeComponents|0_1()", @"
 {
   // Code size       25 (0x19)
   .maxstack  3
@@ -1363,7 +1363,7 @@ value:5
 }
 ");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__FourComponents|0_2()", @"
+            verifier.VerifyIL("Program.<<Main>$>g__FourComponents|0_2()", @"
 {
   // Code size       32 (0x20)
   .maxstack  4
@@ -1385,7 +1385,7 @@ value:5
 }
 ");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__FiveComponents|0_3()", @"
+            verifier.VerifyIL("Program.<<Main>$>g__FiveComponents|0_3()", @"
 {
   // Code size       89 (0x59)
   .maxstack  3
@@ -2329,7 +2329,7 @@ Task<int> Hole() => Task.FromResult(1);";
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", !expression.Contains("+") ? @"
+            verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", !expression.Contains("+") ? @"
 {
   // Code size      164 (0xa4)
   .maxstack  3
@@ -2338,13 +2338,13 @@ Task<int> Hole() => Task.FromResult(1);";
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_003e
-    IL_000a:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__Hole|0_0()""
+    IL_000a:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__Hole|0_0()""
     IL_000f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0014:  stloc.2
     IL_0015:  ldloca.s   V_2
@@ -2354,27 +2354,27 @@ Task<int> Hole() => Task.FromResult(1);";
     IL_001f:  ldc.i4.0
     IL_0020:  dup
     IL_0021:  stloc.0
-    IL_0022:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0022:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0027:  ldarg.0
     IL_0028:  ldloc.2
-    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_002e:  ldarg.0
-    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0034:  ldloca.s   V_2
     IL_0036:  ldarg.0
-    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
     IL_003c:  leave.s    IL_00a3
     IL_003e:  ldarg.0
-    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_0044:  stloc.2
     IL_0045:  ldarg.0
-    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_004b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0051:  ldarg.0
     IL_0052:  ldc.i4.m1
     IL_0053:  dup
     IL_0054:  stloc.0
-    IL_0055:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0055:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_005a:  ldloca.s   V_2
     IL_005c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_0061:  stloc.1
@@ -2390,18 +2390,18 @@ Task<int> Hole() => Task.FromResult(1);";
     IL_0079:  stloc.3
     IL_007a:  ldarg.0
     IL_007b:  ldc.i4.s   -2
-    IL_007d:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_007d:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0082:  ldarg.0
-    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0088:  ldloc.3
     IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_008e:  leave.s    IL_00a3
   }
   IL_0090:  ldarg.0
   IL_0091:  ldc.i4.s   -2
-  IL_0093:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0093:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0098:  ldarg.0
-  IL_0099:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_0099:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
   IL_009e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00a3:  ret
 }
@@ -2415,13 +2415,13 @@ Task<int> Hole() => Task.FromResult(1);";
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_003e
-    IL_000a:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__Hole|0_0()""
+    IL_000a:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__Hole|0_0()""
     IL_000f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0014:  stloc.2
     IL_0015:  ldloca.s   V_2
@@ -2431,27 +2431,27 @@ Task<int> Hole() => Task.FromResult(1);";
     IL_001f:  ldc.i4.0
     IL_0020:  dup
     IL_0021:  stloc.0
-    IL_0022:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0022:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0027:  ldarg.0
     IL_0028:  ldloc.2
-    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_002e:  ldarg.0
-    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0034:  ldloca.s   V_2
     IL_0036:  ldarg.0
-    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
     IL_003c:  leave.s    IL_00ad
     IL_003e:  ldarg.0
-    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_0044:  stloc.2
     IL_0045:  ldarg.0
-    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_004b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0051:  ldarg.0
     IL_0052:  ldc.i4.m1
     IL_0053:  dup
     IL_0054:  stloc.0
-    IL_0055:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0055:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_005a:  ldloca.s   V_2
     IL_005c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_0061:  stloc.1
@@ -2469,18 +2469,18 @@ Task<int> Hole() => Task.FromResult(1);";
     IL_0083:  stloc.3
     IL_0084:  ldarg.0
     IL_0085:  ldc.i4.s   -2
-    IL_0087:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0087:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_008c:  ldarg.0
-    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0092:  ldloc.3
     IL_0093:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_0098:  leave.s    IL_00ad
   }
   IL_009a:  ldarg.0
   IL_009b:  ldc.i4.s   -2
-  IL_009d:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_009d:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_00a2:  ldarg.0
-  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
   IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00ad:  ret
 }");
@@ -2505,7 +2505,7 @@ Task<int> Hole() => Task.FromResult(1);";
 base
 value:1");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      185 (0xb9)
   .maxstack  3
@@ -2515,13 +2515,13 @@ value:1");
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_003e
-    IL_000a:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__Hole|0_0()""
+    IL_000a:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__Hole|0_0()""
     IL_000f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0014:  stloc.2
     IL_0015:  ldloca.s   V_2
@@ -2531,27 +2531,27 @@ value:1");
     IL_001f:  ldc.i4.0
     IL_0020:  dup
     IL_0021:  stloc.0
-    IL_0022:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0022:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0027:  ldarg.0
     IL_0028:  ldloc.2
-    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_002e:  ldarg.0
-    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0034:  ldloca.s   V_2
     IL_0036:  ldarg.0
-    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
     IL_003c:  leave.s    IL_00b8
     IL_003e:  ldarg.0
-    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_0044:  stloc.2
     IL_0045:  ldarg.0
-    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_004b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0051:  ldarg.0
     IL_0052:  ldc.i4.m1
     IL_0053:  dup
     IL_0054:  stloc.0
-    IL_0055:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0055:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_005a:  ldloca.s   V_2
     IL_005c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_0061:  stloc.1
@@ -2575,18 +2575,18 @@ value:1");
     IL_008c:  stloc.s    V_4
     IL_008e:  ldarg.0
     IL_008f:  ldc.i4.s   -2
-    IL_0091:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0091:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0096:  ldarg.0
-    IL_0097:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0097:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_009c:  ldloc.s    V_4
     IL_009e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_00a3:  leave.s    IL_00b8
   }
   IL_00a5:  ldarg.0
   IL_00a6:  ldc.i4.s   -2
-  IL_00a8:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_00a8:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_00ad:  ldarg.0
-  IL_00ae:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_00ae:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
   IL_00b3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b8:  ret
 }
@@ -2619,7 +2619,7 @@ Task<int> M(int i)
 base
 value:2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      328 (0x148)
   .maxstack  3
@@ -2629,7 +2629,7 @@ value:2");
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
@@ -2640,9 +2640,9 @@ value:2");
     IL_000c:  beq        IL_00dc
     IL_0011:  ldarg.0
     IL_0012:  ldc.i4.2
-    IL_0013:  stfld      ""int <Program>$.<<Main>$>d__0.<hole>5__2""
+    IL_0013:  stfld      ""int Program.<<Main>$>d__0.<hole>5__2""
     IL_0018:  ldc.i4.1
-    IL_0019:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__M|0_1(int)""
+    IL_0019:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__M|0_1(int)""
     IL_001e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0023:  stloc.2
     IL_0024:  ldloca.s   V_2
@@ -2652,31 +2652,31 @@ value:2");
     IL_002e:  ldc.i4.0
     IL_002f:  dup
     IL_0030:  stloc.0
-    IL_0031:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0031:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0036:  ldarg.0
     IL_0037:  ldloc.2
-    IL_0038:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0038:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_003d:  ldarg.0
-    IL_003e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_003e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_0043:  ldloca.s   V_2
     IL_0045:  ldarg.0
-    IL_0046:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_0046:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
     IL_004b:  leave      IL_0147
     IL_0050:  ldarg.0
-    IL_0051:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0051:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_0056:  stloc.2
     IL_0057:  ldarg.0
-    IL_0058:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0058:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_005d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0063:  ldarg.0
     IL_0064:  ldc.i4.m1
     IL_0065:  dup
     IL_0066:  stloc.0
-    IL_0067:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0067:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_006c:  ldarg.0
     IL_006d:  ldloca.s   V_2
     IL_006f:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0074:  stfld      ""int <Program>$.<<Main>$>d__0.<>7__wrap2""
+    IL_0074:  stfld      ""int Program.<<Main>$>d__0.<>7__wrap2""
     IL_0079:  ldarg.0
     IL_007a:  ldc.i4.4
     IL_007b:  ldc.i4.1
@@ -2687,13 +2687,13 @@ value:2");
     IL_0089:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
     IL_008e:  ldloca.s   V_3
     IL_0090:  ldarg.0
-    IL_0091:  ldfld      ""int <Program>$.<<Main>$>d__0.<hole>5__2""
+    IL_0091:  ldfld      ""int Program.<<Main>$>d__0.<hole>5__2""
     IL_0096:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
     IL_009b:  ldloca.s   V_3
     IL_009d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_00a2:  stfld      ""string <Program>$.<<Main>$>d__0.<>7__wrap3""
+    IL_00a2:  stfld      ""string Program.<<Main>$>d__0.<>7__wrap3""
     IL_00a7:  ldc.i4.3
-    IL_00a8:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__M|0_1(int)""
+    IL_00a8:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__M|0_1(int)""
     IL_00ad:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_00b2:  stloc.2
     IL_00b3:  ldloca.s   V_2
@@ -2703,39 +2703,39 @@ value:2");
     IL_00bd:  ldc.i4.1
     IL_00be:  dup
     IL_00bf:  stloc.0
-    IL_00c0:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_00c0:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_00c5:  ldarg.0
     IL_00c6:  ldloc.2
-    IL_00c7:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_00c7:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_00cc:  ldarg.0
-    IL_00cd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_00cd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_00d2:  ldloca.s   V_2
     IL_00d4:  ldarg.0
-    IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_00d5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
     IL_00da:  leave.s    IL_0147
     IL_00dc:  ldarg.0
-    IL_00dd:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_00dd:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_00e2:  stloc.2
     IL_00e3:  ldarg.0
-    IL_00e4:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_00e4:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_00e9:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_00ef:  ldarg.0
     IL_00f0:  ldc.i4.m1
     IL_00f1:  dup
     IL_00f2:  stloc.0
-    IL_00f3:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_00f3:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_00f8:  ldloca.s   V_2
     IL_00fa:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_00ff:  stloc.1
     IL_0100:  ldarg.0
-    IL_0101:  ldfld      ""int <Program>$.<<Main>$>d__0.<>7__wrap2""
+    IL_0101:  ldfld      ""int Program.<<Main>$>d__0.<>7__wrap2""
     IL_0106:  ldarg.0
-    IL_0107:  ldfld      ""string <Program>$.<<Main>$>d__0.<>7__wrap3""
+    IL_0107:  ldfld      ""string Program.<<Main>$>d__0.<>7__wrap3""
     IL_010c:  ldloc.1
-    IL_010d:  call       ""void <Program>$.<<Main>$>g__Test|0_0(int, string, int)""
+    IL_010d:  call       ""void Program.<<Main>$>g__Test|0_0(int, string, int)""
     IL_0112:  ldarg.0
     IL_0113:  ldnull
-    IL_0114:  stfld      ""string <Program>$.<<Main>$>d__0.<>7__wrap3""
+    IL_0114:  stfld      ""string Program.<<Main>$>d__0.<>7__wrap3""
     IL_0119:  leave.s    IL_0134
   }
   catch System.Exception
@@ -2743,18 +2743,18 @@ value:2");
     IL_011b:  stloc.s    V_4
     IL_011d:  ldarg.0
     IL_011e:  ldc.i4.s   -2
-    IL_0120:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0120:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
     IL_0125:  ldarg.0
-    IL_0126:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0126:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
     IL_012b:  ldloc.s    V_4
     IL_012d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_0132:  leave.s    IL_0147
   }
   IL_0134:  ldarg.0
   IL_0135:  ldc.i4.s   -2
-  IL_0137:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0137:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_013c:  ldarg.0
-  IL_013d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_013d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
   IL_0142:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0147:  ret
 }
@@ -4099,7 +4099,7 @@ literal:Literal");
   IL_0029:  ldc.i4.0
   IL_002a:  pop
   IL_002b:  ldloc.0
-  IL_002c:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_002c:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_0031:  ret
 }
 ");
@@ -4158,12 +4158,13 @@ literal:Literal");
 ");
         }
 
-        [Theory]
+        [Theory, WorkItem(55345, "https://github.com/dotnet/roslyn/issues/55345")]
         [InlineData(@"$""{1,2:f}Literal""")]
         [InlineData(@"$""{1,2:f}"" + $""Literal""")]
         public void HandlerConversionPreferredOverStringForNonConstant(string expression)
         {
             var code = @"
+CultureInfoNormalizer.Normalize();
 C.M(" + expression + @");
 class C
 {
@@ -4173,12 +4174,12 @@ class C
     }
     public static void M(string s)
     {
-        throw null;
+        System.Console.WriteLine(s);
     }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular10);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4188,29 +4189,62 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
 {
-  // Code size       50 (0x32)
+  // Code size       55 (0x37)
   .maxstack  4
   .locals init (CustomHandler V_0)
-  IL_0000:  ldc.i4.7
-  IL_0001:  ldc.i4.1
-  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  box        ""int""
-  IL_000f:  ldc.i4.2
-  IL_0010:  ldstr      ""f""
-  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
-  IL_001a:  brfalse.s  IL_0029
-  IL_001c:  ldloc.0
-  IL_001d:  ldstr      ""Literal""
-  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
-  IL_0027:  br.s       IL_002a
-  IL_0029:  ldc.i4.0
-  IL_002a:  pop
-  IL_002b:  ldloc.0
-  IL_002c:  call       ""void C.M(CustomHandler)""
-  IL_0031:  ret
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.7
+  IL_0006:  ldc.i4.1
+  IL_0007:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.1
+  IL_000f:  box        ""int""
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldstr      ""f""
+  IL_001a:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001f:  brfalse.s  IL_002e
+  IL_0021:  ldloc.0
+  IL_0022:  ldstr      ""Literal""
+  IL_0027:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.0
+  IL_002f:  pop
+  IL_0030:  ldloc.0
+  IL_0031:  call       ""void C.M(CustomHandler)""
+  IL_0036:  ret
+}
+");
+
+            comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular9);
+            verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
+
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", expression.Contains('+') ? @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldstr      ""{0,2:f}""
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  call       ""string string.Format(string, object)""
+  IL_0015:  ldstr      ""Literal""
+  IL_001a:  call       ""string string.Concat(string, string)""
+  IL_001f:  call       ""void C.M(string)""
+  IL_0024:  ret
+}
+"
+: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldstr      ""{0,2:f}Literal""
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  call       ""string string.Format(string, object)""
+  IL_0015:  call       ""void C.M(string)""
+  IL_001a:  ret
 }
 ");
         }
@@ -4596,7 +4630,7 @@ alignment:2
 format:f
 literal:Literal");
 
-            verifier.VerifyIL("<Program>$.<>c.<<Main>$>b__0_0()", @"
+            verifier.VerifyIL("Program.<>c.<<Main>$>b__0_0()", @"
 {
   // Code size       45 (0x2d)
   .maxstack  4
@@ -4643,7 +4677,7 @@ alignment:2
 format:f
 literal:Literal");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0()", @"
 {
   // Code size       45 (0x2d)
   .maxstack  4
@@ -4694,7 +4728,7 @@ class C
             var verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", !expression.Contains('+') ? @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0()", !expression.Contains('+') ? @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -4753,7 +4787,7 @@ public ref struct S
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0()", @"
 {
   // Code size       35 (0x23)
   .maxstack  4
@@ -4827,7 +4861,7 @@ namespace System.Runtime.CompilerServices
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0()", @"
 {
   // Code size       45 (0x2d)
   .maxstack  3
@@ -4880,7 +4914,7 @@ alignment:2
 format:f
 literal:Literal");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0(bool)", @"
 {
   // Code size       55 (0x37)
   .maxstack  4
@@ -4942,7 +4976,7 @@ public partial struct CustomHandler
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", !expression.Contains('+') ? @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0(bool)", !expression.Contains('+') ? @"
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -5016,7 +5050,7 @@ alignment:2
 format:f
 literal:Literal");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+            verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0(bool)", @"
 {
   // Code size       55 (0x37)
   .maxstack  4
@@ -5773,7 +5807,7 @@ literal:Literal");
   IL_001e:  ldstr      ""Literal""
   IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
   IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void <Program>$.<<Main>$>g__M|0_0(ref CustomHandler)""
+  IL_002a:  call       ""void Program.<<Main>$>g__M|0_0(ref CustomHandler)""
   IL_002f:  ret
 }
 ");
@@ -5838,7 +5872,7 @@ literal:Literal");
   IL_001f:  callvirt   ""void CustomHandler.AppendLiteral(string)""
   IL_0024:  stloc.0
   IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""void <Program>$.<<Main>$>g__M|0_0(in CustomHandler)""
+  IL_0027:  call       ""void Program.<<Main>$>g__M|0_0(in CustomHandler)""
   IL_002c:  ret
 }
 ");
@@ -5881,7 +5915,7 @@ literal:Literal");
   IL_001e:  ldstr      ""Literal""
   IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
   IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void <Program>$.<<Main>$>g__M|0_0(in CustomHandler)""
+  IL_002a:  call       ""void Program.<<Main>$>g__M|0_0(in CustomHandler)""
   IL_002f:  ret
 }
 ");
@@ -7844,10 +7878,10 @@ literal:literal
   .locals init (string V_0,
                 int V_1,
                 CustomHandler V_2)
-  IL_0000:  call       ""int <Program>$.<<Main>$>g__GetInt|0_0()""
+  IL_0000:  call       ""int Program.<<Main>$>g__GetInt|0_0()""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  call       ""string <Program>$.<<Main>$>g__GetString|0_1()""
+  IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_1()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
   IL_000e:  ldloca.s   V_2
@@ -7873,10 +7907,10 @@ literal:literal
                 int V_1,
                 CustomHandler V_2,
                 bool V_3)
-  IL_0000:  call       ""int <Program>$.<<Main>$>g__GetInt|0_0()""
+  IL_0000:  call       ""int Program.<<Main>$>g__GetInt|0_0()""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  call       ""string <Program>$.<<Main>$>g__GetString|0_1()""
+  IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_1()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
   IL_000e:  ldc.i4.7
@@ -7981,14 +8015,14 @@ literal:literal
                 int V_2,
                 string V_3,
                 CustomHandler V_4)
-  IL_0000:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  call       ""string <Program>$.<<Main>$>g__GetString|0_2()""
+  IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
   IL_000e:  stloc.3
-  IL_000f:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1()""
+  IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
   IL_0015:  ldloc.2
   IL_0016:  ldloc.3
@@ -8018,14 +8052,14 @@ literal:literal
                 string V_3,
                 CustomHandler V_4,
                 bool V_5)
-  IL_0000:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0000:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  call       ""string <Program>$.<<Main>$>g__GetString|0_2()""
+  IL_0007:  call       ""string Program.<<Main>$>g__GetString|0_2()""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
   IL_000e:  stloc.3
-  IL_000f:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1()""
+  IL_000f:  call       ""int Program.<<Main>$>g__GetInt|0_1()""
   IL_0014:  stloc.2
   IL_0015:  ldloc.2
   IL_0016:  ldloc.3
@@ -8111,7 +8145,7 @@ literal:literal
   .maxstack  7
   .locals init (int V_0,
                 CustomHandler V_1)
-  IL_0000:  call       ""int <Program>$.<<Main>$>g__GetInt|0_0()""
+  IL_0000:  call       ""int Program.<<Main>$>g__GetInt|0_0()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldstr      """"
@@ -8137,7 +8171,7 @@ literal:literal
   .locals init (int V_0,
                 CustomHandler V_1,
                 bool V_2)
-  IL_0000:  call       ""int <Program>$.<<Main>$>g__GetInt|0_0()""
+  IL_0000:  call       ""int Program.<<Main>$>g__GetInt|0_0()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldstr      """"
@@ -8775,7 +8809,7 @@ literal:literal
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""ref C <Program>$.<<Main>$>g__GetC|0_0(ref C)""
+  IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  ldind.ref
@@ -8808,7 +8842,7 @@ literal:literal
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""ref C <Program>$.<<Main>$>g__GetC|0_0(ref C)""
+  IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  ldind.ref
@@ -8906,7 +8940,7 @@ literal:literal
   IL_0002:  ldc.i4.1
   IL_0003:  call       ""C..ctor(int)""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""ref C <Program>$.<<Main>$>g__GetC|0_0(ref C)""
+  IL_000a:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -8938,7 +8972,7 @@ literal:literal
   IL_0002:  ldc.i4.1
   IL_0003:  call       ""C..ctor(int)""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""ref C <Program>$.<<Main>$>g__GetC|0_0(ref C)""
+  IL_000a:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -9524,10 +9558,10 @@ format:
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  stloc.3
@@ -9556,7 +9590,7 @@ format:
   IL_0041:  ldloc.s    V_4
   IL_0043:  callvirt   ""int C.this[int, CustomHandler].get""
   IL_0048:  ldc.i4.2
-  IL_0049:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0049:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_004e:  add
   IL_004f:  callvirt   ""void C.this[int, CustomHandler].set""
   IL_0054:  ret
@@ -9575,10 +9609,10 @@ format:
                 bool V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  stloc.3
@@ -9614,7 +9648,7 @@ format:
   IL_004c:  ldloc.s    V_4
   IL_004e:  callvirt   ""int C.this[int, CustomHandler].get""
   IL_0053:  ldc.i4.2
-  IL_0054:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0054:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0059:  add
   IL_005a:  callvirt   ""void C.this[int, CustomHandler].set""
   IL_005f:  ret
@@ -9632,10 +9666,10 @@ format:
                 CustomHandler V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  stloc.3
@@ -9668,7 +9702,7 @@ format:
   IL_0047:  ldloc.s    V_4
   IL_0049:  callvirt   ""int C.this[int, CustomHandler].get""
   IL_004e:  ldc.i4.2
-  IL_004f:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_004f:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0054:  add
   IL_0055:  callvirt   ""void C.this[int, CustomHandler].set""
   IL_005a:  ret
@@ -9687,10 +9721,10 @@ format:
                 bool V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
   IL_0010:  stloc.3
@@ -9726,7 +9760,7 @@ format:
   IL_004d:  ldloc.s    V_4
   IL_004f:  callvirt   ""int C.this[int, CustomHandler].get""
   IL_0054:  ldc.i4.2
-  IL_0055:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0055:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_005a:  add
   IL_005b:  callvirt   ""void C.this[int, CustomHandler].set""
   IL_0060:  ret
@@ -9818,11 +9852,11 @@ GetInt2
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_3
@@ -9845,7 +9879,7 @@ GetInt2
   IL_003d:  dup
   IL_003e:  ldind.i4
   IL_003f:  ldc.i4.2
-  IL_0040:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0040:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0045:  add
   IL_0046:  stind.i4
   IL_0047:  ret
@@ -9862,11 +9896,11 @@ GetInt2
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -9896,7 +9930,7 @@ GetInt2
   IL_0047:  dup
   IL_0048:  ldind.i4
   IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_004f:  add
   IL_0050:  stind.i4
   IL_0051:  ret
@@ -9912,11 +9946,11 @@ GetInt2
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_3
@@ -9943,7 +9977,7 @@ GetInt2
   IL_0043:  dup
   IL_0044:  ldind.i4
   IL_0045:  ldc.i4.2
-  IL_0046:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0046:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_004b:  add
   IL_004c:  stind.i4
   IL_004d:  ret
@@ -9960,11 +9994,11 @@ GetInt2
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -9994,7 +10028,7 @@ GetInt2
   IL_0048:  dup
   IL_0049:  ldind.i4
   IL_004a:  ldc.i4.2
-  IL_004b:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_004b:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0050:  add
   IL_0051:  stind.i4
   IL_0052:  ret
@@ -10083,11 +10117,11 @@ GetInt2
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_3
@@ -10110,7 +10144,7 @@ GetInt2
   IL_003d:  dup
   IL_003e:  ldind.i4
   IL_003f:  ldc.i4.2
-  IL_0040:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0040:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0045:  add
   IL_0046:  stind.i4
   IL_0047:  ret
@@ -10127,11 +10161,11 @@ GetInt2
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -10161,7 +10195,7 @@ GetInt2
   IL_0047:  dup
   IL_0048:  ldind.i4
   IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_004f:  add
   IL_0050:  stind.i4
   IL_0051:  ret
@@ -10177,11 +10211,11 @@ GetInt2
                 CustomHandler V_3)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_3
@@ -10208,7 +10242,7 @@ GetInt2
   IL_0043:  dup
   IL_0044:  ldind.i4
   IL_0045:  ldc.i4.2
-  IL_0046:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_0046:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_004b:  add
   IL_004c:  stind.i4
   IL_004d:  ret
@@ -10225,11 +10259,11 @@ GetInt2
                 bool V_4)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
-  IL_0002:  call       ""C <Program>$.<<Main>$>g__GetC|0_0()""
+  IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
   IL_0007:  stloc.2
   IL_0008:  ldloc.2
   IL_0009:  ldc.i4.1
-  IL_000a:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
@@ -10259,7 +10293,7 @@ GetInt2
   IL_0048:  dup
   IL_0049:  ldind.i4
   IL_004a:  ldc.i4.2
-  IL_004b:  call       ""int <Program>$.<<Main>$>g__GetInt|0_1(int)""
+  IL_004b:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_0050:  add
   IL_0051:  stind.i4
   IL_0052:  ret
@@ -11352,7 +11386,7 @@ public partial struct CustomHandler
   IL_0005:  ldloc.0
   IL_0006:  box        ""int""
   IL_000b:  newobj     ""CustomHandler..ctor(int, int, dynamic)""
-  IL_0010:  call       ""void <Program>$.<<Main>$>g__M|0_0(int, CustomHandler)""
+  IL_0010:  call       ""void Program.<<Main>$>g__M|0_0(int, CustomHandler)""
   IL_0015:  ret
 }
 ");
@@ -11392,7 +11426,7 @@ public struct CustomHandler
   IL_0001:  box        ""int""
   IL_0006:  ldc.i4.0
   IL_0007:  newobj     ""CustomHandler..ctor(dynamic, int)""
-  IL_000c:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_000c:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_0011:  ret
 }
 ");
@@ -11436,7 +11470,7 @@ public struct CustomHandler
   IL_0000:  ldc.i4.0
   IL_0001:  ldc.i4.0
   IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
-  IL_0007:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_0007:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_000c:  ret
 }
 ");
@@ -11485,7 +11519,7 @@ public struct CustomHandler
   IL_000b:  ldstr      ""Literal""
   IL_0010:  call       ""void CustomHandler.AppendLiteral(dynamic)""
   IL_0015:  ldloc.0
-  IL_0016:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_0016:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_001b:  ret
 }
 ");
@@ -11535,7 +11569,7 @@ public struct CustomHandler
   IL_000c:  box        ""int""
   IL_0011:  call       ""void CustomHandler.AppendFormatted(dynamic)""
   IL_0016:  ldloc.0
-  IL_0017:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_0017:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_001c:  ret
 }
 ");
@@ -11595,12 +11629,12 @@ AppendFormatted");
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldstr      ""literal""
   IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
-  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
   IL_0021:  brtrue.s   IL_0062
   IL_0023:  ldc.i4     0x100
   IL_0028:  ldstr      ""AppendFormatted""
   IL_002d:  ldnull
-  IL_002e:  ldtoken    ""<Program>$""
+  IL_002e:  ldtoken    ""Program""
   IL_0033:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_0038:  ldc.i4.2
   IL_0039:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
@@ -11618,15 +11652,15 @@ AppendFormatted");
   IL_0052:  stelem.ref
   IL_0053:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
   IL_0067:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
-  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
   IL_0071:  ldloca.s   V_1
   IL_0073:  ldloc.0
   IL_0074:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
   IL_0079:  ldloc.1
-  IL_007a:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_007a:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_007f:  ret
 }
 ");
@@ -11689,25 +11723,25 @@ AppendFormatted");
   IL_0012:  ldstr      ""literal""
   IL_0017:  call       ""bool CustomHandler.AppendLiteral(dynamic)""
   IL_001c:  brfalse    IL_00bb
-  IL_0021:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
+  IL_0021:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
   IL_0026:  brtrue.s   IL_004c
   IL_0028:  ldc.i4.0
   IL_0029:  ldtoken    ""bool""
   IL_002e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0033:  ldtoken    ""<Program>$""
+  IL_0033:  ldtoken    ""Program""
   IL_0038:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_003d:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
   IL_0042:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0047:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
-  IL_004c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
+  IL_0047:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
+  IL_004c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
   IL_0051:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target""
-  IL_0056:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <Program>$.<>o__0.<>p__1""
-  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0056:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
+  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
   IL_0060:  brtrue.s   IL_009d
   IL_0062:  ldc.i4.0
   IL_0063:  ldstr      ""AppendFormatted""
   IL_0068:  ldnull
-  IL_0069:  ldtoken    ""<Program>$""
+  IL_0069:  ldtoken    ""Program""
   IL_006e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_0073:  ldc.i4.2
   IL_0074:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
@@ -11725,10 +11759,10 @@ AppendFormatted");
   IL_008d:  stelem.ref
   IL_008e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0093:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
-  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
+  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
   IL_00a2:  ldfld      ""<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Target""
-  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> <Program>$.<>o__0.<>p__0""
+  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
   IL_00ac:  ldloca.s   V_1
   IL_00ae:  ldloc.0
   IL_00af:  callvirt   ""dynamic <>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
@@ -11737,7 +11771,7 @@ AppendFormatted");
   IL_00bb:  ldc.i4.0
   IL_00bc:  pop
   IL_00bd:  ldloc.1
-  IL_00be:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_00be:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_00c3:  ret
 }
 ");

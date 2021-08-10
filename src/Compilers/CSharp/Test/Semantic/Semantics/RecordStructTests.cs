@@ -7378,7 +7378,7 @@ static (int, int) M((int X, int Y) b)
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
-            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
 {
   // Code size       22 (0x16)
   .maxstack  2
@@ -7412,7 +7412,7 @@ static (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int,
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
-            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>)", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
