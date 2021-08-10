@@ -62,19 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 
         protected override bool TryGetVariableDeclaratorInSingleFieldDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? singleVariableDeclarator)
         {
-            singleVariableDeclarator = null;
-            if (node is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
+            // 1. If node is a part of VariableDeclaration, check the grand parent of this node.
+            // e.g.
+            // class Bar
+            // {
+            //      public i$$nt i;
+            // }
+            if (node.Parent is VariableDeclarationSyntax && node.Parent.Parent is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
             {
                 singleVariableDeclarator = baseFieldDeclarationNode.Declaration.Variables[0];
                 return true;
             }
 
-            if (node.Parent is BaseFieldDeclarationSyntax && node is VariableDeclarationSyntax { Variables: { Count: 1 } } variableDeclarationNode)
+            // 2. If the node is a field declaration
+            // class Bar
+            // {
+            //      publ$$ic int i;
+            // }
+            if (node is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } fieldDeclarationNode)
             {
-                singleVariableDeclarator = variableDeclarationNode.Variables[0];
+                singleVariableDeclarator = fieldDeclarationNode.Declaration.Variables[0];
                 return true;
             }
 
+            singleVariableDeclarator = null;
             return false;
         }
     }

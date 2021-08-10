@@ -425,17 +425,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 yield return singleVariable;
             }
-
-            // In some case the we need to find the variable in parent.
-            // e.g.
-            // class Bar
-            // {
-            //     public i$$nt i;
-            // }
-            if (node.Parent != null && TryGetVariableDeclaratorInSingleFieldDeclaration(node.Parent, out var singleVariableInParent))
-            {
-                yield return singleVariableInParent;
-            }
         }
 
         /// <summary>
