@@ -5,8 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
 using Xunit;
 
@@ -15,8 +17,98 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     public class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
     {
         protected override string Language => LanguageNames.CSharp;
-        protected override TestWorkspace CreateTestWorkspace(string testCode)
-            => TestWorkspace.CreateCSharp(testCode);
+        protected override TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
+            => TestWorkspace.CreateCSharp(testCode, parseOptions);
+
+        [Fact]
+        public async Task TestFileScopedNamespaces()
+        {
+            await TestAsync(testCode: @"
+namespace Goo
+{
+    internal class C
+    {
+    }
+}",
+            expected: @"
+namespace Goo;
+
+internal class C
+{
+}
+",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+            },
+            parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact]
+        public async Task TestFileScopedNamespaces_Invalid_MultipleNamespaces()
+        {
+            var testCode = @"
+namespace Goo
+{
+}
+
+namespace Bar
+{
+}";
+
+            await TestAsync(
+                testCode: testCode,
+                expected: testCode,
+                options: new[]
+                {
+                    (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+                },
+                parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact]
+        public async Task TestFileScopedNamespaces_Invalid_WrongLanguageVersion()
+        {
+            var testCode = @"
+namespace Goo
+{
+    internal class C
+    {
+    }
+}";
+
+            await TestAsync(
+                testCode: testCode,
+                expected: testCode,
+                options: new[]
+                {
+                    (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+                },
+                parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task TestBlockScopedNamespaces()
+        {
+            await TestAsync(testCode: @"
+namespace Goo;
+
+internal class C
+{
+}
+",
+            expected: @"
+namespace Goo
+{
+    internal class C
+    {
+    }
+}",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error))
+            });
+        }
 
         [Fact]
         public async Task TestOrganizeUsingsWithNoUsings()
@@ -27,8 +119,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             await TestAsync(
                 testCode: testCode,
                 expected: testCode,
-                options:
-                    (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error)));
+                options: new[]
+                {
+                    (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error))
+                });
         }
 
         [Fact]
@@ -46,8 +140,10 @@ using System;
 namespace Goo
 {
 }",
-            options:
-                (CodeStyleOptions2.FileHeaderTemplate, "This is a banner."));
+            options: new[]
+            {
+                (CodeStyleOptions2.FileHeaderTemplate, "This is a banner.")
+            });
         }
 
         [Fact]
@@ -69,8 +165,10 @@ namespace Goo
     {
     }
 }",
-            options:
-                (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error)));
+            options: new[]
+            {
+                (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+            });
         }
 
         [Fact]
@@ -85,8 +183,10 @@ namespace Goo
 {
     using System;
 }",
-            options:
-                (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error))
+            });
         }
     }
 }

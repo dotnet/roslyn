@@ -17,33 +17,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
     public abstract class AbstractNewDocumentFormattingServiceTests
     {
         protected abstract string Language { get; }
-        protected abstract TestWorkspace CreateTestWorkspace(string testCode);
+        protected abstract TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
 
-        internal Task TestAsync<T>(string testCode, string expected, params (PerLanguageOption2<T>, T)[] options)
+        internal Task TestAsync(string testCode, string expected)
+        {
+            return TestCoreAsync<object>(testCode, expected, options: null, parseOptions: null);
+        }
+
+        internal Task TestAsync<T>(string testCode, string expected, (PerLanguageOption2<T>, T)[]? options = null, ParseOptions? parseOptions = null)
         {
             return TestCoreAsync<T>(testCode,
                 expected,
-                options.Select(o => (new OptionKey(o.Item1, Language), o.Item2)).ToArray());
+                options.Select(o => (new OptionKey(o.Item1, Language), o.Item2)).ToArray(),
+                parseOptions);
         }
 
-        internal Task TestAsync<T>(string testCode, string expected, params (Option2<T>, T)[] options)
+        internal Task TestAsync<T>(string testCode, string expected, (Option2<T>, T)[]? options = null, ParseOptions? parseOptions = null)
         {
             return TestCoreAsync<T>(testCode,
                 expected,
-                options.Select(o => (new OptionKey(o.Item1), o.Item2)).ToArray());
+                options.Select(o => (new OptionKey(o.Item1), o.Item2)).ToArray(),
+                parseOptions);
         }
 
-        private async Task TestCoreAsync<T>(string testCode, string expected, (OptionKey, T)[] options)
+        private async Task TestCoreAsync<T>(string testCode, string expected, (OptionKey, T)[]? options, ParseOptions? parseOptions)
         {
-            using (var workspace = CreateTestWorkspace(testCode))
+            using (var workspace = CreateTestWorkspace(testCode, parseOptions))
             {
-                var workspaceOptions = workspace.Options;
-                foreach (var option in options)
+                if (options is not null)
                 {
-                    workspaceOptions = workspaceOptions.WithChangedOption(option.Item1, option.Item2);
-                }
+                    var workspaceOptions = workspace.Options;
+                    foreach (var option in options)
+                    {
+                        workspaceOptions = workspaceOptions.WithChangedOption(option.Item1, option.Item2);
+                    }
 
-                workspace.SetOptions(workspaceOptions);
+                    workspace.SetOptions(workspaceOptions);
+                }
 
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
