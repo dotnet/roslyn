@@ -12222,17 +12222,17 @@ try
     var s = string.Empty;
     Console.WriteLine($""{s = null}{s.Length}"" + $"""");
 }
-catch (Exception ex)
+catch (NullReferenceException)
 {
-    Console.WriteLine(ex.Message);
+    Console.WriteLine(""Null reference exception caught."");
 }
 ";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
 
-            CompileAndVerify(comp, expectedOutput: "Object reference not set to an instance of an object.").VerifyIL("<top-level-statements-entry-point>", @"
+            CompileAndVerify(comp, expectedOutput: "Null reference exception caught.").VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       64 (0x40)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (string V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
@@ -12256,15 +12256,16 @@ catch (Exception ex)
     IL_0025:  ldloca.s   V_1
     IL_0027:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
     IL_002c:  call       ""void System.Console.WriteLine(string)""
-    IL_0031:  leave.s    IL_003f
+    IL_0031:  leave.s    IL_0040
   }
-  catch System.Exception
+  catch System.NullReferenceException
   {
-    IL_0033:  callvirt   ""string System.Exception.Message.get""
-    IL_0038:  call       ""void System.Console.WriteLine(string)""
-    IL_003d:  leave.s    IL_003f
+    IL_0033:  pop
+    IL_0034:  ldstr      ""Null reference exception caught.""
+    IL_0039:  call       ""void System.Console.WriteLine(string)""
+    IL_003e:  leave.s    IL_0040
   }
-  IL_003f:  ret
+  IL_0040:  ret
 }
 ").VerifyDiagnostics(
     // (9,36): warning CS8602: Dereference of a possibly null reference.
