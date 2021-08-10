@@ -5457,6 +5457,71 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromModifier()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    pub[||]lic int TestInt;
+}";
+
+            var expected = @"
+class Base
+{
+    public int TestInt;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromType()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public i[||]nt TestInt;
+}";
+
+            var expected = @"
+class Base
+{
+    public int TestInt;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMultipleFields()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    pub[||]lic int I, J;
+}";
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
         #endregion
     }
 }

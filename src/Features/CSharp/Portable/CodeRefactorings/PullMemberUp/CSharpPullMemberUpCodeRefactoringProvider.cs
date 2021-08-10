@@ -33,7 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context);
+        protected override async Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
+        {
+            var selectedNode = await NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context).ConfigureAwait(false);
+            if (selectedNode is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
+            {
+                return baseFieldDeclarationNode.Declaration.Variables[0];
+            }
+
+            return selectedNode;
+        }
     }
 }
