@@ -44,6 +44,338 @@ class T
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWriteLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        [|Console.WriteLine(""{0}"", i)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.WriteLine($""{i}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWriteLine_SelectionInString()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.WriteLine(""[||]{0}"", i);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.WriteLine($""{i}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWrite_SelectionInString()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.WriteLine(""[||]{0}"", i);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.WriteLine($""{i}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestMissing_ConsoleWriteLine()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        [|Console.WriteLine(GetString(), i)|];
+    }
+
+    void GetString() => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestMissing_ConsoleWrite()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        [|Console.Write(GetString(), i)|];
+    }
+
+    void GetString() => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWriteLine_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        [|Console.WriteLine(""{0} {1}"", i, j)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        Console.WriteLine($""{i} {j}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWriteLine_3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        [|Console.WriteLine(""{0} {1} {2}"", i, j, k)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        Console.WriteLine($""{i} {j} {k}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWriteLine_4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        var life = 42;
+        [|Console.WriteLine(""{0} {1} {2} {3}"", i, j, k, life)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        var life = 42;
+        Console.WriteLine($""{i} {j} {k} {life}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWrite()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        [|Console.Write(""{0}"", i)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        Console.Write($""{i}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWrite_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        [|Console.Write(""{0} {1}"", i, j)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        Console.Write($""{i} {j}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWrite_3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        [|Console.Write(""{0} {1} {2}"", i, j, k)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        Console.Write($""{i} {j} {k}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestSingleItemSubstitution_ConsoleWrite_4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        var life = 42;
+        [|Console.Write(""{0} {1} {2} {3}"", i, j, k, life)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var i = 25;
+        var j = 30;
+        var k = 35;
+        var life = 42;
+        Console.Write($""{i} {j} {k} {life}"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemOrdering()
         {
             await TestInRegularAndScriptAsync(
