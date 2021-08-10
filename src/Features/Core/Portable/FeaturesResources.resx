@@ -2871,21 +2871,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
     <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
   </data>
-  <data name="Invalid_selection" xml:space="preserve">
-    <value>Invalid selection.</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction.</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction.</value>
-  </data>
-  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
-    <value>Selection does not contain a valid token.</value>
-  </data>
-  <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
-    <value>Selection not contained inside a type.</value>
-  </data>
   <data name="Convert_to_record_struct" xml:space="preserve">
     <value>Convert to record struct</value>
   </data>
@@ -2928,5 +2913,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
     <value>Selection not contained inside a type.</value>
+  </data>
+  <data name="Invalid_selection" xml:space="preserve">
+    <value>Invalid selection.</value>
   </data>
 </root>
