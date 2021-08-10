@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TExpressionStatementSyntax : SyntaxNode
     {
+        protected abstract bool TryGetVariableDeclaratorInSingleFieldDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? singleVariableDeclarator);
+
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -409,6 +412,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsExpressionStatement(node.Parent))
             {
                 yield return node.Parent;
+            }
+
+            if (TryGetVariableDeclaratorInSingleFieldDeclaration(node, out var singleVariable))
+            {
+                yield return singleVariable;
+            }
+
+            if (node.Parent != null && TryGetVariableDeclaratorInSingleFieldDeclaration(node.Parent, out var singleVariableInParent))
+            {
+                yield return singleVariableInParent;
             }
         }
 

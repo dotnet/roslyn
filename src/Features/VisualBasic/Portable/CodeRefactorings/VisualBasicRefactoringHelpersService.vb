@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports System.Diagnostics.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
@@ -56,6 +57,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
+        End Function
+
+        Protected Overrides Function TryGetVariableDeclaratorInSingleFieldDeclaration(node As SyntaxNode, ByRef singleVariableDeclarator As SyntaxNode) As Boolean
+            Dim fieldDeclarationNode = TryCast(node, FieldDeclarationSyntax)
+            If fieldDeclarationNode IsNot Nothing Then
+                Dim declarators = fieldDeclarationNode.Declarators
+                If declarators.Count = 1 AndAlso declarators(0).Names.Count = 1 Then
+                    singleVariableDeclarator = declarators(0).Names(0)
+                    Return True
+                End If
+            End If
+
+            Dim declaratorNode = TryCast(node, VariableDeclaratorSyntax)
+            If declaratorNode IsNot Nothing AndAlso TypeOf node.Parent Is FieldDeclarationSyntax AndAlso declaratorNode.Names.Count = 1 Then
+                singleVariableDeclarator = declaratorNode.Names(0)
+                Return True
+            End If
+
+            singleVariableDeclarator = Nothing
+            Return False
         End Function
     End Class
 End Namespace

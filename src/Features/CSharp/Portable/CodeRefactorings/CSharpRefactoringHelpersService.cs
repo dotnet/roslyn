@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -57,6 +58,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     }
                 }
             }
+        }
+
+        protected override bool TryGetVariableDeclaratorInSingleFieldDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? singleVariableDeclarator)
+        {
+            singleVariableDeclarator = null;
+            if (node is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
+            {
+                singleVariableDeclarator = baseFieldDeclarationNode.Declaration.Variables[0];
+                return true;
+            }
+
+            if (node.Parent is BaseFieldDeclarationSyntax && node is VariableDeclarationSyntax { Variables: { Count: 1 } } variableDeclarationNode)
+            {
+                singleVariableDeclarator = variableDeclarationNode.Variables[0];
+                return true;
+            }
+
+            return false;
         }
     }
 }
