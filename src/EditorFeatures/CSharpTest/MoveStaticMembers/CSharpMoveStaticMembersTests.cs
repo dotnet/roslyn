@@ -252,6 +252,77 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveExtensionMethod()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public static class Class1
+    {
+        public static int Test[||]Method(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public static class Class1
+    {
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestMoveConstField()
         {
             // const is static so we should work here
@@ -911,7 +982,7 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        public async Task TestMoveGenericClassWithMethod()
+        public async Task TestMoveMethodWithGenericClass()
         {
             var initialMarkup = @"
 <Workspace>
@@ -951,6 +1022,420 @@ namespace TestNs1
         public static T Test[||]Method(T item)
         {
             return item;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorUsage()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1.TestMethod();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers.TestMethod();
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorUsageDifferentNamespace()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1.TestMethod();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers.TestMethod();
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorUsageNewNamespace()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1.TestMethod();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "ExtraNs.Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+using TestNs1.ExtraNs;
+
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers.TestMethod();
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1.ExtraNs
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveExtensionMethodDontRefactor()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public static class Class1
+    {
+        public static int Test[||]Method(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public static class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveExtensionMethodRefactorImports()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+        public static int Test[||]Method(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "ExtraNs.Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+    using TestNs1.ExtraNs;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">using TestNs2;
+
+namespace TestNs1.ExtraNs
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod(this Other other)
+        {
+            return other.OtherInt + 2;
         }
     }
 }</Document>

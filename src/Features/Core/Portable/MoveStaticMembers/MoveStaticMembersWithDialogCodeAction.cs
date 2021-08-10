@@ -94,9 +94,15 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 fileBanner,
                 cancellationToken).ConfigureAwait(false);
 
+            // get back type declaration in the newly created file
+            var destRoot = await newDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
+
+            // refactor member access references in other files
             var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
             var locationsToDoc = memberReferenceLocations.ToLookup(loc => loc.location.Document.Id);
-            var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType, cancellationToken).ConfigureAwait(false);
+            var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType!, cancellationToken).ConfigureAwait(false);
 
             // Get back symbols using annotations
             sourceDoc = reReferencedSolution.GetRequiredDocument(sourceDoc.Id);
@@ -106,12 +112,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .Select(node => root.GetCurrentNode(node))
                 .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
-
-            // get back type declaration in the newly created file
-            newDoc = reReferencedSolution.GetRequiredDocument(newDoc.Id);
-            var destRoot = await newDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
             var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
@@ -155,16 +155,17 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 var doc = docEditor.OriginalDocument;
 
                 var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-                var refNode = docEditor.OriginalRoot.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+                var refNode = docEditor.GetChangedRoot().FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+                // track this node in case the doc has changed
+                docEditor.ReplaceNode(refNode, refNode.TrackNodes(refNode));
 
                 // add imports for each reference as there may be multiple locations that we need to add to
                 // if the import is already there, we shouldn't add it again
                 var addImports = doc.GetRequiredLanguageService<IAddImportsService>();
-                var compilation = await doc.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 docEditor.ReplaceNode(docEditor.OriginalRoot, (node, generator) => addImports.AddImport(
-                    compilation,
+                    docEditor.SemanticModel.Compilation,
                     node,
-                    refNode,
+                    node.GetCurrentNode(refNode)!,
                     generator.NamespaceImportDeclaration(
                         newType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
                         .WithAdditionalAnnotations(Simplification.Simplifier.Annotation, Formatting.Formatter.Annotation),
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     continue;
                 }
 
-                if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
+                if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode))
                 {
                     var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
                     if (expression != null)
