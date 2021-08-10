@@ -2914,4 +2914,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
     <value>Selection not contained inside a type.</value>
   </data>
+  <data name="Move_static_members_to_another_type" xml:space="preserve">
+    <value>Move static members to another type...</value>
+  </data>
 </root>
