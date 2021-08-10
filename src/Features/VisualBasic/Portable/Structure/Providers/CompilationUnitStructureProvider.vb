@@ -12,7 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class CompilationUnitStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of CompilationUnitSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(compilationUnit As CompilationUnitSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  compilationUnit As CompilationUnitSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

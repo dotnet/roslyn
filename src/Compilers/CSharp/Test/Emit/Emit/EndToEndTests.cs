@@ -149,22 +149,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
         public void DeeplyNestedGeneric()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 200, // 100
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 540, // 100
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1240, // 1200
-                _ when ExecutionConditionUtil.IsMonoDesktop => 750, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 470, // 270
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 290, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 770, // 730
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 370, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 270, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 

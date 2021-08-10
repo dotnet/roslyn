@@ -27,7 +27,7 @@ jobs:
     # a thin client that kicks off a helix job and waits for it to complete.
     # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
     vmImage: ubuntu-20.04
-  timeoutInMinutes: 40
+  timeoutInMinutes: 90
   steps:
     - checkout: none
 

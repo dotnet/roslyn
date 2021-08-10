@@ -406,14 +406,22 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference? x, PortableExecutableReference? y)
-            => StringComparer.OrdinalIgnoreCase.Equals(x?.FilePath ?? x?.Display, y?.FilePath ?? y?.Display);
+        {
+            if (x == y)
+                return true;
+
+            var path1 = x?.FilePath ?? x?.Display;
+            var path2 = y?.FilePath ?? y?.Display;
+            if (path1 == null || path2 == null)
+                return false;
+
+            return StringComparer.OrdinalIgnoreCase.Equals(path1, path2);
+        }
 
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
         {
-            var identifier = obj.FilePath ?? obj.Display;
-            Contract.ThrowIfNull(identifier, "Either FilePath or Display must be non-null");
-
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(identifier);
+            var path = obj.FilePath ?? obj.Display;
+            return path == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(path);
         }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)

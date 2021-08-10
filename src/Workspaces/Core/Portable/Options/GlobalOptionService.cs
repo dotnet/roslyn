@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Options
                 return optionSerializers;
             }
 
+            // Option persisters cannot be initialized while holding the global options lock
+            // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1353715
+            Debug.Assert(!Monitor.IsEntered(_gate));
+
             ImmutableInterlocked.InterlockedInitialize(
                 ref _lazyOptionSerializers,
                 GetOptionPersistersSlow(_workspaceThreadingService, _optionSerializerProviders, CancellationToken.None));
@@ -139,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
+        private static object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
         {
-            foreach (var serializer in GetOptionPersisters())
+            foreach (var serializer in persisters)
             {
                 // We have a deserializer, so deserialize and use that value.
                 if (serializer.TryFetch(optionKey, out var deserializedValue))
@@ -274,6 +278,9 @@ namespace Microsoft.CodeAnalysis.Options
                 return ImmutableDictionary<OptionKey, object?>.Empty;
             }
 
+            // Ensure the option persisters are available before taking the global lock
+            var persisters = GetOptionPersisters();
+
             lock (_gate)
             {
                 // Force compute the option values for languages, if required.
@@ -284,14 +291,14 @@ namespace Microsoft.CodeAnalysis.Options
                         if (!option.IsPerLanguage)
                         {
                             var key = new OptionKey(option);
-                            var _ = GetOption_NoLock(key);
+                            var _ = GetOption_NoLock(key, persisters);
                             continue;
                         }
 
                         foreach (var language in languages)
                         {
                             var key = new OptionKey(option, language);
-                            var _ = GetOption_NoLock(key);
+                            var _ = GetOption_NoLock(key, persisters);
                         }
                     }
 
@@ -319,20 +326,23 @@ namespace Microsoft.CodeAnalysis.Options
 
         public object? GetOption(OptionKey optionKey)
         {
+            // Ensure the option persisters are available before taking the global lock
+            var persisters = GetOptionPersisters();
+
             lock (_gate)
             {
-                return GetOption_NoLock(optionKey);
+                return GetOption_NoLock(optionKey, persisters);
             }
         }
 
-        private object? GetOption_NoLock(OptionKey optionKey)
+        private object? GetOption_NoLock(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
         {
             if (_currentValues.TryGetValue(optionKey, out var value))
             {
                 return value;
             }
 
-            value = LoadOptionFromSerializerOrGetDefault(optionKey);
+            value = LoadOptionFromSerializerOrGetDefault(optionKey, persisters);
 
             _currentValues = _currentValues.Add(optionKey, value);
 
@@ -362,6 +372,9 @@ namespace Microsoft.CodeAnalysis.Options
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
+            // Ensure the option persisters are available before taking the global lock
+            var persisters = GetOptionPersisters();
+
             lock (_gate)
             {
                 foreach (var optionKey in changedOptionKeys)
@@ -380,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     SetOptionCore(optionKey, setValue);
 
-                    foreach (var serializer in GetOptionPersisters())
+                    foreach (var serializer in persisters)
                     {
                         if (serializer.TryPersist(optionKey, setValue))
                         {

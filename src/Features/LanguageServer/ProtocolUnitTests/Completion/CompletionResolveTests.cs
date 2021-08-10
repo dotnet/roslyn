@@ -327,6 +327,27 @@ link text";
             Assert.Equal(expected, results.Documentation.Value.Second.Value);
         }
 
+        [Fact]
+        public async Task TestResolveCompletionItemWithPrefixSuffixAsync()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        var a = 10;
+        a.{|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSCompletionItem>(testLspServer, locations, label: "(byte)").ConfigureAwait(false);
+
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, clientCompletionItem).ConfigureAwait(false);
+            Assert.Equal("(byte)", results.Label);
+            Assert.NotNull(results.Description);
+        }
+
         private static async Task<LSP.CompletionItem> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
         {
             clientCapabilities ??= new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };

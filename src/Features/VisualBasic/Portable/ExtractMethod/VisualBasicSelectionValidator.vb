@@ -201,6 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 If range Is Nothing Then
                     Return True
                 End If
+
                 result = semanticModel.AnalyzeDataFlow(range.Item1, range.Item2)
             End If
 
@@ -253,6 +254,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 .FirstTokenInFinalSpan = firstToken
                 .LastTokenInFinalSpan = lastToken
             End With
+
             Return clone
         End Function
 
@@ -284,6 +286,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 With clone
                     .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
                 End With
+
                 Return clone
             End If
 
@@ -294,6 +297,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 With clone
                     .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
                 End With
+
                 Return clone
             End If
 
@@ -304,6 +308,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 .FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth:=True)
                 .LastTokenInFinalSpan = nextStatement.GetLastToken(includeZeroWidth:=True)
             End With
+
             Return clone
         End Function
 
@@ -339,6 +344,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     .FirstTokenInFinalSpan = Nothing
                     .LastTokenInFinalSpan = Nothing
                 End With
+
                 Return clone
             End If
 
@@ -348,6 +354,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 .FirstTokenInFinalSpan = firstValidNode.GetFirstToken(includeZeroWidth:=True)
                 .LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth:=True)
             End With
+
             Return clone
         End Function
 
@@ -369,6 +376,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     .FirstTokenInFinalSpan = outerNode.GetFirstToken(includeZeroWidth:=True)
                     .LastTokenInFinalSpan = outerNode.GetLastToken(includeZeroWidth:=True)
                 End With
+
                 Return clone
             End If
 
@@ -380,6 +388,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 With clone
                     .Status = clone.Status.With(OperationStatusFlag.None, VBFeaturesResources.no_valid_statement_range_to_extract_out)
                 End With
+
                 Return clone
             End If
 
@@ -395,6 +404,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                         .FirstTokenInFinalSpan = expression.GetFirstToken(includeZeroWidth:=True)
                         .LastTokenInFinalSpan = expression.GetLastToken(includeZeroWidth:=True)
                     End With
+
                     Return clone
                 End If
 
@@ -407,6 +417,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     With clone
                         .Status = clone.Status.With(OperationStatusFlag.None, VBFeaturesResources.no_valid_statement_range_to_extract_out)
                     End With
+
                     Return clone
                 End If
 
@@ -415,6 +426,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     .FirstTokenInFinalSpan = singleStatement.GetFirstToken(includeZeroWidth:=True)
                     .LastTokenInFinalSpan = singleStatement.GetLastToken(includeZeroWidth:=True)
                 End With
+
                 Return clone
             End If
 
@@ -438,6 +450,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                         .FirstTokenInFinalSpan = parent.GetFirstToken()
                         .LastTokenInFinalSpan = parent.GetLastToken()
                     End With
+
                     Return clone
                 End If
             End If
@@ -446,6 +459,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 .FirstTokenInFinalSpan = statement1.GetFirstToken(includeZeroWidth:=True)
                 .LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth:=True)
             End With
+
             Return clone
         End Function
 

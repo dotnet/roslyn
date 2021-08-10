@@ -8819,5 +8819,98 @@ Block[B2] - Exit
     Statements (0)
 ");
         }
+
+        [Fact]
+        public void EmptyStatements_01()
+        {
+            var text = @";";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmptyStatements_02()
+        {
+            var text = @";;
+
+
+;;
+;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmptyStatements_03()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+;;
+;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_04()
+        {
+            var text = @"
+;;
+;
+System.Console.WriteLine(""Hi!"");";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_05()
+        {
+            var text = @"
+;
+System.Console.WriteLine(""Hi!"");
+;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_06()
+        {
+            var text =
+@"
+using System;
+;
+
+class Program
+{
+    static void Main(String[] args) {}
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(3, 1),
+                // (7,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                //     static void Main(String[] args) {}
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(7, 17)
+                );
+        }
     }
 }

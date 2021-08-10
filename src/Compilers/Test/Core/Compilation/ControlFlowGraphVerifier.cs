@@ -1060,6 +1060,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
                             }
 
+                            if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
+                                && withExpr.Initializer.Expressions.Any()
+                                && withExpr.Expression == (object)syntax)
+                            {
+                                return true;
+                            }
+
                             syntax = applyParenthesizedOrNullSuppressionIfAnyCS(syntax);
 
                             if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&

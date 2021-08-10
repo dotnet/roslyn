@@ -270,16 +270,15 @@ csharp_new_line_before_open_brace = methods
 
             await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
             {
-                TestState = { Sources = { (Path.GetFullPath("Test0.cs"), testCode) } },
-                FixedState = { Sources = { (Path.GetFullPath("Test0.cs"), fixedCode) } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { testCode },
+                    AnalyzerConfigFiles =
                     {
-                        var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
-                        return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(".editorconfig"));
+                        ("/.editorconfig", editorConfig),
                     },
                 },
+                FixedState = { Sources = { fixedCode } },
             }.RunAsync();
         }
     }

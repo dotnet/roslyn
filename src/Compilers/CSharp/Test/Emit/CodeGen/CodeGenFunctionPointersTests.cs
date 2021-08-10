@@ -7787,10 +7787,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
             );
@@ -8688,6 +8688,51 @@ class D
         }
 
         [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnlyDefinedOnConversion()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        int32 op_Implicit (
+            class C i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class Test
+{
+    void M(C x)
+    {
+        _ = (int)x;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyDefinedOnProperty_InSource()
         {
             var comp = CreateCompilation(new[] { @"
@@ -8708,10 +8753,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -8793,7 +8838,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     static int Prop { [UnmanagedCallersOnly] get {} }
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
             );
@@ -8933,10 +8978,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -9014,7 +9059,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9076,7 +9121,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9214,7 +9259,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
             );
@@ -9246,7 +9291,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
             );
@@ -9745,7 +9790,7 @@ namespace System.Runtime.InteropServices
                 // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10),
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10)
             );

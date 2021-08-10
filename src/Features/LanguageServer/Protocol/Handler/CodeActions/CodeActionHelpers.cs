@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                document.Project.Solution.Workspace, codeFixService, document, textSpan, includeSuppressionFixes: true,
+                document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(

@@ -16,7 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
 {
-    internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TNamespaceSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSyntaxKind, TNamespaceSyntax>
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TSyntaxKind : struct
         where TNamespaceSyntax : SyntaxNode
     {
         private static readonly LocalizableResourceString s_localizableTitle = new(
@@ -39,11 +41,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract ImmutableArray<TSyntaxKind> GetSyntaxKindsToAnalyze();
+
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, GetSyntaxKindsToAnalyze());
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
             context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(MatchFolderAndNamespaceConstants.RootNamespaceOption, out var rootNamespace);

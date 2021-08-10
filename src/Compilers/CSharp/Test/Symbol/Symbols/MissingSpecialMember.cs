@@ -608,6 +608,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
+                    case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -961,6 +962,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

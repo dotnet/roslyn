@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;

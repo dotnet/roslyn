@@ -4321,6 +4321,9 @@ class C : I<(object X, object? Y)>
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,35): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     public static object? operator+(C a, C b) => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "+").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(3, 35),
                 // (3,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 37),
@@ -4343,6 +4346,9 @@ class C : I<(object X, object? Y)>
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,34): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     public static object operator+(C a, object?[] b) => a;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "+").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(3, 34),
                 // (3,36): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 36),

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     var workspace = _languageServiceProvider!.WorkspaceServices.Workspace;
                     var project = workspace.CurrentSolution.GetRequiredProject(_project!.Id);
-                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).Result;
+                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).AsTask().Result;
                     _id = sourceGeneratedDocuments.Single(d => d.FilePath == this.FilePath).Id;
                 }
 

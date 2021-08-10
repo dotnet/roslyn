@@ -29,15 +29,26 @@ steps:
       officialBuildArgs='/p:DotNetPublishUsingPipelines=true /p:OfficialBuildId=$(BUILD.BUILDNUMBER)'
     fi
 
+    internalRuntimeDownloadArgs=
+    if [ '$(dotnetclimsrc-read-sas-token-base64)' != '$''(dotnetclimsrc-read-sas-token-base64)' ]; then
+      internalRuntimeDownloadArgs='--runtimesourcefeed https://dotnetclimsrc.blob.core.windows.net/dotnet --runtimesourcefeedkey $(dotnetclimsrc-read-sas-token-base64)'
+    fi
+
     targetRidArgs=
     if [ '${{ parameters.platform.targetRID }}' != '' ]; then
       targetRidArgs='/p:TargetRid=${{ parameters.platform.targetRID }}'
     fi
 
+    publishArgs=
+    if [ '${{ parameters.platform.skipPublishValidation }}' != 'true' ]; then
+      publishArgs='--publish'
+    fi
+
     ${{ coalesce(parameters.platform.buildScript, './build.sh') }} --ci \
       --configuration $buildConfig \
-      --restore --build --pack --publish -bl \
+      --restore --build --pack $publishArgs -bl \
       $officialBuildArgs \
+      $internalRuntimeDownloadArgs \
       $targetRidArgs \
       /p:SourceBuildNonPortable=${{ parameters.platform.nonPortable }} \
       /p:ArcadeBuildFromSource=true

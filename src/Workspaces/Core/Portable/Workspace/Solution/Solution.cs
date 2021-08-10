@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
-        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from any project in this solution.
         /// </summary>
         /// <remarks>
         /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
@@ -201,6 +201,21 @@ namespace Microsoft.CodeAnalysis
 
             Contract.ThrowIfNull(documentId);
             return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+        {
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
+            {
+                return default;
+            }
+
+            Contract.ThrowIfNull(documentId);
+            return project.GetTextDocumentAsync(documentId, cancellationToken);
         }
 
         /// <summary>

@@ -25,17 +25,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
-        {
-            return GetDocuments(solution, documentUri, clientName: null);
-        }
+            => GetDocuments(solution, documentUri, clientName: null, logger: null);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
+            => GetDocuments(solution, documentUri, clientName, logger: null);
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName, ILspLogger? logger)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
             var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
 
-            return FilterDocumentsByClientName(documents, clientName);
+            return FilterDocumentsByClientName(documents, clientName, logger);
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds;
         }
 
-        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName, ILspLogger? logger)
         {
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
@@ -70,7 +71,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // Allows the razor lsp server to return results only for razor documents.
                 // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
                 // is fixed (so that the razor language server is only asked about razor buffers).
-                return Equals(documentPropertiesService?.DiagnosticsLspClientName, clientName);
+                var documentClientName = documentPropertiesService?.DiagnosticsLspClientName;
+                var clientNameMatch = Equals(documentClientName, clientName);
+                if (!clientNameMatch && logger is not null)
+                {
+                    logger.TraceInformation($"Found matching document but it's client name '{documentClientName}' is not a match.");
+                }
+
+                return clientNameMatch;
             });
         }
 
@@ -79,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
+            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName, logger: null);
             if (documents.Length == 0)
             {
                 return null;
@@ -88,23 +96,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents.FindDocumentInProjectContext(documentIdentifier);
         }
 
-        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
+        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
         {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier)
+                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
                 {
-                    if (vsDocumentIdentifier.ProjectContext != null)
-                    {
-                        var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                        var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+                    var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
+                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
 
-                        if (matchingDocument != null)
-                        {
-                            return matchingDocument;
-                        }
+                    if (matchingDocument != null)
+                    {
+                        return matchingDocument;
                     }
+                }
+                else
+                {
+                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
+                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
+
+                    var solution = documents.First().Project.Solution;
+                    // Lookup which of the linked documents is currently active in the workspace.
+                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                    return solution.GetRequiredDocument(documentIdInCurrentContext);
                 }
             }
 
@@ -120,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return text.Lines.GetPosition(linePosition);
         }
 
-        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
+        public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
         {
             if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
             {

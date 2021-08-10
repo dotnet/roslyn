@@ -397,6 +397,18 @@ namespace $$";
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_TopLevelNoPeers_FileScopedNamespace()
+        {
+            var source = @"using System;
+
+namespace $$;";
+
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName_Unqualified_TopLevelWithPeer()
         {
             var source = @"
@@ -546,6 +558,18 @@ namespace A.B.C3 { }";
 namespace A.B { }
 
 namespace A.$$";
+
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_TopLevelWithPeer_FileScopedNamespace()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A.$$;";
 
             await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
@@ -2165,6 +2189,99 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task AfterStaticLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        static $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("extern")]
+        [InlineData("static extern")]
+        [InlineData("extern static")]
+        [InlineData("async")]
+        [InlineData("static async")]
+        [InlineData("async static")]
+        [InlineData("unsafe")]
+        [InlineData("static unsafe")]
+        [InlineData("unsafe static")]
+        [InlineData("async unsafe")]
+        [InlineData("unsafe async")]
+        [InlineData("unsafe extern")]
+        [InlineData("extern unsafe")]
+        [InlineData("extern unsafe async static")]
+        public async Task AfterLocalFunction_TypeOnly(string keyword)
+        {
+            var markup = $@"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        {keyword} $$
+    }}
+}}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task NotAfterAsyncLocalFunctionWithTwoAsyncs()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        async async $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("void")]
+        [InlineData("string")]
+        [InlineData("String")]
+        [InlineData("(int, int)")]
+        [InlineData("async void")]
+        [InlineData("async System.Threading.Tasks.Task")]
+        [InlineData("int Function")]
+        public async Task NotAfterReturnTypeInLocalFunction(string returnType)
+        {
+            var markup = @$"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        static {returnType} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -8070,6 +8187,40 @@ class A
             await VerifyItemIsAbsentAsync(markup, "value");
         }
 
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConditionalAccessNullableIsUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt?.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Day");
+            await VerifyItemIsAbsentAsync(markup, "Value");
+        }
+
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableIsNotUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Value");
+            await VerifyItemIsAbsentAsync(markup, "Day");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterConditionalIndexing()
         {
@@ -9576,6 +9727,7 @@ class C
             {
                 await VerifyItemExistsAsync(markup, "Item" + i);
             }
+
             await VerifyItemExistsAsync(markup, "ToString");
 
             await VerifyItemIsAbsentAsync(markup, "Item1");
@@ -11292,6 +11444,39 @@ class C
         (var x, $$) = (0, 0);
     }
 }", "y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(53930, "https://github.com/dotnet/roslyn/issues/53930")]
+        public async Task TestTypeParameterConstraintedToInterfaceWithStatics()
+        {
+            var source = @"
+interface I1
+{
+    static void M0();
+    static abstract void M1();
+    abstract static int P1 { get; set; }
+    abstract static event System.Action E1;
+}
+
+interface I2
+{
+    static abstract void M2();
+}
+
+class Test
+{
+    void M<T>(T x) where T : I1, I2
+    {
+        T.$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(source, "M0");
+            await VerifyItemExistsAsync(source, "M1");
+            await VerifyItemExistsAsync(source, "M2");
+            await VerifyItemExistsAsync(source, "P1");
+            await VerifyItemExistsAsync(source, "E1");
         }
     }
 }

@@ -476,11 +476,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
-            var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
+            var orderedKeys1 = _inheritanceMap.Keys.Order().ToList();
 
             for (var i = 0; i < orderedKeys1.Count; i++)
             {
-                var values1 = this._inheritanceMap[i];
+                var values1 = _inheritanceMap[i];
                 var values2 = other._inheritanceMap[i];
 
                 Debug.Assert(values1.Length == values2.Length);

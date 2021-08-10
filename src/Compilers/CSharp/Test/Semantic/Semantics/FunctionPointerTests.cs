@@ -44,7 +44,12 @@ using s = delegate*<void>;");
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
                 // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+
+                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
+                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
             );
         }
 

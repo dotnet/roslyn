@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             If _presentItemsCallback IsNot Nothing Then
                 _presentItemsCallback()
             End If
+
             If _presentItemsWithValuesCallback IsNot Nothing Then
                 _presentItemsWithValuesCallback(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
             End If

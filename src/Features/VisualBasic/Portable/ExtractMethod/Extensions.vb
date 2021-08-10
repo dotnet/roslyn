@@ -377,6 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 If tuple.Item2.Kind = SyntaxKind.None Then
                     Exit For
                 End If
+
                 list.Add(tuple.Item2)
             Next
 

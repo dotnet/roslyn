@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         protected override MembersAndInitializers BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;

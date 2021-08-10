@@ -12,10 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName } &&
+            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.ImplicitConversionName } &&
                GetUnderlyingNamedType(symbol.ReturnType) is not null;
 
         private static INamedTypeSymbol? GetUnderlyingNamedType(ITypeSymbol symbol)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
             Contract.ThrowIfNull(underlyingNamedType);
-            var documentsWithName = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);

@@ -4439,5 +4439,17 @@ class C
                 testHost,
                 RecordStruct("R"));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Namespace("NS"));
+        }
     }
 }

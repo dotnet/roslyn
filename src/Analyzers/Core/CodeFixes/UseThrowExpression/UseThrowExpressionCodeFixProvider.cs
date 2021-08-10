@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
             public MyCodeAction(
                 Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_throw_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_throw_expression, createChangedDocument, nameof(AnalyzersResources.Use_throw_expression))
             {
             }
         }

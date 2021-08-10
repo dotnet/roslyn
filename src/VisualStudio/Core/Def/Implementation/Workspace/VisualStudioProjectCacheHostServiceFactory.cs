@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [Shared]
     internal partial class VisualStudioProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private const int ImplicitCacheTimeoutInMS = 10000;
+        private static readonly TimeSpan ImplicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 return new ProjectCacheService(workspaceServices.Workspace);
             }
 
-            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
 
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
         {
             // We will finish setting this up in VisualStudioWorkspaceImpl.DeferredInitializationState
-            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
         }
 
         internal static void ConnectProjectCacheServiceToDocumentTracking(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)

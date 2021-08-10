@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            private readonly AsyncBatchingDelay _asyncDelay;
+            private readonly AsyncBatchingWorkQueue _asyncDelay;
 
             public WorkspaceChangedEventSource(
                 ITextBuffer subjectBuffer,
@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 // That will ensure that even if we get a flurry of workspace events that we
                 // only process a tag change once.
-                _asyncDelay = new AsyncBatchingDelay(
+                _asyncDelay = new AsyncBatchingWorkQueue(
                     TimeSpan.FromMilliseconds(250),
-                    processAsync: cancellationToken =>
+                    processBatchAsync: cancellationToken =>
                     {
                         RaiseChanged();
-                        return Task.CompletedTask;
+                        return ValueTaskFactory.CompletedTask;
                     },
                     asyncListener,
                     CancellationToken.None);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
-                => _asyncDelay.RequeueWork();
+                => _asyncDelay.AddWork();
         }
     }
 }

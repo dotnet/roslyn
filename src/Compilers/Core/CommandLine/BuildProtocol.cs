@@ -69,13 +69,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CompilerHash = compilerHash;
 
             Debug.Assert(!string.IsNullOrWhiteSpace(CompilerHash), "A hash value is required to communicate with the server");
-
-            if (Arguments.Count > ushort.MaxValue)
-            {
-                throw new ArgumentOutOfRangeException(nameof(arguments),
-                    "Too many arguments: maximum of "
-                    + ushort.MaxValue + " arguments allowed.");
-            }
         }
 
         public static BuildRequest Create(RequestLanguage language,

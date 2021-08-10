@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 #End If
 
-                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer))
+                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer, Me))
                 End If
             Next
 

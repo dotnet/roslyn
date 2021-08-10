@@ -126,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly DiagnosticTableEntriesSource _source;
 
                     public TableEntriesSnapshot(
-                        DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items) :
-                        base(version, items, ImmutableArray<ITrackingPoint>.Empty)
+                        DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items)
+                        : base(version, items, ImmutableArray<ITrackingPoint>.Empty)
                     {
                         _source = source;
                     }

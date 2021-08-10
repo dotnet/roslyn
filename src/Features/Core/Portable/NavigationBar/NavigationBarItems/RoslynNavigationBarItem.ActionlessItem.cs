@@ -18,17 +18,16 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             public ActionlessItem(
                 string text,
                 Glyph glyph,
-                ImmutableArray<TextSpan> spans,
                 ImmutableArray<RoslynNavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, spans)
+                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems)
             {
             }
 
             protected internal override SerializableNavigationBarItem Dehydrate()
-                => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, Spans, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
+                => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
         }
     }
 }

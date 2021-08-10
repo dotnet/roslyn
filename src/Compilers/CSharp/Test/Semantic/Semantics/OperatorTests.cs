@@ -6051,7 +6051,7 @@ namespace System
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                // (6,41): error CS0555: User-defined operator cannot convert a type to itself
                 //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }
@@ -8569,7 +8569,7 @@ struct TestStr
             var op = visitor.FirstNode.Operator;
             Assert.Null(op.Method);
             // Equals and GetHashCode should support null Method.
-            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method));
+            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method, constrainedToTypeOpt: null));
             op.GetHashCode();
         }
 
