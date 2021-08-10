@@ -1254,6 +1254,81 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorUsageSeparateFile()
+        {
+            var initialMarkup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}
+        </Document>
+        <Document FilePath=""Class2.cs"">
+using TestNs1;
+
+public class Class2
+{
+    public static int TestMethod2()
+    {
+        return Class1.TestMethod();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.cs"">
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""Class2.cs"">
+using TestNs1;
+
+public class Class2
+{
+    public static int TestMethod2()
+    {
+        return Class1Helpers.TestMethod();
+    }
+}
+        </Document>
+        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMovementAsync(initialMarkup,
+                expectedResult,
+                selectedDestinationName,
+                selectedMembers,
+                newFileName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestMoveExtensionMethodDontRefactor()
         {
             var initialMarkup = @"

@@ -75,9 +75,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -117,13 +117,13 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Property TestProperty As Integer
             Get
                 Return 0
             End Get
         End Property
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -159,9 +159,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Event TestEvent As EventHandler
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -207,7 +207,7 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Custom Event Click As EventHandler
             AddHandler(ByVal value As EventHandler)
                 Events.AddHandler(""ClickEvent"", value)
@@ -219,7 +219,7 @@ End Namespace
                 CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
             End RaiseEvent
         End Event
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -257,11 +257,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -298,10 +298,10 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Sub TestSub()
         End Sub
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -337,9 +337,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Const TestConst As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -381,11 +381,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -427,11 +427,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs.InnerNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -462,9 +462,9 @@ End Class
 Public Class Class1
 End Class
         </Document>
-        <Document FilePath=""Class1Helpers.vb"">Class Class1Helpers
+        <Document FilePath=""Class1Helpers.vb"">Module Class1Helpers
     Public Shared TestField As Integer = 0
-End Class
+End Module
 </Document>
     </Project>
 </Workspace>"
@@ -495,9 +495,9 @@ Public Class Class1
 End Class
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -533,9 +533,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs.InnerNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -573,11 +573,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc(Of T)(item As T) As T
             Return item
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -615,11 +615,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers(Of T)
+    Module Class1Helpers(Of T)
         Public Shared Function TestFunc(item As T) As T
             Return item
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -657,11 +657,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document Folders=""Folder1"" FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -703,7 +703,7 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc1() As Integer
             Return 0
         End Function
@@ -711,7 +711,7 @@ End Namespace
         Public Shared Function TestFunc2() As Boolean
             Return False
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -756,12 +756,12 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
 
         Public Shared Function TestFunc2() As Boolean
             Return False
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -817,7 +817,7 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
 
         Public Shared Property TestProperty As Integer
@@ -834,13 +834,246 @@ End Namespace
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
 </Workspace>"
             Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorUsage() As Task
+            Dim initialMarkup = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+    </Project>
+</Workspace>
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1Helpers.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
+    Module Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+</Document>
+    </Project>
+</Workspace>"
+            Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorUsageDifferentNamespace() As Task
+            Dim initialMarkup = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Imports TestNs
+
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace
+
+Namespace TestNs2
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+    </Project>
+</Workspace>
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Imports TestNs
+
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace
+
+Namespace TestNs2
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1Helpers.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
+    Module Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+</Document>
+    </Project>
+</Workspace>"
+            Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorUsageNewNamespace() As Task
+            Dim initialMarkup = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+    </Project>
+</Workspace>
+"
+            Dim newTypeName = "ExtraNs.Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Imports TestNs.ExtraNs
+
+Namespace TestNs
+    Public Class Class1
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2() As Integer
+            Return Class1Helpers.TestFunc() + 1
+        End Function
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class1Helpers.vb"">Namespace TestNs.ExtraNs
+    Module Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+</Document>
+    </Project>
+</Workspace>"
+            Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorUsageSeparateFile() As Task
+            Dim initialMarkup = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class2.vb"">
+Imports TestNs
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return Class1.TestFunc() + 1
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly1"" CommonReferences=""true"">
+        <Document FilePath=""Class1.vb"">
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace
+        </Document>
+        <Document FilePath=""Class2.vb"">
+Imports TestNs
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return Class1Helpers.TestFunc() + 1
+    End Function
+End Class
+        </Document>
+        <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
+    Module Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+</Document>
+    </Project>
+</Workspace>"
+            Await TestMovementAsync(initialMarkup, expectedText, newTypeName, selection, newFileName).ConfigureAwait(False)
+        End Function
+
 #End Region
 #Region "SelectionTests"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -871,9 +1104,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -909,9 +1142,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -965,9 +1198,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -1003,9 +1236,9 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared TestField As Integer = 0
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -1043,11 +1276,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>
@@ -1085,11 +1318,11 @@ Namespace TestNs
 End Namespace
         </Document>
         <Document FilePath=""Class1Helpers.vb"">Namespace TestNs
-    Class Class1Helpers
+    Module Class1Helpers
         Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Class
+    End Module
 End Namespace
 </Document>
     </Project>

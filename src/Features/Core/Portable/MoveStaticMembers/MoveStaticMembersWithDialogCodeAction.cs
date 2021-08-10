@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
-                TypeKind.Class,
+                TypeKind.Module,
                 moveOptions.TypeName,
                 typeParameters: typeParameters);
 
