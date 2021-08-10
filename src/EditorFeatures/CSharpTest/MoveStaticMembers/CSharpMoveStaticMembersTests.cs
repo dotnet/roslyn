@@ -4,154 +4,112 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
+    Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers.CSharpMoveStaticMembersRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveStaticMembers
 {
-    public class CSharpMoveStaticMembersTests : AbstractCSharpCodeActionTest
+    public class CSharpMoveStaticMembersTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-        {
-            return new CSharpMoveStaticMembersRefactoringProvider((IMoveStaticMembersOptionsService)parameters.fixProviderData);
-        }
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions) => FlattenActions(actions);
-
-        private async Task TestNoRefactoringProvidedAsync(
-            string initialMarkup,
-            TestParameters parameters = default)
-        {
-            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
-            var (actions, _) = await GetCodeActionsAsync(workspace, parameters).ConfigureAwait(false);
-            // no actions should be provided
-            Assert.Equal(0, actions.Length);
-        }
-
-        internal Task TestMovementAsync(
-            string initialMarkUp,
-            string expectedResult,
-            string destinationType,
-            ImmutableArray<string> selection,
-            string destinationName = "a.cs",
-            TestParameters parameters = default)
-        {
-            var service = new TestMoveStaticMembersService(destinationType, destinationName, selection.AsImmutable());
-
-            return TestInRegularAndScript1Async(
-                initialMarkUp,
-                expectedResult,
-                parameters.WithFixProviderData(service));
-        }
+        private static readonly TestComposition s_testServices = FeaturesTestCompositions.Features.AddParts(typeof(TestMoveStaticMembersService));
 
         #region Perform Actions From Options
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveField()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static int Test[||]Field = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveProperty()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static int Test[||]Property { get; set; }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestProperty");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestProperty { get; set; }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveEvent()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 using System;
 
 namespace TestNs1
@@ -160,17 +118,11 @@ namespace TestNs1
     {
         public static event EventHandler Test[||]Event;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestEvent");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 using System;
 
 namespace TestNs1
@@ -178,9 +130,8 @@ namespace TestNs1
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">using System;
+}";
+            var expectedResult2 = @"using System;
 
 namespace TestNs1
 {
@@ -188,23 +139,26 @@ namespace TestNs1
     {
         public static event EventHandler TestEvent;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethod()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -214,25 +168,18 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -241,23 +188,26 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveExtensionMethod()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public static class Class1
@@ -276,17 +226,11 @@ namespace TestNs1
             OtherInt = 5;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public static class Class1
@@ -301,9 +245,8 @@ namespace TestNs1
             OtherInt = 5;
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -312,75 +255,70 @@ namespace TestNs1
             return other.OtherInt + 2;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveConstField()
         {
             // const is static so we should work here
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public const int Test[||]Field = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public const int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMultipleMethods()
         {
-            // Bug where PullMembersUp doesn't apply formatting annotation
-            // When the destination ends up with more than one member:
-            // https://github.com/dotnet/roslyn/issues/54847
-            // so we keep the weird formatting for now
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -395,56 +333,52 @@ namespace TestNs1
             return false;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethodInt", "TestMethodBool");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
-
         public static bool TestMethodBool()
         {
             return false;
         }
+
         public static int TestMethodInt()
         {
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveSingleMethodFromMultiple()
         {
             // move the method that this was not triggered on
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -459,17 +393,11 @@ namespace TestNs1
             return false;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethodBool");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
@@ -479,9 +407,8 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -491,27 +418,26 @@ namespace TestNs1
             return false;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveOneOfEach()
         {
-            // Bug where PullMembersUp doesn't apply formatting annotation
-            // When the destination ends up with more than one member:
-            // https://github.com/dotnet/roslyn/issues/54847
-            // so we keep the weird formatting for now
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 using System;
 
 namespace TestNs1
@@ -529,10 +455,7 @@ namespace TestNs1
 
         public static event EventHandler TestEvent;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create(
@@ -540,10 +463,7 @@ namespace TestNs1
                 "TestField",
                 "TestProperty",
                 "TestEvent");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 using System;
 
 namespace TestNs1
@@ -551,15 +471,13 @@ namespace TestNs1
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">using System;
+}";
+            var expectedResult2 = @"using System;
 
 namespace TestNs1
 {
     static class Class1Helpers
     {
-
         public static int TestField;
 
         public static bool TestProperty { get; set; }
@@ -571,23 +489,26 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestInNestedClass()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -597,17 +518,11 @@ namespace TestNs1
             public static int Test[||]Field = 1;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
@@ -616,32 +531,34 @@ namespace TestNs1
         {
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestInNestedNamespace()
         {
-            // collapse the namespaces
+            // collapse the namespaces in the new file
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     namespace InnerNs
@@ -651,17 +568,11 @@ namespace TestNs1
             public static int Test[||]Field = 1;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     namespace InnerNs
@@ -670,112 +581,106 @@ namespace TestNs1
         {
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1.InnerNs
+}";
+            var expectedResult2 = @"namespace TestNs1.InnerNs
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveFieldNoNamespace()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 public class Class1
 {
     public static int Test[||]Field = 1;
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 public class Class1
 {
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">static class Class1Helpers
+}";
+            var expectedResult2 = @"static class Class1Helpers
 {
     public static int TestField = 1;
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveFieldNewNamespace()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 public class Class1
 {
     public static int Test[||]Field = 1;
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "NewNs.Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 public class Class1
 {
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace NewNs
+}";
+            var expectedResult2 = @"namespace NewNs
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodWithNamespacedSelectedDestination()
         {
             // in the case that we have an extra namespace in the destination name
             // we append it on to the old type's namespace
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -785,25 +690,18 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "ExtraNs.Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1.ExtraNs
+}";
+            var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
     static class Class1Helpers
     {
@@ -812,24 +710,27 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodFileScopedNamespace()
         {
-            // We still keep normal namespacing rules in the new file regardless
+            // We still keep normal namespacing rules in the new file
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1;
 
 public class Class1
@@ -838,24 +739,17 @@ public class Class1
     {
         return 0;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1;
 
 public class Class1
 {
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -864,24 +758,28 @@ public class Class1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodWithFolders()
         {
-            // We should just put the new file in the same folder
+            // We should just put the new file in the same folder as source
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document Folders=""Folder1"" FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -891,25 +789,18 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document Folders=""Folder1"" FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document Folders=""Folder1"" FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -918,129 +809,129 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestState = {
+                    Sources =
+                    {
+                        ("someFolder/Class1.cs", initialMarkup)
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        ("someFolder/Class1.cs", expectedResult1),
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveGenericMethod()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
-        public static T Test[||]Method&lt;T&gt;(T item)
+        public static T Test[||]Method<T>(T item)
         {
             return item;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
-        public static T TestMethod&lt;T&gt;(T item)
+        public static T TestMethod<T>(T item)
         {
             return item;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodWithGenericClass()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
-    public class Class1&lt;T&gt;
+    public class Class1<T>
     {
         public static T Test[||]Method(T item)
         {
             return item;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
-    public class Class1&lt;T&gt;
+    public class Class1<T>
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers&lt;T&gt;
+    static class Class1Helpers<T>
     {
         public static T Test[||]Method(T item)
         {
             return item;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsage()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1058,17 +949,11 @@ namespace TestNs1
             return Class1.TestMethod();
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
@@ -1082,9 +967,8 @@ namespace TestNs1
             return Class1Helpers.TestMethod();
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1093,23 +977,26 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageDifferentNamespace()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1132,17 +1019,11 @@ namespace TestNs2
             return Class1.TestMethod();
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
@@ -1161,9 +1042,8 @@ namespace TestNs2
             return Class1Helpers.TestMethod();
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1172,23 +1052,26 @@ namespace TestNs2
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageNewNamespace()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1206,17 +1089,11 @@ namespace TestNs1
             return Class1.TestMethod();
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "ExtraNs.Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 using TestNs1.ExtraNs;
 
 namespace TestNs1
@@ -1232,9 +1109,8 @@ namespace TestNs1
             return Class1Helpers.TestMethod();
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1.ExtraNs
+}";
+            var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
     static class Class1Helpers
     {
@@ -1243,23 +1119,26 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageSeparateFile()
         {
-            var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var initialMarkup1 = @"
 namespace TestNs1
 {
     public class Class1
@@ -1269,9 +1148,8 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class2.cs"">
+}";
+            var initialMarkup2 = @"
 using TestNs1;
 
 public class Class2
@@ -1280,25 +1158,18 @@ public class Class2
     {
         return Class1.TestMethod();
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class2.cs"">
+}";
+            var expectedResult3 = @"
 using TestNs1;
 
 public class Class2
@@ -1307,9 +1178,8 @@ public class Class2
     {
         return Class1Helpers.TestMethod();
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1318,23 +1188,34 @@ public class Class2
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        initialMarkup1,
+                        initialMarkup2
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        expectedResult3,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveExtensionMethodDontRefactor()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public static class Class1
@@ -1362,17 +1243,11 @@ namespace TestNs1
             OtherInt = 5;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public static class Class1
@@ -1396,9 +1271,8 @@ namespace TestNs1
             OtherInt = 5;
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1407,23 +1281,26 @@ namespace TestNs1
             return other.OtherInt + 2;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestMoveExtensionMethodRefactorImports()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     using TestNs2;
@@ -1458,17 +1335,11 @@ namespace TestNs2
             OtherInt = 5;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "ExtraNs.Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     using TestNs2;
@@ -1500,9 +1371,8 @@ namespace TestNs2
             OtherInt = 5;
         }
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">using TestNs2;
+}";
+            var expectedResult2 = @"using TestNs2;
 
 namespace TestNs1.ExtraNs
 {
@@ -1513,26 +1383,29 @@ namespace TestNs1.ExtraNs
             return other.OtherInt + 2;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
         #endregion
 
         #region Selections and caret position
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInMethodParens()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1542,25 +1415,18 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1569,211 +1435,198 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectWholeFieldDeclaration()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         [|public static int TestField = 1;|]
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectBeforeKeywordOfDeclaration()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         [||]public static int TestField = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInKeyWordOfDeclaration1()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         pub[||]lic static int TestField = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInKeyWordOfDeclaration2()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public st[||]atic int TestField = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInTypeIdentifierMethodDeclaration()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1783,25 +1636,18 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
@@ -1810,112 +1656,109 @@ namespace TestNs1
             return 0;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static i[||]nt TestField = 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInFieldInitializerEquals_NoAction()
         {
             // The initializer isn't a member declaration
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static int TestField =[||] 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectInFieldInitializerAfterSemicolon()
         {
             // However, a semicolon after the initializer is still considered a declaration
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static int TestField = 1;[||]
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
             var selectedMembers = ImmutableArray.Create("TestField");
-            var expectedResult = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1
     {
     }
-}
-        </Document>
-        <Document FilePath=""Class1Helpers.cs"">namespace TestNs1
+}";
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers
     {
         public static int TestField = 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
-            await TestMovementAsync(initialMarkup,
-                expectedResult,
-                selectedDestinationName,
-                selectedMembers,
-                newFileName).ConfigureAwait(false);
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectMethodBody_NoAction()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1925,20 +1768,19 @@ namespace TestNs1
             retu[||]rn 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectMethodBracket_NoAction()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
@@ -1948,52 +1790,83 @@ namespace TestNs1
             return 0;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectPropertyBody_NoAction()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public static int TestProperty { get; [||]set; }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
         public async Task TestSelectNonStaticProperty_NoAction()
         {
             var initialMarkup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
-        <Document FilePath=""Class1.cs"">
 namespace TestNs1
 {
     public class Class1
     {
         public int Test[||]Property { get; set; }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestNoRefactoringProvidedAsync(initialMarkup).ConfigureAwait(false);
+}";
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
         #endregion
+
+        private class Test : VerifyCS.Test
+        {
+            public Test(
+                string destinationType,
+                ImmutableArray<string> selection,
+                string destinationName = "a.cs")
+            {
+                _destinationType = destinationType;
+                _selection = selection;
+                _destinationName = destinationName;
+            }
+
+            private readonly string _destinationType;
+
+            private readonly ImmutableArray<string> _selection;
+
+            private readonly string _destinationName;
+
+            protected override Workspace CreateWorkspaceImpl()
+            {
+                var hostServices = s_testServices.GetHostServices();
+
+                var workspace = new AdhocWorkspace(hostServices);
+                var testOptionsService = (TestMoveStaticMembersService)workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
+                testOptionsService.DestinationType = _destinationType;
+                testOptionsService.SelectedMembers = _selection;
+                testOptionsService.Filename = _destinationName;
+
+                return workspace;
+            }
+        }
     }
 }

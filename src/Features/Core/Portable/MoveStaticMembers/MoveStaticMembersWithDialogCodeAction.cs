@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly Document _document;
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
-        private IMoveStaticMembersOptionsService? _service;
+        private IMoveStaticMembersOptionsService _service;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         public MoveStaticMembersWithDialogCodeAction(
             Document document,
             TextSpan span,
-            IMoveStaticMembersOptionsService? service,
+            IMoveStaticMembersOptionsService service,
             INamedTypeSymbol selectedType,
             ISymbol? selectedMember = null)
         {
@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            _service ??= _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
             return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMember);
         }
 
@@ -130,13 +129,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var docEditor = await solutionEditor.GetDocumentEditorAsync(docGroup.Key, cancellationToken).ConfigureAwait(false);
-                await FixReferencesSingleDocumentAsync(docGroup.AsImmutable(), docEditor, newType, cancellationToken).ConfigureAwait(false);
+                FixReferencesSingleDocument(docGroup.AsImmutable(), docEditor, newType, cancellationToken);
             }
 
             return solutionEditor.GetChangedSolution();
         }
 
-        private static async Task FixReferencesSingleDocumentAsync(
+        private static void FixReferencesSingleDocument(
             ImmutableArray<(ReferenceLocation location, bool isExtension)> referenceLocations,
             DocumentEditor docEditor,
             INamedTypeSymbol newType,
