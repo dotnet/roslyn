@@ -414,11 +414,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 yield return node.Parent;
             }
 
+            // If there is only one variable declared in the field, then consider the only field is selected
+            // e.g.
+            // class Bar
+            // {
+            //     pub$$lic int i;
+            // }
+            // Treat as 'i' is selected
             if (TryGetVariableDeclaratorInSingleFieldDeclaration(node, out var singleVariable))
             {
                 yield return singleVariable;
             }
 
+            // In some case the we need to find the variable in parent.
+            // e.g.
+            // class Bar
+            // {
+            //     public i$$nt i;
+            // }
             if (node.Parent != null && TryGetVariableDeclaratorInSingleFieldDeclaration(node.Parent, out var singleVariableInParent))
             {
                 yield return singleVariableInParent;
