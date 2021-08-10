@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -16,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest,
     // they will not copy the DisableUserExperience attribute, so guests will still use the C# ILC.
@@ -50,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
+            var isLspEditorEnabled = experimentationService.IsExperimentEnabled(DefaultWorkspaceContextService.LspEditorFeatureFlagName);
 
             // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.

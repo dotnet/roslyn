@@ -246,5 +246,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return true;
         }
+
+        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        {
+            if (provider is LSPCompletionProvider lspProvider)
+            {
+                return lspProvider.TriggerCharacters;
+            }
+
+            return ImmutableHashSet<char>.Empty;
+        }
     }
 }

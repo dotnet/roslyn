@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     // unfortunately, we can't implement this on LanguageServerClient since this uses MEF v2 and
     // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.

@@ -21,7 +21,7 @@ using StreamJsonRpc;
 
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     /// <summary>
     /// Implementation of <see cref="LanguageServerTarget"/> that also supports
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
         }
 
-        private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)
+        private void DiagnosticService_DiagnosticsUpdated(object? _, DiagnosticsUpdatedArgs e)
             => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
 
         private void DiagnosticService_DiagnosticsUpdated(Solution? solution, DocumentId? documentId)

@@ -7,13 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                     Location = location,
-                    Icon = ProtocolConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
+                    Icon = VSLspExtensionConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
                 });
             }
         }

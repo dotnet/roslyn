@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -14,11 +13,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     /// <summary>
     /// Defines the LSP server for Razor C#.  This is separate so that we can
