@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal unsafe bool TryGetMetadata(out byte* pointer, out int length)
         {
+            MetadataAccessCount++;
+
             if (_reader == null)
             {
                 pointer = null;
                 length = 0;
                 return false;
             }
-
-            MetadataAccessCount++;
 
             var block = _reader.GetMetadata();
             pointer = block.Pointer;
