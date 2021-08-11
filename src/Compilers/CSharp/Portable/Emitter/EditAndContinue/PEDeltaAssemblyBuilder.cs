@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     continue;
                 }
-                if (!reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousNamePrefix))
+                if (!reader.StringComparer.StartsWith(def.Name, GeneratedNameConstants.AnonymousNamePrefix))
                 {
                     continue;
                 }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 short arity;
                 var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out arity);
                 int index;
-                if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
+                if (GeneratedNameParser.TryParseAnonymousTypeTemplateName(name, out index))
                 {
                     var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
                     if (TryGetAnonymousTypeKey(reader, def, builder))
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var typeParameter = reader.GetGenericParameter(typeParameterHandle);
                 string fieldName;
-                if (!GeneratedNames.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out fieldName))
+                if (!GeneratedNameParser.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out fieldName))
                 {
                     return false;
                 }
