@@ -1990,9 +1990,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
         WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
-        ERR_AttrTypeArgCannotBeTypeVar = 8967,
-        WRN_AttrDependentTypeNotAllowed = 8968,
-        ERR_AttrDependentTypeNotAllowed = 8969
+        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        ERR_AttrTypeArgCannotBeTypeVar = 8968,
+        WRN_AttrDependentTypeNotAllowed = 8969,
+        ERR_AttrDependentTypeNotAllowed = 8970,
 
         #endregion
 

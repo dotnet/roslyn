@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyEntryPoint == null)
             {
                 EntryPoint? entryPoint;
-                var simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+                var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
 
                 if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
@@ -1782,7 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var main in entryPointCandidates)
                         {
-                            diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            if (main is not SynthesizedSimpleProgramEntryPointSymbol)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            }
                         }
 
                         if (scriptClass is object)
@@ -2275,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
-            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            if (ignoreAccessibility && SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this) is object)
             {
                 return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
             }

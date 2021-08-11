@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(
-                symbol, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
@@ -53,8 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
-            var standardFunction = GetStandardSymbolsMatchFunction(
-                parameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+            var standardFunction = GetStandardSymbolsMatchFunction(parameter, findParentNode: null, solution, cancellationToken);
 
             // HOwever, we also want to consider parameter symbols them same if they unify across
             // VB's synthesized AnonymousDelegate parameters. 
@@ -77,8 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // anonymous-delegate's invoke method.  So get he symbol match function that will chec
             // for equivalence with that parameter.
             var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
-            var anonParameterFunc = GetStandardSymbolsMatchFunction(
-                anonymousDelegateParameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(anonymousDelegateParameter, findParentNode: null, solution, cancellationToken);
 
             // Return a new function which is a compound of the two functions we have.
             return async (token, model) =>
@@ -95,17 +92,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
-            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
             {
-                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
@@ -115,11 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
 
-            using var _2 = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(symbols.Count, out var result);
-            foreach (var symbol in symbols)
-                result.Add((symbol, cascadeDirection));
-
-            return result.ToImmutable();
+            return symbols.ToImmutable();
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(

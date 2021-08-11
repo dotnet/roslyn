@@ -202,18 +202,61 @@ namespace Microsoft.CodeAnalysis.Host
                 return null;
             }
 
-            var relativeDocumentPath = GetRelativeDocumentPath(PathUtilities.GetDirectoryName(designTimeDocument.Project.FilePath)!, designTimeDocument.FilePath!);
-            var generatedDocumentPath = Path.Combine(generatedDocumentPathPrefix ?? s_razorSourceGeneratorFileNamePrefix, GetIdentifierFromPath(relativeDocumentPath)) + ".cs";
+            var designTimeProjectDirectoryName = PathUtilities.GetDirectoryName(designTimeDocument.Project.FilePath)!;
+
+            var generatedDocumentPath = BuildGeneratedDocumentPath(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
+            var generatedDocumentPathNet6Preview7 = BuildGeneratedDocumentPathNet6Preview7(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
 
             var sourceGeneratedDocuments = await compileTimeSolution.GetRequiredProject(designTimeDocument.Project.Id).GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath == generatedDocumentPath);
+            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath == generatedDocumentPath || d.FilePath == generatedDocumentPathNet6Preview7);
+        }
+
+        /// <summary>
+        /// Prior to .net6 preview 7, the source generated path was built using a relative path with a preceding \
+        /// and without only .cs as part of the extension.
+        /// </summary>
+        private static string BuildGeneratedDocumentPath(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
+        {
+            var relativeDocumentPath = GetRelativeDocumentPathWithPrecedingSlash(designTimeProjectDirectoryName, designTimeDocumentFilePath);
+            var generatedDocumentPath = GetGeneratedDocumentPathWithoutExtension(relativeDocumentPath, generatedDocumentPathPrefix) + ".cs";
+            return generatedDocumentPath;
+        }
+
+        /// <summary>
+        /// In .net6 p7 the source generator changed to passing in the relative doc path without a leading \ to GetIdentifierFromPath
+        /// which caused the source generated file name to no longer be prefixed by an _.  Additionally, the file extension was changed to .g.cs
+        /// </summary>
+        private static string BuildGeneratedDocumentPathNet6Preview7(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
+        {
+            var relativeDocumentPath = GetRelativeDocumentPath(designTimeProjectDirectoryName, designTimeDocumentFilePath);
+            var generatedDocumentPath = GetGeneratedDocumentPathWithoutExtension(relativeDocumentPath, generatedDocumentPathPrefix) + ".g.cs";
+            return generatedDocumentPath;
         }
 
         private static string GetRelativeDocumentPath(string projectDirectory, string designTimeDocumentFilePath)
-            => Path.Combine("\\", PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length]);
+            => PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length];
+
+        private static string GetRelativeDocumentPathWithPrecedingSlash(string projectDirectory, string designTimeDocumentFilePath)
+            => Path.Combine("\\", GetRelativeDocumentPath(projectDirectory, designTimeDocumentFilePath));
+
+        private static string GetGeneratedDocumentPathWithoutExtension(string relativeDocumentPath, string? generatedDocumentPathPrefix)
+            => Path.Combine(generatedDocumentPathPrefix ?? s_razorSourceGeneratorFileNamePrefix, GetIdentifierFromPath(relativeDocumentPath));
 
         private static bool HasMatchingFilePath(string designTimeDocumentFilePath, string designTimeProjectDirectory, string compileTimeFilePath)
-            => PathUtilities.GetFileName(compileTimeFilePath, includeExtension: false) == GetIdentifierFromPath(GetRelativeDocumentPath(designTimeProjectDirectory, designTimeDocumentFilePath));
+        {
+            // Check for matching file names created from a relative path with and without a preceding slash as both
+            // are valid depening on the which sdk.  See BuildGeneratedDocumentPathNet6Preview7.
+            var relativeDocumentPath = GetRelativeDocumentPath(designTimeProjectDirectory, designTimeDocumentFilePath);
+            var relativeDocumentPathWithSlash = GetRelativeDocumentPathWithPrecedingSlash(designTimeProjectDirectory, designTimeDocumentFilePath);
+
+            var compileTimeFileName = PathUtilities.GetFileName(compileTimeFilePath, includeExtension: false);
+
+            // Sdks including and after .net6 preview7 have compile time file names ending with ".g.cs".
+            if (compileTimeFileName.EndsWith(".g"))
+                compileTimeFileName = compileTimeFileName[..^".g".Length];
+
+            return compileTimeFileName == GetIdentifierFromPath(relativeDocumentPath) || compileTimeFileName == GetIdentifierFromPath(relativeDocumentPathWithSlash);
+        }
 
         internal static async Task<ImmutableArray<DocumentId>> GetDesignTimeDocumentsAsync(
             Solution compileTimeSolution,

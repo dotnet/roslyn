@@ -127,6 +127,11 @@
         <target state="translated">TODO zjišťování komentářů</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nepoužité referenční analýzy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
         <target state="new">Value Tracking</target>

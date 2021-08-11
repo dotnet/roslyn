@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            using (_gate.DisposableWait(cancellationToken))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
 

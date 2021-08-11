@@ -11925,33 +11925,24 @@ class Test
 {
     public static void Main()
     {
-        var m = Main; // CS0815
-        var d = s => -1; // CS0815
-        var e = (string s) => 0; // CS0815
+        var m = Main;
+        var d = s => -1; // CS8917
+        var e = (string s) => 0;
         var p = null;//CS0815
-        var del = delegate(string a) { return -1; };// CS0815
+        var del = delegate(string a) { return -1; };
         var v = M(); // CS0815
     }
     static void M() {}
 }").VerifyDiagnostics(
-                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-                //         var m = Main; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var d = s => -1; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var e = (string s) => 0; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (7,17): error CS8917: The delegate type could not be inferred.
+                //         var d = s => -1; // CS8917
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(7, 17),
                 // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var p = null;//CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                //         var del = delegate(string a) { return -1; };// CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(9, 13),
                 // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var v = M(); // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void").WithLocation(11, 13));
         }
 
         [Fact]
@@ -11967,18 +11958,15 @@ var p = null;
 var del = delegate(string a) { return -1; };
 var v = M();     
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,5): error CS0815: Cannot assign method group to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = M").WithArguments("method group"),
-                // (5,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (6,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (5,9): error CS8917: The delegate type could not be inferred.
+                // var d = s => -1; 
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(5, 9),
                 // (7,5): error CS0815: Cannot assign <null> to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (8,5): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // var p = null;    
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(7, 5),
                 // (9,1): error CS0670: Field cannot have void type
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var"));
+                // var v = M();     
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var").WithLocation(9, 1));
         }
 
         [Fact]
@@ -23438,9 +23426,9 @@ class Program
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                // (5,26): error CS8917: The delegate type could not be inferred.
                 //         var a1 = checked((a) => a);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a1 = checked((a) => a)").WithArguments("lambda expression"));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(a) => a").WithLocation(5, 26));
         }
 
         [Fact, WorkItem(543665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543665")]
