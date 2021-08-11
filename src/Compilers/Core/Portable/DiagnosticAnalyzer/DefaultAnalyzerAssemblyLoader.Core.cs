@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
-            if (!ShouldLoad(fullPath))
-            {
-                throw new InvalidOperationException();
-            }
-
             AssemblyLoadContext? loadContext;
 
             var fullDirectoryPath = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException(message: null, paramName: nameof(fullPath));
@@ -38,10 +33,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // We allow analyzer loaders to "group" assemblies by directory,
-            // and then perform a substitution before the assembly is actually loaded.
-            var pathToLoad = GetPathToLoad(fullPath);
-            return loadContext.LoadFromAssemblyPath(pathToLoad);
+            var name = AssemblyName.GetAssemblyName(fullPath);
+            return loadContext.LoadFromAssemblyName(name);
         }
 
         private sealed class DirectoryLoadContext : AssemblyLoadContext
@@ -57,19 +50,15 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                // Any compilers assembly or any assembly referenced by the compilers needs to "win"
-                // over a user-specified version of that assembly.
                 var currentAssembly = Assembly.GetExecutingAssembly();
-                if (assemblyName.Name is "Microsoft.CodeAnalysis" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic"
-                    || currentAssembly.GetReferencedAssemblies().Any(
-                        static (referencedAssemblyName, assemblyName) => AssemblyName.ReferenceMatchesDefinition(referencedAssemblyName, assemblyName), assemblyName))
+                if (shouldLoadInCompilerContext())
                 {
                     return AssemblyLoadContext.GetLoadContext(currentAssembly)!.LoadFromAssemblyName(assemblyName);
                 }
 
                 var simpleName = assemblyName.Name;
                 var assemblyPath = Path.Combine(_directory, assemblyName.Name + ".dll");
-                if (!_loader.ShouldLoad(assemblyPath))
+                if (!_loader.ShouldLoadInAnalyzerContext(assemblyPath))
                 {
                     return null;
                 }
@@ -82,6 +71,13 @@ namespace Microsoft.CodeAnalysis
                 catch (FileNotFoundException)
                 {
                     return null;
+                }
+
+                bool shouldLoadInCompilerContext()
+                {
+                    return assemblyName.Name is "Microsoft.CodeAnalysis" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic"
+                        || currentAssembly.GetReferencedAssemblies().Any(
+                            static (referencedAssemblyName, assemblyName) => AssemblyName.ReferenceMatchesDefinition(referencedAssemblyName, assemblyName), assemblyName);
                 }
             }
 

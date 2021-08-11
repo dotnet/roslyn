@@ -183,7 +183,7 @@ Delta: Gamma: Beta: Test B
             var loader = new DefaultAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(_testFixture.Gamma.Path);
             loader.AddDependencyLocation(_testFixture.Delta1.Path);
-            Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(_testFixture.Beta.Path));
+            Assert.Throws<FileNotFoundException>(() => loader.LoadFromPath(_testFixture.Beta.Path));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
