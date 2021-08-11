@@ -765,6 +765,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">组名无效: 组名必须以单词字符开头</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">将类设置为 "abstract"</target>

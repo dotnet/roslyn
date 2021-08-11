@@ -765,6 +765,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Nombre de grupo no válido: nombres de grupo deben comenzar con un carácter de palabra</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Convertir la clase en "abstract"</target>

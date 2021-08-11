@@ -765,6 +765,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Neplatný název skupiny: Názvy skupin musí začínat znakem slova.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Nastavit třídu jako abstract</target>
