@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const DelegateMethodCallbackParameterName As String = "DelegateCallback"
         Friend Const DelegateMethodInstanceParameterName As String = "DelegateAsyncState"
         Friend Const DelegateMethodResultParameterName As String = "DelegateAsyncResult"
-        Friend Const DelegateStubParameterPrefix As String = "a"
         Friend Const ElementAtMethod As String = "ElementAtOrDefault"
         Friend Const GroupByMethod As String = "GroupBy"
         Friend Const GroupJoinMethod As String = "GroupJoin"
@@ -44,10 +43,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const PropertyGetPrefix As String = "get_"
         Friend Const PropertySetPrefix As String = "set_"
         Friend Const WinMdPropertySetPrefix As String = "put_"
+        Friend Const EventAddPrefix As String = "add_"
+        Friend Const EventRemovePrefix As String = "remove_"
+        Friend Const EventRaisePrefix As String = "raise_"
 
         Friend Const ValueParameterName As String = "Value"
         Friend Const WithEventsValueParameterName As String = "WithEventsValue"
         Friend Const AutoPropertyValueParameterName As String = "AutoPropertyValue"
+        Friend Const EventDelegateSuffix As String = "EventHandler"
+        Friend Const EventVariableSuffix As String = "Event"
 
         Friend Const DefaultXmlnsPrefix As String = ""
         Friend Const DefaultXmlNamespace As String = ""
@@ -66,18 +70,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const XmlRemoveNamespaceAttributesMethodName As String = "RemoveNamespaceAttributes"
 
         Friend Const ValueProperty As String = "Value"
-
     End Class
-
-    Friend Module Constants
-        Friend Const ATTACH_LISTENER_PREFIX As String = "add_"
-
-        Friend Const REMOVE_LISTENER_PREFIX As String = "remove_"
-
-        Friend Const FIRE_LISTENER_PREFIX As String = "raise_"
-
-        Friend Const EVENT_DELEGATE_SUFFIX As String = "EventHandler"
-
-        Friend Const EVENT_VARIABLE_SUFFIX As String = "Event"
-    End Module
 End Namespace
