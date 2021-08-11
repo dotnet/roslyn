@@ -1086,6 +1086,96 @@ End Class
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
         End Sub
 
+        <Fact>
+        <WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")>
+        Sub AddNamespace()
+            Dim source0 = "
+Class C
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim source1 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Shared Sub Main()
+        N1.N2.D.F()
+    End Sub
+End Class
+"
+            Dim source2 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+
+    Namespace M1.M2
+        Class E
+            Public Shared Sub G()
+            End Sub
+        End Class
+    End Namespace
+End Namespace
+
+Class C
+    Shared Sub Main() 
+        N1.N2.M1.M2.E.G()
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilation(source0, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+
+            Dim main0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
+            Dim main1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
+            Dim main2 = compilation2.GetMember(Of MethodSymbol)("C.Main")
+            Dim d1 = compilation1.GetMember(Of NamedTypeSymbol)("N1.N2.D")
+            Dim e2 = compilation2.GetMember(Of NamedTypeSymbol)("N1.N2.M1.M2.E")
+
+            Using md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray())
+
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main0, main1),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, d1)))
+
+                diff1.VerifyIL("C.Main", "
+    {
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.D.F()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+                Dim diff2 = compilation2.EmitDifference(
+                    diff1.NextGeneration,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main1, main2),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, e2)))
+
+                diff2.VerifyIL("C.Main", "
+{
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.M1.M2.E.G()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+            End Using
+        End Sub
+
         <WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>
         <Fact()>
         Public Sub MethodSignatureWithNoPIAType()

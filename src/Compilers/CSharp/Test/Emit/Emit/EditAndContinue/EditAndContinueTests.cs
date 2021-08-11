@@ -2999,6 +2999,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")]
         public void AddNamespace()
         {
             var source0 =
@@ -3009,22 +3010,22 @@ class C
 }";
             var source1 =
 @"
-namespace N
+namespace N1.N2
 {
     class D { public static void F() { } } 
 }
 
 class C
 {
-    static void Main() => N.D.F();
+    static void Main() => N1.N2.D.F();
 }";
             var source2 =
 @"
-namespace N
+namespace N1.N2
 {
     class D { public static void F() { } } 
 
-    namespace M
+    namespace M1.M2
     {
         class E { public static void G() { } } 
     }
@@ -3032,7 +3033,7 @@ namespace N
 
 class C
 {
-    static void Main() => N.M.E.G();
+    static void Main() => N1.N2.M1.M2.E.G();
 }";
             var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -3041,8 +3042,8 @@ class C
             var main0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var main1 = compilation1.GetMember<MethodSymbol>("C.Main");
             var main2 = compilation2.GetMember<MethodSymbol>("C.Main");
-            var d1 = compilation1.GetMember<NamedTypeSymbol>("N.D");
-            var e2 = compilation2.GetMember<NamedTypeSymbol>("N.M.E");
+            var d1 = compilation1.GetMember<NamedTypeSymbol>("N1.N2.D");
+            var e2 = compilation2.GetMember<NamedTypeSymbol>("N1.N2.M1.M2.E");
 
             using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
 
@@ -3058,7 +3059,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  0
-  IL_0000:  call       ""void N.D.F()""
+  IL_0000:  call       ""void N1.N2.D.F()""
   IL_0005:  nop
   IL_0006:  ret
 }");
@@ -3072,7 +3073,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  0
-  IL_0000:  call       ""void N.M.E.G()""
+  IL_0000:  call       ""void N1.N2.M1.M2.E.G()""
   IL_0005:  nop
   IL_0006:  ret
 }");
