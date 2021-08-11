@@ -606,6 +606,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public override string Name => nameof(LspDiagnosticsTests);
 
+            public override bool ShowNotificationOnInitializeFailed => false;
+
             public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }
     }

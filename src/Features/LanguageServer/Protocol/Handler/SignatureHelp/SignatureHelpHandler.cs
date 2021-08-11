@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         LSP.SignatureInformation sigInfo;
                         if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
-                            sigInfo = new LSP.VSSignatureInformation
+                            sigInfo = new LSP.VSInternalSignatureInformation
                             {
                                 ColorizedLabel = GetSignatureClassifiedText(item)
                             };
