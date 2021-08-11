@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal abstract class AbstractRequestDispatcherFactory
     {
         protected readonly ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> _requestHandlerProviders;
-        protected readonly string? _languageName;
+        protected readonly ImmutableArray<string> _languageNames;
 
-        protected AbstractRequestDispatcherFactory(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, string? languageName = null)
+        protected AbstractRequestDispatcherFactory(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, ImmutableArray<string> languageNames)
         {
             _requestHandlerProviders = requestHandlerProviders.ToImmutableArray();
-            _languageName = languageName;
+            _languageNames = languageNames;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         public virtual RequestDispatcher CreateRequestDispatcher()
         {
-            return new RequestDispatcher(_requestHandlerProviders, _languageName);
+            return new RequestDispatcher(_requestHandlerProviders, _languageNames);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RequestDispatcherFactory([ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
-            : base(requestHandlerProviders)
+            : base(requestHandlerProviders, ExportRoslynLanguagesLspRequestHandlerProviderAttribute.SupportedLanguages)
         {
         }
     }

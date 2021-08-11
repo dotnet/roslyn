@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentHoverName)]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
