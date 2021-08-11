@@ -140,7 +140,7 @@ namespace Microsoft.Cci
             }
 
             // Emit EnC info for all methods even if they do not have sequence points.
-            // The information facilitates reusing lambdas and closures. The reusal is important for runtimes that can't add new ones (e.g. Mono).
+            // The information facilitates reusing lambdas and closures. The reuse is important for runtimes that can't add new members (e.g. Mono).
             // EnC delta doesn't need this information - we use information recorded by previous generation emit.
             if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && IsFullMetadata)
             {
