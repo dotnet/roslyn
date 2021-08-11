@@ -1063,11 +1063,24 @@ class C
     void F()
     {
         var x = <N:0>(ref int a, int b) => b</N:0>;
+
+        var y = <N:1>(int a, ref int b) => a</N:1>;
+    }
+}");
+            var source2 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => b</N:0>;
+
+        var y = <N:1>(int a, ref int b) => b</N:1>;
     }
 }");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
 
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -1075,6 +1088,7 @@ class C
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -1092,26 +1106,97 @@ class C
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
-            CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0");
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>F{00000004}`3");                              // new synthesized delegate for the new lambda
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_1#1");
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_0, <F>b__0_0}");
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(4, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(4, TableIndex.GenericParam, EditAndContinueOperation.Default),
+                Row(5, TableIndex.GenericParam, EditAndContinueOperation.Default),
+                Row(6, TableIndex.GenericParam, EditAndContinueOperation.Default));
 
             CheckEncMapDefinitions(reader1,
+                Handle(5, TableIndex.TypeDef),
+                Handle(3, TableIndex.Field),
                 Handle(3, TableIndex.MethodDef),
                 Handle(7, TableIndex.MethodDef),
+                Handle(8, TableIndex.MethodDef),
+                Handle(9, TableIndex.MethodDef),
+                Handle(10, TableIndex.MethodDef),
                 Handle(3, TableIndex.Param),
                 Handle(4, TableIndex.Param),
-                Handle(2, TableIndex.StandAloneSig));
+                Handle(5, TableIndex.Param),
+                Handle(6, TableIndex.Param),
+                Handle(7, TableIndex.Param),
+                Handle(8, TableIndex.Param),
+                Handle(6, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(4, TableIndex.GenericParam),
+                Handle(5, TableIndex.GenericParam),
+                Handle(6, TableIndex.GenericParam));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());                                     // No new delegate added, reusing from gen 0 and 1
+            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+
+            CheckEncLogDefinitions(reader2,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader2,
+                Handle(3, TableIndex.MethodDef),
+                Handle(7, TableIndex.MethodDef),
+                Handle(10, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(4, TableIndex.Param),
+                Handle(7, TableIndex.Param),
+                Handle(8, TableIndex.Param),
+                Handle(3, TableIndex.StandAloneSig));
         }
 
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
