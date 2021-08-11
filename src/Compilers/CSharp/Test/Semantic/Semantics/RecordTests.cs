@@ -30266,7 +30266,6 @@ public record C(int I) : B(I);";
                 "void D.Deconstruct(out System.Int32 I)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
-
         }
     }
 }
