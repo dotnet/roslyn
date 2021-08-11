@@ -8,5 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public const char DotReplacementInTypeNames = '-';
         public const string SynthesizedLocalNamePrefix = "CS$";
+        public const string SuffixSeparator = "__";
+        public const char LocalFunctionNameTerminator = '|';
     }
 }

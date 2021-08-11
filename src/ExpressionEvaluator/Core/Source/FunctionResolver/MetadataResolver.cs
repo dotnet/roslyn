@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,6 +11,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -279,10 +280,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return true;
             }
 
+            var comparer = _ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+            var metadataName = _reader.GetString(memberName);
+
+            // C# local function
+            if (GeneratedNameParser.TryParseLocalFunctionName(metadataName, out var localFunctionName))
+            {
+                return comparer.Equals(name, localFunctionName);
+            }
+
             // implicitly implemented interface member:
-            var methodMetadataName = _reader.GetString(memberName);
-            var lastDot = methodMetadataName.LastIndexOf('.');
-            if (lastDot >= 0 && string.Equals(methodMetadataName.Substring(lastDot + 1), name, _ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            var lastDot = metadataName.LastIndexOf('.');
+            if (lastDot >= 0 && comparer.Equals(metadataName.Substring(lastDot + 1), name))
             {
                 return true;
             }

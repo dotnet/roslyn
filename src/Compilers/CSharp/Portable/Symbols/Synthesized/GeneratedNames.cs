@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class GeneratedNames
     {
-        private const string SuffixSeparator = "__";
         private const char IdSeparator = '_';
         private const char GenerationSeparator = '#';
-        private const char LocalFunctionNameTerminator = '|';
 
         internal static bool IsGeneratedMemberName(string memberName)
         {
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(lambdaOrdinal >= 0);
             Debug.Assert(lambdaGeneration >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localFunctionName, LocalFunctionNameTerminator, lambdaOrdinal, lambdaGeneration);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localFunctionName, GeneratedNameConstants.LocalFunctionNameTerminator, lambdaOrdinal, lambdaGeneration);
         }
 
         private static string MakeMethodScopedSynthesizedName(
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (suffix != null || methodOrdinal >= 0 || entityOrdinal >= 0)
             {
-                builder.Append(SuffixSeparator);
+                builder.Append(GeneratedNameConstants.SuffixSeparator);
                 builder.Append(suffix);
 
                 if (suffixTerminator != default)

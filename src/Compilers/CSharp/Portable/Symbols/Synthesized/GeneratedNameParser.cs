@@ -87,10 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool TryParseSourceMethodNameFromGeneratedName(string generatedName, GeneratedNameKind requiredKind, out string methodName)
         {
-            int openBracketOffset;
-            int closeBracketOffset;
-            GeneratedNameKind kind;
-            if (!TryParseGeneratedName(generatedName, out kind, out openBracketOffset, out closeBracketOffset))
+            if (!TryParseGeneratedName(generatedName, out var kind, out int openBracketOffset, out int closeBracketOffset))
             {
                 methodName = null;
                 return false;
@@ -109,6 +106,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodName = methodName.Replace(GeneratedNameConstants.DotReplacementInTypeNames, '.');
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Parses generated local function name out of a generated method name.
+        /// </summary>
+        internal static bool TryParseLocalFunctionName(string generatedName, out string localFunctionName)
+        {
+            localFunctionName = null;
+
+            // '<' containin-method-name '>' 'g' '__' local-function-name '|' method-ordinal '_' lambda-ordinal
+            if (!TryParseGeneratedName(generatedName, out var kind, out _, out int closeBracketOffset) || kind != GeneratedNameKind.LocalFunction)
+            {
+                return false;
+            }
+
+            int localFunctionNameStart = closeBracketOffset + 2 + GeneratedNameConstants.SuffixSeparator.Length;
+            if (localFunctionNameStart >= generatedName.Length)
+            {
+                return false;
+            }
+
+            int localFunctionNameEnd = generatedName.IndexOf(GeneratedNameConstants.LocalFunctionNameTerminator, localFunctionNameStart);
+            if (localFunctionNameEnd < 0)
+            {
+                return false;
+            }
+
+            localFunctionName = generatedName.Substring(localFunctionNameStart, localFunctionNameEnd - localFunctionNameStart);
             return true;
         }
 
