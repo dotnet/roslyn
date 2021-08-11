@@ -25,6 +25,11 @@
 "Title"="C#/VB LSP completion experience"
 "PreviewPaneChannels"="IntPreview,int.main"
 
+// Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
+[$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
+"Description"="Enables the LSP-powered diagnostics for managed .Net projects"
+"Value"=dword:00000000
+
 // The option page configuration is duplicated in RoslynPackage
 // [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [$RootKey$\ToolWindows\{60a19d42-2dd7-43f3-be90-c7a9cb7d28f4}]

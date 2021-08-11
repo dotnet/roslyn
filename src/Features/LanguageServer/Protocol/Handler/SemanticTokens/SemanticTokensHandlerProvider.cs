@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(SemanticTokensMethods.TextDocumentSemanticTokensName)]
-    [ProvidesMethod(SemanticTokensMethods.TextDocumentSemanticTokensEditsName)]
-    [ProvidesMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName)]
+    [ProvidesMethod(Methods.TextDocumentSemanticTokensFullName)]
+    [ProvidesMethod(Methods.TextDocumentSemanticTokensFullDeltaName)]
+    [ProvidesMethod(Methods.TextDocumentSemanticTokensRangeName)]
     internal class SemanticTokensHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]

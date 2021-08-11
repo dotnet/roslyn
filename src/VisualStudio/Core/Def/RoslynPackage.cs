@@ -193,8 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // the appropriate task scheduler to report events on.
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-            // Load and initialize the services detecting and adding new analyzer config documents as solution item.
-            this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
+            // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
             this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
 
             this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
