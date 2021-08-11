@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis
         /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
-
 
         public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
         {

@@ -75,9 +75,21 @@ namespace Microsoft.CodeAnalysis
 
                 bool shouldLoadInCompilerContext()
                 {
-                    return assemblyName.Name is "Microsoft.CodeAnalysis" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic"
-                        || currentAssembly.GetReferencedAssemblies().Any(
-                            static (referencedAssemblyName, assemblyName) => AssemblyName.ReferenceMatchesDefinition(referencedAssemblyName, assemblyName), assemblyName);
+                    if (assemblyName.Name is "Microsoft.CodeAnalysis" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic")
+                    {
+                        return true;
+                    }
+
+                    var referencedAssemblies = currentAssembly.GetReferencedAssemblies();
+                    foreach (var referencedAssemblyName in referencedAssemblies)
+                    {
+                        if (AssemblyName.ReferenceMatchesDefinition(referencedAssemblyName, assemblyName))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 }
             }
 
