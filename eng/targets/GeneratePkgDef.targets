@@ -102,6 +102,8 @@
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'LiveShareGuest'">dword:00000400</_Audience>
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'RemoteExclusiveServer'">dword:00000800</_Audience>
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'AllClientsIncludingGuests'">dword:00000503</_Audience>
+        <_ServiceLocation Condition="'%(PkgDefBrokeredService.SubFolder)' == ''">"$PackageFolder$"</_ServiceLocation>
+        <_ServiceLocation Condition="'%(PkgDefBrokeredService.SubFolder)' != ''">"$PackageFolder$\%(PkgDefBrokeredService.SubFolder)"</_ServiceLocation>
       </PkgDefBrokeredService>
     </ItemGroup>
   </Target>
@@ -231,7 +233,7 @@
           <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)]
 @="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
 "IsServiceHub"=dword:00000001
-"ServiceLocation"="$PackageFolder$"
+"ServiceLocation"=%(PkgDefBrokeredService._ServiceLocation)
 "audience"=%(PkgDefBrokeredService._Audience)
 ]]>
         </RawValue>

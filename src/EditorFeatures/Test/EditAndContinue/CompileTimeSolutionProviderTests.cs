@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class CompileTimeSolutionProviderTests
     {
-        [Fact]
-        public async Task TryGetCompileTimeDocumentAsync()
+        [Theory]
+        [CombinatorialData]
+        public async Task TryGetCompileTimeDocumentAsync([CombinatorialValues(@"_a_X_razor.cs", @"a_X_razor.g.cs")] string generatedHintName)
         {
             var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var projectId = ProjectId.CreateNewId();
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var projectFilePath = Path.Combine(TempRoot.Root, "a.csproj");
             var additionalFilePath = Path.Combine(TempRoot.Root, "a", "X.razor");
             var designTimeFilePath = Path.Combine(TempRoot.Root, "a", "X.razor.g.cs");
-            var generatedHintName = @"_a_X_razor.cs";
 
             var generator = new TestSourceGenerator() { ExecuteImpl = context => context.AddSource(generatedHintName, "") };
             var sourceGeneratedPathPrefix = Path.Combine(typeof(TestSourceGenerator).Assembly.GetName().Name, typeof(TestSourceGenerator).FullName);

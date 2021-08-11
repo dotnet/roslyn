@@ -2112,6 +2112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(declaration, MethodStatementSyntax).Modifiers
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    Return DirectCast(declaration, MultiLineLambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(declaration, SingleLineLambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(declaration, SubNewStatementSyntax).Modifiers
                 Case SyntaxKind.PropertyBlock

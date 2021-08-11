@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -119,17 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Check whether decompilation is supported for the project. We currently only support this for C# projects.
             if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
             {
-                var eulaService = project.Solution.Workspace.Services.GetRequiredService<IDecompilerEulaService>();
                 allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-                if (allowDecompilation && !ThreadingContext.JoinableTaskFactory.Run(() => eulaService.IsAcceptedAsync(cancellationToken)))
-                {
-                    var notificationService = project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
-                    allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
-                    if (allowDecompilation)
-                    {
-                        ThreadingContext.JoinableTaskFactory.Run(() => eulaService.MarkAcceptedAsync(cancellationToken));
-                    }
-                }
             }
 
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);

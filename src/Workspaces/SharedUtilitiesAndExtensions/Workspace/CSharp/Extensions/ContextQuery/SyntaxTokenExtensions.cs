@@ -222,9 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 var globalStatement = token.GetAncestor<GlobalStatementSyntax>();
                 if (globalStatement != null && globalStatement.GetLastToken(includeZeroWidth: true) == token)
-                {
                     return true;
-                }
+
+                if (token.Parent is FileScopedNamespaceDeclarationSyntax namespaceDeclaration && namespaceDeclaration.SemicolonToken == token)
+                    return true;
 
                 var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                 if (memberDeclaration != null && memberDeclaration.GetLastToken(includeZeroWidth: true) == token &&

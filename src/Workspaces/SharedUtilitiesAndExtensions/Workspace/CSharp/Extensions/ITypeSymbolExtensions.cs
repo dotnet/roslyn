@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)
         {
-            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
-            var allUsings = root is CompilationUnitSyntax
-                ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
+            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<BaseNamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
+            var allUsings = root is CompilationUnitSyntax compilationUnit
+                ? compilationUnit.Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
         }

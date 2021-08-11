@@ -822,6 +822,11 @@
         <target state="translated">new()' 制約は 'unmanaged' 制約と一緒には使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
+        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
+        <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
         <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
@@ -1388,8 +1393,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression">
-        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</target>
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">

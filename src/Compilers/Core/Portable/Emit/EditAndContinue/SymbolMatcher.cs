@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap: baseline.FirstParamRowMap,
                 propertiesAdded,
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
