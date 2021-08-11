@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (openBracketOffset >= 0)
             {
-                closeBracketOffset = name.IndexOfBalancedParenthesis(openBracketOffset, '>');
+                closeBracketOffset = IndexOfBalancedParenthesis(name, openBracketOffset, '>');
                 if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];
@@ -58,6 +58,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             openBracketOffset = -1;
             closeBracketOffset = -1;
             return false;
+        }
+
+        private static int IndexOfBalancedParenthesis(string str, int openingOffset, char closing)
+        {
+            char opening = str[openingOffset];
+
+            int depth = 1;
+            for (int i = openingOffset + 1; i < str.Length; i++)
+            {
+                var c = str[i];
+                if (c == opening)
+                {
+                    depth++;
+                }
+                else if (c == closing)
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
         }
 
         internal static bool TryParseSourceMethodNameFromGeneratedName(string generatedName, GeneratedNameKind requiredKind, out string methodName)
