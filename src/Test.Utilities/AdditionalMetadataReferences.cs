@@ -65,6 +65,12 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithAsyncInterfaces { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.Bcl.AsyncInterfaces", "1.1.0")));
 
+        public static ReferenceAssemblies DefaultWithVisualStudioThreading { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.VisualStudio.Threading", "16.10.56")));
+
+        public static ReferenceAssemblies DefaultWithVisualStudioShellInterop { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.VisualStudio.Shell.Interop", "17.0.0-previews-2-31512-422")));
+
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static MetadataReference SystemCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
