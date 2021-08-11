@@ -33,9 +33,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -53,7 +54,7 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Shared Property Test[||]Property As Integer
+        Public Shared ReadOnly Property Test[||]Property As Integer
             Get
                 Return 0
             End Get
@@ -70,13 +71,14 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Property TestProperty As Integer
+        Public ReadOnly Property TestProperty As Integer
             Get
                 Return 0
             End Get
         End Property
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -92,6 +94,8 @@ End Namespace"
         <UseExportProvider>
         Public Async Function TestMoveEvent() As Task
             Dim initialMarkup = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
         Public Shared Event Test[||]Event As EventHandler
@@ -101,15 +105,20 @@ End Namespace"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("TestEvent")
             Dim expectedText1 = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
     End Class
 End Namespace"
-            Dim expectedText2 = "Namespace TestNs
+            Dim expectedText2 = "Imports System
+
+Namespace TestNs
     Module Class1Helpers
-        Public Shared Event TestEvent As EventHandler
+        Public Event TestEvent As EventHandler
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -125,17 +134,19 @@ End Namespace"
         <UseExportProvider>
         Public Async Function TestMoveComplexEvent() As Task
             Dim initialMarkup = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
         Public Shared Custom Event Cl[||]ick As EventHandler
             AddHandler(ByVal value As EventHandler)
-                Events.AddHandler(""ClickEvent"", value)
+                Console.WriteLine(value.ToString())
             End AddHandler
             RemoveHandler(ByVal value As EventHandler)
-                Events.RemoveHandler(""ClickEvent"", value)
+                Console.WriteLine(value.ToString())
             End RemoveHandler
             RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-                CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+                Console.WriteLine(sender.ToString())
             End RaiseEvent
         End Event
     End Class
@@ -144,25 +155,30 @@ End Namespace"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("Click")
             Dim expectedText1 = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
     End Class
 End Namespace"
-            Dim expectedText2 = "Namespace TestNs
+            Dim expectedText2 = "Imports System
+
+Namespace TestNs
     Module Class1Helpers
-        Public Shared Custom Event Click As EventHandler
+        Public Custom Event Click As EventHandler
             AddHandler(ByVal value As EventHandler)
-                Events.AddHandler(""ClickEvent"", value)
+                Console.WriteLine(value.ToString())
             End AddHandler
             RemoveHandler(ByVal value As EventHandler)
-                Events.RemoveHandler(""ClickEvent"", value)
+                Console.WriteLine(value.ToString())
             End RemoveHandler
             RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-                CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+                Console.WriteLine(sender.ToString())
             End RaiseEvent
         End Event
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -178,17 +194,13 @@ End Namespace"
         <UseExportProvider>
         Public Async Function TestMoveFunction() As Task
             Dim initialMarkup = "
-        Namespace TestNs
-            Public Class Class1
-                Public Shared Function Test[||]Func() As Integer
-                    Return 0
-                End Function
-            End Class
-        End Namespace
-                </Document>
-            </Project>
-        </Workspace>
-        "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("TestFunc")
@@ -199,11 +211,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -235,10 +248,11 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Sub TestSub()
+        Public Sub TestSub()
         End Sub
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -256,7 +270,7 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Shared Const Test[||]Const As Integer = 0
+        Public Const Test[||]Const As Integer = 0
     End Class
 End Namespace"
             Dim newTypeName = "Class1Helpers"
@@ -269,9 +283,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Const TestConst As Integer = 0
+        Public Const TestConst As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -308,11 +323,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -349,11 +365,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.InnerNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -379,8 +396,9 @@ End Class"
 Public Class Class1
 End Class"
             Dim expectedText2 = "Module Class1Helpers
-    Public Shared TestField As Integer = 0
-End Module"
+    Public TestField As Integer = 0
+End Module
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -403,13 +421,14 @@ End Class"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("TestField")
             Dim expectedText1 = "
-        Public Class Class1
-        End Class"
+Public Class Class1
+End Class"
             Dim expectedText2 = "Namespace TestNs
-            Module Class1Helpers
-                Public Shared TestField As Integer = 0
-            End Module
-        End Namespace"
+    Module Class1Helpers
+        Public TestField As Integer = 0
+    End Module
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -440,9 +459,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.InnerNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -475,11 +495,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc(Of T)(item As T) As T
+        Public Function TestFunc(Of T)(item As T) As T
             Return item
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -512,11 +533,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers(Of T)
-        Public Shared Function TestFunc(item As T) As T
+        Public Function TestFunc(item As T) As T
             Return item
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -549,11 +571,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -588,17 +611,18 @@ Namespace TestNs
     Public Class Class1
     End Class
 End Namespace"
-            Dim expectedText2 = " TestNs
+            Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc1() As Integer
+        Public Function TestFunc1() As Integer
             Return 0
         End Function
 
-        Public Shared Function TestFunc2() As Boolean
+        Public Function TestFunc2() As Boolean
             Return False
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -638,12 +662,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-
-        Public Shared Function TestFunc2() As Boolean
+        Public Function TestFunc2() As Boolean
             Return False
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -659,11 +683,13 @@ End Namespace"
         <UseExportProvider>
         Public Async Function TestMoveOneOfEach() As Task
             Dim initialMarkup = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
         Public Shared Test[||]Field As Integer = 0
 
-        Public Shared Property TestProperty As Integer
+        Public Shared ReadOnly Property TestProperty As Integer
             Get
                 Return 0
             End Get
@@ -688,30 +714,35 @@ End Namespace"
                 "TestEvent",
                 "TestSub")
             Dim expectedText1 = "
+Imports System
+
 Namespace TestNs
     Public Class Class1
     End Class
 End Namespace"
-            Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Shared TestField As Integer = 0
+            Dim expectedText2 = "Imports System
 
-        Public Shared Property TestProperty As Integer
+Namespace TestNs
+    Module Class1Helpers
+        Public TestField As Integer = 0
+
+        Public ReadOnly Property TestProperty As Integer
             Get
                 Return 0
             End Get
         End Property
 
-        Public Shared Event TestEvent As EventHandler
+        Public Event TestEvent As EventHandler
 
-        Public Shared Sub TestSub()
+        Public Sub TestSub()
         End Sub
 
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -756,11 +787,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -813,11 +845,12 @@ Namespace TestNs2
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -864,11 +897,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.ExtraNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -917,18 +951,19 @@ Public Class Class2
 End Class"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName)
             test.TestState.Sources.Add(initialMarkup1)
             test.TestState.Sources.Add(initialMarkup2)
             test.FixedState.Sources.Add(expectedText1)
-            test.FixedState.Sources.Add((newFileName, expectedText2))
             test.FixedState.Sources.Add(expectedText3)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
 
             Await test.RunAsync().ConfigureAwait(False)
         End Function
@@ -954,9 +989,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -972,11 +1008,11 @@ End Namespace"
         <UseExportProvider>
         Public Async Function TestSelectWholeFieldDeclaration() As Task
             Dim initialMarkup = "
-        Namespace TestNs
-            Public Class Class1
-                [|Public Shared TestField As Integer = 0|]
-            End Class
-        End Namespace"
+Namespace TestNs
+    Public Class Class1
+        [|Public Shared TestField As Integer = 0|]
+    End Class
+End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("TestField")
@@ -987,9 +1023,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -1037,9 +1074,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -1070,9 +1108,10 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared TestField As Integer = 0
+        Public TestField As Integer = 0
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -1105,11 +1144,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -1142,11 +1182,12 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
-        Public Shared Function TestFunc() As Integer
+        Public Function TestFunc() As Integer
             Return 0
         End Function
     End Module
-End Namespace"
+End Namespace
+"
 
             Dim test = New Test(newTypeName, selection, newFileName) With
             {
@@ -1219,7 +1260,7 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Property Test[||]Property As Integer
+        Public ReadOnly Property Test[||]Property As Integer
             Get
                 Return 0
             End Get
@@ -1240,7 +1281,7 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Shared Property TestProperty As Integer
+        Public Shared ReadOnly Property TestProperty As Integer
             Get[||]
                 Return 0
             End Get

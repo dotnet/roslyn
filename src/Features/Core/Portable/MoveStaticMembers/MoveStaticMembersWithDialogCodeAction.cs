@@ -103,8 +103,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var locationsToDoc = memberReferenceLocations.ToLookup(loc => loc.location.Document.Id);
             var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType!, cancellationToken).ConfigureAwait(false);
 
-            // Get back symbols using annotations
-            sourceDoc = reReferencedSolution.GetRequiredDocument(sourceDoc.Id);
+            // Possibly convert members to non-static or static if we move to/from a module
+            sourceDoc = await CorrectStaticMembersAsync(reReferencedSolution.GetRequiredDocument(sourceDoc.Id), memberNodes, newType!, cancellationToken).ConfigureAwait(false);
+
+            // get back nodes from our changes
             root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var members = memberNodes
@@ -112,10 +114,36 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
 
-            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
+            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
             var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
+        }
+
+        private async Task<Document> CorrectStaticMembersAsync(
+            Document sourceDoc,
+            ImmutableArray<SyntaxNode> memberNodes,
+            INamedTypeSymbol newType,
+            CancellationToken cancellationToken)
+        {
+            // We have two cases:
+            // 1. Moving from a class to a module. We need to remove the shared modifier as it is implied
+            // 2. Moving from a module to a class. We need to add the shared modifier as it is no longer implied
+            // If neither of these apply (the movement types are both classes or both modules), we return early
+            if (newType.TypeKind == _selectedType.TypeKind)
+            {
+                return sourceDoc;
+            }
+
+            var docEditor = await DocumentEditor.CreateAsync(sourceDoc, cancellationToken).ConfigureAwait(false);
+            memberNodes = docEditor.OriginalRoot.GetCurrentNodes(memberNodes).ToImmutableArray();
+            // need to make members non-static if we're moving to a module, static if we're moving away from one
+            foreach (var node in memberNodes)
+            {
+                docEditor.ReplaceNode(node, (n, generator) => generator.WithModifiers(n, generator.GetModifiers(n).WithIsStatic(newType.TypeKind != TypeKind.Module)));
+            }
+
+            return docEditor.GetChangedDocument();
         }
 
         private static async Task<Solution> RefactorReferencesAsync(
