@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _targetFramework = targetFramework ?? TargetFramework.Standard;
         }
 
-        internal EditAndContinueTest AddGeneration(string source, Action<GenerationVerifier> verification)
+        internal EditAndContinueTest AddGeneration(string source, Action<GenerationVerifier> validator)
         {
             _hasVerified = false;
 
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
 
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, baseline, verification));
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, baseline, validator));
 
             return this;
         }
 
-        internal EditAndContinueTest AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> verification)
+        internal EditAndContinueTest AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
         {
             _hasVerified = false;
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var md = diff.GetMetadata();
             _disposables.Add(md);
 
-            _generations.Add(new GenerationInfo(compilation, md.Reader, diff.NextGeneration, verification));
+            _generations.Add(new GenerationInfo(compilation, md.Reader, diff.NextGeneration, validator));
 
             return this;
         }
