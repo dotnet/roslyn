@@ -10441,7 +10441,6 @@ public class Attr<T> : Attribute { }
         {
             var source = @"
 using System;
-using System.Reflection;
 
 class Attr<T> : Attribute { }
 class Attr2<T> : Attribute { }
@@ -10456,11 +10455,8 @@ class Program
     {
         try
         {
-            var attrs = CustomAttributeData.GetCustomAttributes(typeof(Holder), typeof(Attr<>));
-            foreach (var attr in attrs)
-            {
-                Console.Write(attr);
-            }
+            var attr = Attribute.GetCustomAttribute(typeof(Holder), typeof(Attr<>));
+            Console.Write(attr?.ToString() ?? ""not found"");
         }
         catch (Exception e)
         {
@@ -10469,7 +10465,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "Attr[System.String]");
+            var verifier = CompileAndVerify(source, expectedOutput: "not found");
             verifier.VerifyDiagnostics();
         }
 
