@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class GeneratedNameConstants
     {
-        public const string AnonymousNamePrefix = "<>f__AnonymousType";
         public const char DotReplacementInTypeNames = '-';
         public const string SynthesizedLocalNamePrefix = "CS$";
     }
@@ -25,47 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameParser
     {
         internal static bool IsSynthesizedLocalName(string name)
-        {
-            return name.StartsWith(GeneratedNameConstants.SynthesizedLocalNamePrefix, StringComparison.Ordinal);
-        }
-
-        internal static bool TryParseAnonymousTypeTemplateName(string name, out int index)
-        {
-            // No callers require anonymous types from net modules,
-            // so names with module id are ignored.
-            if (name.StartsWith(GeneratedNameConstants.AnonymousNamePrefix, StringComparison.Ordinal))
-            {
-                if (int.TryParse(name.Substring(GeneratedNameConstants.AnonymousNamePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out index))
-                {
-                    return true;
-                }
-            }
-
-            index = -1;
-            return false;
-        }
-
-        internal static bool TryParseAnonymousTypeParameterName(string typeParameterName, out string propertyName)
-        {
-            if (typeParameterName.StartsWith("<", StringComparison.Ordinal) &&
-                typeParameterName.EndsWith(">j__TPar", StringComparison.Ordinal))
-            {
-                propertyName = typeParameterName.Substring(1, typeParameterName.Length - 9);
-                return true;
-            }
-
-            propertyName = null;
-            return false;
-        }
+            => name.StartsWith(GeneratedNameConstants.SynthesizedLocalNamePrefix, StringComparison.Ordinal);
 
         // The type of generated name. See TryParseGeneratedName.
         internal static GeneratedNameKind GetKind(string name)
-        {
-            GeneratedNameKind kind;
-            int openBracketOffset;
-            int closeBracketOffset;
-            return TryParseGeneratedName(name, out kind, out openBracketOffset, out closeBracketOffset) ? kind : GeneratedNameKind.None;
-        }
+            => TryParseGeneratedName(name, out var kind, out _, out _) ? kind : GeneratedNameKind.None;
 
         // Parse the generated name. Returns true for names of the form
         // [CS$]<[middle]>c[__[suffix]] where [CS$] is included for certain
@@ -94,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];
-                    if ((c >= '1' && c <= '9') || (c >= 'a' && c <= 'z')) // Note '0' is not special.
+                    if (c is >= '1' and <= '9' or >= 'a' and <= 'z') // Note '0' is not special.
                     {
                         kind = (GeneratedNameKind)c;
                         return true;
@@ -154,6 +117,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             slotIndex = -1;
+            return false;
+        }
+
+        internal static bool TryParseAnonymousTypeParameterName(string typeParameterName, out string propertyName)
+        {
+            if (typeParameterName.StartsWith("<", StringComparison.Ordinal) &&
+                typeParameterName.EndsWith(">j__TPar", StringComparison.Ordinal))
+            {
+                propertyName = typeParameterName.Substring(1, typeParameterName.Length - 9);
+                return true;
+            }
+
+            propertyName = null;
             return false;
         }
     }

@@ -156,17 +156,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Integer.TryParse(proxyName.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, index)
         End Function
 
-        Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
-            ' No callers require anonymous types from net modules,
-            ' so names with module id are ignored.
-            If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
-                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
-                Return True
-            End If
-            index = -1
-            Return False
-        End Function
-
         Friend Shared Function TryParseStaticLocalFieldName(
             fieldName As String,
             <Out> ByRef methodName As String,
