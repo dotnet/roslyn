@@ -2,20 +2,167 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    Friend NotInheritable Class GeneratedNameConstants
+        Public Const DotReplacementInTypeNames As Char = "-"c
+        Public Const MethodNameSeparator As Char = "_"c
+        Public Const AnonymousTypeOrDelegateCommonPrefix = "VB$Anonymous"
+        Public Const AnonymousTypeTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Type_"
+        Public Const AnonymousDelegateTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Delegate_"
+    End Class
+
+    Friend NotInheritable Class GeneratedNameParser
+        Friend Shared Function GetKind(name As String) As GeneratedNameKind
+            If name.StartsWith(StringConstants.HoistedMeName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedMeField
+            ElseIf name.StartsWith(StringConstants.StateMachineStateFieldName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineStateField
+            ElseIf name.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StaticLocalField
+            ElseIf name.StartsWith(StringConstants.HoistedSynthesizedLocalPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedSynthesizedLocalField
+            ElseIf name.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedUserVariableField
+            ElseIf name.StartsWith(StringConstants.IteratorCurrentFieldName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.IteratorCurrentField
+            ElseIf name.StartsWith(StringConstants.IteratorInitialThreadIdName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.IteratorInitialThreadIdField
+            ElseIf name.StartsWith(StringConstants.IteratorParameterProxyPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.IteratorParameterProxyField
+            ElseIf name.StartsWith(StringConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineAwaiterField
+            ElseIf name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineHoistedUserVariableField
+            ElseIf name.StartsWith(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.AnonymousType
+            ElseIf name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.LambdaDisplayClass
+            ElseIf name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
+                    name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
+                    name.Equals(StringConstants.It2, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.TransparentIdentifier
+            ElseIf name.Equals(StringConstants.ItAnonymous, StringComparison.Ordinal) Then
+                ' We distinguish StringConstants.ItAnonymous, because it won't be an instance
+                ' of an anonymous type.
+                Return GeneratedNameKind.AnonymousTransparentIdentifier
+            End If
+
+            Return GeneratedNameKind.None
+        End Function
+
+        Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef methodName As String) As Boolean
+            If Not stateMachineTypeName.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
+                Return False
+            End If
+
+            Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
+            Dim separatorPos = stateMachineTypeName.IndexOf(GeneratedNameConstants.MethodNameSeparator, prefixLength)
+            If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
+                Return False
+            End If
+
+            methodName = stateMachineTypeName.Substring(separatorPos + 1)
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Try to parse the local (or parameter) name and return <paramref name="variableName"/> if successful.
+        ''' </summary>
+        Public Shared Function TryParseHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String) As Boolean
+            variableName = Nothing
+
+            Dim prefixLen As Integer = StringConstants.HoistedUserVariablePrefix.Length
+            If proxyName.Length <= prefixLen Then
+                Return False
+            End If
+
+            ' All names should start with "$VB$Local_"
+            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return False
+            End If
+
+            variableName = proxyName.Substring(prefixLen)
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Try to parse the local name and return <paramref name="variableName"/> and <paramref name="index"/> if successful.
+        ''' </summary>
+        Public Shared Function TryParseStateMachineHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
+            variableName = Nothing
+            index = 0
+
+            ' All names should start with "$VB$ResumableLocal_"
+            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return False
+            End If
+
+            Dim prefixLen As Integer = StringConstants.StateMachineHoistedUserVariablePrefix.Length
+            Dim separator As Integer = proxyName.LastIndexOf("$"c)
+            If separator <= prefixLen Then
+                Return False
+            End If
+
+            variableName = proxyName.Substring(prefixLen, separator - prefixLen)
+            Return Integer.TryParse(proxyName.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, index)
+        End Function
+
+        Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
+            ' No callers require anonymous types from net modules,
+            ' so names with module id are ignored.
+            If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
+                Return True
+            End If
+            index = -1
+            Return False
+        End Function
+
+        Friend Shared Function TryParseStaticLocalFieldName(
+            fieldName As String,
+            <Out> ByRef methodName As String,
+            <Out> ByRef methodSignature As String,
+            <Out> ByRef localName As String) As Boolean
+
+            If fieldName.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
+                Dim parts = fieldName.Split("$"c)
+                If parts.Length = 5 Then
+                    methodName = parts(2)
+                    methodSignature = parts(3)
+                    localName = parts(4)
+                    Return True
+                End If
+            End If
+
+            methodName = Nothing
+            methodSignature = Nothing
+            localName = Nothing
+            Return False
+        End Function
+
+        ' Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
+        ' Such a name ends with "$prefix{slot index}". 
+        ' Returned slot index is >= 0.
+        Friend Shared Function TryParseSlotIndex(prefix As String, fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
+            If fieldName.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Integer.TryParse(fieldName.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, slotIndex) Then
+                Return True
+            End If
+            slotIndex = -1
+            Return False
+        End Function
+
+    End Class
 
     ''' <summary>
     ''' Helper class to generate synthesized names.
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
-        Friend Const DotReplacementInTypeNames As Char = "-"c
-        Private Const s_methodNameSeparator As Char = "_"c
         Private Const s_idSeparator As Char = "-"c
         Private Const s_generationSeparator As Char = "#"c
 
@@ -137,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If methodNameOpt IsNot Nothing Then
-                builder.Append(s_methodNameSeparator)
+                builder.Append(GeneratedNameConstants.MethodNameSeparator)
                 builder.Append(methodNameOpt)
 
                 ' CLR generally allows names with dots, however some APIs like IMetaDataImport
@@ -147,26 +294,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' consumer cannot figure where namespace ends and actual type name starts.
                 ' Therefore it is a good practice to avoid type names with dots.
                 If isTypeName Then
-                    builder.Replace("."c, DotReplacementInTypeNames)
+                    builder.Replace("."c, GeneratedNameConstants.DotReplacementInTypeNames)
                 End If
             End If
 
             Return result.ToStringAndFree()
-        End Function
-
-        Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef methodName As String) As Boolean
-            If Not stateMachineTypeName.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
-                Return False
-            End If
-
-            Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
-            Dim separatorPos = stateMachineTypeName.IndexOf(s_methodNameSeparator, prefixLength)
-            If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
-                Return False
-            End If
-
-            methodName = stateMachineTypeName.Substring(separatorPos + 1)
-            Return True
         End Function
 
         ''' <summary>
@@ -212,48 +344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Try to parse the local (or parameter) name and return <paramref name="variableName"/> if successful.
-        ''' </summary>
-        Public Shared Function TryParseHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String) As Boolean
-            variableName = Nothing
-
-            Dim prefixLen As Integer = StringConstants.HoistedUserVariablePrefix.Length
-            If proxyName.Length <= prefixLen Then
-                Return False
-            End If
-
-            ' All names should start with "$VB$Local_"
-            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                Return False
-            End If
-
-            variableName = proxyName.Substring(prefixLen)
-            Return True
-        End Function
-
-        ''' <summary>
-        ''' Try to parse the local name and return <paramref name="variableName"/> and <paramref name="index"/> if successful.
-        ''' </summary>
-        Public Shared Function TryParseStateMachineHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
-            variableName = Nothing
-            index = 0
-
-            ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                Return False
-            End If
-
-            Dim prefixLen As Integer = StringConstants.StateMachineHoistedUserVariablePrefix.Length
-            Dim separator As Integer = proxyName.LastIndexOf("$"c)
-            If separator <= prefixLen Then
-                Return False
-            End If
-
-            variableName = proxyName.Substring(prefixLen, separator - prefixLen)
-            Return Integer.TryParse(proxyName.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, index)
-        End Function
-
-        ''' <summary>
         ''' Generates the name of a state machine field name for captured me reference
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedMeName() As String
@@ -267,25 +357,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return StringConstants.HoistedSpecialVariablePrefix & closureName
         End Function
 
-        Friend Const AnonymousTypeOrDelegateCommonPrefix = "VB$Anonymous"
-        Friend Const AnonymousTypeTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Type_"
-        Friend Const AnonymousDelegateTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Delegate_"
-
         Friend Shared Function MakeAnonymousTypeTemplateName(prefix As String, index As Integer, submissionSlotIndex As Integer, moduleId As String) As String
             Return If(submissionSlotIndex >= 0,
                            String.Format("{0}{1}_{2}{3}", prefix, submissionSlotIndex, index, moduleId),
                            String.Format("{0}{1}{2}", prefix, index, moduleId))
-        End Function
-
-        Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
-            ' No callers require anonymous types from net modules,
-            ' so names with module id are ignored.
-            If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
-                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
-                Return True
-            End If
-            index = -1
-            Return False
         End Function
 
         Friend Shared Function MakeSynthesizedLocalName(kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As String
@@ -334,40 +409,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             localName As String) As String
 
             Return String.Format(StringConstants.StaticLocalFieldNamePrefix & "{0}${1}${2}", methodName, methodSignature, localName)
-        End Function
-
-        Friend Shared Function TryParseStaticLocalFieldName(
-            fieldName As String,
-            <Out> ByRef methodName As String,
-            <Out> ByRef methodSignature As String,
-            <Out> ByRef localName As String) As Boolean
-
-            If fieldName.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
-                Dim parts = fieldName.Split("$"c)
-                If parts.Length = 5 Then
-                    methodName = parts(2)
-                    methodSignature = parts(3)
-                    localName = parts(4)
-                    Return True
-                End If
-            End If
-
-            methodName = Nothing
-            methodSignature = Nothing
-            localName = Nothing
-            Return False
-        End Function
-
-        ' Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
-        ' Such a name ends with "$prefix{slot index}". 
-        ' Returned slot index is >= 0.
-        Friend Shared Function TryParseSlotIndex(prefix As String, fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
-            If fieldName.StartsWith(prefix, StringComparison.Ordinal) AndAlso
-                Integer.TryParse(fieldName.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, slotIndex) Then
-                Return True
-            End If
-            slotIndex = -1
-            Return False
         End Function
     End Class
 End Namespace

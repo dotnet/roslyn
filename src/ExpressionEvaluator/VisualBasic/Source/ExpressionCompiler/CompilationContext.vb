@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim parameterIndex = If(m.IsShared, 0, 1)
                     For Each parameter In m.Parameters
                         Dim parameterName As String = parameter.Name
-                        If GeneratedNames.GetKind(parameterName) = GeneratedNameKind.None Then
+                        If GeneratedNameParser.GetKind(parameterName) = GeneratedNameKind.None Then
                             AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex)
                             itemsAdded.Add(parameterName)
                         End If
@@ -1038,7 +1038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim field = DirectCast(member, FieldSymbol)
                     Dim fieldName = field.Name
                     Dim parameterName As String = Nothing
-                    If GeneratedNames.TryParseHoistedUserVariableName(fieldName, parameterName) Then
+                    If GeneratedNameParser.TryParseHoistedUserVariableName(fieldName, parameterName) Then
                         parameterNamesInOrder.Add(parameterName)
                     End If
                 Next
@@ -1073,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim displayClassInstances = ArrayBuilder(Of DisplayClassInstanceAndFields).GetInstance()
 
             For Each parameter As ParameterSymbol In method.Parameters
-                If GeneratedNames.GetKind(parameter.Name) = GeneratedNameKind.TransparentIdentifier Then
+                If GeneratedNameParser.GetKind(parameter.Name) = GeneratedNameKind.TransparentIdentifier Then
                     Dim instance As New DisplayClassInstanceFromParameter(parameter)
                     displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
                 End If
@@ -1175,13 +1175,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim fieldName = field.Name
 
             Dim unmangledName As String = Nothing
-            If GeneratedNames.TryParseHoistedUserVariableName(fieldName, unmangledName) Then
+            If GeneratedNameParser.TryParseHoistedUserVariableName(fieldName, unmangledName) Then
                 fieldName = unmangledName
             ElseIf field.IsAnonymousTypeField(unmangledName) Then
                 fieldName = unmangledName
             End If
 
-            Return GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier
+            Return GeneratedNameParser.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier
         End Function
 
         Private Shared Function IsGeneratedLocalName(name As String) As Boolean
@@ -1270,7 +1270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
                     variableName = fieldName.Substring(StringConstants.HoistedSpecialVariablePrefix.Length)
-                ElseIf GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
+                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
 
                     If Not inScopeHoistedLocalSlots.Contains(hoistedLocalSlotIndex) Then
@@ -1287,7 +1287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableName = fieldName ' As in C#, we retain the mangled name.  It shouldn't be used, other than as a dictionary key.
                 ElseIf fieldName.StartsWith(StringConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
                     Continue For
-                ElseIf GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
+                ElseIf GeneratedNameParser.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
                     ' A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
                     Debug.Assert(Not field.IsShared)
                     Continue For
@@ -1322,7 +1322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
 
-                        If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
+                        If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNameParser.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
                             displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
                         End If
                     End If
@@ -1372,7 +1372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim desiredMethodName As String = Nothing
             If IsLambdaMethodName(candidateSubstitutedSourceMethod.Name) OrElse
-                    GeneratedNames.TryParseStateMachineTypeName(candidateSourceTypeName, desiredMethodName) Then
+               GeneratedNameParser.TryParseStateMachineTypeName(candidateSourceTypeName, desiredMethodName) Then
 
                 ' We could be in the MoveNext method of an async lambda.  If that is the case, we can't 
                 ' figure out desiredMethodName by unmangling the name.
@@ -1475,7 +1475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Friend Sub New(instance As DisplayClassInstance)
                 MyClass.New(instance, ConsList(Of FieldSymbol).Empty)
                 Debug.Assert(instance.Type.IsClosureOrStateMachineType() OrElse
-                             GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.AnonymousType)
+                             GeneratedNameParser.GetKind(instance.Type.Name) = GeneratedNameKind.AnonymousType)
             End Sub
 
             Private Sub New(instance As DisplayClassInstance, fields As ConsList(Of FieldSymbol))
@@ -1497,7 +1497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Friend Function FromField(field As FieldSymbol) As DisplayClassInstanceAndFields
                 Debug.Assert(field.Type.IsClosureOrStateMachineType() OrElse
-                             GeneratedNames.GetKind(field.Type.Name) = GeneratedNameKind.AnonymousType)
+                             GeneratedNameParser.GetKind(field.Type.Name) = GeneratedNameKind.AnonymousType)
                 Return New DisplayClassInstanceAndFields(Me.Instance, Me.Fields.Prepend(field))
             End Function
 

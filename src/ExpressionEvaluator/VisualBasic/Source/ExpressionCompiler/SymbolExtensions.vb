@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function IsAnonymousTypeField(field As FieldSymbol, <Out> ByRef unmangledName As String) As Boolean
-            If GeneratedNames.GetKind(field.ContainingType.Name) <> GeneratedNameKind.AnonymousType Then
+            If GeneratedNameParser.GetKind(field.ContainingType.Name) <> GeneratedNameKind.AnonymousType Then
                 unmangledName = Nothing
                 Return False
             End If

@@ -127,19 +127,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If Not def.Namespace.IsNil Then
                     Continue For
                 End If
-                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousTypeOrDelegateCommonPrefix) Then
+                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNameConstants.AnonymousTypeOrDelegateCommonPrefix) Then
                     Continue For
                 End If
                 Dim metadataName = reader.GetString(def.Name)
                 Dim arity As Short = 0
                 Dim name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, arity)
                 Dim index As Integer = 0
-                If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
+                If GeneratedNameParser.TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
-                ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
+                ElseIf GeneratedNameParser.TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
