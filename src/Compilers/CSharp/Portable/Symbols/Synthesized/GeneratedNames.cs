@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -123,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GeneratedNameKind kind,
             int methodOrdinal,
             int methodGeneration,
-            string methodNameOpt = null,
-            string suffix = null,
+            string? methodName = null,
+            string? suffix = null,
             char suffixTerminator = default,
             int entityOrdinal = -1,
             int entityGeneration = -1)
@@ -139,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = result.Builder;
             builder.Append('<');
 
-            if (methodNameOpt != null)
+            if (methodName != null)
             {
-                builder.Append(methodNameOpt);
+                builder.Append(methodName);
 
                 // CLR generally allows names with dots, however some APIs like IMetaDataImport
                 // can only return full type names combined with namespaces. 
@@ -199,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
+        internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string? localName = null)
         {
-            Debug.Assert((localNameOpt != null) == (kind == SynthesizedLocalKind.UserDefined));
+            Debug.Assert((localName != null) == (kind == SynthesizedLocalKind.UserDefined));
             Debug.Assert(slotIndex >= 0);
             Debug.Assert(kind.IsLongLived());
 
@@ -215,10 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
             builder.Append('<');
-            if (localNameOpt != null)
+            if (localName != null)
             {
-                Debug.Assert(localNameOpt.IndexOf('.') == -1);
-                builder.Append(localNameOpt);
+                Debug.Assert(localName.IndexOf('.') == -1);
+                builder.Append(localName);
             }
 
             builder.Append('>');
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>9";
         }
 
-        internal static string MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
+        internal static string? MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
         {
             Debug.Assert(kind.IsLongLived());
 

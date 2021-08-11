@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return -1;
         }
 
-        internal static bool TryParseSourceMethodNameFromGeneratedName(string generatedName, GeneratedNameKind requiredKind, out string methodName)
+        internal static bool TryParseSourceMethodNameFromGeneratedName(string generatedName, GeneratedNameKind requiredKind, [NotNullWhen(true)] out string? methodName)
         {
             if (!TryParseGeneratedName(generatedName, out var kind, out int openBracketOffset, out int closeBracketOffset))
             {
@@ -112,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Parses generated local function name out of a generated method name.
         /// </summary>
-        internal static bool TryParseLocalFunctionName(string generatedName, out string localFunctionName)
+        internal static bool TryParseLocalFunctionName(string generatedName, [NotNullWhen(true)] out string? localFunctionName)
         {
             localFunctionName = null;
 
-            // '<' containin-method-name '>' 'g' '__' local-function-name '|' method-ordinal '_' lambda-ordinal
+            // '<' containing-method-name '>' 'g' '__' local-function-name '|' method-ordinal '_' lambda-ordinal
             if (!TryParseGeneratedName(generatedName, out var kind, out _, out int closeBracketOffset) || kind != GeneratedNameKind.LocalFunction)
             {
                 return false;
@@ -160,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool TryParseAnonymousTypeParameterName(string typeParameterName, out string propertyName)
+        internal static bool TryParseAnonymousTypeParameterName(string typeParameterName, [NotNullWhen(true)] out string? propertyName)
         {
             if (typeParameterName.StartsWith("<", StringComparison.Ordinal) &&
                 typeParameterName.EndsWith(">j__TPar", StringComparison.Ordinal))

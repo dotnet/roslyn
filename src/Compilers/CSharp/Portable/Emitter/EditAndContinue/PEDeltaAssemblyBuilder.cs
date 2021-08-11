@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             foreach (var typeParameterHandle in def.GetGenericParameters())
             {
                 var typeParameter = reader.GetGenericParameter(typeParameterHandle);
-                string fieldName;
-                if (!GeneratedNameParser.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out fieldName))
+                if (!GeneratedNameParser.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out var fieldName))
                 {
                     return false;
                 }
