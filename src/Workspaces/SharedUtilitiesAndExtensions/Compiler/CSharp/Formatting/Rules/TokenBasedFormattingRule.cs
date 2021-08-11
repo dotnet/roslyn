@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => node switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 

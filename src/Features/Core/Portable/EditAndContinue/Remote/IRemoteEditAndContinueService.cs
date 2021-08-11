@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
         ValueTask DiscardSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
-        ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
+        ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.

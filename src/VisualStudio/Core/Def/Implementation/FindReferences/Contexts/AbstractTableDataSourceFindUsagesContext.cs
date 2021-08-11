@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 this.CancelSearch();
 
                 // Clear the title of the window.  It will go back to the default editor title.
-                this._findReferencesWindow.Title = null;
+                _findReferencesWindow.Title = null;
 
                 lock (Gate)
                 {

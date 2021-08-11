@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, ActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
 
         public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;
-        public Func<Solution, IManagedEditAndContinueDebuggerService, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
+        public Func<Solution, IManagedEditAndContinueDebuggerService, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
         public ActionOut<ImmutableArray<DocumentId>>? EndDebuggingSessionImpl;
         public Func<Solution, ActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void OnSourceFileUpdated(Document document)
             => OnSourceFileUpdatedImpl?.Invoke(document);
 
-        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
-            => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, captureMatchingDocuments, reportDiagnostics));
+        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+            => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
     }
 }

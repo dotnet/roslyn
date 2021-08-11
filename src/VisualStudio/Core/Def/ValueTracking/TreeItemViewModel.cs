@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -89,6 +90,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     NotifyPropertyChanged(nameof(ShowGlyph));
                 }
             };
+
+            TreeViewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(TreeViewModel.HighlightBrush))
+                {
+                    // If the highlight changes we need to recalculate the inlines so the 
+                    // highlighting is correct
+                    NotifyPropertyChanged(nameof(Inlines));
+                }
+            };
         }
 
         public virtual void NavigateTo()
@@ -121,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                });
 
             var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
-            var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
+            var highlightSpan = new TextSpan(spanStartPosition, TextSpan.Length);
 
             return classifiedTexts.ToInlines(
                 TreeViewModel.ClassificationFormatMap,
@@ -130,7 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     if (TreeViewModel.HighlightBrush is not null)
                     {
-                        if (position >= spanStartPosition && position <= spanEndPosition)
+                        // Check the span start first because we always want to highlight a run that 
+                        // is at the start, even if the TextSpan length is 0. If it's not the start,
+                        // highlighting should still happen if the run position is contained within
+                        // the span.
+                        if (position == highlightSpan.Start || highlightSpan.Contains(position))
                         {
                             run.SetValue(
                                 TextElement.BackgroundProperty,

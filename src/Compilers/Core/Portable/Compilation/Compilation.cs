@@ -3096,7 +3096,7 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ArrayBuilder<MethodDefinitionHandle> updatedMethods,
-            ArrayBuilder<TypeDefinitionHandle> updatedTypes,
+            ArrayBuilder<TypeDefinitionHandle> changedTypes,
             DiagnosticBag diagnostics,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             string? pdbFilePath,
@@ -3132,12 +3132,11 @@ namespace Microsoft.CodeAnalysis
                         out MetadataSizes metadataSizes);
 
                     writer.GetUpdatedMethodTokens(updatedMethods);
-
-                    writer.GetUpdatedTypeTokens(updatedTypes);
+                    writer.GetChangedTypeTokens(changedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 
-                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
+                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(this, encId, metadataSizes);
                 }
                 catch (SymUnmanagedWriterException e)
                 {

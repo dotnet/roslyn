@@ -169,6 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
+                if (node.InterpolatedStringHandlerData is { } data)
+                {
+                    Visit(data.Construction);
+                }
+
                 VisitBinaryOperatorChildren(node);
                 return null;
             }

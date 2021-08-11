@@ -45,6 +45,48 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return effectiveSeverity;
         }
 
+        public static bool IsDefinedInEditorConfig(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
+        {
+            // Check if the option is defined explicitly in the editorconfig
+            var diagnosticKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(diagnosticKey, out var value) &&
+                EditorConfigSeverityStrings.TryParse(value, out var severity))
+            {
+                return true;
+            }
+
+            // Check if the option is defined as part of a bulk configuration
+            // Analyzer bulk configuration does not apply to:
+            //  1. Disabled by default diagnostics
+            //  2. Compiler diagnostics
+            //  3. Non-configurable diagnostics
+            if (!descriptor.IsEnabledByDefault ||
+                descriptor.CustomTags.Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+            {
+                return false;
+            }
+
+            // If user has explicitly configured default severity for the diagnostic category, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
+            var categoryBasedKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return true;
+            }
+
+            // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.severity = error'
+            if (analyzerConfigOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return true;
+            }
+
+            // option not defined in editorconfig, assumed to be the default
+            return false;
+        }
+
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
         {
             // Check if the option is defined explicitly in the editorconfig

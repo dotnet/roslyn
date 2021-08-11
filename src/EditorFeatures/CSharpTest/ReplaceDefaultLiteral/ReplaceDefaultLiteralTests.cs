@@ -747,7 +747,6 @@ $@"class C
         [InlineData("value")]
         [InlineData("null")]
         [InlineData("default")]
-        [InlineData("() => { }")]
         [InlineData("")]
         public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2(string expression)
         {
@@ -776,6 +775,28 @@ $@"class C
     void M()
     {{
         if ({expression} is [||]default) {{ }}
+    }}
+}}", s_csharp7_1above);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_Lambda()
+        {
+            await TestWithLanguageVersionsAsync(
+$@"class C
+{{
+    void M()
+    {{ 
+        var value = () => {{ }};
+        if (value is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    void M()
+    {{ 
+        var value = () => {{ }};
+        if (value is null) {{ }}
     }}
 }}", s_csharp7_1above);
         }

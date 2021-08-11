@@ -23,11 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
 
         /// <summary>
-        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
-        /// </summary>
-        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
-
-        /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
         public const string CSharpProjectExistsInWorkspaceUIContextString = "CA719A03-D55C-48F9-85DE-D934346E7F70";

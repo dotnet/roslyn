@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, newInitializerExpression: null, changeTypeOpt: node.Constructor.ContainingType);
 
             // replace "new S()" with a default struct ctor with "default(S)"
-            if (node.Constructor.IsDefaultValueTypeConstructor())
+            if (node.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type!);
             }

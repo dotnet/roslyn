@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             BlockSyntax node,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

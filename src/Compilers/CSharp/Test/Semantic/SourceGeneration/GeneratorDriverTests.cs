@@ -456,7 +456,7 @@ class C { }
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the execeptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the exceptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
         public void Generator_HintName_MustBe_Unique()
         {
             var source = @"
@@ -1128,7 +1128,7 @@ class C { }
 
             var options = ((CSharpCompilationOptions)compilation.Options);
 
-            // generator driver diagnostics are reported seperately from the compilation
+            // generator driver diagnostics are reported separately from the compilation
             verifyDiagnosticsWithOptions(options,
                 Diagnostic("GEN001").WithLocation(1, 1),
                 Diagnostic("GEN002").WithLocation(1, 1));
@@ -1995,6 +1995,57 @@ class C { }
             Assert.Equal("path2.txt", additionalTextPaths[0]);
 
             Assert.Empty(additionalTextsContents);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, driverOptions: new GeneratorDriverOptions(disabledOutput), parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Single(result.Results);
+            Assert.Empty(result.Results[0].Diagnostics);
+
+            // verify the expected outputs were generated
+            // NOTE: adding new output types will cause this test to fail. Update above as needed.
+            foreach (IncrementalGeneratorOutputKind kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
+            {
+                if (kind == IncrementalGeneratorOutputKind.None)
+                    continue;
+
+                if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
+                {
+                    Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                }
+                else
+                {
+                    Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                }
+
+                bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
+            }
+
         }
     }
 }

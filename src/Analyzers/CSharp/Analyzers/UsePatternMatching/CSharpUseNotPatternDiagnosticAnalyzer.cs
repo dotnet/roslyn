@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -64,27 +65,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!styleOption.Value)
                 return;
 
-            // Look for the form: !(x is Y y)
-            if (!(node is PrefixUnaryExpressionSyntax
+            // Look for the form: !(...)
+            if (node is not PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
                 {
-                    Operand: ParenthesizedExpressionSyntax
-                    {
-                        Expression: IsPatternExpressionSyntax
-                        {
-                            Pattern: DeclarationPatternSyntax,
-                        } isPattern,
-                    },
-                } notExpression))
+                    Operand: ParenthesizedExpressionSyntax parenthesizedExpression
+                })
             {
                 return;
             }
 
-            // Put a diagnostic with the appropriate severity on `is` keyword.
+            var isKeywordLocation = parenthesizedExpression.Expression switch
+            {
+                // Look for the form: !(x is Y y) and !(x is const)
+                IsPatternExpressionSyntax { Pattern: DeclarationPatternSyntax or ConstantPatternSyntax } isPattern => isPattern.IsKeyword.GetLocation(),
+
+                // Look for the form: !(x is Y)
+                BinaryExpressionSyntax(SyntaxKind.IsExpression) { Right: TypeSyntax } isExpression => isExpression.OperatorToken.GetLocation(),
+
+                _ => null
+            };
+
+            if (isKeywordLocation is null)
+                return;
+
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                isPattern.IsKeyword.GetLocation(),
+                isKeywordLocation,
                 styleOption.Notification.Severity,
-                ImmutableArray.Create(notExpression.GetLocation()),
+                ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }
     }

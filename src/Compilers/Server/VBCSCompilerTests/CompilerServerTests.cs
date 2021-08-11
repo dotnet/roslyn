@@ -205,11 +205,7 @@ End Module")
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
 
-            // Create a client to run the build.  Infinite timeout is used to account for the
-            // case where these tests are run under extreme load.  In high load scenarios the
-            // client will correctly drop down to a local compilation if the server doesn't respond
-            // fast enough.
-            var client = ServerUtil.CreateBuildClient(language, _logger, timeoutOverride: Timeout.Infinite);
+            var client = ServerUtil.CreateBuildClient(language, _logger);
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
 

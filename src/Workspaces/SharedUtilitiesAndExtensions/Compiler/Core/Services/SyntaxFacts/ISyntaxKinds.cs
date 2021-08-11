@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region keywords
 
         int AwaitKeyword { get; }
+        int AsyncKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }

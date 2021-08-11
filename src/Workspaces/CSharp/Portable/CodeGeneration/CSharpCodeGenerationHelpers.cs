@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
                     SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
                     SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.FileScopedNamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
                     _ => CodeGenerationDestination.Unspecified,

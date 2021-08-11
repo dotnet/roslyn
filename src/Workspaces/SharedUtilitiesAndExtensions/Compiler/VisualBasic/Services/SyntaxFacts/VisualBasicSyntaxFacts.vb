@@ -959,6 +959,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(compilationUnit, CompilationUnitSyntax).Members
         End Function
 
+        Public Function GetImportsOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfNamespaceDeclaration
+            'Visual Basic doesn't have namespaced imports
+            Return Nothing
+        End Function
+
+        Public Function GetImportsOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfCompilationUnit
+            Return DirectCast(compilationUnit, CompilationUnitSyntax).Imports
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
@@ -2103,6 +2112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(declaration, MethodStatementSyntax).Modifiers
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    Return DirectCast(declaration, MultiLineLambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(declaration, SingleLineLambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(declaration, SubNewStatementSyntax).Modifiers
                 Case SyntaxKind.PropertyBlock

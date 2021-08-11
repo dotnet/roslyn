@@ -16,6 +16,9 @@
       .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />

@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
-            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
-            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+            _signatureHelpControllerProvider = signatureHelpControllerProvider;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            this._allArgumentProviders = argumentProviders;
+            _allArgumentProviders = argumentProviders;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -537,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
-                var doc = new DOMDocumentClass();
+                var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -905,7 +905,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
-            var doc = new DOMDocumentClass();
+            var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)

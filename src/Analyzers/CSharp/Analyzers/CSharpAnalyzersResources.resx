@@ -320,4 +320,12 @@
   <data name="Null_check_can_be_clarified" xml:space="preserve">
     <value>Null check can be clarified</value>
   </data>
+  <data name="Convert_to_file_scoped_namespace" xml:space="preserve">
+    <value>Convert to file-scoped namespace</value>
+    <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Convert_to_block_scoped_namespace" xml:space="preserve">
+    <value>Convert to block scoped namespace</value>
+    <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ConstrainedToTypeOpt, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, left, right, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ConstrainedToTypeOpt, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {

@@ -101,14 +101,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+            Solution solution,
+            IManagedEditAndContinueDebuggerService debuggerService,
+            ImmutableArray<DocumentId> captureMatchingDocuments,
+            bool captureAllMatchingDocuments,
+            bool reportDiagnostics,
+            CancellationToken cancellationToken)
         {
-            var initialDocumentStates =
-                captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
+
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
+
+            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
+            {
+                var documentsByProject = captureAllMatchingDocuments ?
+                    solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
+                    GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+
+                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+            }
 
             var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-
             var capabilities = ParseCapabilities(runtimeCapabilities);
 
             // For now, runtimes aren't returning capabilities, we just fall back to a known set.
@@ -128,6 +146,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return sessionId;
         }
 
+        private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
+            => from documentId in documentIds
+               where solution.ContainsDocument(documentId)
+               group documentId by documentId.ProjectId into projectDocumentIds
+               let project = solution.GetRequiredProject(projectDocumentIds.Key)
+               select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
+
         // internal for testing
         internal static EditAndContinueCapabilities ParseCapabilities(ImmutableArray<string> capabilities)
         {
@@ -143,6 +168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
                     "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
                     "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
+                    "UpdateParameters" => EditAndContinueCapabilities.UpdateParameters,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
                     "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,

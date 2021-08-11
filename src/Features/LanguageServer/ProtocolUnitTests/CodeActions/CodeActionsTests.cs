@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expected = CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     CSharpAnalyzersResources.Use_implicit_type,
                     caretLocation,
                     customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
-                priority: PriorityLevel.Low,
+                priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expected = CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
-                priority: PriorityLevel.Normal,
+                priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
@@ -199,14 +199,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             Assert.Equal(range.End, actualDocAndRange.Range.End);
         }
 
-        private static async Task<LSP.VSCodeAction[]> RunGetCodeActionsAsync(
+        private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
             var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
-            return result.Cast<LSP.VSCodeAction>().ToArray();
+            return result.Cast<LSP.VSInternalCodeAction>().ToArray();
         }
 
         internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 }
             };
 
-        internal static LSP.VSCodeAction CreateCodeAction(
-            string title, LSP.CodeActionKind kind, LSP.VSCodeAction[] children,
+        internal static LSP.VSInternalCodeAction CreateCodeAction(
+            string title, LSP.CodeActionKind kind, LSP.VSInternalCodeAction[] children,
             CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
-            LSP.PriorityLevel? priority, string groupName, LSP.Range applicableRange,
+            LSP.VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
             LSP.WorkspaceEdit edit = null, LSP.Command command = null)
         {
-            var action = new LSP.VSCodeAction
+            var action = new LSP.VSInternalCodeAction
             {
                 Title = title,
                 Kind = kind,

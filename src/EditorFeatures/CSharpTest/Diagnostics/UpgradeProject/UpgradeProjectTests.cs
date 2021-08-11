@@ -1054,7 +1054,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMemebers_CS8704()
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
         {
             await TestLanguageVersionUpgradedAsync(
 @"
