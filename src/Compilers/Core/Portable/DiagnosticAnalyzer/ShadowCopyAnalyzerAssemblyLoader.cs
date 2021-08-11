@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        public override string GetPathToLoad(string fullPath)
+        protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);

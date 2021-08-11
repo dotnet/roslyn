@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        public bool ShouldLoadInAnalyzerContext(string fullPath)
+        protected bool ShouldLoadInAnalyzerContext(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Allows substituting an assembly path after we've identified the context to load an assembly in, but before the assembly is actually loaded from disk.
         /// </summary>
-        public virtual string GetPathToLoad(string fullPath)
+        protected virtual string GetPathToLoad(string fullPath)
         {
             return fullPath;
         }
