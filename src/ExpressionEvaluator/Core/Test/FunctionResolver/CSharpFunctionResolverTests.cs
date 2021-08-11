@@ -330,16 +330,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Request to all modules.
                 resolver.EnableResolution(process, requestAll);
-                Assert.Equal(0, moduleA.GetMetadataCount);
-                Assert.Equal(0, moduleB.GetMetadataCount);
-                Assert.Equal(0, moduleC.GetMetadataCount);
+                Assert.Equal(0, moduleA.MetadataAccessCount);
+                Assert.Equal(0, moduleB.MetadataAccessCount);
+                Assert.Equal(0, moduleC.MetadataAccessCount);
 
                 // Load module A (available).
                 process.AddModule(moduleA);
                 resolver.OnModuleLoad(process, moduleA);
-                Assert.Equal(1, moduleA.GetMetadataCount);
-                Assert.Equal(0, moduleB.GetMetadataCount);
-                Assert.Equal(0, moduleC.GetMetadataCount);
+                Assert.Equal(1, moduleA.MetadataAccessCount);
+                Assert.Equal(0, moduleB.MetadataAccessCount);
+                Assert.Equal(0, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()");
                 VerifySignatures(requestA);
                 VerifySignatures(requestB);
@@ -348,9 +348,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 // Load module B (missing).
                 process.AddModule(moduleB);
                 resolver.OnModuleLoad(process, moduleB);
-                Assert.Equal(1, moduleA.GetMetadataCount);
-                Assert.Equal(1, moduleB.GetMetadataCount);
-                Assert.Equal(0, moduleC.GetMetadataCount);
+                Assert.Equal(1, moduleA.MetadataAccessCount);
+                Assert.Equal(1, moduleB.MetadataAccessCount);
+                Assert.Equal(0, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()");
                 VerifySignatures(requestA);
                 VerifySignatures(requestB);
@@ -359,9 +359,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 // Load module C (available).
                 process.AddModule(moduleC);
                 resolver.OnModuleLoad(process, moduleC);
-                Assert.Equal(1, moduleA.GetMetadataCount);
-                Assert.Equal(1, moduleB.GetMetadataCount);
-                Assert.Equal(1, moduleC.GetMetadataCount);
+                Assert.Equal(1, moduleA.MetadataAccessCount);
+                Assert.Equal(1, moduleB.MetadataAccessCount);
+                Assert.Equal(1, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()", "C.F1()");
                 VerifySignatures(requestA);
                 VerifySignatures(requestB);
@@ -369,9 +369,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Request to module A (available).
                 resolver.EnableResolution(process, requestA);
-                Assert.Equal(2, moduleA.GetMetadataCount);
-                Assert.Equal(1, moduleB.GetMetadataCount);
-                Assert.Equal(1, moduleC.GetMetadataCount);
+                Assert.Equal(2, moduleA.MetadataAccessCount);
+                Assert.Equal(1, moduleB.MetadataAccessCount);
+                Assert.Equal(1, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()", "C.F1()");
                 VerifySignatures(requestA, "A.F2()");
                 VerifySignatures(requestB);
@@ -379,9 +379,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Request to module B (missing).
                 resolver.EnableResolution(process, requestB);
-                Assert.Equal(2, moduleA.GetMetadataCount);
-                Assert.Equal(2, moduleB.GetMetadataCount);
-                Assert.Equal(1, moduleC.GetMetadataCount);
+                Assert.Equal(2, moduleA.MetadataAccessCount);
+                Assert.Equal(2, moduleB.MetadataAccessCount);
+                Assert.Equal(1, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()", "C.F1()");
                 VerifySignatures(requestA, "A.F2()");
                 VerifySignatures(requestB);
@@ -389,9 +389,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Request to module C (available).
                 resolver.EnableResolution(process, requestC);
-                Assert.Equal(2, moduleA.GetMetadataCount);
-                Assert.Equal(2, moduleB.GetMetadataCount);
-                Assert.Equal(2, moduleC.GetMetadataCount);
+                Assert.Equal(2, moduleA.MetadataAccessCount);
+                Assert.Equal(2, moduleB.MetadataAccessCount);
+                Assert.Equal(2, moduleC.MetadataAccessCount);
                 VerifySignatures(requestAll, "A.F1()", "C.F1()");
                 VerifySignatures(requestA, "A.F2()");
                 VerifySignatures(requestB);
@@ -450,6 +450,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 resolver.EnableResolution(process, request);
                 VerifySignatures(request);
             }
+        }
+
+        [Fact]
+        [WorkItem(55475, "https://github.com/dotnet/roslyn/issues/55475")]
+        public void BadMetadata()
+        {
+            var source = "class A { static void F() {} }";
+            var compilation = CreateCompilation(source);
+
+            using var process = new Process(
+                new Module(compilation.EmitToArray()),
+                new Module(metadata: default), // emulates failure of the debugger to retrieve metadata
+                new Module(metadata: TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs.ToImmutableArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "F", "A.F()");
         }
 
         [Fact]
