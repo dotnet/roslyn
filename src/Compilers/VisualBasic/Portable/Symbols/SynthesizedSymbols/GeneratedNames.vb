@@ -14,40 +14,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Const AnonymousTypeOrDelegateCommonPrefix = "VB$Anonymous"
         Public Const AnonymousTypeTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Type_"
         Public Const AnonymousDelegateTemplateNamePrefix = AnonymousTypeOrDelegateCommonPrefix & "Delegate_"
+        Public Const DelegateStubParameterPrefix As String = "a"
+
+        Public Const Group As String = "$VB$Group"
+        Public Const It As String = "$VB$It"
+        Public Const It1 As String = "$VB$It1"
+        Public Const It2 As String = "$VB$It2"
+        Public Const ItAnonymous As String = "$VB$ItAnonymous"
+
+        ' EE recognized names (prefixes):
+        Public Const HoistedMeName As String = "$VB$Me"
+        Public Const HoistedUserVariablePrefix As String = "$VB$Local_"
+        Public Const HoistedSpecialVariablePrefix As String = "$VB$NonLocal_" ' prefixes Me and Closure variables when hoisted
+        Public Const HoistedWithLocalPrefix As String = "$W"
+        Public Const StateMachineHoistedUserVariablePrefix As String = "$VB$ResumableLocal_"
+        Public Const ClosureVariablePrefix As String = "$VB$Closure_"
+        Public Const DisplayClassPrefix As String = "_Closure$__"
+        Public Const StateMachineTypeNamePrefix As String = "VB$StateMachine_"
+
+        ' Do not change the following strings. Other teams (FxCop) use this string to identify lambda functions in its analysis
+        ' If you have to change this string, please contact the VB language PM and consider the impact of that break.
+        Public Const LambdaMethodNamePrefix As String = "_Lambda$__"
+        Public Const DisplayClassGenericParameterNamePrefix As String = "$CLS"
+        Public Const BaseMethodWrapperNamePrefix As String = "$VB$ClosureStub_"
+
+        ' Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on these names.
+        Public Const StateMachineBuilderFieldName As String = "$Builder"
+        Public Const StateMachineStateFieldName As String = "$State"
+
+        Public Const DelegateRelaxationDisplayClassPrefix As String = DisplayClassPrefix & "R"
+        Public Const DelegateRelaxationMethodNamePrefix As String = LambdaMethodNamePrefix & "R"
+        Public Const HoistedSynthesizedLocalPrefix As String = "$S"
+        Public Const LambdaCacheFieldPrefix As String = "$I"
+        Public Const DelegateRelaxationCacheFieldPrefix As String = "$IR"
+        Public Const StateMachineAwaiterFieldPrefix As String = "$A"
+        Public Const ReusableHoistedLocalFieldName As String = "$U"
+        Public Const StateMachineExpressionCapturePrefix As String = "$V"
+
+        Public Const StateMachineTypeParameterPrefix As String = "SM$"
+
+        Public Const IteratorCurrentFieldName As String = "$Current"
+        Public Const IteratorInitialThreadIdName As String = "$InitialThreadId"
+        Public Const IteratorParameterProxyPrefix As String = "$P_"
+
+        Public Const StaticLocalFieldNamePrefix = "$STATIC$"
     End Class
 
     Friend NotInheritable Class GeneratedNameParser
         Friend Shared Function GetKind(name As String) As GeneratedNameKind
-            If name.StartsWith(StringConstants.HoistedMeName, StringComparison.Ordinal) Then
+            If name.StartsWith(GeneratedNameConstants.HoistedMeName, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.HoistedMeField
-            ElseIf name.StartsWith(StringConstants.StateMachineStateFieldName, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineStateFieldName, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StateMachineStateField
-            ElseIf name.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StaticLocalField
-            ElseIf name.StartsWith(StringConstants.HoistedSynthesizedLocalPrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.HoistedSynthesizedLocalField
-            ElseIf name.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.HoistedUserVariableField
-            ElseIf name.StartsWith(StringConstants.IteratorCurrentFieldName, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.IteratorCurrentFieldName, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.IteratorCurrentField
-            ElseIf name.StartsWith(StringConstants.IteratorInitialThreadIdName, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.IteratorInitialThreadIdName, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.IteratorInitialThreadIdField
-            ElseIf name.StartsWith(StringConstants.IteratorParameterProxyPrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.IteratorParameterProxyPrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.IteratorParameterProxyField
-            ElseIf name.StartsWith(StringConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StateMachineAwaiterField
-            ElseIf name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StateMachineHoistedUserVariableField
             ElseIf name.StartsWith(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.AnonymousType
-            ElseIf name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+            ElseIf name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.LambdaDisplayClass
-            ElseIf name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
-                    name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
-                    name.Equals(StringConstants.It2, StringComparison.Ordinal) Then
+            ElseIf name.Equals(GeneratedNameConstants.It, StringComparison.Ordinal) OrElse
+                    name.Equals(GeneratedNameConstants.It1, StringComparison.Ordinal) OrElse
+                    name.Equals(GeneratedNameConstants.It2, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.TransparentIdentifier
-            ElseIf name.Equals(StringConstants.ItAnonymous, StringComparison.Ordinal) Then
-                ' We distinguish StringConstants.ItAnonymous, because it won't be an instance
+            ElseIf name.Equals(GeneratedNameConstants.ItAnonymous, StringComparison.Ordinal) Then
+                ' We distinguish GeneratedNameConstants.ItAnonymous, because it won't be an instance
                 ' of an anonymous type.
                 Return GeneratedNameKind.AnonymousTransparentIdentifier
             End If
@@ -56,11 +100,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef methodName As String) As Boolean
-            If Not stateMachineTypeName.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
+            If Not stateMachineTypeName.StartsWith(GeneratedNameConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
-            Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
+            Dim prefixLength As Integer = GeneratedNameConstants.StateMachineTypeNamePrefix.Length
             Dim separatorPos = stateMachineTypeName.IndexOf(GeneratedNameConstants.MethodNameSeparator, prefixLength)
             If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
                 Return False
@@ -76,13 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function TryParseHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String) As Boolean
             variableName = Nothing
 
-            Dim prefixLen As Integer = StringConstants.HoistedUserVariablePrefix.Length
+            Dim prefixLen As Integer = GeneratedNameConstants.HoistedUserVariablePrefix.Length
             If proxyName.Length <= prefixLen Then
                 Return False
             End If
 
             ' All names should start with "$VB$Local_"
-            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+            If Not proxyName.StartsWith(GeneratedNameConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
@@ -98,11 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             index = 0
 
             ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+            If Not proxyName.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
-            Dim prefixLen As Integer = StringConstants.StateMachineHoistedUserVariablePrefix.Length
+            Dim prefixLen As Integer = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix.Length
             Dim separator As Integer = proxyName.LastIndexOf("$"c)
             If separator <= prefixLen Then
                 Return False
@@ -129,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             <Out> ByRef methodSignature As String,
             <Out> ByRef localName As String) As Boolean
 
-            If fieldName.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
+            If fieldName.StartsWith(GeneratedNameConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
                 Dim parts = fieldName.Split("$"c)
                 If parts.Length = 5 Then
                     methodName = parts(2)
@@ -171,29 +215,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shared Function MakeStateMachineTypeName(methodName As String, methodOrdinal As Integer, generation As Integer) As String
             Debug.Assert(methodOrdinal >= -1)
-            Return MakeMethodScopedSynthesizedName(StringConstants.StateMachineTypeNamePrefix, methodOrdinal, generation, methodName, isTypeName:=True)
+            Return MakeMethodScopedSynthesizedName(GeneratedNameConstants.StateMachineTypeNamePrefix, methodOrdinal, generation, methodName, isTypeName:=True)
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine 'state' field 
         ''' </summary>
         Public Shared Function MakeStateMachineStateFieldName() As String
-            Return StringConstants.StateMachineStateFieldName
+            Return GeneratedNameConstants.StateMachineStateFieldName
         End Function
 
         Public Shared Function MakeBaseMethodWrapperName(methodName As String, isMyBase As Boolean) As String
-            Return StringConstants.BaseMethodWrapperNamePrefix & methodName & If(isMyBase, "_MyBase", "_MyClass")
+            Return GeneratedNameConstants.BaseMethodWrapperNamePrefix & methodName & If(isMyBase, "_MyBase", "_MyClass")
         End Function
 
         Public Shared Function ReusableHoistedLocalFieldName(number As Integer) As String
-            Return StringConstants.ReusableHoistedLocalFieldName & StringExtensions.GetNumeral(number)
+            Return GeneratedNameConstants.ReusableHoistedLocalFieldName & StringExtensions.GetNumeral(number)
         End Function
 
         Public Shared Function MakeStaticLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer) As String
             Debug.Assert(methodOrdinal >= -1)
             Debug.Assert(generation >= 0)
 
-            Return MakeMethodScopedSynthesizedName(StringConstants.DisplayClassPrefix, methodOrdinal, generation)
+            Return MakeMethodScopedSynthesizedName(GeneratedNameConstants.DisplayClassPrefix, methodOrdinal, generation)
         End Function
 
         Friend Shared Function MakeLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer, closureOrdinal As Integer, closureGeneration As Integer, isDelegateRelaxation As Boolean) As String
@@ -201,12 +245,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(methodOrdinal >= 0)
             Debug.Assert(generation >= 0)
 
-            Dim prefix = If(isDelegateRelaxation, StringConstants.DelegateRelaxationDisplayClassPrefix, StringConstants.DisplayClassPrefix)
+            Dim prefix = If(isDelegateRelaxation, GeneratedNameConstants.DelegateRelaxationDisplayClassPrefix, GeneratedNameConstants.DisplayClassPrefix)
             Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=closureOrdinal, entityGeneration:=closureGeneration, isTypeName:=True)
         End Function
 
         Friend Shared Function MakeDisplayClassGenericParameterName(parameterIndex As Integer) As String
-            Return StringConstants.DisplayClassGenericParameterNamePrefix & StringExtensions.GetNumeral(parameterIndex)
+            Return GeneratedNameConstants.DisplayClassGenericParameterNamePrefix & StringExtensions.GetNumeral(parameterIndex)
         End Function
 
         Friend Shared Function MakeLambdaMethodName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaGeneration As Integer, lambdaKind As SynthesizedLambdaKind) As String
@@ -214,8 +258,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(lambdaOrdinal >= 0)
 
             Dim prefix = If(lambdaKind = SynthesizedLambdaKind.DelegateRelaxationStub,
-                            StringConstants.DelegateRelaxationMethodNamePrefix,
-                            StringConstants.LambdaMethodNamePrefix)
+                            GeneratedNameConstants.DelegateRelaxationMethodNamePrefix,
+                            GeneratedNameConstants.LambdaMethodNamePrefix)
 
             Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=lambdaOrdinal, entityGeneration:=lambdaGeneration)
         End Function
@@ -224,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Generates the name of a static lambda display class instance cache
         ''' </summary>
         Public Shared Function MakeCachedFrameInstanceName() As String
-            Return StringConstants.LambdaCacheFieldPrefix
+            Return GeneratedNameConstants.LambdaCacheFieldPrefix
         End Function
 
         Friend Shared Function MakeLambdaCacheFieldName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaGeneration As Integer, lambdaKind As SynthesizedLambdaKind) As String
@@ -232,14 +276,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(lambdaOrdinal >= 0)
 
             Dim prefix = If(lambdaKind = SynthesizedLambdaKind.DelegateRelaxationStub,
-                            StringConstants.DelegateRelaxationCacheFieldPrefix,
-                            StringConstants.LambdaCacheFieldPrefix)
+                            GeneratedNameConstants.DelegateRelaxationCacheFieldPrefix,
+                            GeneratedNameConstants.LambdaCacheFieldPrefix)
 
             Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=lambdaOrdinal, entityGeneration:=lambdaGeneration)
         End Function
 
         Friend Shared Function MakeDelegateRelaxationParameterName(parameterIndex As Integer) As String
-            Return StringConstants.DelegateStubParameterPrefix & StringExtensions.GetNumeral(parameterIndex)
+            Return GeneratedNameConstants.DelegateStubParameterPrefix & StringExtensions.GetNumeral(parameterIndex)
         End Function
 
         Private Shared Function MakeMethodScopedSynthesizedName(prefix As String,
@@ -305,56 +349,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Generates the name of a state machine 'builder' field 
         ''' </summary>
         Public Shared Function MakeStateMachineBuilderFieldName() As String
-            Return StringConstants.StateMachineBuilderFieldName
+            Return GeneratedNameConstants.StateMachineBuilderFieldName
         End Function
 
         ''' <summary>
         ''' Generates the name of a field that backs Current property
         ''' </summary>
         Public Shared Function MakeIteratorCurrentFieldName() As String
-            Return StringConstants.IteratorCurrentFieldName
+            Return GeneratedNameConstants.IteratorCurrentFieldName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine's awaiter field 
         ''' </summary>
         Public Shared Function MakeStateMachineAwaiterFieldName(index As Integer) As String
-            Return StringConstants.StateMachineAwaiterFieldPrefix & StringExtensions.GetNumeral(index)
+            Return GeneratedNameConstants.StateMachineAwaiterFieldPrefix & StringExtensions.GetNumeral(index)
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine's parameter name
         ''' </summary>
         Public Shared Function MakeStateMachineParameterName(paramName As String) As String
-            Return StringConstants.HoistedUserVariablePrefix & paramName
+            Return GeneratedNameConstants.HoistedUserVariablePrefix & paramName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine's parameter name
         ''' </summary>
         Public Shared Function MakeIteratorParameterProxyName(paramName As String) As String
-            Return StringConstants.IteratorParameterProxyPrefix & paramName
+            Return GeneratedNameConstants.IteratorParameterProxyPrefix & paramName
         End Function
 
         ''' <summary>
         ''' Generates the name of a field where initial thread ID is stored
         ''' </summary>
         Public Shared Function MakeIteratorInitialThreadIdName() As String
-            Return StringConstants.IteratorInitialThreadIdName
+            Return GeneratedNameConstants.IteratorInitialThreadIdName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine field name for captured me reference
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedMeName() As String
-            Return StringConstants.HoistedMeName
+            Return GeneratedNameConstants.HoistedMeName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine field name for captured me reference of lambda closure
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedClosureMeName(closureName As String) As String
-            Return StringConstants.HoistedSpecialVariablePrefix & closureName
+            Return GeneratedNameConstants.HoistedSpecialVariablePrefix & closureName
         End Function
 
         Friend Shared Function MakeAnonymousTypeTemplateName(prefix As String, index As Integer, submissionSlotIndex As Integer, moduleId As String) As String
@@ -375,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SynthesizedLocalKind.With
                     ' Dev12 didn't name the local. We do so that we can do better job in EE evaluating With statements.
-                    name = StringConstants.HoistedWithLocalPrefix & StringExtensions.GetNumeral(uniqueId)
+                    name = GeneratedNameConstants.HoistedWithLocalPrefix & StringExtensions.GetNumeral(uniqueId)
                     uniqueId += 1
 
                 Case Else
@@ -386,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Function MakeLambdaDisplayClassStorageName(uniqueId As Integer) As String
-            Return StringConstants.ClosureVariablePrefix & StringExtensions.GetNumeral(uniqueId)
+            Return GeneratedNameConstants.ClosureVariablePrefix & StringExtensions.GetNumeral(uniqueId)
         End Function
 
         Friend Shared Function MakeSignatureString(signature As Byte()) As String
@@ -408,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             methodSignature As String,
             localName As String) As String
 
-            Return String.Format(StringConstants.StaticLocalFieldNamePrefix & "{0}${1}${2}", methodName, methodSignature, localName)
+            Return String.Format(GeneratedNameConstants.StaticLocalFieldNamePrefix & "{0}${1}${2}", methodName, methodSignature, localName)
         End Function
     End Class
 End Namespace

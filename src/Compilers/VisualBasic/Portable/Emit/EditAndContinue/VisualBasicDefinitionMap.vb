@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Select Case GeneratedNameParser.GetKind(name)
                         Case GeneratedNameKind.StateMachineAwaiterField
 
-                            If GeneratedNameParser.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
                                 Dim field = DirectCast(member, FieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                              GeneratedNameKind.StateMachineHoistedUserVariableField
 
                             Dim _name As String = Nothing
-                            If GeneratedNameParser.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
                                GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
                                 Dim field = DirectCast(member, FieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then

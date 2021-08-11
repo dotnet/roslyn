@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Assert that the cheap check for "Me" is equivalent to the expensive check for "Me".
             Debug.Assert(
-                _displayClassVariables.ContainsKey(StringConstants.HoistedMeName) =
+                _displayClassVariables.ContainsKey(GeneratedNameConstants.HoistedMeName) =
                 _displayClassVariables.Values.Any(Function(v) v.Kind = DisplayClassVariableKind.Me))
         End Sub
 
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 methodName,
                 Me,
                 Function(method As EEMethodSymbol, diags As DiagnosticBag, ByRef properties As ResultProperties)
-                    Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(StringConstants.HoistedMeName)
+                    Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(GeneratedNameConstants.HoistedMeName)
                     Dim bindAsExpression = syntax.Kind = SyntaxKind.PrintStatement
                     Dim binder = ExtendBinderChain(
                         aliases,
@@ -1145,11 +1145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Private Shared Function IsHoistedMeFieldName(fieldName As String) As Boolean
-            Return fieldName.Equals(StringConstants.HoistedMeName, StringComparison.Ordinal)
+            Return fieldName.Equals(GeneratedNameConstants.HoistedMeName, StringComparison.Ordinal)
         End Function
 
         Private Shared Function IsLambdaMethodName(methodName As String) As Boolean
-            Return methodName.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
+            Return methodName.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
         End Function
 
         ''' <summary>
@@ -1157,7 +1157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Private Shared Function IsDisplayClassInstanceLocalName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
-            Return name.StartsWith(StringConstants.ClosureVariablePrefix, StringComparison.Ordinal)
+            Return name.StartsWith(GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal)
         End Function
 
         ''' <summary>
@@ -1166,9 +1166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Private Shared Function IsDisplayClassInstanceFieldName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
-            Return name.StartsWith(StringConstants.HoistedSpecialVariablePrefix & StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix & StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(StringConstants.HoistedSpecialVariablePrefix & StringConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
+            Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
         End Function
 
         Private Shared Function IsTransparentIdentifierField(field As FieldSymbol) As Boolean
@@ -1262,14 +1262,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim hoistedLocalName As String = Nothing
                 Dim hoistedLocalSlotIndex As Integer = 0
 
-                If fieldName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                If fieldName.StartsWith(GeneratedNameConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
-                    variableName = fieldName.Substring(StringConstants.HoistedUserVariablePrefix.Length)
-                ElseIf fieldName.StartsWith(StringConstants.HoistedSpecialVariablePrefix, StringComparison.Ordinal) Then
+                    variableName = fieldName.Substring(GeneratedNameConstants.HoistedUserVariablePrefix.Length)
+                ElseIf fieldName.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix, StringComparison.Ordinal) Then
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
-                    variableName = fieldName.Substring(StringConstants.HoistedSpecialVariablePrefix.Length)
+                    variableName = fieldName.Substring(GeneratedNameConstants.HoistedSpecialVariablePrefix.Length)
                 ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
 
@@ -1285,7 +1285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ' A reference to "Me".
                     variableKind = DisplayClassVariableKind.Me
                     variableName = fieldName ' As in C#, we retain the mangled name.  It shouldn't be used, other than as a dictionary key.
-                ElseIf fieldName.StartsWith(StringConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
+                ElseIf fieldName.StartsWith(GeneratedNameConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
                     Continue For
                 ElseIf GeneratedNameParser.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
                     ' A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
@@ -1382,7 +1382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(containing IsNot Nothing)
                     If containing.IsClosureType() Then
                         candidateSubstitutedSourceType = containing
-                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, StringComparer.Ordinal)
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(GeneratedNameConstants.HoistedMeName, StringComparer.Ordinal)
                     End If
                 End If
 

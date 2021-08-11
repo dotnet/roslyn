@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim localNames = debugInfo.LocalVariableNames.WhereAsArray(
-                Function(name) name Is Nothing OrElse Not name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal))
+                Function(name) name Is Nothing OrElse Not name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal))
 
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing, debugInfo.TupleLocalMap)
