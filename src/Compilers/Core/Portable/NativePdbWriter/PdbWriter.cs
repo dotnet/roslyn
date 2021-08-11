@@ -85,7 +85,7 @@ namespace Microsoft.Cci
             bool emitDynamicAndTupleInfo = emitAllDebugInfo && !suppressNewCustomDebugInfo;
 
             // Emit EnC info for all methods even if they do not have sequence points.
-            // The information facilitates reusing lambdas and closures. The reusal is important for runtimes that can't add new ones (e.g. Mono).
+            // The information facilitates reusing lambdas and closures. The reuse is important for runtimes that can't add new ones (e.g. Mono).
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
 
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
