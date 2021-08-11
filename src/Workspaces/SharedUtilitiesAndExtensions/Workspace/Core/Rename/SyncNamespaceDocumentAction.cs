@@ -17,6 +17,7 @@ using static Microsoft.CodeAnalysis.Rename.Renamer;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
+
     /// <summary>
     /// Action that will sync the namespace of the document to match the folders property 
     /// of that document, similar to if a user performed the "Sync Namespace" code refactoring.
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// a namespace definition of Bat.Bar.Baz in the document, then it would update that definition to 
     /// Bat.Bar.Baz.Bat and update the solution to reflect these changes. Uses <see cref="IChangeNamespaceService"/>
     /// </summary>
-    internal sealed class SyncNamespaceDocumentAction : InternalRenameDocumentAction
+    internal sealed class SyncNamespaceDocumentAction : IRenameDocumentAction
     {
         private readonly AnalysisResult _analysis;
 
@@ -34,12 +35,10 @@ namespace Microsoft.CodeAnalysis.Rename
             _analysis = analysis;
         }
 
-        internal override string GetDescription(CultureInfo? culture)
+        public string GetDescription(CultureInfo? culture)
             => WorkspaceExtensionsResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspaceExtensionsResources.Culture)!;
 
-        internal override ImmutableArray<string> GetErrors(CultureInfo? culture) => ImmutableArray<string>.Empty;
-
-        internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
+        public async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
         {
             var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
             var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);

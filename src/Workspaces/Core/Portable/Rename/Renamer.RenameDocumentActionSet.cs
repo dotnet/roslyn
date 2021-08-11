@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -101,7 +102,17 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var action in actions)
                 {
                     document = solution.GetRequiredDocument(documentId);
-                    solution = await action.GetModifiedSolutionAsync(document, _optionSet, cancellationToken).ConfigureAwait(false);
+
+                    // Filter to only implementations that we know about. Proposal
+                    // https://github.com/dotnet/roslyn/issues/55539 will help reduce complexity
+                    // here as we can modify the public API to better suit our needs internally.
+                    if (action is not RenameActionWrapper wrapper)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(action);
+
+                    }
+
+                    solution = await wrapper.Action.GetModifiedSolutionAsync(document, _optionSet, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

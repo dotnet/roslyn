@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// and updating that type.
     /// </summary>
     //  https://github.com/dotnet/roslyn/issues/43461 tracks adding more complicated heuristics to matching type and file name. 
-    internal sealed class RenameSymbolDocumentAction : InternalRenameDocumentAction
+    internal sealed class RenameSymbolDocumentAction : IRenameDocumentAction
     {
         private readonly AnalysisResult _analysis;
 
@@ -30,12 +30,10 @@ namespace Microsoft.CodeAnalysis.Rename
             _analysis = analysis;
         }
 
-        internal override string GetDescription(CultureInfo? culture)
+        public string GetDescription(CultureInfo? culture)
             => string.Format(WorkspaceExtensionsResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspaceExtensionsResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
-        internal override ImmutableArray<string> GetErrors(CultureInfo? culture = null) => ImmutableArray<string>.Empty;
-
-        internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+        public async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 

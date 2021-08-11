@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
                 if (renameAction is not null)
                 {
-                    actions.Add(new RenameDocumentAction(renameAction));
+                    actions.Add(new RenameActionWrapper(renameAction));
                 }
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
                 if (action is not null)
                 {
-                    actions.Add(new RenameDocumentAction(action));
+                    actions.Add(new RenameActionWrapper(action));
                 }
             }
 

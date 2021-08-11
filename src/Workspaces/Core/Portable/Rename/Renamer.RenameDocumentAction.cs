@@ -20,28 +20,25 @@ namespace Microsoft.CodeAnalysis.Rename
         /// 
         /// See <see cref="RenameDocumentActionSet" /> on use case and how to apply them to a solution.
         /// </summary>
-        public sealed class RenameDocumentAction
+        public abstract class RenameDocumentAction
         {
-            private readonly InternalRenameDocumentAction _internalRenameDocumentAction;
-
-            internal RenameDocumentAction(InternalRenameDocumentAction internalRenameDocumentAction)
+            internal RenameDocumentAction()
             {
-                _internalRenameDocumentAction = internalRenameDocumentAction;
             }
 
             /// <summary>
             /// Get any errors that have been noted for this action before it is applied.
             /// Can be used to present to a user.
             /// </summary>
-            public ImmutableArray<string> GetErrors(CultureInfo? culture = null) => _internalRenameDocumentAction.GetErrors(culture);
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Public API")]
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Public API")]
+            public ImmutableArray<string> GetErrors(CultureInfo? culture = null) => ImmutableArray<string>.Empty;
 
             /// <summary>
             /// Gets the description of the action. Can be used to present to a user to describe
             /// what extra actions will be taken.
             /// </summary>
-            public string GetDescription(CultureInfo? culture = null) => _internalRenameDocumentAction.GetDescription(culture);
-
-            internal Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken) => _internalRenameDocumentAction.GetModifiedSolutionAsync(document, optionSet, cancellationToken);
+            public abstract string GetDescription(CultureInfo? culture = null);
         }
     }
 }

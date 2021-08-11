@@ -58,7 +58,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\IChangeNamespaceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Rename\InternalRenameDocumentAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\IRenameDocumentAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\RenameSymbolDocumentAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\SyncNamespaceDocumentAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
