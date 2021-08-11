@@ -2156,9 +2156,9 @@ class C<T> : System.Attribute { }";
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
-                // (2,14): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
                 );
 
             CreateCompilation(source).VerifyDiagnostics(

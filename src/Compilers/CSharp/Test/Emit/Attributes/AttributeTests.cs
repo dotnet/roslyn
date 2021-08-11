@@ -5500,9 +5500,9 @@ class Goo<T>
                 // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
-                // (2,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Goo<int>").WithArguments("generic attributes", "10.0").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo<int>").WithArguments("generic attributes").WithLocation(2, 2));
 
             compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
@@ -5560,9 +5560,9 @@ class Goo<T>
                 // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
-                // (2,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Goo<int>").WithArguments("generic attributes", "10.0").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo<int>").WithArguments("generic attributes").WithLocation(2, 2));
 
             compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
@@ -7129,9 +7129,9 @@ public class Test
             var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics(
-                // (3,16): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (3,16): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Gen2<T>: System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 16),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 16),
                 // (5,2): error CS0616: 'Gen<T>' is not an attribute class
                 // [Gen]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(5, 2),
@@ -8105,27 +8105,27 @@ public class C<T, U> : Attribute // 20
                 // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
                 // [A<>] // 1, 2
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
-                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [A<>] // 1, 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("generic attributes").WithLocation(4, 2),
                 // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
                 // [A<int>] // 3, 4
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [A<int>] // 3, 4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<int>").WithArguments("generic attributes").WithLocation(5, 2),
                 // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
                 // [B] // 5
                 Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
                 // (7,2): error CS7003: Unexpected use of an unbound generic name
                 // [B<>] // 6, 7
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
-                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (7,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [B<>] // 6, 7
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<>").WithArguments("generic attributes", "10.0").WithLocation(7, 2),
-                // (8,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("generic attributes").WithLocation(7, 2),
+                // (8,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [B<int>] // 8, 9
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<int>").WithArguments("generic attributes", "10.0").WithLocation(8, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<int>").WithArguments("generic attributes").WithLocation(8, 2),
                 // (8,2): error CS0579: Duplicate 'B<>' attribute
                 // [B<int>] // 8, 9
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "B<int>").WithArguments("B<>").WithLocation(8, 2),
@@ -8135,33 +8135,33 @@ public class C<T, U> : Attribute // 20
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
                 // [C<>] // 11, 12
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
-                // (10,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (10,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<>] // 11, 12
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(10, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<>").WithArguments("generic attributes").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
                 // [C<int>] // 13, 14
                 Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
-                // (11,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (11,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<int>] // 13, 14
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int>").WithArguments("generic attributes", "10.0").WithLocation(11, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<int>").WithArguments("generic attributes").WithLocation(11, 2),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<,>] // 15, 16
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
-                // (12,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (12,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<,>] // 15, 16
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<,>").WithArguments("generic attributes", "10.0").WithLocation(12, 2),
-                // (13,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<,>").WithArguments("generic attributes").WithLocation(12, 2),
+                // (13,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<int, int>] // 17, 18
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int, int>").WithArguments("generic attributes", "10.0").WithLocation(13, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<int, int>").WithArguments("generic attributes").WithLocation(13, 2),
                 // (13,2): error CS0579: Duplicate 'C<,>' attribute
                 // [C<int, int>] // 17, 18
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<int, int>").WithArguments("C<,>").WithLocation(13, 2),
-                // (22,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (22,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class B<T> : Attribute // 19
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(22, 21),
-                // (26,24): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(22, 21),
+                // (26,24): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class C<T, U> : Attribute // 20
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(26, 24));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(26, 24));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -8219,24 +8219,24 @@ public class C<T> : Attribute
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (12,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class C<T> : Attribute
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(12, 21),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(12, 21),
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
                 // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
-                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias").WithArguments("generic attributes").WithLocation(5, 2),
+                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2),
-                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<>").WithArguments("generic attributes").WithLocation(6, 2),
+                // (7,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(7, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<int>").WithArguments("generic attributes").WithLocation(7, 2));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -8281,21 +8281,21 @@ class Test
             // attribute at emit-time.
             var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias").WithArguments("generic attributes").WithLocation(4, 2),
                 // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<>").WithArguments("generic attributes").WithLocation(5, 2),
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2),
-                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<int>").WithArguments("generic attributes").WithLocation(6, 2));
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
@@ -8339,15 +8339,15 @@ public class Outer<T>
                 // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
                 // [InnerAlias]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [InnerAlias]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "InnerAlias").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerAlias").WithArguments("generic attributes").WithLocation(5, 2),
                 // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
                 //     [OuterAlias.Inner]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17),
-                // (8,6): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (8,6): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [OuterAlias.Inner]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "OuterAlias.Inner").WithArguments("generic attributes", "10.0").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "OuterAlias.Inner").WithArguments("generic attributes").WithLocation(8, 6));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -9473,9 +9473,9 @@ public class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,14): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
                 );
             Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
         }
@@ -9602,18 +9602,18 @@ public class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,30): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,30): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class AAttribute<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 30),
-                // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 30),
+                // (3,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 21),
                 // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [A<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<int>").WithArguments("generic attributes").WithLocation(5, 2));
         }
 
         [Fact, WorkItem(54772, "https://github.com/dotnet/roslyn/issues/54772")]
@@ -9638,21 +9638,21 @@ public class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,30): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,30): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class AAttribute<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 30),
-                // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 30),
+                // (3,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 21),
                 // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [@A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [@A<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "@A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
-                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "@A<int>").WithArguments("generic attributes").WithLocation(5, 2),
+                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [AAttribute<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "AAttribute<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "AAttribute<int>").WithArguments("generic attributes").WithLocation(6, 2));
         }
 
         [Fact]
@@ -9669,9 +9669,9 @@ public class Program { }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 21));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 21));
 
             var comp1 = CreateCompilation(source1);
             var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
@@ -9740,9 +9740,9 @@ public class Program { }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (4,26): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class Inner : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(4, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(4, 26));
 
             var comp1 = CreateCompilation(source1);
             var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
@@ -9784,18 +9784,18 @@ public class Program { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (2,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 21),
-                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 21),
+                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<ERROR>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<ERROR>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<ERROR>").WithArguments("generic attributes").WithLocation(4, 2),
                 // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 // [C<ERROR>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
-                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<System>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<System>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<System>").WithArguments("generic attributes").WithLocation(5, 2),
                 // (5,2): error CS0579: Duplicate 'C<>' attribute
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<System>").WithArguments("C<>").WithLocation(5, 2),
@@ -9805,9 +9805,9 @@ public class Program { }
                 // (6,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
-                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<>").WithArguments("generic attributes").WithLocation(6, 2),
                 // (6,2): error CS0579: Duplicate 'C<>' attribute
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<>").WithArguments("C<>").WithLocation(6, 2));
