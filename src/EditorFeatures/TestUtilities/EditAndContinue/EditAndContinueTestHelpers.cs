@@ -378,9 +378,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal static class EditScriptTestUtils
     {
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-            => AssertEx.Equal(FormatEdits(expected), FormatEdits(actual.Edits.Select(e => e.GetDebuggerDisplay())), itemSeparator: ",\r\n");
-
-        private static IEnumerable<string> FormatEdits(IEnumerable<string> edits)
-            => edits.Select(e => $"\"{e}\"");
+            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
     }
 }
