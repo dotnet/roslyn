@@ -10027,20 +10027,468 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeFunctionPointer()
+        public void GenericAttributeRestrictedTypeArgument()
         {
             var source = @"
 using System;
 class Attr<T> : Attribute { }
 
-[Attr<delegate*<int, void>>] // 1
-class C { }
+[Attr<int*>] // 1
+class C1 { }
+
+[Attr<delegate*<int, void>>] // 2
+class C2 { }
+
+[Attr<TypedReference>] // 3
+class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
-                // [Attr<delegate*<int, void>>] // 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(5, 7));
+                // (5,7): error CS0306: The type 'int*' may not be used as a type argument
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
+                // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttribute_AbstractStatic_01()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { }
+
+class Attr2Base : Attribute
+{
+    public virtual void M() { }
+}
+class Attr2<T> : Attr2Base where T : I1
+{
+    public override void M()
+    {
+        T.M();
+    }
+}
+
+interface I1
+{
+    static abstract void M();
+}
+
+interface I2 : I1 { }
+
+class C : I1
+{
+    public static void M()
+    {
+        Console.Write(""C.M"");
+    }
+}
+
+[Attr1<C>]
+[Attr2<C>]
+class C1
+{
+    public static void Main()
+    {
+        var attr2 = (Attr2Base)Attribute.GetCustomAttribute(typeof(C), typeof(Attr2Base));
+        attr2.M();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributeOnLambda()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+class C
+{
+    void M()
+    {
+        Func<string, string> x = [Attr<int>] (string x) => x;
+        x(""a"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, symbolValidator: validateMetadata, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verifier.VerifyDiagnostics();
+
+            void validateMetadata(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<M>b__0_0");
+                var attrs = lambda.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.Int32>" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeSimilarToWellKnownAttribute()
+        {
+            var source = @"
+using System;
+class ObsoleteAttribute<T> : Attribute { }
+
+class C
+{
+    [Obsolete<int>]
+    void M0() { }
+
+    void M1() => M0();
+
+    [Obsolete]
+    void M2() { }
+
+    void M3() => M2(); // 1
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,18): warning CS0612: 'C.M2()' is obsolete
+                //     void M3() => M2(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void GenericAttributesConsumeFromVB()
+        {
+            var csSource = @"
+using System;
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+public class C { }
+";
+            var comp = CreateCompilation(csSource);
+
+            var vbSource = @"
+Public Class D
+    Inherits C
+End Class
+";
+            var comp2 = CreateVisualBasicCompilation(vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp.EmitToImageReference()));
+            var d = comp2.GetMember<INamedTypeSymbol>("D");
+            var attrs = d.BaseType.GetAttributes();
+            Assert.Equal(1, attrs.Length);
+            Assert.Equal("Attr(Of System.Int32)", attrs[0].AttributeClass.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GenericAttribute_AbstractStatic_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { }
+class Attr2<T> : Attribute where T : I1 { }
+
+interface I1
+{
+    static abstract void M();
+}
+
+interface I2 : I1 { }
+
+class C : I1
+{
+    public static void M() { }
+}
+
+[Attr1<I1>]
+[Attr2<I1>]
+class C1 { }
+
+[Attr1<I2>]
+[Attr2<I2>]
+class C2 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract void M();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M").WithLocation(8, 26),
+                // (13,11): error CS8929: 'C.M()' cannot implement interface member 'I1.M()' in type 'C' because the target runtime doesn't support static abstract members in interfaces.
+                // class C : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("C.M()", "I1.M()", "C").WithLocation(13, 11),
+                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // [Attr2<I1>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("Attr2<T>", "I1", "T", "I1").WithLocation(19, 8),
+                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // [Attr2<I2>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("Attr2<T>", "I1", "T", "I2").WithLocation(23, 8));
+        }
+
+        [Fact]
+        public void GenericAttributeProperty_01()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+
+class Attr<T> : Attribute { public T Prop { get; set; } }
+
+[Attr<string>(Prop = ""a"")]
+class Program
+{
+    static void Main()
+    {
+        var attrs = CustomAttributeData.GetCustomAttributes(typeof(Program));
+        foreach (var attr in attrs)
+        {
+            foreach (var arg in attr.NamedArguments)
+            {
+                Console.Write(arg.MemberName);
+                Console.Write("" = "");
+                Console.Write(arg.TypedValue.Value);
+            }
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "Prop = a");
+            void verify(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetMember<TypeSymbol>("Program");
+                var attrs = program.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>(Prop = \"a\")" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeProperty_02()
+        {
+            var source = @"
+using System;
+class Attr<T1> : Attribute { public object Prop { get; set; } }
+
+class Outer<T2>
+{
+    [Attr<object>(Prop = default(T2))] // 1
+    class Program1 { }
+
+    [Attr<T2>(Prop = default(T2))] // 2, 3
+    class Program2 { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<object>(Prop = default(T2))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
+                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<T2>(Prop = default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
+        public void GenericAttributeParameter_01()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+
+class Attr<T> : Attribute { public Attr(T param) { } }
+
+[Attr<string>(""a"")]
+class Holder { }
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var attrs = CustomAttributeData.GetCustomAttributes(typeof(Holder));
+            foreach (var attr in attrs)
+            {
+                foreach (var arg in attr.ConstructorArguments)
+                {
+                    Console.Write(arg.Value);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write(e.GetType().Name);
+        }
+    }
+}
+";
+            // The expected output here will change once we consume a runtime
+            // which has a fix for https://github.com/dotnet/runtime/issues/56492
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "CustomAttributeFormatException");
+
+            verifier.VerifyTypeIL("Holder", @"
+.class private auto ansi beforefieldinit Holder
+	extends [netstandard]System.Object
+{
+	.custom instance void class Attr`1<string>::.ctor(!0) = (
+		01 00 01 61 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method Holder::.ctor
+} // end of class Holder
+");
+
+            void verify(ModuleSymbol module)
+            {
+                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
+                var attrs = holder.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
+            }
+
+            void verifyMetadata(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/55190
+                // The compiler should be able to read this attribute argument from metadata.
+                // Once this is fixed, we should be able to use exactly the same 'verify' method for both source and metadata.
+                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
+                var attrs = holder.GetAttributes();
+                Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [Fact]
+        public void GenericAttributeParameter_02()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { public Attr(object param) { } }
+
+class Outer<T2>
+{
+    [Attr<object>(default(T2))] // 1
+    class Program1 { }
+
+    [Attr<T2>(default(T2))] // 2, 3
+    class Program2 { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<object>(default(T2))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
+                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                //     [Attr<T2>(default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr<T2>(default(T2))] // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 15));
+        }
+
+        [Fact]
+        public void GenericAttributeOnAssembly()
+        {
+            var source = @"
+using System;
+
+[assembly: Attr<string>]
+[assembly: Attr<int>]
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class Attr<T> : Attribute { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verifySource);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var attrs = module.ContainingAssembly.GetAttributes();
+                Assert.Equal(new[]
+                {
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)",
+                    "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)",
+                    "Attr<System.String>",
+                    "Attr<System.Int32>"
+                }, GetAttributeStrings(attrs));
+            }
+
+            void verifySource(ModuleSymbol module)
+            {
+                var attrs = module.ContainingAssembly.GetAttributes();
+                Assert.Equal(new[]
+                {
+                    "Attr<System.String>",
+                    "Attr<System.Int32>"
+                }, GetAttributeStrings(attrs));
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttributeReflection_OpenGeneric()
+        {
+            var source = @"
+using System;
+
+class Attr<T> : Attribute { }
+class Attr2<T> : Attribute { }
+
+[Attr<string>]
+[Attr2<int>]
+class Holder { }
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var attr = Attribute.GetCustomAttribute(typeof(Holder), typeof(Attr<>));
+            Console.Write(attr?.ToString() ?? ""not found"");
+        }
+        catch (Exception e)
+        {
+            Console.Write(e.GetType().Name);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "not found");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributeNested()
+        {
+            var source = @"
+using System;
+
+class Attr<T> : Attribute { }
+
+[Attr<Attr<string>>]
+class C { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var attrs = c.GetAttributes();
+                Assert.Equal(new[] { "Attr<Attr<System.String>>" }, GetAttributeStrings(attrs));
+            }
         }
 
         #endregion
