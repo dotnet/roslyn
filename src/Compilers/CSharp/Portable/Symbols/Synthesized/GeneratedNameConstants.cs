@@ -6,9 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class GeneratedNameConstants
     {
-        public const char DotReplacementInTypeNames = '-';
-        public const string SynthesizedLocalNamePrefix = "CS$";
-        public const string SuffixSeparator = "__";
-        public const char LocalFunctionNameTerminator = '|';
+        internal const char DotReplacementInTypeNames = '-';
+        internal const string SynthesizedLocalNamePrefix = "CS$";
+        internal const string SuffixSeparator = "__";
+        internal const char LocalFunctionNameTerminator = '|';
     }
 }

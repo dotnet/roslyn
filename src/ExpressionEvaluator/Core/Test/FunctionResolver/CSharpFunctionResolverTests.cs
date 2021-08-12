@@ -1497,7 +1497,7 @@ class F
             Resolve(process, resolver, "G", "Program.<<Main>$>g__G|0_1()", "F.G()", "F.<G>g__G|0_0()");
             Resolve(process, resolver, "Program.G", "Program.<<Main>$>g__G|0_1()");
             Resolve(process, resolver, "F.G", "F.G()", "F.<G>g__G|0_0()");
-            Resolve(process, resolver, "A.G.G");
+            Resolve(process, resolver, "F.G.G");
         }
 
         [Fact(Skip = "global:: not supported")]
