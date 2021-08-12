@@ -323,14 +323,14 @@ namespace TestNs1
 {
     public class Class1
     {
-        public static int Test[||]MethodInt()
-        {
-            return 0;
-        }
-
         public static bool TestMethodBool()
         {
             return false;
+        }
+
+        public static int Test[||]MethodInt()
+        {
+            return 0;
         }
     }
 }";
@@ -444,16 +444,16 @@ namespace TestNs1
 {
     public class Class1
     {
+        public static int TestField;
+
+        public static bool TestProperty { get; set; }
+
+        public static event EventHandler TestEvent;
+
         public static int Test[||]Method()
         {
             return 0;
         }
-
-        public static bool TestProperty { get; set; }
-
-        public static int TestField;
-
-        public static event EventHandler TestEvent;
     }
 }";
             var selectedDestinationName = "Class1Helpers";

@@ -34,6 +34,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -397,6 +398,7 @@ Public Class Class1
 End Class"
             Dim expectedText2 = "Module Class1Helpers
     Public TestField As Integer = 0
+
 End Module
 "
 
@@ -426,6 +428,7 @@ End Class"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -460,6 +463,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs.InnerNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -662,6 +666,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
+
         Public Function TestFunc2() As Boolean
             Return False
         End Function
@@ -725,6 +730,7 @@ End Namespace"
 Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
 
         Public ReadOnly Property TestProperty As Integer
             Get
@@ -990,6 +996,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -1024,6 +1031,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -1075,6 +1083,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
@@ -1109,6 +1118,7 @@ End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Module Class1Helpers
         Public TestField As Integer = 0
+
     End Module
 End Namespace
 "
