@@ -376,15 +376,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal IReadOnlyDictionary<string, Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue> GetSynthesizedDelegates()
+        internal IReadOnlyDictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue> GetSynthesizedDelegates()
         {
-            var result = new Dictionary<string, Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue>();
+            var result = new Dictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue>();
             var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
             GetCreatedSynthesizedDelegates(synthesizedDelegates);
             foreach (var delegateSymbol in synthesizedDelegates)
             {
-                var value = new Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue(delegateSymbol.GetCciAdapter());
-                result.Add(delegateSymbol.MetadataName, value);
+                var key = new CodeAnalysis.Emit.SynthesizedDelegateKey(delegateSymbol.MetadataName);
+                var value = new CodeAnalysis.Emit.SynthesizedDelegateValue(delegateSymbol.GetCciAdapter());
+                result.Add(key, value);
             }
             synthesizedDelegates.Free();
             return result;

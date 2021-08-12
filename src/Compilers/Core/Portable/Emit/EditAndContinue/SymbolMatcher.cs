@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<string, SynthesizedDelegateValue> MapSynthesizedDelegates(IReadOnlyDictionary<string, SynthesizedDelegateValue> synthesizedDelegates)
+        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapSynthesizedDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates)
         {
-            var result = new Dictionary<string, SynthesizedDelegateValue>();
+            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var pair in synthesizedDelegates)
             {

@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
             ' VB synthesized delegates are handled as anonymous types in the map above
-            Dim synthesizedDelegates = New Dictionary(Of String, SynthesizedDelegateValue)
+            Dim synthesizedDelegates = New Dictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
             Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, synthesizedDelegates, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
@@ -218,9 +218,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return anonymousTypes
         End Function
 
-        Friend Overloads Function GetSynthesizedDelegates() As IReadOnlyDictionary(Of String, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetSynthesizedDelegates
+        Friend Overloads Function GetSynthesizedDelegates() As IReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetSynthesizedDelegates
             ' VB synthesized delegates are handled as anonymous types in the method above
-            Return New Dictionary(Of String, SynthesizedDelegateValue)
+            Return New Dictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator

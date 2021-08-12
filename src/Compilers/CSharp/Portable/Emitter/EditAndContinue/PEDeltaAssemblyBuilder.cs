@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         // internal for testing
-        internal static IReadOnlyDictionary<string, SynthesizedDelegateValue> GetSynthesizedDelegateMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
+        internal static IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> GetSynthesizedDelegateMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
-            var result = new Dictionary<string, SynthesizedDelegateValue>();
+            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
             foreach (var handle in reader.TypeDefinitions)
             {
                 var def = reader.GetTypeDefinition(handle);
@@ -178,9 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // in the prefix (return void or not) or the name (ref kinds and arity) so we don't need anything
                 // fancy for a key.
                 var metadataName = reader.GetString(def.Name);
+                var key = new SynthesizedDelegateKey(metadataName);
+
                 var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                 var value = new SynthesizedDelegateValue(type.GetCciAdapter());
-                result.Add(metadataName, value);
+                result.Add(key, value);
             }
             return result;
         }
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
-        public IReadOnlyDictionary<string, SynthesizedDelegateValue> GetSynthesizedDelegates()
+        public IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> GetSynthesizedDelegates()
         {
             var synthesizedDelegates = this.Compilation.AnonymousTypeManager.GetSynthesizedDelegates();
             // Should contain all entries in previous generation.
