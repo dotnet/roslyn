@@ -9,13 +9,13 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.MoveStaticMembers
+    <UseExportProvider>
     Public Class VisualBasicMoveStaticMembersTests
 
         Private Shared ReadOnly s_testServices As TestComposition = FeaturesTestCompositions.Features.AddParts(GetType(TestMoveStaticMembersService))
 
 #Region "Perform Actions From Options"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveField() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -43,7 +43,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveProperty() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -78,7 +77,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveEvent() As Task
             Dim initialMarkup = "
 Imports System
@@ -111,7 +109,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveComplexEvent() As Task
             Dim initialMarkup = "
 Imports System
@@ -164,7 +161,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -195,7 +191,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveSub() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -224,7 +219,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveConst() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -251,7 +245,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestInNestedClass() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -286,7 +279,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestInNestedNamespace() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -321,7 +313,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldNoNamespace() As Task
             Dim initialMarkup = "
 Public Class Class1
@@ -343,7 +334,6 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldNewNamespace() As Task
             Dim initialMarkup = "
 Public Class Class1
@@ -367,7 +357,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldAddNamespace() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -395,7 +384,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveGenericFunction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -426,7 +414,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionWithGenericClass() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -457,7 +444,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionWithFolders() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -488,7 +474,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveMultipleFunctions() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -527,7 +512,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveOneOfMultipleFuncs() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -566,7 +550,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveOneOfEach() As Task
             Dim initialMarkup = "
 Imports System
@@ -635,200 +618,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
-        Public Async Function TestMoveFunctionAndRefactorUsage() As Task
-            Dim initialMarkup = "
-Namespace TestNs
-    Public Class Class1
-        Public Shared Function Test[||]Func() As Integer
-            Return 0
-        End Function
-    End Class
-
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim newTypeName = "Class1Helpers"
-            Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "
-Namespace TestNs
-    Public Class Class1
-    End Class
-
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1Helpers.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
-            Return 0
-        End Function
-    End Module
-End Namespace
-"
-
-            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
-        Public Async Function TestMoveFunctionAndRefactorUsageDifferentNamespace() As Task
-            Dim initialMarkup = "
-Imports TestNs
-
-Namespace TestNs
-    Public Class Class1
-        Public Shared Function Test[||]Func() As Integer
-            Return 0
-        End Function
-    End Class
-End Namespace
-
-Namespace TestNs2
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim newTypeName = "Class1Helpers"
-            Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "
-Imports TestNs
-
-Namespace TestNs
-    Public Class Class1
-    End Class
-End Namespace
-
-Namespace TestNs2
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1Helpers.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
-            Return 0
-        End Function
-    End Module
-End Namespace
-"
-
-            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
-        Public Async Function TestMoveFunctionAndRefactorUsageNewNamespace() As Task
-            Dim initialMarkup = "
-Namespace TestNs
-    Public Class Class1
-        Public Shared Function Test[||]Func() As Integer
-            Return 0
-        End Function
-    End Class
-
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim newTypeName = "ExtraNs.Class1Helpers"
-            Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "
-Imports TestNs.ExtraNs
-
-Namespace TestNs
-    Public Class Class1
-    End Class
-
-    Public Class Class2
-        Public Shared Function TestFunc2() As Integer
-            Return Class1Helpers.TestFunc() + 1
-        End Function
-    End Class
-End Namespace"
-            Dim expectedText2 = "Namespace TestNs.ExtraNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
-            Return 0
-        End Function
-    End Module
-End Namespace
-"
-
-            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
-        Public Async Function TestMoveFunctionAndRefactorUsageSeparateFile() As Task
-            Dim initialMarkup1 = "
-Namespace TestNs
-    Public Class Class1
-        Public Shared Function Test[||]Func() As Integer
-            Return 0
-        End Function
-    End Class
-End Namespace"
-            Dim initialMarkup2 = "
-Imports TestNs
-
-Public Class Class2
-    Public Shared Function TestFunc2() As Integer
-        Return Class1.TestFunc() + 1
-    End Function
-End Class"
-            Dim newTypeName = "Class1Helpers"
-            Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "
-Namespace TestNs
-    Public Class Class1
-    End Class
-End Namespace"
-            Dim expectedText3 = "
-Imports TestNs
-
-Public Class Class2
-    Public Shared Function TestFunc2() As Integer
-        Return Class1Helpers.TestFunc() + 1
-    End Function
-End Class"
-            Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
-            Return 0
-        End Function
-    End Module
-End Namespace
-"
-
-            Dim test = New Test(newTypeName, selection, newFileName)
-            test.TestState.Sources.Add(initialMarkup1)
-            test.TestState.Sources.Add(initialMarkup2)
-            test.FixedState.Sources.Add(expectedText1)
-            test.FixedState.Sources.Add(expectedText3)
-            test.FixedState.Sources.Add((newFileName, expectedText2))
-
-            Await test.RunAsync().ConfigureAwait(False)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveExtensionFunction() As Task
             Dim initialMarkup = "
 Imports System.Runtime.CompilerServices
@@ -861,7 +650,6 @@ End Namespace"
             Dim selection = ImmutableArray.Create("TestFunc")
             Dim expectedText1 = "
 Imports System.Runtime.CompilerServices
-Imports TestNs
 
 Namespace TestNs
     Public Module Class1
@@ -898,86 +686,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
-        Public Async Function TestMoveExtensionFunctionAddImports() As Task
-            Dim initialMarkup = "
-Imports System.Runtime.CompilerServices
-Imports TestNs1
-Imports TestNs2
-
-Namespace TestNs1
-    Public Module Class1
-        <Extension>
-        Public Function Test[||]Func(other As Other) As Integer
-            Return other.OtherInt + 2
-        End Function
-    End Module
-End Namespace
-
-Namespace TestNs2
-    Public Class Class2
-        Public Function GetOtherInt() As Integer
-            Dim other = New Other()
-            Return other.TestFunc()
-        End Function
-    End Class
-
-    Public Class Other
-        Public OtherInt As Integer
-
-        Public Sub New()
-            OtherInt = 5
-        End Sub
-    End Class
-End Namespace"
-            Dim newTypeName = "ExtraNs.Class1Helpers"
-            Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "
-Imports System.Runtime.CompilerServices
-Imports TestNs1
-Imports TestNs1.ExtraNs
-Imports TestNs2
-
-Namespace TestNs1
-    Public Module Class1
-    End Module
-End Namespace
-
-Namespace TestNs2
-    Public Class Class2
-        Public Function GetOtherInt() As Integer
-            Dim other = New Other()
-            Return other.TestFunc()
-        End Function
-    End Class
-
-    Public Class Other
-        Public OtherInt As Integer
-
-        Public Sub New()
-            OtherInt = 5
-        End Sub
-    End Class
-End Namespace"
-            Dim expectedText2 = "Imports System.Runtime.CompilerServices
-Imports TestNs2
-
-Namespace TestNs1.ExtraNs
-    Module Class1Helpers
-        <Extension>
-        Public Function TestFunc(other As Other) As Integer
-            Return other.OtherInt + 2
-        End Function
-    End Module
-End Namespace
-"
-
-            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionInModule() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1008,7 +716,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionRetainFileBanner() As Task
             Dim initialMarkup = "' Here is an example of a license or something
 ' That we want to keep/copy over
@@ -1048,7 +755,6 @@ End Namespace
 #End Region
 #Region "SelectionTests"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectBeforeDeclarationKeyword() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1076,7 +782,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectWholeFieldDeclaration() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1104,7 +809,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInDeclarationKeyword1() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1132,7 +836,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInDeclarationKeyword2() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1160,7 +863,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodParens() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1191,7 +893,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInTypeIdentifierMethodDeclaration() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1222,7 +923,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInFieldInitializerEquals_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1235,7 +935,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInFieldTypeIdentifier_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1248,7 +947,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodBody_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1263,7 +961,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodClose_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1278,7 +975,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectNonSharedProperty_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1295,7 +991,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectPropertyGetter_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1312,7 +1007,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectConstructor1_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1326,7 +1020,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectConstructor2_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1340,7 +1033,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectOperator_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
