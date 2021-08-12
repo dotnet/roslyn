@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
-                TypeKind.Module,
+                GetNewTypeKind(typeParameters),
                 moveOptions.TypeName,
                 typeParameters: typeParameters);
 
@@ -117,6 +118,16 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
+        }
+
+        /// <summary>
+        /// What type kind we should make our new type be. Passing Module when our language is C# will still create a class.
+        /// Modules cannot be generic however, so for VB we choose class if there are generic type params.
+        /// This could be later extended to a language-service feature if there is more complex behavior.
+        /// </summary>
+        private static TypeKind GetNewTypeKind(ImmutableArray<ITypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.IsEmpty ? TypeKind.Module : TypeKind.Class;
         }
 
         private async Task<Document> CorrectStaticMembersAsync(

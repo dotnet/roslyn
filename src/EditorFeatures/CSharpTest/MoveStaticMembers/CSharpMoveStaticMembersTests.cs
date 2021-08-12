@@ -48,18 +48,7 @@ namespace TestNs1
     }
 }";
 
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -91,18 +80,7 @@ namespace TestNs1
         public static int TestProperty { get; set; }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -140,18 +118,7 @@ namespace TestNs1
         public static event EventHandler TestEvent;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -189,18 +156,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -256,18 +212,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -300,18 +245,7 @@ namespace TestNs1
         public const int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -359,18 +293,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -419,18 +342,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -490,18 +402,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -539,18 +440,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -589,18 +479,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -623,18 +502,7 @@ public class Class1
 {
     public static int TestField = 1;
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -660,18 +528,7 @@ public class Class1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -711,18 +568,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -776,61 +622,6 @@ public class Class1
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         [UseExportProvider]
-        public async Task TestMoveMethodWithFolders()
-        {
-            // We should just put the new file in the same folder as source
-            var initialMarkup = @"
-namespace TestNs1
-{
-    public class Class1
-    {
-        public static int Test[||]Method()
-        {
-            return 0;
-        }
-    }
-}";
-            var selectedDestinationName = "Class1Helpers";
-            var newFileName = "Class1Helpers.cs";
-            var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult1 = @"
-namespace TestNs1
-{
-    public class Class1
-    {
-    }
-}";
-            var expectedResult2 = @"namespace TestNs1
-{
-    static class Class1Helpers
-    {
-        public static int TestMethod()
-        {
-            return 0;
-        }
-    }
-}";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestState = {
-                    Sources =
-                    {
-                        ("someFolder/Class1.cs", initialMarkup)
-                    }
-                },
-                FixedState =
-                {
-                    Sources =
-                    {
-                        ("someFolder/Class1.cs", expectedResult1),
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveGenericMethod()
         {
             var initialMarkup = @"
@@ -864,18 +655,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -913,18 +693,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -978,18 +747,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1053,18 +811,7 @@ namespace TestNs2
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1120,18 +867,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1207,7 +943,7 @@ public class Class2
                         expectedResult3,
                         (newFileName, expectedResult2)
                     }
-                },
+                }
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -1282,18 +1018,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1384,18 +1109,7 @@ namespace TestNs1.ExtraNs
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
         #endregion
 
@@ -1436,18 +1150,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1479,18 +1182,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1522,18 +1214,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1565,18 +1246,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1608,18 +1278,7 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1657,57 +1316,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
-        public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
-        {
-            var initialMarkup = @"
-namespace TestNs1
-{
-    public class Class1
-    {
-        public static i[||]nt TestField = 1;
-    }
-}";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
-        public async Task TestSelectInFieldInitializerEquals_NoAction()
-        {
-            // The initializer isn't a member declaration
-            var initialMarkup = @"
-namespace TestNs1
-{
-    public class Class1
-    {
-        public static int TestField =[||] 1;
-    }
-}";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1740,18 +1349,39 @@ namespace TestNs1
         public static int TestField = 1;
     }
 }";
-            await new Test(selectedDestinationName, selectedMembers, newFileName)
-            {
-                TestCode = initialMarkup,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        expectedResult1,
-                        (newFileName, expectedResult2)
-                    }
-                },
-            }.RunAsync().ConfigureAwait(false);
+
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static i[||]nt TestField = 1;
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestSelectInFieldInitializerEquals_NoAction()
+        {
+            // The initializer isn't a member declaration
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int TestField =[||] 1;
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1769,11 +1399,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1791,11 +1417,7 @@ namespace TestNs1
         }
     }
 }";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1810,11 +1432,7 @@ namespace TestNs1
         public static int TestProperty { get; [||]set; }
     }
 }";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
@@ -1829,11 +1447,7 @@ namespace TestNs1
         public int Test[||]Property { get; set; }
     }
 }";
-            await new Test("", ImmutableArray<string>.Empty)
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup
-            }.RunAsync().ConfigureAwait(false);
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
         #endregion
 
@@ -1867,6 +1481,35 @@ namespace TestNs1
 
                 return workspace;
             }
+        }
+
+        private static async Task TestMovementNewFileAsync(
+            string initialMarkup,
+            string expectedSource,
+            string expectedNewFile,
+            string newFileName,
+            ImmutableArray<string> selectedMembers,
+            string newTypeName)
+            => await new Test(newTypeName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedSource,
+                        (newFileName, expectedNewFile)
+                    }
+                },
+            }.RunAsync().ConfigureAwait(false);
+
+        private static async Task TestNoRefactoringAsync(string initialMarkup)
+        {
+            await new Test("", ImmutableArray<string>.Empty)
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(false);
         }
     }
 }
