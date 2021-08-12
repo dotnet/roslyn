@@ -976,6 +976,75 @@ End Namespace
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <UseExportProvider>
+        Public Async Function TestMoveFunctionInModule() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Module Class1
+        Public Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Module Class1
+    End Module
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Module Class1Helpers
+        Public Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <UseExportProvider>
+        Public Async Function TestMoveFunctionRetainFileBanner() As Task
+            Dim initialMarkup = "' Here is an example of a license or something
+' That we want to keep/copy over
+
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "' Here is an example of a license or something
+' That we want to keep/copy over
+
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText2 = "' Here is an example of a license or something
+' That we want to keep/copy over
+
+Namespace TestNs
+    Module Class1Helpers
+        Public Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
 #End Region
 #Region "SelectionTests"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>

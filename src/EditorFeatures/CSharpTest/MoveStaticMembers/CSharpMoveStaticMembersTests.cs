@@ -1111,6 +1111,89 @@ namespace TestNs1.ExtraNs
 }";
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestMoveMethodFromStaticClass()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public static class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public static class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestMoveMethodRetainFileBanner()
+        {
+            var initialMarkup = @"// Here is an example of a license or something
+// we would want to keep at the top of a file
+
+namespace TestNs1
+{
+    public static class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"// Here is an example of a license or something
+// we would want to keep at the top of a file
+
+namespace TestNs1
+{
+    public static class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"// Here is an example of a license or something
+// we would want to keep at the top of a file
+
+namespace TestNs1
+{
+    static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
         #endregion
 
         #region Selections and caret position
