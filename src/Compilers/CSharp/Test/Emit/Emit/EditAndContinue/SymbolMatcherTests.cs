@@ -1156,6 +1156,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                null,
                 compilation1.SourceAssembly,
                 default,
                 compilation0.SourceAssembly,
@@ -1186,6 +1187,7 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
+                null,
                 null,
                 compilation1.SourceAssembly,
                 default,
@@ -1483,7 +1485,7 @@ unsafe class C
 
                 var matcher = new CSharpSymbolMatcher(
                     null,
-                null,
+                    null,
                     compilation1.SourceAssembly,
                     default,
                     compilation0.SourceAssembly,
