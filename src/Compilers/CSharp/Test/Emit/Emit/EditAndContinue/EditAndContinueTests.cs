@@ -1099,7 +1099,7 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            // Verify delta metadata contains expected rows. 
+            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
