@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
             var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
-            var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly);
+            var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, metadataSymbols.SynthesizedDelegates, sourceAssembly, context, metadataAssembly);
 
             CSharpSymbolMatcher? matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 matchToPrevious = new CSharpSymbolMatcher(
                     previousGeneration.AnonymousTypeMap,
+                    previousGeneration.SynthesizedDelegates,
                     sourceAssembly: sourceAssembly,
                     sourceContext: context,
                     otherAssembly: previousAssembly,
@@ -115,7 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
             var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
-            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);
+            var metadataSynthesizedDelegates = GetSynthesizedDelegateMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
+            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataSynthesizedDelegates, metadataDecoder, assemblyReferenceIdentityMap);
 
             return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
         }
@@ -136,8 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
                 var metadataName = reader.GetString(def.Name);
-                short arity;
-                var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out arity);
+                var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out _);
                 int index;
                 if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
                 {
@@ -151,6 +152,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
                     builder.Free();
                 }
+            }
+            return result;
+        }
+
+        // internal for testing
+        internal static IReadOnlyDictionary<string, SynthesizedDelegateValue> GetSynthesizedDelegateMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
+        {
+            var result = new Dictionary<string, SynthesizedDelegateValue>();
+            foreach (var handle in reader.TypeDefinitions)
+            {
+                var def = reader.GetTypeDefinition(handle);
+                if (!def.Namespace.IsNil)
+                {
+                    continue;
+                }
+
+                if (!reader.StringComparer.StartsWith(def.Name, GeneratedNames.ActionDelegateNamePrefix) &&
+                    !reader.StringComparer.StartsWith(def.Name, GeneratedNames.FuncDelegateNamePrefix))
+                {
+                    continue;
+                }
+
+                // The name of a synthesized delegate neatly encodes everything we need to identify it, either
+                // in the prefix (return void or not) or the name (ref kinds and arity) so we don't need anything
+                // fancy for a key.
+                var metadataName = reader.GetString(def.Name);
+                var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
+                var value = new SynthesizedDelegateValue(type.GetCciAdapter());
+                result.Add(metadataName, value);
             }
             return result;
         }
@@ -195,6 +225,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Should contain all entries in previous generation.
             Debug.Assert(_previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
             return anonymousTypes;
+        }
+
+        public IReadOnlyDictionary<string, SynthesizedDelegateValue> GetSynthesizedDelegates()
+        {
+            var synthesizedDelegates = this.Compilation.AnonymousTypeManager.GetSynthesizedDelegates();
+            // Should contain all entries in previous generation.
+            Debug.Assert(_previousGeneration.SynthesizedDelegates.All(p => synthesizedDelegates.ContainsKey(p.Key)));
+            return synthesizedDelegates;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)

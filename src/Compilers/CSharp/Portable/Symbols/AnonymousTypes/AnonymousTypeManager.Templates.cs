@@ -376,6 +376,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal IReadOnlyDictionary<string, Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue> GetSynthesizedDelegates()
+        {
+            var result = new Dictionary<string, Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue>();
+            var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
+            GetCreatedSynthesizedDelegates(synthesizedDelegates);
+            foreach (var delegateSymbol in synthesizedDelegates)
+            {
+                var value = new Microsoft.CodeAnalysis.Emit.SynthesizedDelegateValue(delegateSymbol.GetCciAdapter());
+                result.Add(delegateSymbol.MetadataName, value);
+            }
+            synthesizedDelegates.Free();
+            return result;
+        }
+
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
         {
             var result = new Dictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue>();

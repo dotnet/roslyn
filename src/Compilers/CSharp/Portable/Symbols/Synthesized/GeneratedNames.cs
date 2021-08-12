@@ -494,6 +494,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string ActionDelegateNamePrefix = "<>A";
+        internal const string FuncDelegateNamePrefix = "<>F";
+
         /// <summary>
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
@@ -503,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            builder.Append(returnsVoid ? "<>A" : "<>F");
+            builder.Append(returnsVoid ? ActionDelegateNamePrefix : FuncDelegateNamePrefix);
 
             if (!byRefs.IsNull)
             {
