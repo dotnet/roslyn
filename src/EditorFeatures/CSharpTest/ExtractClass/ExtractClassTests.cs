@@ -534,7 +534,7 @@ class Test : MyBase
         }
 
         [Fact]
-        public async Task TestFileHeader1()
+        public async Task TestFileHeader_FromExistingFile()
         {
             var input = @"
 <Workspace>
@@ -580,7 +580,7 @@ internal class MyBase
         }
 
         [Fact]
-        public async Task TestFileHeader2()
+        public async Task TestFileHeader_FromOption()
         {
             var input = @"
 <Workspace>
