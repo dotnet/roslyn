@@ -118,9 +118,19 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             for (int i = 0; i < signatureInfo.Length; i++)
                 signatureInfo[i].SerializeToBuffer(memoryStream);
 
-            return InitializeFromStream(memoryStream, signatureInfo.SelectAsArray(sig => sig.Name).ToArray());
+            var builder = ImmutableArray.CreateBuilder<MemberDescriptor>(signatureInfo.Length);
+            var signatureBuilder = ImmutableArray.CreateBuilder<byte>();
+
+            for (int i = 0; i < signatureInfo.Length; i++)
+            {
+                builder.Add(InitializeSingleFromStream(memoryStream, signatureInfo[i].Name, signatureBuilder));
+                signatureBuilder.Clear();
+            }
+
+            return builder.ToImmutable();
         }
 
+        // TODO: Remove when both SpecialMembers and WellKnownMembers make use of the new API
         internal static ImmutableArray<MemberDescriptor> InitializeFromStream(Stream stream, string[] nameTable)
         {
             int count = nameTable.Length;
