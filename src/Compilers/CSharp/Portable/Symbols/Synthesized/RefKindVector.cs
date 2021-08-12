@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static RefKindVector Create(int capacity)
         {
             return new RefKindVector(capacity);
-        }
-
-        internal static RefKindVector Create(BitVector bits)
-        {
-            return new RefKindVector(bits);
         }
 
         private RefKindVector(int capacity)
@@ -78,6 +75,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return _bits.GetHashCode();
+        }
+
+        public string ToRefKindString()
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            builder.Append("{");
+
+            int i = 0;
+            foreach (int byRefIndex in this.Words())
+            {
+                if (i > 0)
+                {
+                    builder.Append(",");
+                }
+
+                builder.AppendFormat("{0:x8}", byRefIndex);
+                i++;
+            }
+
+            builder.Append("}");
+            Debug.Assert(i > 0);
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        public static RefKindVector Parse(string refKindString, int capacity)
+        {
+            int index = 0;
+            // To avoid having to map ref kinds again we can just deserialize the BitVector which is what
+            // would have produced the string in the method above
+            var bitVector = BitVector.Create(capacity * 2);
+            foreach (var word in refKindString.Split(','))
+            {
+                var value = Convert.ToUInt64(word, 16);
+                var valueBytes = BitConverter.GetBytes(value);
+                var bits = new System.Collections.BitArray(valueBytes);
+
+                // BitVector will happily grow, and GetBytes will always return 64 bytes, so we need to limit
+                for (int i = 0; i < bits.Length && index < bitVector.Capacity; i++)
+                {
+                    bitVector[index++] = bits.Get(i);
+                }
+
+                if (index == bitVector.Capacity)
+                {
+                    break;
+                }
+            }
+
+            return new RefKindVector(bitVector);
         }
     }
 }
