@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis
@@ -57,49 +57,41 @@ namespace Microsoft.CodeAnalysis
                  + Arguments.Sum(arg => arg.Length);
         }
 
-        public byte[] SerializeToByteArray()
-        {
-            var arrayBuilder = new ArrayBuilder<byte>(GetTotalSerializedByteCount());
-            SerializeToBuffer(arrayBuilder);
-            return arrayBuilder.ToArray();
-        }
-
-        public void SerializeToBuffer(ArrayBuilder<byte> bufferBuilder)
+        public void SerializeToBuffer(MemoryStream stream)
         {
             // MemberFlags
-            bufferBuilder.Add((byte)MemberFlags);
+            stream.WriteByte((byte)MemberFlags);
 
             // DeclaringType
             if (DeclaringType > WellKnownType.ExtSentinel)
             {
-                bufferBuilder.Add((byte)WellKnownType.ExtSentinel);
-                bufferBuilder.Add((byte)(DeclaringType - WellKnownType.ExtSentinel));
+                stream.WriteByte((byte)WellKnownType.ExtSentinel);
+                stream.WriteByte((byte)(DeclaringType - WellKnownType.ExtSentinel));
             }
             else
             {
-                bufferBuilder.Add((byte)DeclaringType);
+                stream.WriteByte((byte)DeclaringType);
             }
 
             // Arity
-            bufferBuilder.Add((byte)Arity);
+            stream.WriteByte((byte)Arity);
 
             // Method Signature
-            bufferBuilder.Add((byte)Arguments.Length);
+            stream.WriteByte((byte)Arguments.Length);
 
             // Return Type
-            AddRange(bufferBuilder, ReturnType.Bytes);
+            Write(stream, ReturnType.Bytes);
 
             // Arguments
             for (int i = 0; i < Arguments.Length; i++)
-                AddRange(bufferBuilder, Arguments[i].Bytes);
+                Write(stream, Arguments[i].Bytes);
         }
 
-        // This should be an extension method somewhere
-        private static void AddRange<T>(ArrayBuilder<T> builder, Span<T> span)
-            where T : unmanaged
+        // This method exists because netstandard2.0 does not support Write(ReadOnlySpan<byte>)
+        private static void Write(MemoryStream stream, Span<byte> span)
         {
             for (int i = 0; i < span.Length; i++)
-                builder.Add(span[i]);
+                stream.WriteByte(span[i]);
         }
     }
 

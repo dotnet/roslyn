@@ -128,10 +128,7 @@ namespace Microsoft.CodeAnalysis
             };
             // END
 
-            var descriptorBuilder = ImmutableArray.CreateBuilder<MemberDescriptor>((int)WellKnownMember.Count);
-            for (int i = 0; i < signatureInfoArrayBuilder.Count; i++)
-                descriptorBuilder[i] = MemberDescriptor.FromSignatureInfo(signatureInfoArrayBuilder[i]);
-            s_descriptors = descriptorBuilder.ToImmutable();
+            s_descriptors = MemberDescriptor.FromSignatureInfo(signatureInfoArrayBuilder.ToImmutable());
 
             // TODO: Remove once the new API is used for all members
             return;

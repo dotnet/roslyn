@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.RuntimeMembers
@@ -107,9 +108,17 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             this.Signature = Signature;
         }
 
-        internal static MemberDescriptor FromSignatureInfo(WellKnownMemberSignatureInfo signatureInfo)
+        internal static ImmutableArray<MemberDescriptor> FromSignatureInfo(ImmutableArray<WellKnownMemberSignatureInfo> signatureInfo)
         {
-            return InitializeSingleFromStream(new MemoryStream(signatureInfo.SerializeToByteArray(), writable: false), signatureInfo.Name);
+            int totalBytes = 0;
+            for (int i = 0; i < signatureInfo.Length; i++)
+                totalBytes += signatureInfo[i].GetTotalSerializedByteCount();
+
+            var memoryStream = new MemoryStream(totalBytes);
+            for (int i = 0; i < signatureInfo.Length; i++)
+                signatureInfo[i].SerializeToBuffer(memoryStream);
+
+            return InitializeFromStream(memoryStream, signatureInfo.SelectAsArray(sig => sig.Name).ToArray());
         }
 
         internal static ImmutableArray<MemberDescriptor> InitializeFromStream(Stream stream, string[] nameTable)
