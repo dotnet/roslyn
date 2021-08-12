@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -42,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
+
+        protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         public override string Name => "Live Share C#/Visual Basic Language Server Client";
 

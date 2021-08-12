@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
-        public static ImmutableArray<string> SupportedLanguages = ImmutableArray.Create(CodeAnalysis.LanguageNames.CSharp, CodeAnalysis.LanguageNames.VisualBasic, CodeAnalysis.LanguageNames.FSharp);
-
-        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute() : base(SupportedLanguages.ToArray())
+        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute() : base(ProtocolConstants.RoslynLspLanguages.ToArray())
         {
         }
     }

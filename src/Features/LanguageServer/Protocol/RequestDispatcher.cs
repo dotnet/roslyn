@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
-    /// Aggregates handlers for the specified language and dispatches LSP requests
+    /// Aggregates handlers for the specified languages and dispatches LSP requests
     /// to the appropriate handler for the request.
     /// </summary>
     internal class RequestDispatcher

@@ -75,22 +75,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
+            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, isOpen: true);
+                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, isOpen: false);
+                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            void AddDocumentsFromProject(Project? project, bool isOpen)
+            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
             {
                 if (project == null)
                     return;
+
+                if (!supportedLanguages.Contains(project.Language))
+                {
+                    // This project is for a language not supported by the LSP server making the request.
+                    // Do not report diagnostics for these projects.
+                    return;
+                }
 
                 // if the project doesn't necessarily have an open file in it, then only include it if the user has full
                 // solution analysis on.
