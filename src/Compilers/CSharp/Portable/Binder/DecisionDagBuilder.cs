@@ -1064,49 +1064,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
                 }
-                bool truePossible = !fromTestPassing.IsEmpty;
-                bool falsePossible = !fromTestFailing.IsEmpty;
-                if (relation == BinaryOperatorKind.Equal &&
-                    input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } s)
-                {
-                    Debug.Assert(value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                    int lengthValue = value.Int32Value;
-                    int commonIndex = -1; // common index from start, -1 means we don't have any
-                    IValueSet? commonValues = null;
-                    var temps = ArrayBuilder<BoundDagTemp>.GetInstance();
-                    foreach (var (temp, remainingValues) in values)
-                    {
-                        if (temp.Source is BoundDagIndexerEvaluation e)
-                        {
-                            (BoundDagTemp canonicalInput, BoundDagTemp lengthTemp, int index) = GetCanonicalInput(e);
-                            if (input.Equals(lengthTemp))
-                            {
-                                Debug.Assert(s.Input.Equals(canonicalInput));
-                                int normalizedIndex = index < 0 ? index + lengthValue : index;
-                                if (commonIndex < 0)
-                                {
-                                    (commonValues, commonIndex) = (remainingValues, normalizedIndex);
-                                    temps.Add(temp);
-                                }
-                                else if (commonIndex == normalizedIndex)
-                                {
-                                    commonValues = commonValues!.Intersect(remainingValues);
-                                    temps.Add(temp);
-                                }
-                            }
-                        }
-                    }
-                    if (temps.Count > 1)
-                    {
-                        Debug.Assert(commonValues is not null);
-                        values = values.SetItems(temps.SelectAsArray(static (temp, commonValues) => new KeyValuePair<BoundDagTemp, IValueSet>(temp, commonValues), commonValues));
-                        falsePossible &= !commonValues.IsEmpty;
-                    }
-                    temps.Free();
-                }
                 var whenTrueValues = values.SetItem(input, fromTestPassing);
                 var whenFalseValues = values.SetItem(input, fromTestFailing);
-                return (whenTrueValues, whenFalseValues, truePossible, falsePossible);
+                return (whenTrueValues, whenFalseValues, !fromTestPassing.IsEmpty, !fromTestFailing.IsEmpty);
             }
         }
 
