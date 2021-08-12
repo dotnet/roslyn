@@ -29,6 +29,7 @@ This document provides guidance for thinking about language interactions and tes
     - GetOperation (`IOperation`)
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
+- C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
