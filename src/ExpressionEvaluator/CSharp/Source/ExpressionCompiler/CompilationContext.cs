@@ -1382,6 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     case GeneratedNameKind.TransparentIdentifier:
                         break;
                     case GeneratedNameKind.AnonymousTypeField:
+                        RoslynDebug.AssertNotNull(part);
                         if (GeneratedNameParser.GetKind(part) != GeneratedNameKind.TransparentIdentifier)
                         {
                             continue;
@@ -1614,13 +1615,13 @@ REPARSE:
         {
             var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType;
 
-            string desiredMethodName;
+            string? desiredMethodName;
             if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
                 GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
                 GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
             {
                 // We could be in the MoveNext method of an async lambda.
-                string tempMethodName;
+                string? tempMethodName;
                 if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
                     GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
                 {
