@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         // Methods that are not string.Format but still should qualify to be replaced.
         // Ex: Console.WriteLine("{0}", a) => Console.WriteLine($"{a}");
-        private static readonly (string? typeName, string[] methods)[] TypeMethodPairs = new (string?, string[])[]
+        private static readonly (string typeName, string[] methods)[] CompositeFormattedMethods = new (string, string[])[]
             {
-                (typeof(Console).FullName, new[] { nameof(Console.Write), nameof(Console.WriteLine) }),
-                (typeof(Debug).FullName, new[] { nameof(Debug.WriteLine), nameof(Debug.Print)}),
-                (typeof(Trace).FullName, new[] { nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation)}),
-                (typeof(TraceSource).FullName, new[] { nameof(TraceSource.TraceInformation)})
+                (typeof(Console).FullName!, new[] { nameof(Console.Write), nameof(Console.WriteLine) }),
+                (typeof(Debug).FullName!, new[] { nameof(Debug.WriteLine), nameof(Debug.Print)}),
+                (typeof(Trace).FullName!, new[] { nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation)}),
+                (typeof(TraceSource).FullName!, new[] { nameof(TraceSource.TraceInformation)})
             };
 
         protected abstract SyntaxNode GetInterpolatedString(string text);
@@ -47,18 +47,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var stringType = semanticModel.Compilation.GetSpecialType(SpecialType.System_String);
-
-            if (stringType is null)
+            if (stringType.IsErrorType())
             {
                 return;
             }
 
-            var replaceInvocationMethods = CollectMethods(stringType, nameof(string.Format));
-            var keepInvocationMethods = TypeMethodPairs
+            var stringInvocationMethods = CollectMethods(stringType, nameof(string.Format));
+            var compositeFormattedInvocationMethods = CompositeFormattedMethods
                 .SelectMany(pair => CollectMethods(semanticModel.Compilation.GetTypeByMetadataName(pair.typeName), pair.methods))
                 .ToImmutableArray();
 
-            var allInvocationMethods = replaceInvocationMethods.AddRange(keepInvocationMethods);
+            var allInvocationMethods = stringInvocationMethods.AddRange(compositeFormattedInvocationMethods);
 
             if (allInvocationMethods.Length == 0)
             {
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-
             var (invocationSyntax, invocationSymbol) = await TryFindInvocationAsync(textSpan, document, semanticModel, allInvocationMethods, syntaxFactsService, context.CancellationToken).ConfigureAwait(false);
             if (invocationSyntax is null || invocationSymbol is null)
             {
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var shouldReplaceInvocation = replaceInvocationMethods.Contains(invocationSymbol);
+            var shouldReplaceInvocation = stringInvocationMethods.Contains(invocationSymbol);
 
             context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(

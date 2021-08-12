@@ -21,6 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
+        private static readonly string[] CompositeFormattedMethods = new[]
+        {
+            "Console.Write",
+            "Console.WriteLine",
+            "Debug.WriteLine",
+            "Debug.Print",
+            "Trace.TraceError",
+            "Trace.TraceWarning",
+            "Trace.TraceInformation",
+        };
+
         public static IEnumerable<object[]> InvocationData
         {
             get
@@ -36,23 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
                     yield return new[] { invocation, result };
                 }
 
-                // These functions remain, but will change to take the
-                // interpolated string rather than call the string format 
-                var functionsToCheck = new[]
-                {
-                    "Console.Write",
-                    "Console.WriteLine",
-                    "Debug.WriteLine",
-                    "Debug.Print",
-                    "Trace.TraceError",
-                    "Trace.TraceWarning",
-                    "Trace.TraceInformation",
-                    //"TraceSource.TraceInformation" TODO: Trace source needs NetCoreApp, which tests don't run in. 
-                };
-
+                // Composite Formatted methods do not get replaced, but instead
+                // take the string as the only parameter
                 for (var i = 1; i <= ParametersToCheck; i++)
                 {
-                    foreach (var function in functionsToCheck)
+                    foreach (var function in CompositeFormattedMethods)
                     {
                         var invocation = $"{function}({MakeFormattedParameters(i)})";
                         var result = $"{function}(${MakeInterpolatedString(i)})";
@@ -82,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
                 }
             }
         }
-
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         [MemberData(nameof(InvocationData))]
