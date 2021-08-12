@@ -4854,7 +4854,7 @@ class C
 
         [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestExtractLocalMethodNaming()
+        public async Task TestExtractLocalConst_CSharp7()
         {
             var code = @"
 using NUnit.Framework;
@@ -4890,6 +4890,102 @@ public class Tests
     public void Test1()
     {
         const string NAME = ""SOMETEXT"";
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractParameter_CSharp7()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1(string NAME)
+    {
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1(string NAME)
+    {
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractLocal_CSharp7()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        var NAME = ""SOMETEXT"";
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        var NAME = ""SOMETEXT"";
         {|Rename:NewMethod|}();
 
         void NewMethod()
