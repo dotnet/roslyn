@@ -1047,6 +1047,11 @@
         <target state="translated">入力候補一覧の表示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_array_indexers">
+        <source>Show hints for array indexers</source>
+        <target state="new">Show hints for array indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">その他すべてのヒントを表示する</target>

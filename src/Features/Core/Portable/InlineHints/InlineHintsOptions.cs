@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             InlineHintsOptions.ColorHints,
             InlineHintsOptions.EnabledForParameters,
             InlineHintsOptions.ForLiteralParameters,
+            InlineHintsOptions.ForArrayIndexers,
             InlineHintsOptions.ForObjectCreationParameters,
             InlineHintsOptions.ForOtherParameters,
             InlineHintsOptions.EnabledForTypes,

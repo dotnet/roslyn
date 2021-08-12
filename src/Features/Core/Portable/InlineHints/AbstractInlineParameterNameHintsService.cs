@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 case HintKind.Literal:
                     if (literalParameters)
                     {
-                        return (arrayIndexers || !IsArrayIndexer(node));
+                        return !IsArrayIndexer(node) || arrayIndexers;
                     }
 
                     return false;

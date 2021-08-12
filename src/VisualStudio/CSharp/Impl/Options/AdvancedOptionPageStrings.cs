@@ -52,6 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_literals
             => ServicesVSResources.Show_hints_for_literals;
 
+        public static string Option_Show_hints_for_array_indexers
+            => ServicesVSResources.Show_hints_for_array_indexers;
+
         public static string Option_Show_hints_for_new_expressions
             => CSharpVSResources.Show_hints_for_new_expressions;
 

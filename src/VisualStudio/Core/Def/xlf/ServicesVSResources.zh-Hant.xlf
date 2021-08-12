@@ -1047,6 +1047,11 @@
         <target state="translated">顯示自動完成清單</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_array_indexers">
+        <source>Show hints for array indexers</source>
+        <target state="new">Show hints for array indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">顯示所有其他項目的提示</target>

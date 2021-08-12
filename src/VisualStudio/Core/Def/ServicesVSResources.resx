@@ -1771,4 +1771,7 @@ Additional information: {1}</value>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
   </data>
+  <data name="Show_hints_for_array_indexers" xml:space="preserve">
+    <value>Show hints for array indexers</value>
+  </data>
 </root>

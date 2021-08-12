@@ -234,7 +234,11 @@
                         <CheckBox x:Uid="ShowHintsForLiterals"
                                   x:Name="ShowHintsForLiterals"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
-
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <CheckBox x:Uid="ShowHintsForArrayIndexers"
+                                  x:Name="ShowHintsForArrayIndexers"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_array_indexers}" />
+                        </StackPanel>
                         <CheckBox x:Uid="ShowHintsForNewExpressions"
                                   x:Name="ShowHintsForNewExpressions"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
