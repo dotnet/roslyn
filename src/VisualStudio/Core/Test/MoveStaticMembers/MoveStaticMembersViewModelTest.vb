@@ -211,6 +211,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                     {
                         return Barbar() == 0;
                     }
+
+                    static TestClass()
+                    {
+                    }
+
+                    public static TestClass operator +(TestClass a, TestClass b)
+                    {
+                        return new TestClass()
+                    }
                 }
             }
         </Document>
@@ -249,6 +258,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.CanSubmit)
 
             selectionVm.SelectAll()
+            ' If constructor and operators are able to be selected, this would be a higher number
             Assert.Equal(7, selectionVm.CheckedMembers.Length)
             Assert.True(viewModel.CanSubmit)
 
@@ -388,6 +398,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                     Public Shared Function Dependent() As Boolean
                         Return Barbar() = 0
                     End Function
+
+                    Shared Sub New()
+                    End Sub
+
+                    Public Shared Operator +(a As TestClass, b As TestClass)
+                        Return New TestClass()
+                    End Operator
                 End Class
             End Namespace
         </Document>
@@ -426,6 +443,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.CanSubmit)
 
             selectionVm.SelectAll()
+            ' If constructor and operators are able to be selected, this would be a higher number
             Assert.Equal(7, selectionVm.CheckedMembers.Length)
             Assert.True(viewModel.CanSubmit)
 

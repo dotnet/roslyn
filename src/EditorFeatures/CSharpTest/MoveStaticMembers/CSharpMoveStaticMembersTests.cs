@@ -1532,6 +1532,58 @@ namespace TestNs1
 }";
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestSelectStaticConstructor1_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|static Class1()|]
+        {
+        }
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestSelectStaticConstructor2_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        static Cl[||]ass1()
+        {
+        }
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        [UseExportProvider]
+        public async Task TestSelectOperator_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        [|public static Class1 operator +(Class1 a, Class1 b)|]
+        {
+            return new Class1();
+        }
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
         #endregion
 
         private class Test : VerifyCS.Test
@@ -1591,7 +1643,7 @@ namespace TestNs1
             await new Test("", ImmutableArray<string>.Empty)
             {
                 TestCode = initialMarkup,
-                FixedCode = initialMarkup
+                FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);
         }
     }

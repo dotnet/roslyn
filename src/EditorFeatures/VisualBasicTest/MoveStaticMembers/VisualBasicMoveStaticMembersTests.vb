@@ -1310,6 +1310,49 @@ End Namespace"
 
             Await TestNoRefactoringAsync(initialMarkup)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <UseExportProvider>
+        Public Async Function TestSelectConstructor1_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Shared Sub N[||]ew()
+        End Sub
+    End Class
+End Namespace"
+
+            Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <UseExportProvider>
+        Public Async Function TestSelectConstructor2_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Shared Sub New()|]
+        End Sub
+    End Class
+End Namespace"
+
+            Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <UseExportProvider>
+        Public Async Function TestSelectOperator_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Public Shared Operator +(a As Class1, b As Class1) As Class1|]
+            Return New Class1()
+        End Operator
+    End Class
+End Namespace"
+
+            Await TestNoRefactoringAsync(initialMarkup)
+        End Function
 #End Region
 
         Private Class Test
