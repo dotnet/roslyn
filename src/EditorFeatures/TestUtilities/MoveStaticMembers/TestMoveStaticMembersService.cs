@@ -3,35 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
 {
+    [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService))]
+    [Shared]
+    [PartNotDiscoverable]
     internal class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
     {
-        private readonly string _destinationType;
-
-        private readonly ImmutableArray<string> _selectedMembers;
-
-        private readonly string _filename;
-
-        public TestMoveStaticMembersService(string destinationType, string fileName, ImmutableArray<string> members)
+        [ImportingConstructor]
+        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestMoveStaticMembersService()
         {
-            _destinationType = destinationType;
-            _filename = fileName;
-            _selectedMembers = members;
         }
+
+        public string? DestinationType { get; set; }
+
+        public ImmutableArray<string> SelectedMembers { get; set; }
+
+        public string? Filename { get; set; }
 
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
-            var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => _selectedMembers.Contains(symbol.Name));
+            var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
             var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
             // just return all the selected members
             return new MoveStaticMembersOptions(
-                _filename,
-                string.Join(".", namespaceDisplay, _destinationType),
+                Filename!,
+                string.Join(".", namespaceDisplay, DestinationType!),
                 selectedMembers);
         }
     }

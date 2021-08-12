@@ -13,15 +13,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
     internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IMoveStaticMembersOptionsService? _service;
-
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
-
-        /// <summary>
-        /// Test purpose only
-        /// </summary>
-        protected AbstractMoveStaticMembersRefactoringProvider(IMoveStaticMembersOptionsService? service)
-            => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -56,7 +48,9 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var action = new MoveStaticMembersWithDialogCodeAction(document, span, _service, selectedType, selectedMember: selectedMembers[0]);
+            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
+
+            var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, selectedMember: selectedMembers[0]);
 
             context.RegisterRefactoring(action, selectedMembers[0].DeclaringSyntaxReferences[0].Span);
         }

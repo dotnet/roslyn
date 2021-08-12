@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
@@ -16,12 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            Me.New(Nothing)
-        End Sub
-
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
-        Public Sub New(service As IMoveStaticMembersOptionsService)
-            MyBase.New(service)
+            MyBase.New()
         End Sub
 
         Protected Overrides Async Function GetSelectedNodeAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode)
