@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly Document _document;
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
-        private IMoveStaticMembersOptionsService _service;
+        private readonly IMoveStaticMembersOptionsService _service;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
