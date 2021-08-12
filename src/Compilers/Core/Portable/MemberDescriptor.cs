@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             this.Signature = Signature;
         }
 
-        internal static ImmutableArray<MemberDescriptor> FromSignatureInfo(ImmutableArray<WellKnownMemberSignatureInfo> signatureInfo)
+        internal static ImmutableArray<MemberDescriptor> FromSignatureInfo(ImmutableArray<MemberSignatureInfo> signatureInfo)
         {
             int totalBytes = 0;
             for (int i = 0; i < signatureInfo.Length; i++)

@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class WellKnownMemberSignatureInfo
+    internal class MemberSignatureInfo
     {
         public MemberFlags MemberFlags { get; init; }
         public WellKnownType DeclaringType { get; init; }
         public int Arity { get; init; }
         public int MethodSignature { get; init; }
         public string Name { get; init; }
-        public WellKnownMemberArgumentInfo ReturnType { get; init; }
-        public ImmutableArray<WellKnownMemberArgumentInfo> Arguments { get; init; }
+        public MemberArgumentInfo ReturnType { get; init; }
+        public ImmutableArray<MemberArgumentInfo> Arguments { get; init; }
 
-        public WellKnownMemberArgumentInfo[] ArgumentArray
+        public MemberArgumentInfo[] ArgumentArray
         {
             init => Arguments = value.ToImmutableArray();
         }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 if (!value)
                     return;
 
-                Arguments = ImmutableArray<WellKnownMemberArgumentInfo>.Empty;
+                Arguments = ImmutableArray<MemberArgumentInfo>.Empty;
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal unsafe struct WellKnownMemberArgumentInfo
+    internal unsafe struct MemberArgumentInfo
     {
         // Struct designed to be 8 bytes in total
         private fixed byte _bytes[7];
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private WellKnownMemberArgumentInfo(byte* bytes, int length, bool isSZArray, bool isByReference)
+        private MemberArgumentInfo(byte* bytes, int length, bool isSZArray, bool isByReference)
         {
             int start = 0;
             evaluateFlag(isByReference, SignatureTypeCode.ByReference, bytes, ref start);
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Factory methods
-        public static WellKnownMemberArgumentInfo FromSimpleSpecialType(SpecialType specialType, bool isSZArray = false, bool isByReference = false)
+        public static MemberArgumentInfo FromSimpleSpecialType(SpecialType specialType, bool isSZArray = false, bool isByReference = false)
         {
             var bytes = new[]
             {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             fixed (byte* b = bytes)
                 return new(b, bytes.Length, isSZArray, isByReference);
         }
-        public static WellKnownMemberArgumentInfo FromSimpleWellKnownType(WellKnownType wellKnownType, bool isSZArray = false, bool isByReference = false)
+        public static MemberArgumentInfo FromSimpleWellKnownType(WellKnownType wellKnownType, bool isSZArray = false, bool isByReference = false)
         {
             byte[] bytes;
 
@@ -171,15 +171,15 @@ namespace Microsoft.CodeAnalysis
             fixed (byte* b = bytes)
                 return new(b, bytes.Length, isSZArray, isByReference);
         }
-        public static WellKnownMemberArgumentInfo FromGenericMethodParameter(int index, bool isSZArray = false, bool isByReference = false)
+        public static MemberArgumentInfo FromGenericMethodParameter(int index, bool isSZArray = false, bool isByReference = false)
         {
             return FromIndexedTypeCode(index, SignatureTypeCode.GenericMethodParameter, isSZArray, isByReference);
         }
-        public static WellKnownMemberArgumentInfo FromGenericTypeParameter(int index, bool isSZArray = false, bool isByReference = false)
+        public static MemberArgumentInfo FromGenericTypeParameter(int index, bool isSZArray = false, bool isByReference = false)
         {
             return FromIndexedTypeCode(index, SignatureTypeCode.GenericTypeParameter, isSZArray, isByReference);
         }
-        private static WellKnownMemberArgumentInfo FromIndexedTypeCode(int index, SignatureTypeCode typeCode, bool isSZArray, bool isByReference)
+        private static MemberArgumentInfo FromIndexedTypeCode(int index, SignatureTypeCode typeCode, bool isSZArray, bool isByReference)
         {
             var bytes = new[]
             {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
             fixed (byte* b = bytes)
                 return new(b, bytes.Length, isSZArray, isByReference);
         }
-        public static WellKnownMemberArgumentInfo FromGenericTypeInstance(WellKnownMemberArgumentInfo genericType, WellKnownMemberArgumentInfo[] typeArguments, bool isSZArray = false, bool isByReference = false)
+        public static MemberArgumentInfo FromGenericTypeInstance(MemberArgumentInfo genericType, MemberArgumentInfo[] typeArguments, bool isSZArray = false, bool isByReference = false)
         {
             int byteCount = genericType.Length
                           + 1 // Arity
