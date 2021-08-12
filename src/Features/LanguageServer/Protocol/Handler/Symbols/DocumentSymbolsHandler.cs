@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 },
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 ContainerName = containerName,
-                Icon = new ImageElement(item.Glyph.GetImageId()),
+                Icon = ProtocolConversions.GetImageIdFromGlyph(item.Glyph),
             };
         }
 

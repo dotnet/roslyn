@@ -1499,9 +1499,6 @@ Additional information: {1}</value>
   <data name="Bitness64" xml:space="preserve">
     <value>64-bit</value>
   </data>
-  <data name="Use_64_bit_process_for_code_analysis_requires_restart" xml:space="preserve">
-    <value>Use 64-bit process for code analysis (requires restart)</value>
-  </data>
   <data name="Extract_Base_Class" xml:space="preserve">
     <value>Extract Base Class</value>
   </data>
@@ -1779,5 +1776,18 @@ Additional information: {1}</value>
   </data>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
+  </data>
+  <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
+    <value>Run code analysis in separate process (requires restart)</value>
+  </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
+  <data name="Language_client_initialization_failed" xml:space="preserve">
+    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
+    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
   </data>
 </root>

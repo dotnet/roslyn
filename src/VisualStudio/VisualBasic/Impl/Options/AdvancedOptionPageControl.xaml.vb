@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -49,18 +50,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
-            BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit)
+            BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit)
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
-                             ' If the option has Not been set by the user, check if the option to remove unused references
-                             ' Is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                             If experimentationService Is Nothing Then
-                                 Return False
-                             End If
-
-                             Return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences)
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences), False)
                          End Function)
 
             ' Import directives
@@ -74,6 +70,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' Having the option still a bool? keeps us from running into storage related issues,
                              ' but if the option was stored as null we want it to respect this default
                              Return False
+                         End Function)
+
+            ' Quick Actions
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
+                         Function()
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions), False)
                          End Function)
 
             ' Highlighting
@@ -112,8 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace,
                          Function()
-                             ' If the option has not been set by the user, check if the option Is enabled from experimentation.
-                             ' If so, default to that. Otherwise default to disabled
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
                              Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace), False)
                          End Function)
 

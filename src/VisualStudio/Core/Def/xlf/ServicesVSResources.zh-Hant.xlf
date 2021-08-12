@@ -227,6 +227,11 @@
         <target state="translated">註解</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含的成員</target>
@@ -491,6 +496,11 @@
         <source>Kind</source>
         <target state="translated">種類</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -907,6 +917,11 @@
         <target state="translated">提升成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">僅重構</target>
@@ -975,6 +990,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">對 {0} 執行 Code Analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1195,11 +1215,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">正在更新嚴重性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">使用 64 位元處理序進行程式碼分析 (需要重新啟動)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
