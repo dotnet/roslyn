@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -54,11 +55,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
+            ImmutableArray<string> supportedLanguages,
             string? clientName,
             string userVisibleServerName,
             string telemetryServerTypeName)
         {
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher();
+            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages);
 
             _capabilitiesProvider = capabilitiesProvider;
             WorkspaceRegistrationService = workspaceRegistrationService;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _userVisibleServerName = userVisibleServerName;
             TelemetryServerName = telemetryServerTypeName;
 
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, userVisibleServerName, TelemetryServerName);
+            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, supportedLanguages, userVisibleServerName, TelemetryServerName);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 

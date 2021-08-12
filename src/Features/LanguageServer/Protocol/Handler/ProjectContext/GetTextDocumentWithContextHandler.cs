@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(VSMethods.GetProjectContextsName)]
     internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
