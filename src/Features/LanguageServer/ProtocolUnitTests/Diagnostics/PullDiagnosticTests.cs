@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             Assert.Empty(results);
             Assert.False(true);
+            // something
         }
 
         [Fact]
