@@ -4496,8 +4496,8 @@ Console.WriteLine(x());
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
-            var f1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var f0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
+            var f1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -4507,8 +4507,8 @@ Console.WriteLine(x());
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "<Program>$.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
-                "<Program>$: {<>c__DisplayClass0_0}");
+                "Program.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
+                "Program: {<>c__DisplayClass0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4517,7 +4517,7 @@ Console.WriteLine(x());
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
     }

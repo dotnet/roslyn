@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">La indexación de direcciones puede ser simplificado</target>
+        <target state="translated">La indexación de direcciones se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">

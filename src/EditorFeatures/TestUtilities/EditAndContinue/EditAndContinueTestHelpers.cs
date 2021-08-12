@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public static readonly EditAndContinueCapabilities Net6RuntimeCapabilities =
             Net5RuntimeCapabilities |
-            EditAndContinueCapabilities.ChangeCustomAttributes;
+            EditAndContinueCapabilities.ChangeCustomAttributes |
+            EditAndContinueCapabilities.UpdateParameters;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
