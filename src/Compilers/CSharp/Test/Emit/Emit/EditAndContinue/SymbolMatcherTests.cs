@@ -1597,8 +1597,10 @@ class C
 {
     static void F()
     {
-        var x1 = (int a, ref int b) => a;
-        var x2 = (in int a, int b) => { };
+        var _1 = (int a, ref int b) => a;
+        var _2 = (in int a, int b) => { };
+
+        var _3 = (int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { };
     }
 }
 ";
@@ -1609,8 +1611,10 @@ class C
 {
     static void F()
     {
-        var x1 = (int c, ref int d) => c;
-        var x2 = (in int c, int d) => { d.ToString(); };
+        var _1 = (int c, ref int d) => c;
+        var _2 = (in int c, int d) => { d.ToString(); };
+
+        var _3 = (int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { _1.ToString(); };
     }
 }";
 
@@ -1623,7 +1627,8 @@ class C
             var synthesizedDelegates0 = PEDeltaAssemblyBuilder.GetSynthesizedDelegateMapFromMetadata(reader0, decoder0);
             Assert.Contains(new SynthesizedDelegateKey("<>F{00000004}`3"), synthesizedDelegates0);
             Assert.Contains(new SynthesizedDelegateKey("<>A{00000003}`2"), synthesizedDelegates0);
-            Assert.Equal(2, synthesizedDelegates0.Count);
+            Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,00000001}`33"), synthesizedDelegates0);
+            Assert.Equal(3, synthesizedDelegates0.Count);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
@@ -1640,16 +1645,20 @@ class C
             var fields = displayClass.GetFields(emitContext).ToArray();
             var field1 = fields[1];
             var field2 = fields[2];
+            var field3 = fields[3];
             Assert.Equal("<>9__0_0", field1.Name);
             Assert.Equal("<>9__0_1", field2.Name);
+            Assert.Equal("<>9__0_2", field3.Name);
 
             var matcher = new CSharpSymbolMatcher(null, synthesizedDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);
+            var mappedField3 = (Cci.IFieldDefinition)matcher.MapDefinition(field3);
 
             Assert.Equal("<>9__0_0", mappedField1.Name);
             Assert.Equal("<>9__0_1", mappedField2.Name);
+            Assert.Equal("<>9__0_2", mappedField3.Name);
         }
     }
 }

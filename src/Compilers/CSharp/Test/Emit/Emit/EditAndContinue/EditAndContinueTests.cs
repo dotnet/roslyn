@@ -1065,6 +1065,8 @@ class C
         var x = <N:0>(ref int a, int b) => b</N:0>;
 
         var y = <N:1>(int a, ref int b) => a</N:1>;
+
+        var z = <N:2>(int _1, int _2, int _3, int _4, int _5, int _6, ref int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { }</N:2>;
     }
 }");
             var source2 = MarkedSource(@"
@@ -1075,6 +1077,8 @@ class C
         var x = <N:0>(ref int a, int b) => b</N:0>;
 
         var y = <N:1>(int a, ref int b) => b</N:1>;
+
+        var z = <N:2>(int _1, int _2, int _3, int _4, int _5, int _6, ref int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { _1.ToString(); }</N:2>;
     }
 }");
 
@@ -1106,60 +1110,12 @@ class C
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
-            CheckNames(readers, reader1.GetTypeDefNames(), "<>F{00000004}`3");                              // new synthesized delegate for the new lambda
-            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_1#1");
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>A{00001000,00000001}`33", "<>F{00000004}`3");                              // new synthesized delegate for the new lambda
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", ".ctor", "Invoke", "<F>b__0_1#1", "<F>b__0_2#1");
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
-
-            CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(4, TableIndex.GenericParam, EditAndContinueOperation.Default),
-                Row(5, TableIndex.GenericParam, EditAndContinueOperation.Default),
-                Row(6, TableIndex.GenericParam, EditAndContinueOperation.Default));
-
-            CheckEncMapDefinitions(reader1,
-                Handle(5, TableIndex.TypeDef),
-                Handle(3, TableIndex.Field),
-                Handle(3, TableIndex.MethodDef),
-                Handle(7, TableIndex.MethodDef),
-                Handle(8, TableIndex.MethodDef),
-                Handle(9, TableIndex.MethodDef),
-                Handle(10, TableIndex.MethodDef),
-                Handle(3, TableIndex.Param),
-                Handle(4, TableIndex.Param),
-                Handle(5, TableIndex.Param),
-                Handle(6, TableIndex.Param),
-                Handle(7, TableIndex.Param),
-                Handle(8, TableIndex.Param),
-                Handle(6, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(4, TableIndex.GenericParam),
-                Handle(5, TableIndex.GenericParam),
-                Handle(6, TableIndex.GenericParam));
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1172,31 +1128,11 @@ class C
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
             CheckNames(readers, reader2.GetTypeDefNames());                                     // No new delegate added, reusing from gen 0 and 1
-            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1");
+            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#1");
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
-
-            CheckEncLogDefinitions(reader2,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.Param, EditAndContinueOperation.Default));
-
-            CheckEncMapDefinitions(reader2,
-                Handle(3, TableIndex.MethodDef),
-                Handle(7, TableIndex.MethodDef),
-                Handle(10, TableIndex.MethodDef),
-                Handle(3, TableIndex.Param),
-                Handle(4, TableIndex.Param),
-                Handle(7, TableIndex.Param),
-                Handle(8, TableIndex.Param),
-                Handle(3, TableIndex.StandAloneSig));
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
         }
 
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
