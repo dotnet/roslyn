@@ -235,6 +235,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }
 
+        private SynthesizedDelegateValue CreatePlaceholderSynthesizedDelegateValue(CodeAnalysis.Emit.SynthesizedDelegateKey key)
+        {
+            GeneratedNames.ParseDynamicCallSiteName(key.Name, out var refKinds, out var returnsVoid, out _, out var parameterCount);
+            var symbol = new SynthesizedDelegateSymbol(
+               this.Compilation.Assembly.GlobalNamespace,
+               MetadataHelpers.InferTypeArityAndUnmangleMetadataName(key.Name, out _),
+               this.System_Object,
+               Compilation.GetSpecialType(SpecialType.System_IntPtr),
+               returnsVoid ? Compilation.GetSpecialType(SpecialType.System_Void) : null,
+               parameterCount,
+               refKinds);
+            return new SynthesizedDelegateValue(this, symbol);
+        }
+
         /// <summary>
         /// Resets numbering in anonymous type names and compiles the
         /// anonymous type methods. Also seals the collection of templates.
@@ -313,6 +327,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             builder.Free();
+
+            // Ensure all previous anonymous type templates are included so the
+            // types are available for subsequent edit and continue generations.
+            foreach (var key in moduleBeingBuilt.GetPreviousSynthesizedDelegates())
+            {
+                GeneratedNames.ParseDynamicCallSiteName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount);
+                var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
+                this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key));
+            }
 
             var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
             GetCreatedSynthesizedDelegates(synthesizedDelegates);

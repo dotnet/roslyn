@@ -265,6 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys);
         }
 
+        internal override ImmutableArray<SynthesizedDelegateKey> GetPreviousSynthesizedDelegates()
+        {
+            return ImmutableArray.CreateRange(_previousGeneration.SynthesizedDelegates.Keys);
+        }
+
         internal override int GetNextAnonymousTypeIndex()
         {
             return _previousGeneration.GetNextAnonymousTypeIndex();

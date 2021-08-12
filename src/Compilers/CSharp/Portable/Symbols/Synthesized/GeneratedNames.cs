@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -530,6 +531,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AppendOptionalGeneration(builder, generation);
             return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static void ParseDynamicCallSiteName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
+        {
+            name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
+            returnsVoid = name.StartsWith(ActionDelegateNamePrefix);
+            parameterCount = arity - (returnsVoid ? 0 : 1);
+
+            Debug.Assert(returnsVoid || name.StartsWith(FuncDelegateNamePrefix));
+
+            generation = 0;
+            var lastBraceIndex = name.LastIndexOf('}');
+
+            // If there is a generation index it will be directly after the brace, otherwise the brace
+            // is the last character
+            if (lastBraceIndex < name.Length - 1)
+            {
+                Debug.Assert(name[lastBraceIndex + 1] == '#');
+                generation = int.Parse(name[(lastBraceIndex + 2)..]);
+            }
+
+            // The prefix is 3 characters long, plus one for the open brace
+            Debug.Assert(name[3] == '{');
+            var refKindString = name[4..lastBraceIndex];
+
+            int index = 0;
+            // To avoid mapping ref kinds to binary here, and duplicating code in RefKindVector, we just rebuild
+            // a BitVector which is what RefKindVector uses internally
+            var bitVector = BitVector.Create(arity * 2);
+            foreach (var word in refKindString.Split(','))
+            {
+                var value = Convert.ToUInt64(word, 16);
+                var bits = new System.Collections.BitArray(BitConverter.GetBytes(value));
+                foreach (var bit in bits)
+                {
+                    // bitVector will happily grow, and GetBytes will always return 64, so we need to limit
+                    if (index == bitVector.Capacity)
+                    {
+                        break;
+                    }
+                    bitVector[index++] = (bool)bit;
+                }
+            }
+
+            byRefs = RefKindVector.Create(bitVector);
+
+            Debug.Assert(name == MakeDynamicCallSiteDelegateName(byRefs, returnsVoid, generation));
         }
 
         internal static string AsyncBuilderFieldName()
