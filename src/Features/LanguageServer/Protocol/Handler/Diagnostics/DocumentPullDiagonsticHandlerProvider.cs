@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagonsticHandlerProvider : AbstractRequestHandlerProvider
     {
