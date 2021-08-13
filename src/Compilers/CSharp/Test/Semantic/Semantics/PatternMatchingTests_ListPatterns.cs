@@ -1394,46 +1394,46 @@ class X
         [InlineData(
             "{ null, null, new(0, 0) }",
             "[..{ Length: >=2 }, { X: 0, Y: 0 }]",
-            "Length, this[0..^1], this[^1], X, Y, True")]
+            "e.Length, e[0..^1], e[0..^1].Length, e[^1], e[^1].X, e[^1].Y, True")]
         [InlineData(
             "{ null, null, new(0, 0) }",
             "[.., { X: 0, Y: 0 }]",
-            "Length, this[^1], X, Y, True")]
+            "e.Length, e[^1], e[^1].X, e[^1].Y, True")]
         [InlineData(
             "{ new(0, 5) }",
             "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
-            "Length, this[^1], X, Y, this[0], X, Y, True")]
+            "e.Length, e[^1], e[^1].X, e[^1].Y, e[0], e[0].X, e[0].Y, True")]
         public void SlicePattern_OrderOfEvaluation(string array, string pattern, string expectedOutput)
         {
             var source = @"
+using System.Drawing;
 using static System.Console;
-using static Helper;
 
-Write(new MyArray(new Point[] " + array + @") is " + pattern + @");
+Write(new MyArray(new MyPoint[] " + array + @") is " + pattern + @");
 
-class Point
+class MyPoint
 {
-    private int x, y;
-    public Point(int x, int y) => (this.x, this.y) = (x, y);
-    public int X { get { Print(nameof(X)); return x; } }
-    public int Y { get { Print(nameof(Y)); return y; } }
+    public Point point;
+    public string source;
+
+    public MyPoint(int x, int y) : this(new(x, y)) { }
+    public MyPoint(Point point, string source = ""e"") => (this.point, this.source) = (point, source);
+    public int X { get { Write($""{source}.{nameof(X)}, ""); return point.X; } }
+    public int Y { get { Write($""{source}.{nameof(Y)}, ""); return point.Y; } }
 }
 class MyArray
 {
-    private Point[] array;
-    public MyArray(Point[] array) => this.array = array;
-    public Point this[System.Index index] { get { Print($""this[{index}]""); return array[index]; } }
-    public Point[] this[System.Range range] { get { Print($""this[{range}]""); return array[range]; } }
-    public int Length { get { Print(nameof(Length)); return array.Length; } }
-}
-static class Helper
-{
-    public static void Print(string s) => Write(s + "", "");
+    public MyPoint[] array;
+    public string source;
+
+    public MyArray(MyPoint[] array, string source = ""e"") => (this.array, this.source) = (array, source);
+    public MyPoint this[System.Index index] { get { Write($""{source}[{index}], ""); return new(array[index].point, $""{source}[{index}]""); } }
+    public MyArray this[System.Range range] { get { Write($""{source}[{range}], ""); return new(array[range], $""{source}[{range}]""); } }
+    public int Length { get { Write($""{source}.{nameof(Length)}, ""); return array.Length; } }
 }
 " + TestSources.GetSubArray;
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2543,10 +2543,12 @@ class C
 
         _ = b switch
         { 
-            [.., { X: >=0, Y: <0 }] or [ { Y: >=0, X: <0 } ] or
-            [.., { Y: >=0, X: <0 }] or [ { X: >=0, Y: <0 } ] or
-            [.., { X: <=0 }] or [{ X: >0 }] or 
-            { Length: 0 or > 1 } => 0
+            [.., { X: >=0, Y: >0 }] => 0,
+            [.., { X: <0, Y: >=0 }] => 0,
+            [{ X: <=0, Y: <0 }, ..] => 1,
+            [{ X: >0, Y: <=0 }, ..] => 1,
+            [{ X:0, Y:0 }] => 1,
+            { Length: not 1 } => 0
         };
     }
 }";
