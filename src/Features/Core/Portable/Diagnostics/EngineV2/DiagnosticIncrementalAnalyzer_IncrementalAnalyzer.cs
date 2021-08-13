@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                if (!await AnalysisEnabledAsync(document, _documentTrackingService, AnalysisScopeService, cancellationToken).ConfigureAwait(false))
+                if (!AnalysisEnabled(document, _documentTrackingService))
                 {
                     // to reduce allocations, here, we don't clear existing diagnostics since it is dealt by other entry point such as
                     // DocumentReset or DocumentClosed.
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // Perf optimization. check whether we want to analyze this project or not.
-            if (!await FullAnalysisEnabledAsync(AnalysisScopeService, project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false))
+            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
             {
                 return;
             }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = await GetStateSetsForFullSolutionAnalysisAsync(_stateManager.GetOrUpdateStateSets(project), project, cancellationToken).ConfigureAwait(false);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
                 var options = project.Solution.Options;
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                     documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
 
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics, cancellationToken);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
 
@@ -230,17 +230,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                     documentHadDiagnostics |= stateSet.OnDocumentReset(document);
 
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics, cancellationToken);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
             return Task.CompletedTask;
         }
 
-        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics, CancellationToken cancellationToken)
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
-            if (!documentHadDiagnostics ||
-                FullAnalysisSynchronouslyKnownEnabled(AnalysisScopeService, document.Project, cancellationToken))
+            if (!documentHadDiagnostics || FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
             {
                 // this is Perf to reduce raising events unnecessarily.
                 return;
@@ -254,18 +253,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
-
-            static bool FullAnalysisSynchronouslyKnownEnabled(IAnalysisScopeService analysisScopeService, Project project, CancellationToken cancellationToken)
-            {
-                var resultAsync = FullAnalysisEnabledAsync(analysisScopeService, project, forceAnalyzerRun: false, cancellationToken);
-                if (resultAsync.IsCompleted)
-                    return resultAsync.GetAwaiter().GetResult();
-
-                // Make sure to clean up the ValueTask
-                resultAsync.Preserve();
-
-                return false;
-            }
         }
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -342,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Task.CompletedTask;
         }
 
-        private static async ValueTask<bool> AnalysisEnabledAsync(TextDocument document, IDocumentTrackingService documentTrackingService, IAnalysisScopeService analysisScopeService, CancellationToken cancellationToken)
+        private static bool AnalysisEnabled(TextDocument document, IDocumentTrackingService documentTrackingService)
         {
             if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
@@ -357,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(document.Project.Solution.Options, document.Project.Language);
             if (analysisScope == BackgroundAnalysisScope.ActiveFile)
             {
                 return documentTrackingService.TryGetActiveDocument() == document.Id;
@@ -371,12 +358,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private async ValueTask<IReadOnlyList<StateSet>> GetStateSetsForFullSolutionAnalysisAsync(IEnumerable<StateSet> stateSets, Project project, CancellationToken cancellationToken)
+        private IReadOnlyList<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            var analysisScope = await AnalysisScopeService.GetAnalysisScopeAsync(project, cancellationToken).ConfigureAwait(false);
+            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
             if (analysisScope != BackgroundAnalysisScope.FullSolution)
             {
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));

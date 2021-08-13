@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // PERF: Check whether we want to analyze this project or not.
-                    if (!await FullAnalysisEnabledAsync(AnalysisScopeService, project, forceAnalyzerRun, cancellationToken).ConfigureAwait(false))
+                    if (!FullAnalysisEnabled(project, forceAnalyzerRun))
                     {
                         Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
 
@@ -410,11 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        internal static async ValueTask<bool> FullAnalysisEnabledAsync(
-            IAnalysisScopeService analysisScopeService,
-            Project project,
-            bool forceAnalyzerRun,
-            CancellationToken cancellationToken)
+        internal static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
         {
             if (forceAnalyzerRun)
             {
@@ -422,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(project, cancellationToken).ConfigureAwait(false);
+            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
             return analysisScope == BackgroundAnalysisScope.FullSolution;
         }
 

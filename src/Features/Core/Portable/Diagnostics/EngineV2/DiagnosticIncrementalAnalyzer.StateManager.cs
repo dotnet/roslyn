@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly IAnalysisScopeService _analysisScopeService;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -42,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IAnalysisScopeService analysisScopeService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _analysisScopeService = analysisScopeService;
                 _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;

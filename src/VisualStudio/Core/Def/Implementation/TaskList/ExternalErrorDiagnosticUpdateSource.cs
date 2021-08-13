@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly IAnalysisScopeService _analysisScopeService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
 
@@ -102,7 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _diagnosticService = diagnosticService;
 
-            _analysisScopeService = _workspace.Services.GetRequiredService<IAnalysisScopeService>();
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
 
@@ -334,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             var solution = inProgressState.Solution;
             var cancellationToken = inProgressState.CancellationToken;
-            var (allLiveErrors, pendingLiveErrorsToSync) = await inProgressState.GetLiveErrorsAsync().ConfigureAwait(false);
+            var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors();
 
             // Raise events for build only errors
             var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
@@ -456,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private async ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state)
         {
-            var diagnostics = await state.GetLiveErrorsForProjectAsync(projectId).ConfigureAwait(false);
+            var diagnostics = state.GetLiveErrorsForProject(projectId);
             await SetLiveErrorsForProjectAsync(projectId, diagnostics, state.CancellationToken).ConfigureAwait(false);
             state.MarkLiveErrorsReported(projectId);
         }
@@ -696,7 +694,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public ProjectId? TryGetLastProjectWithReportedErrors()
                 => _lastProjectWithReportedErrors;
 
-            public async ValueTask<(ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync)> GetLiveErrorsAsync()
+            public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors()
             {
                 var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
                 var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
@@ -704,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     CancellationToken.ThrowIfCancellationRequested();
 
-                    var errors = await GetLiveErrorsForProjectAsync(projectId).ConfigureAwait(false);
+                    var errors = GetLiveErrorsForProject(projectId);
                     allLiveErrorsBuilder.AddRange(errors);
 
                     if (!_projectsWithAllLiveErrorsReported.Contains(projectId))
@@ -725,7 +723,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            public async ValueTask<ImmutableArray<DiagnosticData>> GetLiveErrorsForProjectAsync(ProjectId projectId)
+            public ImmutableArray<DiagnosticData> GetLiveErrorsForProject(ProjectId projectId)
             {
                 var project = Solution.GetProject(projectId);
                 if (project == null)
@@ -738,7 +736,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var (diagnostic, _) in diagnostics)
                 {
-                    if (await IsLiveAsync(project, diagnostic).ConfigureAwait(false))
+                    if (IsLive(project, diagnostic))
                     {
                         builder.Add(diagnostic);
                     }
@@ -759,7 +757,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public void AddError(ProjectId key, DiagnosticData diagnostic)
                 => AddError(_projectMap, key, diagnostic);
 
-            private async ValueTask<bool> IsLiveAsync(Project project, DiagnosticData diagnosticData)
+            private bool IsLive(Project project, DiagnosticData diagnosticData)
             {
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
@@ -771,7 +769,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
-                if (await IsSupportedLiveDiagnosticIdAsync(project, diagnosticData.Id).ConfigureAwait(false))
+                if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
                 {
                     return true;
                 }
@@ -810,15 +808,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            private async ValueTask<bool> IsSupportedLiveDiagnosticIdAsync(Project project, string id)
-            {
-                var supportedLiveDiagnostics = await GetOrCreateSupportedLiveDiagnosticsAsync(project).ConfigureAwait(false);
-                return supportedLiveDiagnostics.Contains(id);
-            }
+            private bool IsSupportedLiveDiagnosticId(Project project, string id)
+                => GetOrCreateSupportedLiveDiagnostics(project).Contains(id);
 
-            private async ValueTask<ImmutableHashSet<string>> GetOrCreateSupportedLiveDiagnosticsAsync(Project project)
+            private ImmutableHashSet<string> GetOrCreateSupportedLiveDiagnostics(Project project)
             {
-                var analysisScope = await _owner._analysisScopeService.GetAnalysisScopeAsync(project, CancellationToken).ConfigureAwait(false);
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
                 var fullSolutionAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution;
                 if (!project.SupportsCompilation || fullSolutionAnalysis)
                 {

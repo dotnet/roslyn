@@ -42,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         private IServiceProvider? _serviceProvider;
-        private RoslynPackage? _roslynPackage;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -165,16 +164,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // The command is checked if RoslynPackage is loaded and the analysis scope for this command matches the
             // value saved for the solution.
-            if (_roslynPackage is null
-                && _serviceProvider.TryGetService<SVsShell, IVsShell>(out var shell)
-                && ErrorHandler.Succeeded(shell.IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
             {
-                _roslynPackage = (RoslynPackage)package;
-            }
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
 
-            if (_roslynPackage is not null)
+            if (roslynPackage is not null)
             {
-                command.Checked = _roslynPackage.AnalysisScope == scope;
+                command.Checked = roslynPackage.AnalysisScope == scope;
             }
 
             // For the specific case of the default analysis scope command, update the command text to show the
@@ -195,8 +192,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Local functions
             static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Workspace workspace)
             {
-                var csharpAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
-                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
+                var csharpAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
 
                 var containsCSharpProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
                 var containsVisualBasicProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
@@ -238,13 +235,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return;
             }
 
-            if (_roslynPackage is null)
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
             {
-                ErrorHandler.ThrowOnFailure(shell.LoadPackage(typeof(RoslynPackage).GUID, out var package));
-                _roslynPackage = (RoslynPackage)package;
-            }
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
 
-            _roslynPackage.AnalysisScope = scope;
+            Assumes.Present(roslynPackage);
+
+            roslynPackage.AnalysisScope = scope;
         }
 
         private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)

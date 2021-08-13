@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Workspace _workspace;
         private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
-        private readonly IAnalysisScopeService _analysisScopeService;
 
         private readonly ReaderWriterLockSlim _stateLock = new(LockRecursionPolicy.NoRecursion);
 
@@ -45,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Host
 
             _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
             _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
-
-            _analysisScopeService = workspace.Services.GetRequiredService<IAnalysisScopeService>();
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
@@ -211,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     try
                     {
-                        var analysisScope = await _analysisScopeService.GetAnalysisScopeAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                        var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(document.Project.Solution.Options, document.Project.Language);
                         if (analysisScope == BackgroundAnalysisScope.ActiveFile
                             && _documentTrackingService?.TryGetActiveDocument() != document.Id)
                         {

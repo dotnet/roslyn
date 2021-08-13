@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IAnalysisScopeService analysisScopeService, TextDocument document)
+            public async Task<bool> OnDocumentClosedAsync(TextDocument document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // active file exist, put it in the project state
                 var projectState = GetOrCreateProjectState(document.Project.Id);
-                await projectState.MergeAsync(analysisScopeService, activeFileState, document).ConfigureAwait(false);
+                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
                 return true;
             }
 

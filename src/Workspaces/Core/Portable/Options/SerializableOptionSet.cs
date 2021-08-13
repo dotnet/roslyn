@@ -350,7 +350,13 @@ namespace Microsoft.CodeAnalysis.Options
                         break;
 
                     case OptionValueKind.Enum:
-                        optionValue = Enum.ToObject(optionKey.Option.Type, readValue);
+                        var enumType = optionKey.Option.Type;
+                        if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            enumType = enumType.GetGenericArguments()[0];
+                        }
+
+                        optionValue = Enum.ToObject(enumType, readValue);
                         break;
 
                     default:

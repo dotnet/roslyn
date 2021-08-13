@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
-            private readonly IAnalysisScopeService _analysisScopeService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                _analysisScopeService = _registration.Workspace.Services.GetRequiredService<IAnalysisScopeService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -83,7 +81,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
-                _analysisScopeService.AnalysisScopeChanged += OnAnalysisScopeChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
@@ -104,7 +101,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-                _analysisScopeService.AnalysisScopeChanged -= OnAnalysisScopeChanged;
                 _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
                 // detach from the workspace
@@ -176,19 +172,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 ReanalyzeOnOptionChange(sender, e);
             }
 
-            private void OnAnalysisScopeChanged(object? sender, EventArgs e)
-            {
-                _eventProcessingQueue.ScheduleTask(nameof(OnAnalysisScopeChanged), () =>
-                {
-                    // Force analyze all analyzers if background analysis scope has changed.
-                    foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
-                    {
-                        var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
-                        Reanalyze(analyzer, scope);
-                    }
-                }, _shutdownToken);
-            }
-
             private void ReanalyzeOnOptionChange(object? sender, OptionChangedEventArgs e)
             {
                 // get off from option changed event handler since it runs on UI thread
@@ -229,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
 
                 RoslynDebug.AssertNotNull(activeDocumentId);
-                if (ActiveFileAnalysisSynchronouslyKnownEnabled(_analysisScopeService, activeProject, _shutdownToken))
+                if (ActiveFileAnalysisSynchronouslyKnownEnabled(activeProject, _shutdownToken))
                 {
                     // When the active document changes and we are only analyzing the active file, trigger a document
                     // changed event to reanalyze the newly-active file.
@@ -239,16 +222,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return;
 
                 // Local function
-                static bool ActiveFileAnalysisSynchronouslyKnownEnabled(IAnalysisScopeService analysisScopeService, Project project, CancellationToken cancellationToken)
+                static bool ActiveFileAnalysisSynchronouslyKnownEnabled(Project project, CancellationToken cancellationToken)
                 {
-                    var resultAsync = analysisScopeService.GetAnalysisScopeAsync(project, cancellationToken);
-                    if (resultAsync.IsCompleted)
-                        return resultAsync.GetAwaiter().GetResult() == BackgroundAnalysisScope.ActiveFile;
-
-                    // Make sure to clean up the ValueTask
-                    resultAsync.Preserve();
-
-                    return false;
+                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
+                    return analysisScope == BackgroundAnalysisScope.ActiveFile;
                 }
             }
 

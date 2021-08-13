@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = _lastResult.Reset();
             }
 
-            public async ValueTask MergeAsync(IAnalysisScopeService analysisScopeService, ActiveFileState state, TextDocument document)
+            public async ValueTask MergeAsync(ActiveFileState state, TextDocument document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(project, CancellationToken.None).ConfigureAwait(false);
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
                 var fullAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 

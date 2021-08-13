@@ -10,11 +10,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal static class SolutionCrawlerOptions
     {
         /// <summary>
-        /// Option to turn configure background analysis scope.
+        /// Option to turn configure background analysis scope for the current user.
         /// </summary>
         public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+
+        /// <summary>
+        /// Option to turn configure background analysis scope for the current solution.
+        /// </summary>
+        public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
+            nameof(SolutionCrawlerOptions), nameof(SolutionBackgroundAnalysisScopeOption), defaultValue: null);
 
         /// <summary>
         /// This option is used by TypeScript and F#.
@@ -29,13 +35,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         public static bool LowMemoryForcedMinimalBackgroundAnalysis = false;
 
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
+        public static BackgroundAnalysisScope GetDefaultBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
         {
-            if (LowMemoryForcedMinimalBackgroundAnalysis)
-            {
-                return BackgroundAnalysisScope.Minimal;
-            }
-
             switch (language)
             {
                 case LanguageNames.FSharp:
@@ -50,9 +51,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return BackgroundAnalysisScope.Default;
+
                 default:
                     return options.GetOption(BackgroundAnalysisScopeOption, language);
             }
+        }
+
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
+        {
+            if (LowMemoryForcedMinimalBackgroundAnalysis)
+            {
+                return BackgroundAnalysisScope.Minimal;
+            }
+
+            if (options.GetOption(SolutionBackgroundAnalysisScopeOption) is { } scope)
+            {
+                return scope;
+            }
+
+            return GetDefaultBackgroundAnalysisScopeFromOptions(options, language);
         }
     }
 }
