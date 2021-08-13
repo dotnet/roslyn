@@ -4852,7 +4852,7 @@ class C
 }", codeActionIndex: 1);
         }
 
-        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractLocalConst_CSharp7()
         {
@@ -4901,7 +4901,7 @@ public class Tests
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
         }
 
-        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractParameter_CSharp7()
         {
@@ -4948,7 +4948,7 @@ public class Tests
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
         }
 
-        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/55031")]
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractLocal_CSharp7()
         {
@@ -4991,6 +4991,41 @@ public class Tests
         void NewMethod()
         {
             Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractRangeVariable_CSharp7()
+        {
+            var code = @"
+using System.Linq;
+
+public class Class
+{
+    public void M()
+    {
+        _ = from a in new object[0]
+            select [|a.ToString()|];
+    }
+}";
+
+            var expected = @"
+using System.Linq;
+
+public class Class
+{
+    public void M()
+    {
+        _ = from a in new object[0]
+            select NewMethod(a);
+
+        string NewMethod(object a)
+        {
+            return a.ToString();
         }
     }
 }";

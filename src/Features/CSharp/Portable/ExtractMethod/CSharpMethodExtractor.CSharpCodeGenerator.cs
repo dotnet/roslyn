@@ -584,16 +584,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
                 var arguments = new List<ArgumentSyntax>();
 
-                if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)))
+                //if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)))
+                //{
+                foreach (var argument in AnalyzerResult.MethodParameters)
                 {
-                    foreach (var argument in AnalyzerResult.MethodParameters)
-                    {
-                        var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+                    var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
+                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
 
-                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
-                    }
+                    arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
                 }
+                //}
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,
                                     SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));

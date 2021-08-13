@@ -335,11 +335,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected ImmutableArray<IParameterSymbol> CreateMethodParameters(bool localFunction)
             {
-                var root = SemanticDocument.Root;
+                /*var root = SemanticDocument.Root;
                 if (localFunction && ShouldLocalFunctionCaptureParameter(root))
                 {
                     return ImmutableArray.Create<IParameterSymbol>();
-                }
+                }*/
 
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
