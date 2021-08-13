@@ -2353,9 +2353,59 @@ class C
 }" + TestSources.GetSubArray;
             var comp = CreateCompilationWithIndexAndRange(src);
             comp.VerifyEmitDiagnostics(
-                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = a switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(6, 15));
+                // (12,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [var unreachable] => 5,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void Subsumption_14()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            [.., >=0, >0] => 0,
+            [.., <0, >=0] => 0,
+            [<=0, <0, ..] => 1,
+            [>0, <=0, ..] => 1,
+            [0, 0] => 1,
+            { Length: not 2 }  => 2,
+            [var unreachable, var unreachable2] => 3,
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (14,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [var unreachable, var unreachable2] => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable, var unreachable2]").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void Subsumption_15()
+        {
+            var src = @"
+class C
+{
+    void Test(int[][] a)
+    {
+        switch (a)
+        {
+            case [.., [.., 42]]:
+            case [[42]]:
+                break;
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [[42]]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
         }
 
         [Theory]

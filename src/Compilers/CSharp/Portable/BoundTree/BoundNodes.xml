@@ -1451,6 +1451,9 @@
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
+  <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Target" Type="BoundDagTemp"/>
+  </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>

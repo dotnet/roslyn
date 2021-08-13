@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
                     BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }
@@ -114,6 +115,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+    }
+
+    partial class BoundDagAssignmentEvaluation
+    {
+        public override int GetHashCode() => Hash.Combine(base.GetHashCode(), this.Target.GetHashCode());
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
         }
     }
 }

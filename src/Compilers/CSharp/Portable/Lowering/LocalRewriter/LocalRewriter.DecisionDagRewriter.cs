@@ -927,6 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = node.Syntax;
                 switch (node)
                 {
+                    case BoundEvaluationDecisionDagNode { Evaluation: BoundDagAssignmentEvaluation }:
+                        break;
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
                             BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);

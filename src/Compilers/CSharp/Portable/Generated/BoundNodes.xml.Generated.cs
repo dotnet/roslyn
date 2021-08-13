@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagIndexEvaluation,
         DagIndexerEvaluation,
         DagSliceEvaluation,
+        DagAssignmentEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -5268,6 +5269,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagAssignmentEvaluation : BoundDagEvaluation
+    {
+        public BoundDagAssignmentEvaluation(SyntaxNode syntax, BoundDagTemp target, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagAssignmentEvaluation, syntax, input, hasErrors || target.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(target is object, "Field 'target' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Target = target;
+        }
+
+
+        public BoundDagTemp Target { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagAssignmentEvaluation(this);
+
+        public BoundDagAssignmentEvaluation Update(BoundDagTemp target, BoundDagTemp input)
+        {
+            if (target != this.Target || input != this.Input)
+            {
+                var result = new BoundDagAssignmentEvaluation(this.Syntax, target, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
         public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
@@ -8660,6 +8690,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagIndexerEvaluation((BoundDagIndexerEvaluation)node, arg);
                 case BoundKind.DagSliceEvaluation:
                     return VisitDagSliceEvaluation((BoundDagSliceEvaluation)node, arg);
+                case BoundKind.DagAssignmentEvaluation:
+                    return VisitDagAssignmentEvaluation((BoundDagAssignmentEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -8957,6 +8989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagIndexEvaluation(BoundDagIndexEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9172,6 +9205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -9824,6 +9858,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.LengthTemp);
             this.Visit(node.IndexerAccess);
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
+        {
+            this.Visit(node.Target);
             this.Visit(node.Input);
             return null;
         }
@@ -10966,6 +11006,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             TypeSymbol? sliceType = this.VisitType(node.SliceType);
             return node.Update(sliceType, lengthTemp, node.StartIndex, node.EndIndex, indexerAccess, node.SliceMethod, input);
+        }
+        public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
+        {
+            BoundDagTemp target = (BoundDagTemp)this.Visit(node.Target);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(target, input);
         }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
@@ -15107,6 +15153,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("endIndex", node.EndIndex, null),
             new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
             new TreeDumperNode("sliceMethod", node.SliceMethod, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, object? arg) => new TreeDumperNode("dagAssignmentEvaluation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("target", null, new TreeDumperNode[] { Visit(node.Target, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
