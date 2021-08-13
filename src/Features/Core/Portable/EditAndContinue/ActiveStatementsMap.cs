@@ -142,6 +142,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return activeSpan;
         }
 
+        public bool IsEmpty
+            => InstructionMap.IsEmpty();
+
         internal async ValueTask<ImmutableArray<UnmappedActiveStatement>> GetOldActiveStatementsAsync(IEditAndContinueAnalyzer analyzer, Document oldDocument, CancellationToken cancellationToken)
         {
             var oldTree = await oldDocument.DocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -180,8 +183,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var hasAnyLineDirectives = false;
-            foreach (var (unmappedSection, mappedSection) in oldTree.GetLineMappings(cancellationToken))
+            foreach (var lineMapping in oldTree.GetLineMappings(cancellationToken))
             {
+                var unmappedSection = lineMapping.Span;
+                var mappedSection = lineMapping.MappedSpan;
+
                 hasAnyLineDirectives = true;
 
                 var targetPath = mappedSection.HasMappedPath ? mappedSection.Path : oldTree.FilePath;

@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IAsynchronousOperationListener listener,
                     Registration registration,
                     IncrementalAnalyzerProcessor documentWorkerProcessor,
-                    int backOffTimeSpanInMS,
-                    int projectBackOffTimeSpanInMS,
+                    TimeSpan backOffTimeSpan,
+                    TimeSpan projectBackOffTimeSpan,
                     CancellationToken cancellationToken)
-                    : base(listener, backOffTimeSpanInMS, cancellationToken)
+                    : base(listener, backOffTimeSpan, cancellationToken)
                 {
                     _gate = new SemaphoreSlim(initialCount: 0);
 
                     _registration = registration;
 
-                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
+                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
 
                     _workGate = new NonReentrantLock();
                     _pendingWork = new Dictionary<DocumentId, Data>();
@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         Registration registration,
                         IncrementalAnalyzerProcessor processor,
-                        int backOffTimeSpanInMS,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken cancellationToken)
-                        : base(listener, backOffTimeSpanInMS, cancellationToken)
+                        : base(listener, backOffTimeSpan, cancellationToken)
                     {
                         _registration = registration;
                         _processor = processor;

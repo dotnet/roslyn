@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -26,6 +27,441 @@ Imports Microsoft.VisualStudio.Text.Projection
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_FirstNested(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { CProperty$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("IP")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 2 }")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is { CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnListPattern_FirstNested(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+}
+public class C2
+{
+    public C2 CProperty { get; set; }
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                ' This is the expected behavior until we implement support for list-patterns.
+                state.SendTypeChars("CP")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_Hidden(showCompletionInArgumentLists As Boolean) As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+                        <ProjectReference>VBAssembly1</ProjectReference>
+                        <Document FilePath="C.cs">
+public class C3
+{
+    void M(C c)
+    {
+        _ = c is { CProperty$$
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                        <Document><![CDATA[
+Public Class C
+    <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+    Public Property CProperty As C2
+End Class
+
+Public Class C2
+    Public Property IntProperty As Integer
+End Class
+                        ]]></Document>
+                    </Project>
+                </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("IP")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 2 }")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is { CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_SecondNested(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 C2Property { get; set; }
+}
+public class C2
+{
+    public C3 C3Property { get; set; }
+}
+public class C3
+{
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { C2Property.C3Property$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("IP")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 2 }")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is { C2Property.C3Property.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_SecondNested_Fields(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 C2Field;
+}
+public class C2
+{
+    public C3 C3Field;
+}
+public class C3
+{
+    public int IntField;
+    void M(C c)
+    {
+        _ = c is { C2Field$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="C3Field:", isHardSelected:=False)
+
+                state.SendTypeChars("CF")
+                Await state.AssertSelectedCompletionItem(displayText:="C3Field:", isHardSelected:=True)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="IntField:", isHardSelected:=False)
+
+                state.SendTypeChars("IF")
+                Await state.AssertSelectedCompletionItem(displayText:="IntField:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 2 }")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is { C2Field.C3Field.IntField: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_ErrorProperty(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { Error$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(".")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("IP")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("CP")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+
+                state.SendTypeChars(".")
+                Assert.Contains("c is { CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("IP")
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 2 }")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is { CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_AlreadyTestedBySimplePattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { CProperty: 2$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                ' No second completion since already tested at top-level
+                state.SendTypeChars(", ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("CP")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_AlreadyTestedByExtendedPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    public short ShortProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { CProperty.IntProperty: 2$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(", ")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("CP")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+
+                state.SendTypeChars(".")
+                Assert.Contains("is { CProperty.IntProperty: 2, CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                ' Note: same completion is offered a second time
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("SP")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 3")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("is { CProperty.IntProperty: 2, CProperty.ShortProperty: 3", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_AlreadyTestedByNestedPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    public short ShortProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { CProperty: { IntProperty: 2 }$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(", ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("CProperty")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars(".")
+                Assert.Contains("is { CProperty: { IntProperty: 2 }, CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                ' Note: same completion is offered a second time
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("SP")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 3")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("is { CProperty: { IntProperty: 2 }, CProperty.ShortProperty: 3", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_BeforeAnotherPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    public short ShortProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is {$$ CProperty.IntProperty: 2 }
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(" ")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("CP")
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+
+                state.SendTypeChars(".")
+                Assert.Contains("is { CProperty. CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertSelectedCompletionItem(displayText:="Equals", isHardSelected:=False)
+
+                state.SendTypeChars("SP")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 3,")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("is { CProperty.ShortProperty: 3, CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnPropertyPattern_BeforeAnotherPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public int IntProperty { get; set; }
+    public short ShortProperty { get; set; }
+}
+public class C2
+{
+    void M(C c)
+    {
+        _ = c is {$$ IntProperty: 2 }
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(" ")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("SP")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 3,")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("is { ShortProperty: 3, IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -47,6 +483,7 @@ record Derived(int Other) : [|Base$$|]
                 If showCompletionInArgumentLists Then
                     Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 End If
+
                 state.SendTypeChars(": 1, B")
 
                 If showCompletionInArgumentLists Then
@@ -365,6 +802,7 @@ class C
                     state.SendBackspace()
                     Await state.WaitForAsynchronousOperationsAsync()
                 Next
+
                 Await state.AssertCompletionSession()
 
                 state.SendBackspace()
@@ -1900,6 +2338,7 @@ public class C
                 Else
                     Await state.AssertNoCompletionSession()
                 End If
+
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 state.SendTypeChars(":")
@@ -4452,6 +4891,7 @@ class C
                 For i = 1 To "ConfigureAwait".Length
                     state.SendBackspace()
                 Next
+
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem("ConfigureAwait")
@@ -4721,6 +5161,7 @@ class C
                 For i As Integer = 1 To "System.".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
 
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -4742,6 +5183,7 @@ class C
                 For i As Integer = 1 To "Sys.".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
 
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -6130,12 +6572,14 @@ class C
                 For i = 1 To "ze".Length
                     state.SendBackspace()
                 Next
+
                 Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
 
                 state.SendEscape()
                 For i = 1 To "Normali".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
                 Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
 
@@ -6184,12 +6628,14 @@ class C
                 For i = 1 To "ze".Length
                     state.SendBackspace()
                 Next
+
                 Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
 
                 state.SendEscape()
                 For i = 1 To "Normali".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
                 Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
 
@@ -8674,6 +9120,84 @@ class Repro
 
             Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
                 Return True
+            End Function
+        End Class
+
+        <WorkItem(53712, "https://github.com/dotnet/roslyn/issues/53712")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotifyCommittingItemCompletionProvider(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    public void M()
+    {
+        ItemFromNotifyCommittingItemCompletion$$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(NotifyCommittingItemCompletionProvider)}.ToList(),
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim notifyProvider As NotifyCommittingItemCompletionProvider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of NotifyCommittingItemCompletionProvider)().Single()
+                notifyProvider.Reset()
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(NotifyCommittingItemCompletionProvider.DisplayText, "")
+                Await state.AssertSelectedCompletionItem(NotifyCommittingItemCompletionProvider.DisplayText, isHardSelected:=True)
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains(NotifyCommittingItemCompletionProvider.DisplayText, state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                Await notifyProvider.checkpoint.Task
+                Assert.False(notifyProvider.CalledOnMainThread)
+            End Using
+        End Function
+
+        <ExportCompletionProvider(NameOf(NotifyCommittingItemCompletionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class NotifyCommittingItemCompletionProvider
+            Inherits CommonCompletionProvider
+            Implements INotifyCommittingItemCompletionProvider
+
+            Private ReadOnly _threadingContext As IThreadingContext
+            Public Const DisplayText As String = "ItemFromNotifyCommittingItemCompletionProvider"
+
+            Public Checkpoint As Checkpoint = New Checkpoint()
+            Public CalledOnMainThread As Boolean?
+
+            Public Sub Reset()
+                Checkpoint = New Checkpoint()
+                CalledOnMainThread = Nothing
+            End Sub
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(threadingContext As IThreadingContext)
+                _threadingContext = threadingContext
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create(displayText:=DisplayText, filterText:=DisplayText))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+                Return True
+            End Function
+
+#Disable Warning IDE0060 ' Remove unused parameter
+            Public Function NotifyCommittingItemAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task Implements INotifyCommittingItemCompletionProvider.NotifyCommittingItemAsync
+#Enable Warning IDE0060 ' Remove unused parameter
+
+                CalledOnMainThread = _threadingContext.HasMainThread AndAlso _threadingContext.JoinableTaskContext.IsOnMainThread
+
+                Checkpoint.Release()
+                Return Task.CompletedTask
             End Function
         End Class
     End Class

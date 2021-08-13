@@ -5,16 +5,21 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
 {
@@ -433,6 +438,119 @@ namespace OuterNamespace
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace1()
+        {
+            var markup = @"
+using System;
+namespace OuterNamespace
+{
+    namespace InnerNamespace
+    {
+        class MyClass
+        {
+            $$public void Goo() { }
+        }
+    }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(@"namespace OuterNamespace.InnerNamespace;
+
+internal interface IMyClass
+{
+    void Goo();
+}", interfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace2()
+        {
+            var markup = @"
+using System;
+namespace OuterNamespace
+{
+    namespace InnerNamespace
+    {
+        class MyClass
+        {
+            $$public void Goo() { }
+        }
+    }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9),
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(@"namespace OuterNamespace.InnerNamespace
+{
+    internal interface IMyClass
+    {
+        void Goo();
+    }
+}", interfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace3()
+        {
+            var markup = @"
+using System;
+namespace OuterNamespace
+{
+    namespace InnerNamespace
+    {
+        class MyClass
+        {
+            $$public void Goo() { }
+        }
+    }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(@"namespace OuterNamespace.InnerNamespace
+{
+    internal interface IMyClass
+    {
+        void Goo();
+    }
+}", interfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
         {
             var markup = @"using System;
@@ -772,6 +890,35 @@ public interface IC4<A, B, C>
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_CodeGen_AccessibilityModifiers()
+        {
+            var markup = @"
+using System;
+
+abstract class MyClass$$
+{
+    public void Goo() { }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(@"internal interface IMyClass
+{
+    void Goo();
+}", interfaceCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]

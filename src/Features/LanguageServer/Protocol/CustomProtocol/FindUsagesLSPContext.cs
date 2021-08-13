@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly IProgress<VSReferenceItem[]> _progress;
+        private readonly IProgress<VSInternalReferenceItem[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference = new();
+        private readonly Dictionary<int, VSInternalReferenceItem> _definitionsWithoutReference = new();
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
@@ -62,24 +63,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<VSReferenceItem> _workQueue;
+        private readonly AsyncBatchingWorkQueue<VSInternalReferenceItem> _workQueue;
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
 
         public FindUsagesLSPContext(
-            IProgress<VSReferenceItem[]> progress,
+            IProgress<VSInternalReferenceItem[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
         {
             _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
-            _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
-                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
+            _workQueue = new AsyncBatchingWorkQueue<VSInternalReferenceItem>(
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
+        private static async Task<VSInternalReferenceItem?> GenerateVSReferenceItemAsync(
             int id,
             int? definitionId,
             Document document,
@@ -183,15 +185,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
             // TO-DO: The Origin property should be added once Rich-Nav is completed.
             // https://github.com/dotnet/roslyn/issues/42847
-            var result = new LSP.VSReferenceItem
+            var result = new VSInternalReferenceItem
             {
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DefinitionIcon = definitionGlyph.GetImageElement(),
                 DisplayPath = location?.Uri.LocalPath,
                 Id = id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
-                ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
+                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
+                ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
 
@@ -336,11 +338,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableArray<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -83,9 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var featureEnabled = options.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-            if (!featureEnabled)
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
+
+            var shouldDisableFeature = optionValue == false;
+            if (shouldDisableFeature)
             {
                 return;
             }
@@ -99,10 +103,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
+            var inheritanceMemberItems = ImmutableArray<InheritanceMarginItem>.Empty;
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken, LogLevel.Information))
+            {
+                inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                     document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
+            }
 
             if (inheritanceMemberItems.IsEmpty)
             {

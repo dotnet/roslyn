@@ -363,6 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                         SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
                         End If
                     End If
+
                     Return SyntaxFactory.AwaitExpression(invocation)
                 End If
 

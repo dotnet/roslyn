@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
             if (supportsVSExtensions)
             {
-                var vsCompletionItem = (LSP.VSCompletionItem)completionItem;
+                var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
                 vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                     .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             }

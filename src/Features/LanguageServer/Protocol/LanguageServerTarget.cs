@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -54,11 +55,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
+            ImmutableArray<string> supportedLanguages,
             string? clientName,
             string userVisibleServerName,
             string telemetryServerTypeName)
         {
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher();
+            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages);
 
             _capabilitiesProvider = capabilitiesProvider;
             WorkspaceRegistrationService = workspaceRegistrationService;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _userVisibleServerName = userVisibleServerName;
             TelemetryServerName = telemetryServerTypeName;
 
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, userVisibleServerName, TelemetryServerName);
+            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, supportedLanguages, userVisibleServerName, TelemetryServerName);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 
@@ -183,11 +185,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<ReferenceItem[]?> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
+        public Task<VSInternalReferenceItem[]?> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<ReferenceParams, ReferenceItem[]?>(Queue, Methods.TextDocumentReferencesName,
+            return RequestDispatcher.ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]?>(Queue, Methods.TextDocumentReferencesName,
                 referencesParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
@@ -197,6 +199,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
             return RequestDispatcher.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(Queue, Methods.TextDocumentCodeActionName, codeActionParams, _clientCapabilities, ClientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.CodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
+        public Task<CodeAction> ResolveCodeActionAsync(CodeAction codeAction, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return RequestDispatcher.ExecuteRequestAsync<CodeAction, CodeAction>(Queue, Methods.CodeActionResolveName,
+                codeAction, _clientCapabilities, ClientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
@@ -305,45 +316,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return RequestDispatcher.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]?>(Queue, Methods.WorkspaceSymbolName, workspaceSymbolParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensName, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(Methods.TextDocumentSemanticTokensFullName, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> GetTextDocumentSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(Queue, SemanticTokensMethods.TextDocumentSemanticTokensName,
+            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(Queue, Methods.TextDocumentSemanticTokensFullName,
                 semanticTokensParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensEditsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.TextDocumentSemanticTokensFullDeltaName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SumType<SemanticTokens, SemanticTokensDelta>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensDeltaParams semanticTokensEditsParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensEdits>>(Queue, SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
+            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensDeltaParams, SumType<SemanticTokens, SemanticTokensDelta>>(Queue, Methods.TextDocumentSemanticTokensFullDeltaName,
                 semanticTokensEditsParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
         // Note: Since a range request is always received in conjunction with a whole document request, we don't need to cache range results.
-        [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(Methods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(Queue, SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
+            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(Queue, Methods.TextDocumentSemanticTokensRangeName,
                 semanticTokensRangeParams, _clientCapabilities, ClientName, cancellationToken);
         }
-
-        // Temporary workaround to specify the actual public LSP method name until the LSP protocol package updates.
-        // Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1249055
-        [JsonRpcMethod("textDocument/semanticTokens/full", UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> GetTextDocumentSemanticTokensPublicAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-            => GetTextDocumentSemanticTokensAsync(semanticTokensParams, cancellationToken);
-
-        // Temporary workaround to specify the actual public LSP method name until the LSP protocol package updates.
-        // Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1249055
-        [JsonRpcMethod("textDocument/semanticTokens/full/delta", UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsPublicAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
-            => GetTextDocumentSemanticTokensEditsAsync(semanticTokensEditsParams, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../BasicVSResources.resx">
     <body>
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_object_creation">
         <source>Prefer simplified object creation</source>
-        <target state="translated">간소화된 개체 만들기 선호</target>
+        <target state="translated">단순화된 개체 만들기 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports">

@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis
         private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();
-            List<string> flattenedArgs = new List<string>();
+            var flattenedArgs = ArrayBuilder<string>.GetInstance();
             parser.FlattenArgs(rawArgs, diagnostics, flattenedArgs, null, baseDirectory);
 
             var builder = new StringBuilder();
@@ -1662,6 +1662,7 @@ namespace Microsoft.CodeAnalysis
                 builder.AppendLine($"\t{sourceFileName} - {hashValue}");
             }
 
+            flattenedArgs.Free();
             return builder.ToString();
         }
     }

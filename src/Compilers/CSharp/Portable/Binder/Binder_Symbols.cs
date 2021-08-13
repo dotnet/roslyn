@@ -1173,6 +1173,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
+                if (unconstructedType.IsGenericType
+                    && options.IsAttributeTypeLookup())
+                {
+                    foreach (var typeArgument in boundTypeArguments)
+                    {
+                        var type = typeArgument.Type;
+                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                        }
+                        else
+                        {
+                            CheckDisallowedAttributeDependentType(typeArgument, isError: true, node.Location, diagnostics);
+                        }
+                    }
+                }
+
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
                 // arguments and construct the final result.
@@ -1180,19 +1198,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconstructedType,
                     node,
                     typeArguments,
-                    BindTypeArguments(typeArguments, diagnostics, basesBeingResolved),
+                    boundTypeArguments,
                     basesBeingResolved,
                     diagnostics);
-            }
-
-            if (options.IsAttributeTypeLookup())
-            {
-                // Generic type cannot be an attribute type.
-                // Parser error has already been reported, just wrap the result type with error type symbol.
-                Debug.Assert(unconstructedType.IsErrorType());
-                Debug.Assert(resultType.IsErrorType());
-                resultType = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(resultType), resultType,
-                    LookupResultKind.NotAnAttributeType, errorInfo: null);
             }
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
@@ -1700,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.Kind == SymbolKind.NamedType)
             {
-                CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
 
                 if (suppressUseSiteDiagnostics && diagnostics.DependenciesBag is object)
                 {

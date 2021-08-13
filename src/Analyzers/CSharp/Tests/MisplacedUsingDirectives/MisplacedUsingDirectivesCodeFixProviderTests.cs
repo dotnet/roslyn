@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -76,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
                 { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption },
                 { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
             };
-            return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
+            return TestInRegularAndScriptAsync(
+                initialMarkup, expectedMarkup, options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
         }
 
         #region Test Preserve
@@ -92,6 +92,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
     [|using System;
     using System.Threading;|]
 }
+";
+
+            return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
+        }
+
+        [Fact]
+        public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
+        {
+            var testCode = @"namespace TestNamespace;
+
+[|using System;
+using System.Threading;|]
 ";
 
             return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
@@ -194,6 +206,18 @@ namespace TestNamespace
             return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
         }
 
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements_FileScopedNamespace()
+        {
+            var testCode = @"[|using System;
+using System.Threading;|]
+
+namespace TestNamespace;
+";
+
+            return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
+        }
+
         /// <summary>
         /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are type definition present.
         /// </summary>
@@ -237,10 +261,27 @@ namespace TestNamespace
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved_FileScopedNamespace()
+        {
+            var testCode = @"namespace TestNamespace;
+
+[|using System;
+using System.Threading;|]
+";
+            var fixedTestCode = @"
+{|Warning:using System;|}
+{|Warning:using System.Threading;|}
+
+namespace TestNamespace;
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
         /// <summary>
         /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_SimplifiedUsingInNamespace_UsingsMovedAndExpanded()
         {
@@ -320,7 +361,6 @@ namespace System.MyExtension
         /// <summary>
         /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are attributes present.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitWithAttributes_UsingsMoved()
         {
@@ -351,7 +391,6 @@ namespace TestNamespace
         /// <summary>
         /// Verifies that the file header of a file is properly preserved when moving using statements out of a namespace.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitHasFileHeader_UsingsMovedAndHeaderPreserved()
         {
@@ -499,7 +538,6 @@ namespace Foo
         /// <summary>
         /// Verifies that simplified using statements in nested namespace are expanded during the code fix operation.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_UsingsInNestedNamespaces_UsingsMovedAndExpanded()
         {
@@ -537,7 +575,6 @@ namespace System.Namespace
         /// <summary>
         /// Verifies that simplified using statements in multiple namespaces are expanded during the code fix operation.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndExpanded()
         {
@@ -576,7 +613,6 @@ namespace System.OtherNamespace
         /// <summary>
         /// Verifies that simplified using statements in multiple namespaces are deduplicated during the code fix operation.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndDeduplicated()
         {
@@ -629,6 +665,18 @@ namespace B
     [|using System;
     using System.Threading;|]
 }
+";
+
+            return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
+        }
+
+        [Fact]
+        public Task WhenInsidePreferred_UsingsInNamespace_ValidUsingStatements_FileScopedNamespace()
+        {
+            var testCode = @"namespace TestNamespace;
+
+[|using System;
+using System.Threading;|]
 ";
 
             return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
@@ -813,6 +861,25 @@ namespace TestNamespace
     {|Warning:using Microsoft.CodeAnalysis;|}
     using System;
 }
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
+        [Fact]
+        public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespaec()
+        {
+            var testCode = @"[|using Microsoft.CodeAnalysis;|]
+
+namespace TestNamespace;
+
+using System;
+";
+
+            var fixedTestCode = @"namespace TestNamespace;
+{|Warning:using Microsoft.CodeAnalysis;|}
+
+using System;
 ";
 
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);

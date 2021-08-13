@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
         }
 
-        public INavigationBarController CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
+        public IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
         {
             return new NavigationBarController(
                 _threadingContext,

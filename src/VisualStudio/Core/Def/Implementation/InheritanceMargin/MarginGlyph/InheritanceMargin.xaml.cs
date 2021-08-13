@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Workspace _workspace;
+        private readonly IWpfTextView _textView;
 
         public InheritanceMargin(
             IThreadingContext threadingContext,
@@ -34,15 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
             InheritanceMarginTag tag,
-            double scaleFactor)
+            IWpfTextView textView)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = tag.Workspace;
             _operationExecutor = operationExecutor;
+            _textView = textView;
             InitializeComponent();
 
-            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, scaleFactor);
+            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
@@ -101,7 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
-            ResetBorderToInitialColor();
+            // If mouse is still hovering. Don't reset the color. The context menu might be closed because user clicks within the margin
+            if (!IsMouseOver)
+            {
+                ResetBorderToInitialColor();
+            }
+            // Move the focus back to textView when the context menu is closed.
+            // It ensures the focus won't be left at the margin
+            ResetFocus();
         }
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -110,13 +120,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
-                // 1. [margin] -> Target1
+                // 1. [margin] -> Header
+                //                Target1
                 //                Target2
                 //                Target3
                 //
-                // 2. [margin] -> method Bar -> Target1
+                // 2. [margin] -> method Bar -> Header
+                //                           -> Target1
                 //                           -> Target2
-                //             -> method Foo -> Target3
+                //             -> method Foo -> Header
+                //                           -> Target3
                 //                           -> Target4
                 // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
                 // user is viewing the targets menu.
@@ -133,6 +146,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             this.Background = Brushes.Transparent;
             this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void ResetFocus()
+        {
+            if (!_textView.HasAggregateFocus)
+            {
+                var visualElement = _textView.VisualElement;
+                if (visualElement.Focusable)
+                {
+                    Keyboard.Focus(visualElement);
+                }
+            }
         }
     }
 }

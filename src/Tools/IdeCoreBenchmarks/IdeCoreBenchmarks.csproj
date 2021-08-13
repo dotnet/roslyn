@@ -16,7 +16,6 @@
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="CloudCache\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="CloudCache\CloudCachePersistentStorage.cs" />
-    <Compile Include="..\..\VisualStudio\Core\Def\Storage\Nerdbank\ReadOnlySequenceStream.cs" Link="CloudCache\ReadOnlySequenceStream.cs" />
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="CloudCache\ProjectContainerKeyCache.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\AuthorizationServiceMock.cs" Link="CloudCache\AuthorizationServiceMock.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\FileSystemServiceMock.cs" Link="CloudCache\FileSystemServiceMock.cs" />

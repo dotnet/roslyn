@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly string _serverName;
+        private readonly ImmutableArray<string> _supportedLanguages;
 
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
@@ -80,11 +82,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(
             ILspLogger logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
+            ImmutableArray<string> supportedLanguages,
             string serverName,
             string serverTypeName)
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
+            _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
             _queue = new AsyncQueue<QueueItem>();
@@ -288,10 +292,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
+                _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
                 trackerToUse,
+                _supportedLanguages,
                 out workspace);
         }
     }

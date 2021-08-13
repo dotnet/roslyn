@@ -735,6 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NamespaceDeclaration = 8842,
         UsingDirective = 8843,
         ExternAliasDirective = 8844,
+        FileScopedNamespaceDeclaration = 8845,
 
         // attributes
         AttributeList = 8847,
@@ -857,5 +858,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         FunctionPointerUnmanagedCallingConvention = 9067,
 
         RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
     }
 }

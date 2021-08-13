@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../Commands.vsct">
     <body>
@@ -495,6 +495,36 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">Перейти к реализации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="new">Sync &amp;Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="new">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="new">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="new">Track Value Source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="new">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ViewEditorConfigSettings</source>
+        <target state="new">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

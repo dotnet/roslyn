@@ -1273,10 +1273,10 @@ class c
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "c");
-                N(SyntaxKind.OpenBraceToken);
                 {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
                         N(SyntaxKind.PredefinedType);
@@ -1290,8 +1290,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalFunctionStatement);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -1313,18 +1313,18 @@ class c
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1339,41 +1339,40 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.InvocationExpression);
-                                N(SyntaxKind.IdentifierName, "await");
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "await");
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                                N(SyntaxKind.ExpressionStatement);
-                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
                                     N(SyntaxKind.ObjectCreationExpression);
                                     {
                                         N(SyntaxKind.NewKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1389,8 +1388,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.AwaitExpression);
@@ -1416,11 +1415,11 @@ class c
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "await");
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1441,8 +1440,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalFunctionStatement);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -1464,18 +1463,18 @@ class c
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1491,8 +1490,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.AwaitExpression);
@@ -1521,11 +1520,11 @@ class c
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "await");
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1533,10 +1532,10 @@ class c
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.EndOfFileToken);
             }
-            N(SyntaxKind.EndOfFileToken);
             EOF();
         }
 

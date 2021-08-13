@@ -1017,7 +1017,9 @@ namespace BoundTreeGenerator
                                 ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
                                 : TypeIsSymbol(field)
                                     ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
-                                    : "{0} != this.{1}";
+                                    : IsValueType(field.Type) && field.Type[^1] == '?'
+                                        ? "{0}.Equals(this.{1})"
+                                        : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
@@ -1738,7 +1740,7 @@ namespace BoundTreeGenerator
             return IsNodeList(typeName);
         }
 
-        private bool IsValueType(string typeName) => _valueTypes.Contains(GetGenericType(typeName));
+        private bool IsValueType(string typeName) => _valueTypes.Contains(GetGenericType(typeName).TrimEnd('?'));
 
         private bool IsDerivedType(string typeName, string derivedTypeName)
         {

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
         public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
+            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
         public static readonly Option2<int> UseEnhancedColors = new(
@@ -78,16 +78,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
-        public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
+        public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin =
             new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
-                defaultValue: false,
+                defaultValue: true,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
 
+        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
+            nameof(FeatureOnOffOptions), nameof(SkipAnalyzersForImplicitlyTriggeredBuilds), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(SkipAnalyzersForImplicitlyTriggeredBuilds)}"));
     }
 
     [ExportOptionProvider, Shared]
@@ -117,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             FeatureOnOffOptions.ShowInheritanceMargin,
-            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
+            FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
     }
 }

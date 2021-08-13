@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
-            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
-            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+            _signatureHelpControllerProvider = signatureHelpControllerProvider;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            this._allArgumentProviders = argumentProviders;
+            _allArgumentProviders = argumentProviders;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -537,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
-                var doc = new DOMDocumentClass();
+                var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -739,6 +739,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
+            if (token.RawKind == 0)
+            {
+                // There is no touching word, so return empty immediately
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
@@ -899,7 +905,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
-            var doc = new DOMDocumentClass();
+            var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)

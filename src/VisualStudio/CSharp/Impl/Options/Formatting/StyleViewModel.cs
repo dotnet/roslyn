@@ -859,6 +859,46 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferFileScopedNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferBlockNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+";
+
         private static readonly string s_preferSimpleUsingStatement = $@"
 using System;
 
@@ -1054,6 +1094,36 @@ class Customer
             return;
 
         if ((object)value2 == null)
+            return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferNullcheckOverTypeCheck = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (value1 is null)
+            return;
+
+        if (value2 is not null)
+            return;
+//]
+    }}
+    void M2(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (value1 is not object)
+            return;
+
+        if (value2 is object)
             return;
 //]
     }}
@@ -1968,6 +2038,7 @@ class C2
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
+            AddNamespaceDeclarationsOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
@@ -2011,6 +2082,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
@@ -2077,6 +2149,24 @@ class C2
                 enumValues,
                 new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
                 this, optionStore, bracesPreferenceGroupTitle, bracesPreferences));
+        }
+
+        private void AddNamespaceDeclarationsOptions(OptionStore optionStore, string group)
+        {
+            var preferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Block_scoped, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.File_scoped, isChecked: false),
+            };
+
+            var enumValues = new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<NamespaceDeclarationPreference>(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                ServicesVSResources.Namespace_declarations,
+                enumValues,
+                new[] { s_preferBlockNamespace, s_preferFileScopedNamespace },
+                this, optionStore, group, preferences));
         }
 
         private void AddExpressionBodyOptions(OptionStore optionStore, string expressionPreferencesGroupTitle)

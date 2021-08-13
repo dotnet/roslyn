@@ -5147,5 +5147,38 @@ $$        int Local(object[] a) => [|a.Length|];
   }
 }");
         }
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements()
+        {
+            VerifyAllSpansInDeclaration<CompilationUnitSyntax>(@"
+$$[|int d = 5;|]
+[|int a = 1|], [|b = 2|], [|c = 3|];
+for ([|int i = 0|], [|j = 1|], [|k = 2|]; [|i < 10|]; [|i++|], [|j++|], [|k--|])
+    [|while (b > 0)|]
+    [|{|]
+        [|if (c < b)|]
+            try
+            [|{|]
+                [|System.Console.WriteLine(a);|]
+            [|}|]
+            [|catch (Exception e)|]
+            [|{|]
+                [|System.Console.WriteLine(e);|]   
+            [|}|]
+            finally
+            [|{|]
+            [|}|]
+        else [|if (b < 10)|]
+            [|System.Console.WriteLine(b);|]
+        else
+            [|System.Console.WriteLine(c);|]
+    [|}|]
+");
+        }
+
+        #endregion
     }
 }

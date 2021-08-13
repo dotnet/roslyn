@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Experiments
     internal interface IExperimentationService : IWorkspaceService
     {
         bool IsExperimentEnabled(string experimentName);
+
+        void EnableExperiment(string experimentName, bool value);
     }
 
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Experiments
         }
 
         public bool IsExperimentEnabled(string experimentName) => false;
+
+        public void EnableExperiment(string experimentName, bool value) { }
     }
 
     internal static class WellKnownExperimentNames
@@ -40,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string LSPCompletion = "Roslyn.LSP.Completion";
         public const string CloudCache = "Roslyn.CloudCache";
         public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
+        public const string InheritanceMargin = "Roslyn.InheritanceMargin";
         public const string RazorLspEditorFeatureFlag = "Razor.LSP.Editor";
+        public const string LspPullDiagnosticsFeatureFlag = "Lsp.PullDiagnostics";
+        public const string OOPCoreClr = "Roslyn.OOPCoreClr";
+        public const string ProgressionForceLegacySearch = "Roslyn.ProgressionForceLegacySearch";
+        public const string AsynchronousQuickActions = "Roslyn.AsynchronousQuickActions";
     }
 }

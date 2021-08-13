@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IVariableDeclaration : SemanticModelTestBase
     {
         #region Variable Declarations
 
@@ -1703,7 +1703,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void FixedStatementInvalidMulipleDeclarations()
+        public void FixedStatementInvalidMultipleDeclarations()
         {
             string source = @"
 class Program

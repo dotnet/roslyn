@@ -2170,6 +2170,35 @@ using MS.B;
 
         [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
+        {
+            var code = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_DoNotGroupIfNotSorted()
         {
             var code = @"$$

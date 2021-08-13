@@ -123,14 +123,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 End Namespace
 
 <A, B>
-<span>Structure S(Of T As {New, Class, I})</span>
+Structure S(Of <span>T</span> As {New, Class, I})
     Inherits B
 End Structure
 
-Structure S(Of T <span>As {New, Class, I}</span>)
+Structure S(Of <span>T</span> As {New, Class, I})
 End Structure
 
-Structure S(Of T As {<span>New</span>, <span>Class</span>, <span>I</span>})
+Structure S(Of <span>T</span> As {New, Class, I})
 End Structure
 
 <A, B>
