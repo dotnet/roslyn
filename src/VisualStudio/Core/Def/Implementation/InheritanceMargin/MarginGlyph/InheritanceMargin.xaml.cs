@@ -104,7 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
-            ResetBorderToInitialColor();
+            if (!IsMouseOver)
+            {
+                ResetBorderToInitialColor();
+            }
             // Move the focus back to textView when the context menu is closed.
             // It ensures the focus won't be left at the margin
             ResetFocus();
