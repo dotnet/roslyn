@@ -1189,13 +1189,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
                             Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
                             Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
-                            if (s1Input.Index == s2Input.Index &&
+                            // Ignore input source as it will be matched in the subsequent iterations.
+                            if (s1Input.IsEquivalentTo(s2Input, ignoreSource: true) &&
                                 // We don't want to pair two indices within the same pattern.
                                 s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                             {
-                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp) ||
-                                    (s1LengthTemp.Source, s2LengthTemp.Source) is ({ } e1, { } e2) &&
-                                    e1.IsEquivalentTo(e2) && s1LengthTemp.Index == s2LengthTemp.Index);
+                                Debug.Assert(s1Input.Equals(s2Input)
+                                    ? s1LengthTemp.Equals(s2LengthTemp)
+                                    : s1LengthTemp.IsEquivalentTo(s2LengthTemp));
                                 if (s1Index == s2Index)
                                 {
                                     continue;
@@ -1223,22 +1224,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                 }
                             }
-                            goto default;
+                            break;
 
                         // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
                         // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
                         // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
-                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && s1Input.Index == s2Input.Index:
-                            Debug.Assert(s1Input.Type.Equals(s2Input.Type, TypeCompareKind.AllIgnoreOptions));
+                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1Input.IsEquivalentTo(s2Input):
                             s1Input = s1.Input;
                             s2Input = s2.Input;
                             continue;
-
-                        default:
-                            // tests are unrelated
-                            preconditions.Free();
-                            return;
                     }
+
+                    // tests are unrelated
+                    preconditions.Free();
+                    return;
                 }
                 while (!s1Input.Equals(s2Input));
 
