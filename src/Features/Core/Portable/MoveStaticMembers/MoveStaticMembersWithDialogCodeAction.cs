@@ -182,8 +182,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // All of these references are not easily fixable and possibly incorrect, so we are ok with ignoring these, even if it produces an error
-                if (refLoc.IsCandidateLocation || refLoc.IsImplicit || refLoc.Alias != null)
+                // Candidate locations represent a non-perfect match (like incorrect number of params),
+                // which means it likely isn't the member access we're looking for. It's either a reference to
+                // something else, like an overload, in which case we shouldn't change it, or it's an error
+                // by the user, meaning it's ok if we don't change it, as the user will have to fix it anyways
+                if (refLoc.IsCandidateLocation)
                 {
                     continue;
                 }
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 var doc = docEditor.OriginalDocument;
 
                 var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-                var refNode = docEditor.GetChangedRoot().FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+                var refNode = docEditor.OriginalRoot.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
                 // track this node in case the doc has changed
                 docEditor.ReplaceNode(refNode, refNode.TrackNodes(refNode));
 
@@ -217,7 +220,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     continue;
                 }
 
-                if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode))
+                // static member access should never be pointer or conditional member access
+                if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
                 {
                     var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
                     if (expression != null)
