@@ -234,23 +234,18 @@
                         <CheckBox x:Uid="ShowHintsForLiterals"
                                   x:Name="ShowHintsForLiterals"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
-                        <StackPanel Margin="15, 0, 0, 0">
-                            <CheckBox x:Uid="ShowHintsForIndexers"
-                                  x:Name="ShowHintsForIndexers"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_indexers}" />
-                        </StackPanel>
                         <CheckBox x:Uid="ShowHintsForNewExpressions"
                                   x:Name="ShowHintsForNewExpressions"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
-
                         <CheckBox x:Uid="ShowHintsForEverythingElse"
                                   x:Name="ShowHintsForEverythingElse"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
-
+                        <CheckBox x:Uid="ShowHintsForIndexers"
+                                  x:Name="ShowHintsForIndexers"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_indexers}" />
                         <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
-
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />

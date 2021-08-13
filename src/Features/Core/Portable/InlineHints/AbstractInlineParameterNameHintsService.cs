@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
             var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
             var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
-            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
+            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
 
@@ -83,7 +83,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (HintMatches(node, kind, literalParameters, objectCreationParameters, otherParameters, indexerParameters))
+                    if (!indexerParameters && IsIndexer(node))
+                    {
+                        continue;
+                    }
+
+                    if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
@@ -181,25 +186,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 => c is >= '0' and <= '9';
         }
 
-        private bool HintMatches(SyntaxNode node, HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters, bool indexerParameters)
+        private static bool HintMatches(HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters)
         {
-            switch (kind)
+            return kind switch
             {
-                case HintKind.Literal:
-                    if (literalParameters)
-                    {
-                        return !IsIndexer(node) || indexerParameters;
-                    }
-
-                    return false;
-
-                case HintKind.ObjectCreation:
-                    return objectCreationParameters;
-                case HintKind.Other:
-                    return otherParameters;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+                HintKind.Literal => literalParameters,
+                HintKind.ObjectCreation => objectCreationParameters,
+                HintKind.Other => otherParameters,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
         }
 
         protected static bool MatchesMethodIntent(IParameterSymbol? parameter)
