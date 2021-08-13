@@ -367,6 +367,7 @@ class X
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_PartialMethodTypeDifference:
+                        case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -432,6 +433,7 @@ class X
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
                     ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
+                    ErrorCode.WRN_AttrDependentTypeNotAllowed,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
