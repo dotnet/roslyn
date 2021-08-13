@@ -3613,6 +3613,31 @@ class C
         }
 
         [Fact]
+        public async Task Disposal()
+        {
+            using var _1 = CreateWorkspace(out var solution, out var service);
+            (solution, var document) = AddDefaultTestProject(solution, "class C { }");
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            EndDebuggingSession(debuggingSession);
+
+            // The folling methods shall not be called after the debugging session ended.
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None));
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, instructionId: default, CancellationToken.None));
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId: default, CancellationToken.None));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateEntered(out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));
+
+            // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
+            Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
+            Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
+            Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+        }
+
+        [Fact]
         public async Task WatchHotReloadServiceTest()
         {
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";

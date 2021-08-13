@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'

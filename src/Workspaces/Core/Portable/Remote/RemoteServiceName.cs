@@ -62,12 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return WellKnownService switch
             {
                 WellKnownServiceHubService.RemoteHost => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + suffix,
-
                 WellKnownServiceHubService.IntelliCode => IntelliCodeServiceName + suffix,
-                WellKnownServiceHubService.Razor => RazorServiceName + suffix,
-                WellKnownServiceHubService.UnitTestingAnalysisService => UnitTestingAnalysisServiceName + suffix,
-                WellKnownServiceHubService.LiveUnitTestingBuildService => LiveUnitTestingBuildServiceName + suffix,
-                WellKnownServiceHubService.UnitTestingSourceLookupService => UnitTestingSourceLookupServiceName + suffix,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };

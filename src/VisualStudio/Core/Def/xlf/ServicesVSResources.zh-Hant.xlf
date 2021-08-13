@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">在您的解決方案根目錄偵測到新的 .editorconfig 檔案。要將其設為解決方案項目嗎?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">將會建立新的命名空間</target>
@@ -587,6 +582,11 @@
         <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="new">Namespaces have been updated.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -756,6 +756,11 @@
         <source>Newline (\\n)</source>
         <target state="translated">新行 (\\n)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="new">No namespaces needed updating.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
@@ -1127,6 +1132,11 @@
         <target state="translated">沒有參考的符號</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">按 Tab 鍵兩次可插入引數 (實驗性)</target>
@@ -1201,6 +1211,11 @@
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">未使用的值已明確指派至捨棄</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>

@@ -400,13 +400,13 @@ namespace Roslyn.Test.Utilities
         private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
             var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            return factory.CreateRequestDispatcher();
+            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages);
         }
 
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
             var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, serverName: "Tests", "TestClient");
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

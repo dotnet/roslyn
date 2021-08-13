@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -747,14 +747,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
-                    var emitResult = newCompilation.EmitDifference(
-                        baseline,
-                        projectChanges.SemanticEdits,
-                        projectChanges.AddedSymbols.Contains,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        cancellationToken);
+                    EmitDifferenceResult emitResult;
+
+                    // The lock protects underlying baseline readers from being disposed while emitting delta.
+                    // If the lock is disposed at this point the session has been incorrectly disposed while operations on it are in progress.
+                    using (baselineAccessLock.DisposableRead())
+                    {
+                        DebuggingSession.ThrowIfDisposed();
+
+                        emitResult = newCompilation.EmitDifference(
+                            baseline,
+                            projectChanges.SemanticEdits,
+                            projectChanges.AddedSymbols.Contains,
+                            metadataStream,
+                            ilStream,
+                            pdbStream,
+                            cancellationToken);
+                    }
 
                     if (emitResult.Success)
                     {

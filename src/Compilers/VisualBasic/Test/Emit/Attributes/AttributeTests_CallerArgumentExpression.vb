@@ -1087,7 +1087,7 @@ caller target value
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        Public Sub TestArgumentExpressionIsReferingToItself_AttributeConstructor()
+        Public Sub TestArgumentExpressionIsReferringToItself_AttributeConstructor()
             Dim source = "
 Imports System
 Imports System.Reflection
