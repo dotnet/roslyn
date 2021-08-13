@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
-        protected abstract bool IsArrayIndexer(SyntaxNode node);
+        protected abstract bool IsIndexer(SyntaxNode node);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return ImmutableArray<InlineHint>.Empty;
 
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
-            var arrayIndexers = displayAllOverride || options.GetOption(InlineHintsOptions.ForArrayIndexers);
             var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
             var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
+            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (HintMatches(node, kind, literalParameters, objectCreationParameters, otherParameters, arrayIndexers))
+                    if (HintMatches(node, kind, literalParameters, objectCreationParameters, otherParameters, indexerParameters))
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
@@ -181,14 +181,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 => c is >= '0' and <= '9';
         }
 
-        private bool HintMatches(SyntaxNode node, HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters, bool arrayIndexers)
+        private bool HintMatches(SyntaxNode node, HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters, bool indexerParameters)
         {
             switch (kind)
             {
                 case HintKind.Literal:
                     if (literalParameters)
                     {
-                        return !IsArrayIndexer(node) || arrayIndexers;
+                        return !IsIndexer(node) || indexerParameters;
                     }
 
                     return false;

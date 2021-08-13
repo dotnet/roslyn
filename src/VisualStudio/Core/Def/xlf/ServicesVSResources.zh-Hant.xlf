@@ -1047,11 +1047,6 @@
         <target state="translated">顯示自動完成清單</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_hints_for_array_indexers">
-        <source>Show hints for array indexers</source>
-        <target state="new">Show hints for array indexers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">顯示所有其他項目的提示</target>
@@ -1060,6 +1055,11 @@
       <trans-unit id="Show_hints_for_implicit_object_creation">
         <source>Show hints for implicit object creation</source>
         <target state="translated">顯示隱含物件建立的提示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">

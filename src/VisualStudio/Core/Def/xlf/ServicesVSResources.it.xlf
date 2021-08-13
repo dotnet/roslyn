@@ -1047,11 +1047,6 @@
         <target state="translated">Mostra l'elenco di completamento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_hints_for_array_indexers">
-        <source>Show hints for array indexers</source>
-        <target state="new">Show hints for array indexers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">Mostra suggerimenti per tutto il resto</target>
@@ -1060,6 +1055,11 @@
       <trans-unit id="Show_hints_for_implicit_object_creation">
         <source>Show hints for implicit object creation</source>
         <target state="translated">Mostra i suggerimenti per la creazione implicita di oggetti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">

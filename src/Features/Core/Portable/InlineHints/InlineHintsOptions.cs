@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
 
-        public static readonly PerLanguageOption2<bool> ForArrayIndexers =
+        public static readonly PerLanguageOption2<bool> ForIndexerParameters =
             new(nameof(InlineHintsOptions),
-                nameof(ForArrayIndexers),
+                nameof(ForIndexerParameters),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers"));
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             InlineHintsOptions.ColorHints,
             InlineHintsOptions.EnabledForParameters,
             InlineHintsOptions.ForLiteralParameters,
-            InlineHintsOptions.ForArrayIndexers,
+            InlineHintsOptions.ForIndexerParameters,
             InlineHintsOptions.ForObjectCreationParameters,
             InlineHintsOptions.ForOtherParameters,
             InlineHintsOptions.EnabledForTypes,

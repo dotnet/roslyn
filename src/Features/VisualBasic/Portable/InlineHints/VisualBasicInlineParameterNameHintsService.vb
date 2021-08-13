@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Return HintKind.Other
         End Function
 
-        Protected Overrides Function IsArrayIndexer(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsIndexer(node As SyntaxNode) As Boolean
             Return False
         End Function
     End Class
