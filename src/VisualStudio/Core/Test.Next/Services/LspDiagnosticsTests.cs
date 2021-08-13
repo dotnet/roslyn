@@ -415,6 +415,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     mockDiagnosticService,
+                    ProtocolConstants.RoslynLspLanguages,
                     clientName: null,
                     userVisibleServerName: string.Empty,
                     telemetryServerTypeName: string.Empty);
@@ -603,6 +604,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 : base(null!, null!, null, null!, null!, null!, null!, null)
             {
             }
+
+            protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
             public override string Name => nameof(LspDiagnosticsTests);
 

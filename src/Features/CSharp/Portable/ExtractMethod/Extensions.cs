@@ -68,24 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            bool predicate(SyntaxNode n)
-            {
-                if (n is BaseMethodDeclarationSyntax ||
-                    n is AccessorDeclarationSyntax ||
-                    n is BlockSyntax ||
-                    n is GlobalStatementSyntax)
-                {
-                    return true;
-                }
-
-                if (n is ConstructorInitializerSyntax constructorInitializer)
-                {
-                    return constructorInitializer.ContainsInArgument(node.Span);
-                }
-
-                return false;
-            }
-
             if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
             {
                 return false;
@@ -97,6 +79,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             return false;
+
+            bool predicate(SyntaxNode n)
+            {
+                if (n is BaseMethodDeclarationSyntax or
+                    AccessorDeclarationSyntax or
+                    BlockSyntax or
+                    GlobalStatementSyntax)
+                {
+                    return true;
+                }
+
+                if (n is ConstructorInitializerSyntax constructorInitializer)
+                {
+                    return constructorInitializer.ContainsInArgument(node.Span);
+                }
+
+                return false;
+            }
+        }
+
+        public static bool ContainedInValidType(this SyntaxNode node)
+        {
+            Contract.ThrowIfNull(node);
+            foreach (var ancestor in node.AncestorsAndSelf())
+            {
+                if (ancestor is TypeDeclarationSyntax)
+                {
+                    return true;
+                }
+
+                if (ancestor is NamespaceDeclarationSyntax)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static bool UnderValidContext(this SyntaxToken token)

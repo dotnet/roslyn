@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Range = ProtocolConversions.TextSpanToRange(new TextSpan(d.Offset, d.Length), text),
                 Tags = ConvertTags(d),
                 Source = d.Tool,
-                CodeDescription = GetCodeDescription(d.HelpLink),
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.HelpLink),
                 Projects = new[]
                 {
                     new VSDiagnosticProjectInformation
@@ -188,19 +188,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 result.Add(DiagnosticTag.Unnecessary);
 
             return result.ToArray();
-        }
-
-        private static CodeDescription? GetCodeDescription(string? helpLink)
-        {
-            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
-            {
-                return new CodeDescription
-                {
-                    Href = uri,
-                };
-            }
-
-            return null;
         }
     }
 }

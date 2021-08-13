@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = false;
             bool hasReturnWithExpression = false;
             GlobalStatementSyntax firstGlobalStatement = null;
-            bool hasNonEmptyGlobalSatement = false;
+            bool hasNonEmptyGlobalStatement = false;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             foreach (var member in members)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!topLevelStatement.IsKind(SyntaxKind.EmptyStatement))
                     {
-                        hasNonEmptyGlobalSatement = true;
+                        hasNonEmptyGlobalStatement = true;
                     }
 
                     if (!hasAwaitExpressions)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var diagnostics = ImmutableArray<Diagnostic>.Empty;
 
-                if (!hasNonEmptyGlobalSatement)
+                if (!hasNonEmptyGlobalStatement)
                 {
                     var bag = DiagnosticBag.GetInstance();
                     bag.Add(ErrorCode.ERR_SimpleProgramIsEmpty, ((EmptyStatementSyntax)firstGlobalStatement.Statement).SemicolonToken.GetLocation());

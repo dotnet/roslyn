@@ -3642,12 +3642,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
             }
 
-            var printMembers = addPrintMembersMethod();
+            var printMembers = addPrintMembersMethod(membersSoFar);
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
             fieldsByName.Free();
             memberNames.Free();
+
+            // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
+            Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly : false }));
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3753,7 +3756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
             }
 
-            MethodSymbol addPrintMembersMethod()
+            MethodSymbol addPrintMembersMethod(IEnumerable<Symbol> userDefinedMembers)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.PrintMembersMethodName,
@@ -3776,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol printMembersMethod;
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
-                    printMembersMethod = new SynthesizedRecordPrintMembers(this, memberOffset: members.Count, diagnostics);
+                    printMembersMethod = new SynthesizedRecordPrintMembers(this, userDefinedMembers, memberOffset: members.Count, diagnostics);
                     members.Add(printMembersMethod);
                 }
                 else
@@ -3847,7 +3850,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        var toStringMethod = new SynthesizedRecordToString(
+                            this,
+                            printMethod,
+                            memberOffset: members.Count,
+                            isReadOnly: printMethod.IsEffectivelyReadOnly,
+                            diagnostics);
                         members.Add(toStringMethod);
                     }
                     else

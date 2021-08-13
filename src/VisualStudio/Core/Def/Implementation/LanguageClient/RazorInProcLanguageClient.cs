@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -41,6 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
+        protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
