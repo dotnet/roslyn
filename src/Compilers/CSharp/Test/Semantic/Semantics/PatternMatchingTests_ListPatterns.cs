@@ -1406,7 +1406,6 @@ class X
         public void SlicePattern_OrderOfEvaluation(string array, string pattern, string expectedOutput)
         {
             var source = @"
-using System.Drawing;
 using static System.Console;
 
 Write(new MyArray(new MyPoint[] " + array + @") is " + pattern + @");
@@ -1430,6 +1429,11 @@ class MyArray
     public MyPoint this[System.Index index] { get { Write($""{source}[{index}], ""); return new(array[index].point, $""{source}[{index}]""); } }
     public MyArray this[System.Range range] { get { Write($""{source}[{range}], ""); return new(array[range], $""{source}[{range}]""); } }
     public int Length { get { Write($""{source}.{nameof(Length)}, ""); return array.Length; } }
+}
+struct Point
+{
+    public int X, Y;
+    public Point(int x, int y) => (X, Y) = (x, y);
 }
 " + TestSources.GetSubArray;
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
