@@ -2412,6 +2412,40 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
         }
 
+        [Fact(Skip = "TODO")]
+        public void Subsumption_16()
+        {
+            var src = @"
+using System;
+class C
+{
+    static int Test(int[][] a)
+    {
+        switch (a)
+        {
+            case [.., [.., <0]]:
+                return 1;
+            case [[>=0]]:
+                return 2;
+        }
+        return -1;
+    }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[] { new[] { 0, -1 }}));
+        Console.WriteLine(Test(new[] { new[] { 0 }, new[] { -1 }}));
+        Console.WriteLine(Test(new[] { new[] { 0 }}));
+    }
+}";
+            var expectedOutput = @"
+1
+1
+2
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         public void Subsumption_Slice_00(
