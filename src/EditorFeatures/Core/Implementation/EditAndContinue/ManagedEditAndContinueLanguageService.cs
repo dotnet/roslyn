@@ -28,18 +28,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-        private readonly IManagedEditAndContinueDebuggerService _debuggerService;
+        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
         private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
 
         private bool _disabled;
 
+        /// <summary>
+        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedEditAndContinueDebuggerService"/> lazily so that the host does not need to implement them
+        /// unless it implements debugger components.
+        /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedEditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            IManagedEditAndContinueDebuggerService debuggerService,
+            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    _debuggerService,
+                    _debuggerService.Value,
                     captureMatchingDocuments: openedDocumentIds,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,

@@ -1189,7 +1189,7 @@ public class Test
 
         [Theory]
         [MemberData(nameof(FullMatrixTheoryData))]
-        public void AppliedCompilationRelaxationsOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        public void AppliedCompilationRelaxationsOnModuleSuppressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -1230,7 +1230,7 @@ public class Test
 
         [Theory]
         [MemberData(nameof(FullMatrixTheoryData))]
-        public void AppliedRuntimeCompatibilityOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
+        public void AppliedRuntimeCompatibilityOnModuleSuppressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;

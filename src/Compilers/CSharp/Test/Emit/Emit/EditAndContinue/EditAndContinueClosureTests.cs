@@ -4496,8 +4496,8 @@ Console.WriteLine(x());
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
-            var f1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var f0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
+            var f1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -4507,8 +4507,8 @@ Console.WriteLine(x());
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "<Program>$.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
-                "<Program>$: {<>c__DisplayClass0_0}");
+                "Program.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
+                "Program: {<>c__DisplayClass0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4517,7 +4517,66 @@ Console.WriteLine(x());
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        [WorkItem(55381, "https://github.com/dotnet/roslyn/issues/55381")]
+        public void HiddenMethodClosure()
+        {
+            var source0 = MarkedSource(@"
+#line hidden
+using System;
+
+class C
+{
+    public static void F(int arg)
+    <N:0>{</N:0>
+        Func<int> x = <N:1>() => arg</N:1>;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+#line hidden    
+using System;
+
+class C
+{
+    public static void F(int arg)
+    <N:0>{</N:0>
+        Func<int> x = <N:1>() => arg + 1</N:1>;
+    }
+}
+");
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {arg, <F>b__0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Param, EditAndContinueOperation.Default));
         }
     }

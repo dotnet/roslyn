@@ -28,8 +28,8 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
-                    <CheckBox x:Name="Use_64bit_analysis_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
+                    <CheckBox x:Name="Run_code_analysis_in_separate_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
                     <CheckBox x:Name="Enable_file_logging_for_diagnostics"
@@ -57,6 +57,13 @@
                     <CheckBox x:Name="AddMissingImportsOnPaste"
                               x:Uid="AddMissingImportsOnPaste"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_imports_on_paste}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="QuickActionsBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
+                <StackPanel>
+                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
