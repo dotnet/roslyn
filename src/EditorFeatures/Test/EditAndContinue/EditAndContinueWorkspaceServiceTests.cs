@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task BreakMode_ModuleDisallowsEditAndContinue()
+        public async Task ModuleDisallowsEditAndContinue()
         {
             var moduleId = Guid.NewGuid();
 
@@ -1114,7 +1114,7 @@ class C1
         }
 
         [Fact]
-        public async Task BreakMode_Encodings()
+        public async Task Encodings()
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(\"ã\"); } }";
 
