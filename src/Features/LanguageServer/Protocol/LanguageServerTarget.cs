@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             JsonRpc = jsonRpc;
             JsonRpc.AddLocalRpcTarget(this);
+            JsonRpc.Disconnected += JsonRpc_Disconnected;
 
             Listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             ClientName = clientName;
@@ -157,6 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             try
             {
                 ShutdownRequestQueue();
+                JsonRpc.Disconnected -= JsonRpc_Disconnected;
                 JsonRpc.Dispose();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -402,6 +404,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }).CompletesAsyncOperation(asyncToken);
         }
 
+        /// <summary>
+        /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
+        /// </summary>
+        private void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+        {
+            if (_shuttingDown)
+            {
+                // We're already in the normal shutdown -> exit path, no need to do anything.
+                return;
+            }
+
+            Logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
+
+            ShutdownImpl();
+            ExitImpl();
+        }
+
         public async ValueTask DisposeAsync()
         {
             // if the server shut down due to error, we might not have finished cleaning up
@@ -410,6 +429,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             if (Logger is IDisposable disposableLogger)
                 disposableLogger.Dispose();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this.Queue);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly RequestExecutionQueue _queue;
+
+            public TestAccessor(RequestExecutionQueue queue)
+                => _queue = queue;
+
+            public RequestExecutionQueue.TestAccessor GetQueueAccessor()
+                => _queue.GetTestAccessor();
         }
     }
 }
