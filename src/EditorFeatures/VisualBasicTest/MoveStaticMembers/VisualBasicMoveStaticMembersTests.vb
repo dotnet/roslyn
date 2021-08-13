@@ -9,13 +9,13 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.MoveStaticMembers
+    <UseExportProvider>
     Public Class VisualBasicMoveStaticMembersTests
 
         Private Shared ReadOnly s_testServices As TestComposition = FeaturesTestCompositions.Features.AddParts(GetType(TestMoveStaticMembersService))
 
 #Region "Perform Actions From Options"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveField() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -43,7 +43,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveProperty() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -78,7 +77,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveEvent() As Task
             Dim initialMarkup = "
 Imports System
@@ -111,7 +109,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveComplexEvent() As Task
             Dim initialMarkup = "
 Imports System
@@ -164,7 +161,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -195,7 +191,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveSub() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -224,7 +219,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveConst() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -251,7 +245,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestInNestedClass() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -286,7 +279,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestInNestedNamespace() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -321,7 +313,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldNoNamespace() As Task
             Dim initialMarkup = "
 Public Class Class1
@@ -343,7 +334,6 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldNewNamespace() As Task
             Dim initialMarkup = "
 Public Class Class1
@@ -367,7 +357,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFieldAddNamespace() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -395,7 +384,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveGenericFunction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -426,7 +414,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionWithGenericClass() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -457,7 +444,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionWithFolders() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -488,7 +474,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveMultipleFunctions() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -527,7 +512,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveOneOfMultipleFuncs() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -566,7 +550,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveOneOfEach() As Task
             Dim initialMarkup = "
 Imports System
@@ -635,7 +618,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionAndRefactorUsage() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -678,7 +660,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionAndRefactorUsageDifferentNamespace() As Task
             Dim initialMarkup = "
 Imports TestNs
@@ -728,8 +709,9 @@ End Namespace
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
+#End Region
+#Region "SelectionTests"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionAndRefactorUsageNewNamespace() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -774,7 +756,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionAndRefactorUsageSeparateFile() As Task
             Dim initialMarkup1 = "
 Namespace TestNs
@@ -828,7 +809,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveExtensionFunction() As Task
             Dim initialMarkup = "
 Imports System.Runtime.CompilerServices
@@ -898,7 +878,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveExtensionFunctionAddImports() As Task
             Dim initialMarkup = "
 Imports System.Runtime.CompilerServices
@@ -977,7 +956,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionInModule() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1008,7 +986,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestMoveFunctionRetainFileBanner() As Task
             Dim initialMarkup = "' Here is an example of a license or something
 ' That we want to keep/copy over
@@ -1048,7 +1025,6 @@ End Namespace
 #End Region
 #Region "SelectionTests"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectBeforeDeclarationKeyword() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1076,7 +1052,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectWholeFieldDeclaration() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1104,7 +1079,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInDeclarationKeyword1() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1132,7 +1106,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInDeclarationKeyword2() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1160,7 +1133,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodParens() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1191,7 +1163,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInTypeIdentifierMethodDeclaration() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1222,7 +1193,6 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInFieldInitializerEquals_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1235,7 +1205,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInFieldTypeIdentifier_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1248,7 +1217,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodBody_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1263,7 +1231,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectInMethodClose_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1278,7 +1245,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectNonSharedProperty_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1295,7 +1261,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectPropertyGetter_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1312,7 +1277,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectConstructor1_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1326,7 +1290,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectConstructor2_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1340,7 +1303,6 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        <UseExportProvider>
         Public Async Function TestSelectOperator_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1353,6 +1315,7 @@ End Namespace"
 
             Await TestNoRefactoringAsync(initialMarkup)
         End Function
+
 #End Region
 
         Private Class Test

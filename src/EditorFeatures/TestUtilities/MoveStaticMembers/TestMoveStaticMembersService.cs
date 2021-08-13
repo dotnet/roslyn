@@ -14,13 +14,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
     [PartNotDiscoverable]
     internal class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
     {
-        public string DestinationType { get; set; }
+        [ImportingConstructor]
+        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestMoveStaticMembersService()
+        {
+        }
+
+        public string? DestinationType { get; set; }
 
         public ImmutableArray<string> SelectedMembers { get; set; }
 
-        public string Filename { get; set; }
-
-
+        public string? Filename { get; set; }
 
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
@@ -30,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
                 : selectedType.ContainingNamespace.ToDisplayString();
             // just return all the selected members
             return new MoveStaticMembersOptions(
-                Filename,
-                string.Join(".", namespaceDisplay, DestinationType),
+                Filename!,
+                string.Join(".", namespaceDisplay, DestinationType!),
                 selectedMembers);
         }
     }

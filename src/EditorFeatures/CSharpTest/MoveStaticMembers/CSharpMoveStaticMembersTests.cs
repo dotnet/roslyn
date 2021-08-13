@@ -13,13 +13,13 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveStaticMembers
 {
+    [UseExportProvider]
     public class CSharpMoveStaticMembersTests
     {
         private static readonly TestComposition s_testServices = FeaturesTestCompositions.Features.AddParts(typeof(TestMoveStaticMembersService));
 
         #region Perform Actions From Options
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveField()
         {
             var initialMarkup = @"
@@ -52,7 +52,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveProperty()
         {
             var initialMarkup = @"
@@ -84,7 +83,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveEvent()
         {
             var initialMarkup = @"
@@ -122,7 +120,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethod()
         {
             var initialMarkup = @"
@@ -160,7 +157,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveExtensionMethod()
         {
             var initialMarkup = @"
@@ -216,7 +212,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveConstField()
         {
             // const is static so we should work here
@@ -249,7 +244,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMultipleMethods()
         {
             var initialMarkup = @"
@@ -297,7 +291,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveSingleMethodFromMultiple()
         {
             // move the method that this was not triggered on
@@ -346,7 +339,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveOneOfEach()
         {
             var initialMarkup = @"
@@ -406,7 +398,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestInNestedClass()
         {
             var initialMarkup = @"
@@ -444,7 +435,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestInNestedNamespace()
         {
             // collapse the namespaces in the new file
@@ -483,7 +473,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveFieldNoNamespace()
         {
             var initialMarkup = @"
@@ -506,7 +495,6 @@ public class Class1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveFieldNewNamespace()
         {
             var initialMarkup = @"
@@ -532,7 +520,6 @@ public class Class1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodWithNamespacedSelectedDestination()
         {
             // in the case that we have an extra namespace in the destination name
@@ -572,7 +559,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodFileScopedNamespace()
         {
             // We still keep normal namespacing rules in the new file
@@ -621,7 +607,6 @@ public class Class1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveGenericMethod()
         {
             var initialMarkup = @"
@@ -659,7 +644,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodWithGenericClass()
         {
             var initialMarkup = @"
@@ -697,7 +681,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsage()
         {
             var initialMarkup = @"
@@ -751,7 +734,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageDifferentNamespace()
         {
             var initialMarkup = @"
@@ -815,7 +797,6 @@ namespace TestNs2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageNewNamespace()
         {
             var initialMarkup = @"
@@ -871,7 +852,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodAndRefactorUsageSeparateFile()
         {
             var initialMarkup1 = @"
@@ -948,7 +928,6 @@ public class Class2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveExtensionMethodDontRefactor()
         {
             var initialMarkup = @"
@@ -1022,7 +1001,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveExtensionMethodRefactorImports()
         {
             var initialMarkup = @"
@@ -1113,7 +1091,6 @@ namespace TestNs1.ExtraNs
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodFromStaticClass()
         {
             var initialMarkup = @"
@@ -1151,7 +1128,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestMoveMethodRetainFileBanner()
         {
             var initialMarkup = @"// Here is an example of a license or something
@@ -1199,7 +1175,6 @@ namespace TestNs1
         #region Selections and caret position
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInMethodParens()
         {
             var initialMarkup = @"
@@ -1237,7 +1212,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectWholeFieldDeclaration()
         {
             var initialMarkup = @"
@@ -1269,7 +1243,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectBeforeKeywordOfDeclaration()
         {
             var initialMarkup = @"
@@ -1301,7 +1274,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInKeyWordOfDeclaration1()
         {
             var initialMarkup = @"
@@ -1333,7 +1305,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInKeyWordOfDeclaration2()
         {
             var initialMarkup = @"
@@ -1365,7 +1336,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInTypeIdentifierMethodDeclaration()
         {
             var initialMarkup = @"
@@ -1403,7 +1373,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInFieldInitializerAfterSemicolon()
         {
             // However, a semicolon after the initializer is still considered a declaration
@@ -1437,7 +1406,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInTypeIdentifierOfFieldDeclaration_NoAction()
         {
             var initialMarkup = @"
@@ -1452,7 +1420,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectInFieldInitializerEquals_NoAction()
         {
             // The initializer isn't a member declaration
@@ -1468,7 +1435,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectMethodBody_NoAction()
         {
             var initialMarkup = @"
@@ -1486,7 +1452,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectMethodBracket_NoAction()
         {
             var initialMarkup = @"
@@ -1504,7 +1469,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectPropertyBody_NoAction()
         {
             var initialMarkup = @"
@@ -1519,7 +1483,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectNonStaticProperty_NoAction()
         {
             var initialMarkup = @"
@@ -1534,7 +1497,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectStaticConstructor1_NoAction()
         {
             var initialMarkup = @"
@@ -1551,7 +1513,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectStaticConstructor2_NoAction()
         {
             var initialMarkup = @"
@@ -1568,7 +1529,6 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        [UseExportProvider]
         public async Task TestSelectOperator_NoAction()
         {
             var initialMarkup = @"
