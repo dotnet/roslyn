@@ -10568,5 +10568,53 @@ record struct R3(int X) : Error3
 
             Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutParens.SpanStart + 2, speculativeBase, out _));
         }
+
+        [Fact, WorkItem(54413, "https://github.com/dotnet/roslyn/issues/54413")]
+        public void ValueTypeCopyConstructorLike_NoThisInitializer()
+        {
+            var src = @"
+record struct Value(string Text)
+{
+    private Value(int X) { } // 1
+    private Value(Value original) { } // 2
+}
+
+record class Boxed(string Text)
+{
+    private Boxed(int X) { } // 3
+    private Boxed(Boxed original) { } // 4
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Value(int X) { } // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(4, 13),
+                // (5,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Value(Value original) { } // 2
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(5, 13),
+                // (10,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Boxed(int X) { } // 3
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Boxed").WithLocation(10, 13),
+                // (11,13): error CS8878: A copy constructor 'Boxed.Boxed(Boxed)' must be public or protected because the record is not sealed.
+                //     private Boxed(Boxed original) { } // 4
+                Diagnostic(ErrorCode.ERR_CopyConstructorWrongAccessibility, "Boxed").WithArguments("Boxed.Boxed(Boxed)").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void ValueTypeCopyConstructorLike()
+        {
+            var src = @"
+System.Console.Write(new Value(new Value(0)));
+
+record struct Value(int I)
+{
+    public Value(Value original) : this(42) { }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "Value { I = 42 }");
+        }
     }
 }
