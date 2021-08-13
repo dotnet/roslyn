@@ -1574,7 +1574,7 @@ class C { int Y => 2; }
             Assert.Throws<InvalidOperationException>(() => debuggingSession.DiscardSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // solution update status after discarding an update (still has update ready):
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
@@ -1944,7 +1944,7 @@ class C { int Y => 2; }
                 Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
-                Assert.Empty(debuggingSession.NonRemappableRegions);
+                Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 var baselineReaders = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
                 Assert.Equal(2, baselineReaders.Length);
@@ -2080,7 +2080,7 @@ class C { int Y => 2; }
                 Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
-                Assert.Empty(debuggingSession.NonRemappableRegions);
+                Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 // verify that baseline is added:
                 Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
@@ -2612,7 +2612,7 @@ class C { int Y => 1; }
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // verify that baseline is added for both modules:
             Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
@@ -2662,7 +2662,7 @@ class C { int Y => 1; }
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // module readers tracked:
             baselineReaders = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
@@ -3292,7 +3292,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
 
@@ -3311,7 +3311,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             // EnC update F v3 -> v4
 
@@ -3341,7 +3341,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=5"
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
         }
@@ -3466,7 +3466,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
         }
