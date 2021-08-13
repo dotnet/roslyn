@@ -1594,6 +1594,62 @@ class C { int Y => 2; }
         }
 
         [Fact]
+        public async Task Capabilities()
+        {
+            var source1 = "class C { void M() { } }";
+            var source2 = "[System.Obsolete]class C { void M() { } }";
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            solution = AddDefaultTestProject(solution, new[] { source1 });
+            var documentId = solution.Projects.Single().Documents.Single().Id;
+
+            EmitAndLoadLibraryToDebuggee(source1);
+
+            // attached to processes that allow updating custom attributes:
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+
+            // F5
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // update document:
+            solution = solution.WithDocumentText(documentId, SourceText.From(source2, Encoding.UTF8));
+
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            EnterBreakState(debuggingSession);
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            // attach to additional processes - at least one process that does not allow updating custom attributes:
+            ExitBreakState();
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+            EnterBreakState(debuggingSession);
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+               diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            ExitBreakState();
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+               diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            // detach from processes that do not allow updating custom attributes:
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+
+            EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            ExitBreakState();
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
         public async Task ValidSignificantChange_EmitError()
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -3736,63 +3792,6 @@ class C
             Assert.Empty(result.updates);
 
             hotReload.EndSession();
-        }
-
-        [Fact]
-        public void ParseCapabilities()
-        {
-            var capabilities = ImmutableArray.Create("Baseline");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.False(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_CaseSensitive()
-        {
-            var capabilities = ImmutableArray.Create("BaseLine");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.False(service.HasFlag(EditAndContinueCapabilities.Baseline));
-        }
-
-        [Fact]
-        public void ParseCapabilities_IgnoreInvalid()
-        {
-            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "NewTypeDefinition");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_IgnoreInvalidNumeric()
-        {
-            var capabilities = ImmutableArray.Create("Baseline", "90", "NewTypeDefinition");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_AllCapabilitiesParsed()
-        {
-            foreach (var name in Enum.GetNames(typeof(EditAndContinueCapabilities)))
-            {
-                var capabilities = ImmutableArray.Create(name);
-
-                var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-                var flag = (EditAndContinueCapabilities)Enum.Parse(typeof(EditAndContinueCapabilities), name);
-                Assert.True(service.HasFlag(flag), $"Capability '{name}' was not parsed correctly, so it's impossible for a runtime to enable it!");
-            }
         }
     }
 }

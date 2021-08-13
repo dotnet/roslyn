@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var testAccessor = Analyzer.GetTestAccessor();
             var allEdits = new List<SemanticEditInfo>();
+            var lazyCapabilities = AsyncLazy.Create(capabilities ?? Net5RuntimeCapabilities);
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -135,7 +136,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, expectedResult.ActiveStatements.OldStatementsMap, newDocument, newActiveStatementSpans, capabilities ?? Net5RuntimeCapabilities, CancellationToken.None).Result;
+                var lazyOldActiveStatementMap = AsyncLazy.Create(expectedResult.ActiveStatements.OldStatementsMap);
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 

@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSessionId id,
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
-            EditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             bool reportDiagnostics)
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Id = id;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
-            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, capabilities, inBreakState: false);
+            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, inBreakState: false);
             ReportDiagnostics = reportDiagnostics;
         }
 
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ThrowIfDisposed();
 
             EndEditSession(out documentsToReanalyze);
-            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, EditSession.Capabilities, inBreakState);
+            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, inBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()
@@ -439,7 +438,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, EditSession.Capabilities, cancellationToken).ConfigureAwait(false);
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 if (analysis.HasChanges)
                 {
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -629,7 +628,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var analysis = await analyzer.AnalyzeDocumentAsync(
                             LastCommittedSolution.GetRequiredProject(documentId.ProjectId),
-                            baseActiveStatements,
+                            EditSession.BaseActiveStatements,
                             newDocument,
                             newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
                             EditSession.Capabilities,
@@ -753,7 +752,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, EditSession.Capabilities, cancellationToken).ConfigureAwait(false);
+                    var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                     // Document content did not change or unable to determine active statement spans in a document with syntax errors:
                     if (!analysis.ActiveStatements.IsDefault)
@@ -817,7 +816,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, newDocument, activeStatementSpanProvider, EditSession.Capabilities, cancellationToken).ConfigureAwait(false);
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, newDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 if (!analysis.HasChanges)
                 {
                     // Document content did not change:

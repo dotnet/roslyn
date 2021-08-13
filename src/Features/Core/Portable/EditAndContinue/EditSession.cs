@@ -65,11 +65,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// Retrieved lazily from <see cref="DebuggingSession.DebuggerService"/> since they are only needed when changes are detected in the solution.
         /// </summary>
-        internal readonly EditAndContinueCapabilities Capabilities;
+        internal readonly AsyncLazy<EditAndContinueCapabilities> Capabilities;
 
         /// <summary>
-        /// Lazily calculated map of base active statements.
+        /// Map of base active statements.
+        /// Calculated lazily based on info retrieved from <see cref="DebuggingSession.DebuggerService"/> since it is only needed when changes are detected in the solution.
         /// </summary>
         internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
@@ -96,20 +98,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSession debuggingSession,
             ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
             EditSessionTelemetry telemetry,
-            EditAndContinueCapabilities capabilities,
             bool inBreakState)
         {
             DebuggingSession = debuggingSession;
             NonRemappableRegions = nonRemappableRegions;
             Telemetry = telemetry;
-            Capabilities = capabilities;
             InBreakState = inBreakState;
 
             BaseActiveStatements = inBreakState ?
-                new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true) :
+                new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
                 new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
 
-            Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
+            Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
+            Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
         }
 
         /// <summary>
@@ -131,6 +132,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(availability.Status);
             return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
+        }
+
+        private async Task<EditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                return EditAndContinueCapabilitiesParser.Parse(capabilities);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                return EditAndContinueCapabilities.Baseline;
+            }
         }
 
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
@@ -337,7 +351,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, Capabilities, cancellationToken).ConfigureAwait(false);
+            var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             return (analyses, documentDiagnostics.ToImmutable());
         }
 

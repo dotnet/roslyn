@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var mockDebuggerService = new MockManagedEditAndContinueDebuggerService()
             {
-                GetActiveStatementsImpl = () => activeStatements
+                GetActiveStatementsImpl = () => activeStatements,
             };
 
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 new DebuggingSessionId(1),
                 solution,
                 mockDebuggerService,
-                EditAndContinueTestHelpers.Net5RuntimeCapabilities,
                 mockCompilationOutputsProvider,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
                 reportDiagnostics: true);
