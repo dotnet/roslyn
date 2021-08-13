@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             using var testLspServer = CreateTestLspServer("class C { }", out _);
 
             // Cancel all requests if we hang for 5 seconds. This will result in a failed test run.
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
             var waitables = StartTestRun(testLspServer, requests, cts.Token);
 
             // Non-long running tasks should run and complete. If there's a test-failure for a "cancellation"
