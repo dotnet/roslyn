@@ -1750,9 +1750,6 @@ Additional information: {1}</value>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
   </data>
-  <data name="A_new_type_will_be_created" xml:space="preserve">
-    <value>A new type will be created</value>
-  </data>
   <data name="Invalid_type_name" xml:space="preserve">
     <value>Invalid type name</value>
   </data>
@@ -1779,5 +1776,8 @@ Additional information: {1}</value>
   </data>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
+  </data>
+  <data name="New_type_name_colon_0" xml:space="preserve">
+    <value>New type name: '{0}'</value>
   </data>
 </root>

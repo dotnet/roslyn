@@ -12,11 +12,6 @@
         <target state="translated">新しい名前空間が作成されます</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_new_type_will_be_created">
-        <source>A new type will be created</source>
-        <target state="new">A new type will be created</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
         <target state="translated">種類と名前を指定する必要があります。</target>
@@ -755,6 +750,11 @@
       <trans-unit id="New_line_preferences_experimental_colon">
         <source>New line preferences (experimental):</source>
         <target state="translated">改行設定 (試験段階):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_type_name_colon_0">
+        <source>New type name: '{0}'</source>
+        <target state="new">New type name: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Newline_n">

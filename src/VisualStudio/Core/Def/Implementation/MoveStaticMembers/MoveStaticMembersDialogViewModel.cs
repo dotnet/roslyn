@@ -20,16 +20,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private readonly ImmutableArray<string> _existingNames;
 
+        private readonly string _prependedNamespace;
+
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
             ImmutableArray<string> existingNames,
+            string prependedNamespace,
             ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _destinationName = defaultType;
             _existingNames = existingNames;
+            _prependedNamespace = prependedNamespace;
+            _fullyQualifiedTypeName = string.Join(".", _prependedNamespace, _destinationName);
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             OnDestinationUpdated();
@@ -48,13 +53,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public void OnDestinationUpdated()
         {
             // TODO change once we allow movement to existing types
-            var isNewType = !_existingNames.Contains(DestinationName);
-            _isValidName = isNewType && IsValidType(DestinationName);
+            FullyQualifiedTypeName = string.Join(".", _prependedNamespace, _destinationName);
+            var isNewType = !_existingNames.Contains(FullyQualifiedTypeName);
+            _isValidName = isNewType && IsValidType(FullyQualifiedTypeName);
 
             if (_isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = ServicesVSResources.A_new_type_will_be_created;
+                Message = string.Format(ServicesVSResources.New_type_name_colon_0, FullyQualifiedTypeName);
                 ShowMessage = true;
             }
             else
@@ -117,6 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public bool CanSubmit
         {
             get => _isValidName && MemberSelectionViewModel.CheckedMembers.Length > 0;
+        }
+
+        private string _fullyQualifiedTypeName;
+        public string FullyQualifiedTypeName
+        {
+            get => _fullyQualifiedTypeName;
+            private set => SetProperty(ref _fullyQualifiedTypeName, value);
         }
     }
 }

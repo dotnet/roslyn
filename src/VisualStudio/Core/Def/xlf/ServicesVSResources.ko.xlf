@@ -12,11 +12,6 @@
         <target state="translated">새 네임스페이스가 만들어집니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_new_type_will_be_created">
-        <source>A new type will be created</source>
-        <target state="new">A new type will be created</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
         <target state="translated">형식과 이름을 지정해야 합니다.</target>
@@ -755,6 +750,11 @@
       <trans-unit id="New_line_preferences_experimental_colon">
         <source>New line preferences (experimental):</source>
         <target state="translated">새 줄 기본 설정(실험적):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_type_name_colon_0">
+        <source>New type name: '{0}'</source>
+        <target state="new">New type name: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Newline_n">
