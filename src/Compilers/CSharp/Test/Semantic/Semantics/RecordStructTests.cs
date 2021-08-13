@@ -10570,7 +10570,7 @@ record struct R3(int X) : Error3
         }
 
         [Fact, WorkItem(54413, "https://github.com/dotnet/roslyn/issues/54413")]
-        public void Repro54413()
+        public void ValueTypeCopyConstructorLike_NoThisInitializer()
         {
             var src = @"
 record struct Value(string Text)
@@ -10600,6 +10600,21 @@ record class Boxed(string Text)
                 //     private Boxed(Boxed original) { } // 4
                 Diagnostic(ErrorCode.ERR_CopyConstructorWrongAccessibility, "Boxed").WithArguments("Boxed.Boxed(Boxed)").WithLocation(11, 13)
                 );
+        }
+
+        [Fact]
+        public void ValueTypeCopyConstructorLike()
+        {
+            var src = @"
+System.Console.Write(new Value(new Value(0)));
+
+record struct Value(int I)
+{
+    public Value(Value original) : this(42) { }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "Value { I = 42 }");
         }
     }
 }
