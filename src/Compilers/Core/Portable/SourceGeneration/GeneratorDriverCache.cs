@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class GeneratorDriverCache
+    internal sealed class GeneratorDriverCache
     {
         internal const int MaxCacheSize = 10;
 
@@ -19,37 +20,21 @@ namespace Microsoft.CodeAnalysis
 
         private int _cacheSize = 0;
 
-        public GeneratorDriver? TryGetDriver(string cacheKey)
-        {
-            lock (_cacheLock)
-            {
-                int i = 0;
-                GeneratorDriver? driver = null;
+        public GeneratorDriver? TryGetDriver(string cacheKey) => AddOrUpdateMostRecentlyUsed(cacheKey, driver: null);
 
-                for (; i < _cacheSize; i++)
-                {
-                    if (_cachedDrivers[i].cacheKey == cacheKey)
-                    {
-                        driver = _cachedDrivers[i].driver;
-                        break;
-                    }
-                }
+        public void CacheGenerator(string cacheKey, GeneratorDriver driver) => AddOrUpdateMostRecentlyUsed(cacheKey, driver);
 
-                if (driver is not null)
-                {
-                    // update the cache so that the found driver is at the head
-                    for (; i > 0; i--)
-                    {
-                        _cachedDrivers[i] = _cachedDrivers[i - 1];
-                    }
-                    _cachedDrivers[0] = (cacheKey, driver);
-                }
+        public int CacheSize => _cacheSize;
 
-                return driver;
-            }
-        }
-
-        public void CacheGenerator(string cacheKey, GeneratorDriver driver)
+        /// <summary>
+        /// Attempts to find a driver based on <paramref name="cacheKey"/>. If a matching driver is found in the 
+        /// cache, or explicitly passed via <paramref name="driver"/>, the cache is updated so that it is at the
+        /// head of the list.
+        /// </summary>
+        /// <param name="cacheKey">The key to lookup the driver by in the cache</param>
+        /// <param name="driver">An optional driver that should be cached, if not already found in the cache</param>
+        /// <returns></returns>
+        private GeneratorDriver? AddOrUpdateMostRecentlyUsed(string cacheKey, GeneratorDriver? driver)
         {
             lock (_cacheLock)
             {
@@ -59,17 +44,23 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_cachedDrivers[i].cacheKey == cacheKey)
                     {
+                        driver ??= _cachedDrivers[i].driver;
                         break;
                     }
                 }
 
-                // update the cache so that the driver is at the head
-                for (i = Math.Min(i, MaxCacheSize - 1); i > 0; i--)
+                // if we found it (or were passed a new one), update the cache so its at the head of the list
+                if (driver is not null)
                 {
-                    _cachedDrivers[i] = _cachedDrivers[i - 1];
+                    for (i = Math.Min(i, MaxCacheSize - 1); i > 0; i--)
+                    {
+                        _cachedDrivers[i] = _cachedDrivers[i - 1];
+                    }
+                    _cachedDrivers[0] = (cacheKey, driver);
+                    _cacheSize = Math.Min(MaxCacheSize, _cacheSize + 1);
                 }
-                _cachedDrivers[0] = (cacheKey, driver);
-                _cacheSize = Math.Min(MaxCacheSize, _cacheSize + 1);
+
+                return driver;
             }
         }
     }

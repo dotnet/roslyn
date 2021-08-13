@@ -9940,6 +9940,22 @@ class C
             RunWithCacheDisabled();
             Assert.Equal(3, sourceCallbackCount);
 
+            // now clear the cache as well as disabling, and verify we don't put any entries into it either
+            cache = new GeneratorDriverCache();
+            sourceCallbackCount = 0;
+
+            RunWithCacheDisabled();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(0, cache.CacheSize);
+
+            RunWithCacheDisabled();
+            Assert.Equal(2, sourceCallbackCount);
+            Assert.Equal(0, cache.CacheSize);
+
+            RunWithCacheDisabled();
+            Assert.Equal(3, sourceCallbackCount);
+            Assert.Equal(0, cache.CacheSize);
+
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
@@ -9950,7 +9966,7 @@ class C
         }
 
         [Fact]
-        public void Adding_Or_Removing_A_Genertor_Invalidates_Cache()
+        public void Adding_Or_Removing_A_Generator_Invalidates_Cache()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -9994,8 +10010,9 @@ class C
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            // this seems counterintuitive, but when the only thing to change is the generator, its valid to use the previously cached 
-            // driver. Thus the first generator will still use the cached results and not run
+            // this seems counterintuitive, but when the only thing to change is the generator, we end up back at the state of the project when 
+            // we just ran a single generator. Thus we already have an entry in the cache we can use (the one created by the original call to
+            // RunWithOneGenerator above) meaning we can use the previously cached results and not run.
             RunWithOneGenerator();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);

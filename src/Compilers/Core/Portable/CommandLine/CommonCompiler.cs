@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
-        public GeneratorDriverCache? DriverCache { get; }
+        public GeneratorDriverCache? GeneratorDriverCache { get; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
-            this.DriverCache = driverCache;
+            this.GeneratorDriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
@@ -741,10 +741,10 @@ namespace Microsoft.CodeAnalysis
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
             bool disableCache = Arguments.ParseOptions.Features.ContainsKey("disable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
-            if (this.DriverCache is object && !disableCache)
+            if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
-                driver = this.DriverCache.TryGetDriver(cacheKey);
+                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey);
             }
 
             driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!disableCache)
             {
-                this.DriverCache?.CacheGenerator(cacheKey, driver);
+                this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
             return compilationOut;
 
@@ -761,16 +761,16 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(!string.IsNullOrWhiteSpace(Arguments.OutputFileName));
 
-                StringBuilder sb = new StringBuilder();
-                sb.Append(Arguments.GetOutputFilePath(Arguments.OutputFileName));
+                PooledStringBuilder sb = PooledStringBuilder.GetInstance();
+                sb.Builder.Append(Arguments.GetOutputFilePath(Arguments.OutputFileName));
                 foreach (var generator in generators)
                 {
                     // append the generator FQN and the MVID of the assembly it came from, so any changes will invalidate the cache
                     var type = generator.GetGeneratorType();
-                    sb.Append(type.AssemblyQualifiedName);
-                    sb.Append(type.Assembly.ManifestModule.ModuleVersionId.ToString());
+                    sb.Builder.Append(type.AssemblyQualifiedName);
+                    sb.Builder.Append(type.Assembly.ManifestModule.ModuleVersionId.ToString());
                 }
-                return sb.ToString();
+                return sb.ToStringAndFree();
             }
         }
 

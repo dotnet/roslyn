@@ -3,20 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Immutable;
 using Xunit;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Test.Utilities.TestGenerators;
-using System.IO;
-using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class DriverCacheTests : CommandLineTestBase
+    public class GeneratorDriverCacheTests : CommandLineTestBase
     {
 
         [Fact]
@@ -73,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             // current cache state is 
             // (10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
-            // now try and retreive the first driver which should no longer be in the cache
+            // now try and retrieve the first driver which should no longer be in the cache
             var driver = driverCache.TryGetDriver("0");
             Assert.Null(driver);
 
@@ -104,6 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Assert.Null(driver);
         }
 
-        private GeneratorDriver[] GetDrivers(int count) => Enumerable.Range(0, count).Select(i => CSharpGeneratorDriver.Create(Array.Empty<ISourceGenerator>())).ToArray();
+        private static GeneratorDriver[] GetDrivers(int count) => Enumerable.Range(0, count).Select(i => CSharpGeneratorDriver.Create(Array.Empty<ISourceGenerator>())).ToArray();
     }
 }

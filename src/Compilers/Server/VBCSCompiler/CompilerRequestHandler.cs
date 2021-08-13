@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public ICompilerServerLogger Logger { get; }
 
         /// <summary>
-        /// A persistent cache that can store generator drivers in order to enable incrementalism across builds.
+        /// A cache that can store generator drivers in order to enable incrementalism across builds for the lifetime of the server.
         /// </summary>
         private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
 
