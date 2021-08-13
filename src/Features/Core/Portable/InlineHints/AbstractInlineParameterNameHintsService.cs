@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
-        protected abstract bool IsIndexer(SyntaxNode node);
+        protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (!indexerParameters && IsIndexer(node))
+                    if (!indexerParameters && IsIndexer(node, parameter))
                     {
                         continue;
                     }

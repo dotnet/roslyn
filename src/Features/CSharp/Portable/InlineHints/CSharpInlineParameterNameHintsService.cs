@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 _ => HintKind.Other,
             };
 
-        protected override bool IsIndexer(SyntaxNode node)
+        protected override bool IsIndexer(SyntaxNode node, IParameterSymbol parameter)
         {
             return node is BracketedArgumentListSyntax;
         }

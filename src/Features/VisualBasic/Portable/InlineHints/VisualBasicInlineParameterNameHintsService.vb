@@ -87,8 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Return HintKind.Other
         End Function
 
-        Protected Overrides Function IsIndexer(node As SyntaxNode) As Boolean
-            Return False
+        Protected Overrides Function IsIndexer(node As SyntaxNode, parameter As IParameterSymbol) As Boolean
+            Dim propertySymbol = TryCast(parameter.ContainingSymbol, IPropertySymbol)
+            Return propertySymbol IsNot Nothing AndAlso propertySymbol.IsDefault
         End Function
     End Class
 End Namespace
