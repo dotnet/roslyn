@@ -1907,6 +1907,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out Tests whenFalse,
                     ref bool foundExplicitNullTest)
                 {
+                    if (Test is BoundDagEvaluation)
+                    {
+                        // there cannot be any implication for an evaluation node.
+                        whenTrue = whenFalse = this;
+                        return;
+                    }
+
                     builder.CheckConsistentDecision(
                         test: test,
                         other: Test,
