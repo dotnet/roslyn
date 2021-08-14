@@ -2412,7 +2412,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Subsumption_16()
         {
             var src = @"
