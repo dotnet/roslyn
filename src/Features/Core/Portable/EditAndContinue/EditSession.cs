@@ -139,7 +139,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-                return EditAndContinueCapabilitiesParser.Parse(capabilities);
+                var result = EditAndContinueCapabilitiesParser.Parse(capabilities);
+
+                // For now, runtimes aren't returning capabilities, we just fall back to a known set.
+                // https://github.com/dotnet/roslyn/issues/54386
+                if (result == EditAndContinueCapabilities.None)
+                {
+                    result = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+                }
+
+                return result;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
