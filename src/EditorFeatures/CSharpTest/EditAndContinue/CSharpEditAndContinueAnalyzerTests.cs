@@ -102,12 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(Array.Empty<SyntaxKind>(), unhandledKinds);
         }
 
-        private static async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Project oldProject, Document newDocument, ActiveStatementsMap activeStatementMap = null)
+        private static async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+            Project oldProject,
+            Document newDocument,
+            ActiveStatementsMap activeStatementMap = null,
+            EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities)
         {
             var analyzer = new CSharpEditAndContinueAnalyzer();
             var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
-            var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
-            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
+            var lazyCapabilities = AsyncLazy.Create(capabilities);
+            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, lazyCapabilities, CancellationToken.None);
         }
 
         #endregion
@@ -783,7 +787,7 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
             var newDocument = newSolution.GetDocument(documentId);
 
-            var result = await AnalyzeDocumentAsync(oldProject, newDocument);
+            var result = await AnalyzeDocumentAsync(oldProject, newDocument, capabilities: EditAndContinueCapabilities.None);
 
             Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEditErrors.Single().Kind);
         }
