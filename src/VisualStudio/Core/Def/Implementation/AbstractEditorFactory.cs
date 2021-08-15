@@ -45,9 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
-        protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -292,9 +289,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
-        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
-            => Formatter.OrganizeImportsAsync(document, cancellationToken);
-
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
@@ -335,38 +329,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
+            // Call out to various new document formatters to tweak what they want
+            var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
+            {
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+            }
+
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
-
-            // Apply file header preferences
-            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
-            if (!string.IsNullOrEmpty(fileHeaderTemplate))
-            {
-                var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
-                var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                        SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
-                        newLineTrivia,
-                        addedDocument,
-                        cancellationToken).ConfigureAwait(true);
-
-                addedDocument = addedDocument.WithSyntaxRoot(rootWithFileHeader);
-                rootToFormat = rootWithFileHeader;
-            }
-
-            // Organize using directives
-            addedDocument = await OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken).ConfigureAwait(true);
-            rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-
-            // Add access modifier
-            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, addedDocument.Project.Language);
-            if (addedDocument.Project.Language == LanguageNames.CSharp &&
-                accessibilityPreferences.Value != AccessibilityModifiersRequired.Never)
-            {
-                addedDocument = await AddAccessibilityModifiersAsync(addedDocument, accessibilityPreferences.Value, cancellationToken).ConfigureAwait(true);
-                rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            }
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
@@ -396,32 +367,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
                 formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
-        }
-
-        private static async Task<Document> AddAccessibilityModifiersAsync(
-            Document document, AccessibilityModifiersRequired option, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
-            var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
-
-            foreach (var declaration in typeDeclarations)
-            {
-                if (!service.ShouldUpdateAccessibilityModifier(syntaxFacts, declaration, option, out _))
-                    continue;
-
-                var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                if (type == null)
-                    continue;
-
-                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
-            }
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
     }
 }
