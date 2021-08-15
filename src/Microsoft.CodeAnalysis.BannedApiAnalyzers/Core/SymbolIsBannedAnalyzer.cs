@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.Decrement,
                 OperationKind.TypeOf);
 
-
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
                 XmlCrefSyntaxKind);
