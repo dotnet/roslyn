@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private static async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Project oldProject, Document newDocument, ActiveStatementsMap activeStatementMap = null)
         {
             var analyzer = new CSharpEditAndContinueAnalyzer();
-            var baseActiveStatements = AsyncLazy.Create(activeStatementMap);
+            var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
             var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
             return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
         }
