@@ -1958,6 +1958,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTest test = Test;
                     if (test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                     {
+                        if (e.Syntax.IsKind(SyntaxKind.ListPattern))
+                        {
+                            // Normally this kind of test is never created, we do this here because we're rewriting nested tests
+                            // to check the top-level length instead. If we never create this test, the length temp gets removed.
+                            if (test is BoundDagRelationalTest t)
+                            {
+                                Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
+                                Debug.Assert(t.Value.Int32Value >= 0);
+                                if (t.Value.Int32Value == 0)
+                                    return True.Instance;
+                            }
+                        }
                         if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                         {
                             // If this is a nested length test in a slice subpattern, update the matched
@@ -1972,18 +1985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                     return new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind,
                                         ConstantValue.Create(safeAdd(t.Value.Int32Value, offset)), lengthTemp));
-                            }
-                        }
-                        else if (e.Syntax.IsKind(SyntaxKind.ListPattern))
-                        {
-                            // Normally this kind of test is never created, we do this here because we're rewriting nested tests
-                            // to check the top-level length instead. If we never create this test, the length temp gets removed.
-                            if (test is BoundDagRelationalTest t)
-                            {
-                                Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
-                                Debug.Assert(t.Value.Int32Value >= 0);
-                                return t.Value.Int32Value == 0 ? True.Instance : this;
                             }
                         }
                     }
