@@ -228,7 +228,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = ExecuteCallbackAsync(work, context, _cancelSource.Token).ReportNonFatalErrorAsync();
+                        // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
+                        // blocking the request queue for longer periods of time (it enforces parallelizabilty).
+                        _ = Task.Run(() => ExecuteCallbackAsync(work, context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
@@ -246,12 +248,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static async Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
+        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
         {
             // Create a combined cancellation token to cancel any requests in progress when this shuts down
             using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
 
-            await work.CallbackAsync(context, combinedTokenSource.Token).ConfigureAwait(false);
+            return work.CallbackAsync(context, combinedTokenSource.Token);
         }
 
         private void OnRequestServerShutdown(string message)

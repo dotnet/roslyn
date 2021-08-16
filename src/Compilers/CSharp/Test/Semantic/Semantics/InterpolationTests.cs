@@ -11206,6 +11206,50 @@ public partial class CustomHandler
             };
         }
 
+        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        public void AsFormattableString()
+        {
+            var code = @"
+M($""{1}"" + $""literal"");
+System.FormattableString s = $""{1}"" + $""literal"";
+
+void M(System.FormattableString s)
+{
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'string' to 'System.FormattableString'
+                // M($"{1}" + $"literal");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"$""{1}"" + $""literal""").WithArguments("1", "string", "System.FormattableString").WithLocation(2, 3),
+                // (3,30): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                // System.FormattableString s = $"{1}" + $"literal";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{1}"" + $""literal""").WithArguments("string", "System.FormattableString").WithLocation(3, 30)
+                );
+        }
+
+        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        public void AsIFormattable()
+        {
+            var code = @"
+M($""{1}"" + $""literal"");
+System.IFormattable s = $""{1}"" + $""literal"";
+
+void M(System.IFormattable s)
+{
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'string' to 'System.IFormattable'
+                // M($"{1}" + $"literal");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"$""{1}"" + $""literal""").WithArguments("1", "string", "System.IFormattable").WithLocation(2, 3),
+                // (3,25): error CS0029: Cannot implicitly convert type 'string' to 'System.IFormattable'
+                // System.IFormattable s = $"{1}" + $"literal";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{1}"" + $""literal""").WithArguments("string", "System.IFormattable").WithLocation(3, 25)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void DefiniteAssignment_01(bool useBoolReturns, bool trailingOutParameter,
