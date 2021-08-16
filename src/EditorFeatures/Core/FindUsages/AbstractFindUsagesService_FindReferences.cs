@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var definition in definitions)
             {
-                var thirdParty = await factory.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(true);
+                var thirdParty = await factory.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(false);
                 result.AddIfNotNull(thirdParty);
             }
 

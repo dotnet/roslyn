@@ -200,9 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
             Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            AssertIsForeground();
-
             if (rqName == null)
                 return null;
 
@@ -212,6 +209,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
 
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
@@ -238,8 +237,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             string? rqName,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             if (rqName == null)
                 return null;
 
@@ -250,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             using var _ = ArrayBuilder<Document>.GetInstance(out var documentsBuilder);
             foreach (var loc in sourceLocations)
             {
-                var docSpan = await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(true);
+                var docSpan = await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 documentsBuilder.AddIfNotNull(docSpan.Document);
             }
 
@@ -263,6 +260,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var generatedDocuments = documents.WhereAsArray(d => d.IsGeneratedCode(cancellationToken));
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
                 return null;
 
