@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isConstant = isConstant && current.Right.ConstantValue is not null;
                 var rightInterpolatedString = (BoundUnconvertedInterpolatedString)current.Right;
 
-                if (rightInterpolatedString.Parts.ContainsAwaitExpression())
+                if (!ValidateInterpolatedStringParts(rightInterpolatedString))
                 {
                     // Exception to case 3. Delegate to standard binding.
                     stack.Free();
