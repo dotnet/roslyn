@@ -3,11 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InheritanceGlyphFactoryProvider))]
     [MarginContainer(PredefinedMarginNames.Left)]
-    [Order(After = PredefinedMarginNames.LeftSelection)]
+    [Order(After = PredefinedMarginNames.Glyph)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
     {

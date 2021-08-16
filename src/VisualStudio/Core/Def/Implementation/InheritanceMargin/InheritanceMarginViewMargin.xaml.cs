@@ -6,45 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.CorDebugInterop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    /// <summary>
-    /// Interaction logic for InheritanceMarginViewMargin.xaml
-    /// </summary>
     internal partial class InheritanceMarginViewMargin : UserControl, IWpfTextViewMargin
     {
         private readonly IWpfTextViewHost _textViewHost;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
-        private readonly Dictionary<int, MarginGlyph.InheritanceMargin> _lineNumberToMargin;
-
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
+        private Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin> _snapshotSpanToMargin;
 
         public InheritanceMarginViewMargin(
             IWpfTextViewHost textViewHost,
@@ -64,9 +51,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _textView = textViewHost.TextView;
             _tagAggregator = tagAggregator;
+            _snapshotSpanToMargin = new Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin>();
+
             _tagAggregator.BatchedTagsChanged += OnTagsChanged;
-            _lineNumberToMargin = new Dictionary<int, MarginGlyph.InheritanceMargin>();
+            _textView.LayoutChanged += OnLayoutChanged;
+            _textView.ZoomLevelChanged += OnZoomLevelChanged;
+
             MainCanvas.Width = MarginSize;
+
+            MainCanvas.LayoutTransform = new ScaleTransform(
+                scaleX: _textView.ZoomLevel / 100,
+                scaleY: _textView.ZoomLevel / 100);
+            MainCanvas.LayoutTransform.Freeze();
+        }
+
+        private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
+        {
+            // Set ZoomTransform for Canvas.
+            // Don't need to update the ZoomLevel for glpyhs here, when zoom level changes, OnLayoutChanged will be
+            // fired all the margin will be recreated.
+            MainCanvas.LayoutTransform = e.ZoomTransform;
+        }
+
+        private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+        {
+            SetSnapshotAndUpdate(e.NewOrReformattedLines);
+            foreach (var line in e.NewOrReformattedLines)
+            {
+                RemoveGlyphByVisualSpan(GetTaggedSpanForLine(line));
+                RefreshGlyphsOver(line);
+            }
+        }
+
+        private void SetSnapshotAndUpdate(IReadOnlyCollection<ITextViewLine> newOrReformattedLines)
+        {
+            var newSnapPointToMarginMap = new Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin>(_snapshotSpanToMargin.Count);
+            foreach (var (span, margin) in _snapshotSpanToMargin)
+            {
+                var translatedSpan = span.TranslateTo(_textView.TextSnapshot, SpanTrackingMode.EdgeInclusive);
+                var containingLine = _textView.TextViewLines.GetTextViewLineContainingBufferPosition(translatedSpan.Start);
+
+                // Remove the glyph from Canvas if
+                // 1. If the line is no longer in the _textView
+                // 2. If the glyph enters in the newOrReformattedLines.
+                // (e.g. If a region in the editor is collapsed, and there is a margin in the region, we should remove it)
+                if (containingLine == null)
+                {
+                    MainCanvas.Children.Remove(margin);
+                }
+                else if (newOrReformattedLines.Any(line => line.IntersectsBufferSpan(translatedSpan)))
+                {
+                    MainCanvas.Children.Remove(margin);
+                }
+                else
+                {
+                    newSnapPointToMarginMap[translatedSpan] = margin;
+                    Canvas.SetTop(margin, containingLine.TextTop - _textView.ViewportTop);
+                }
+            }
+
+            _snapshotSpanToMargin = newSnapPointToMarginMap;
         }
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
@@ -76,75 +120,83 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var textSnapshot = _textView.TextSnapshot;
-            var changedSnapshotSpans = e.Spans.SelectMany(span => span.GetSpans(textSnapshot)).ToImmutableArray();
+            var changedSnapshotSpans = e.Spans.SelectMany(span => span.GetSpans(_textView.TextSnapshot)).ToImmutableArray();
             if (changedSnapshotSpans.Length == 0)
             {
                 return;
             }
 
-            var startOfChangedSpans = changedSnapshotSpans.Min(span => span.Start);
+            var startOfChangedSpan = changedSnapshotSpans.Min(span => span.Start);
             var endOfChangedSpan = changedSnapshotSpans.Max(span => span.End);
+            var changedSpan = new SnapshotSpan(startOfChangedSpan, endOfChangedSpan);
 
-            foreach (var line in _textView.TextViewLines.GetTextViewLinesIntersectingSpan(new SnapshotSpan(startOfChangedSpans, endOfChangedSpan)))
+            RemoveGlyphByVisualSpan(changedSpan);
+            foreach (var line in _textView.TextViewLines.GetTextViewLinesIntersectingSpan(changedSpan))
             {
-                RemoveGlyphForLine(line);
-                AddGlyphForLine(line);
+                if (line.IsValid)
+                {
+                    RefreshGlyphsOver(line);
+                }
             }
         }
 
-        private void AddGlyphForLine(ITextViewLine line)
+        private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            if (!line.IsValid)
+            foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
             {
-                return;
-            }
-
-            // Tagger of Inheritance always tags the start of the line;
-            var tags = _tagAggregator.GetTags(new SnapshotSpan(line.Start, 0)).ToImmutableArray();
-            if (tags.Length == 0)
-            {
-                return;
-            }
-
-            foreach (var tag in tags)
-            {
-                var margin = new MarginGlyph.InheritanceMargin(
-                    _threadingContext,
-                    _streamingFindUsagesPresenter,
-                    _classificationTypeMap,
-                    _classificationFormatMap,
-                    _operationExecutor,
-                    tag.Tag,
-                    _textView);
-                var lineNumber = GetLineNumber(line);
-                _lineNumberToMargin[lineNumber] = margin;
-                Canvas.SetTop(margin, line.TextTop - _textView.ViewportTop);
-                MainCanvas.Children.Add(margin);
+                // Only take tag spans with a visible start point and that map to something
+                // in the edit buffer and *start* on this line
+                if (mappingTagSpan.Span.Start.GetPoint(_textView.VisualSnapshot.TextBuffer, PositionAffinity.Predecessor) != null)
+                {
+                    var tagSpans = mappingTagSpan.Span.GetSpans(_textView.TextSnapshot);
+                    if (tagSpans.Count > 0)
+                    {
+                        AddGlyph(textViewLine, mappingTagSpan.Tag, tagSpans[0]);
+                    }
+                }
             }
         }
 
-        private void RemoveGlyphForLine(ITextViewLine line)
+        private void AddGlyph(ITextViewLine textViewLine, InheritanceMarginTag tag, SnapshotSpan span)
         {
-            if (!line.IsValid)
+            if (!_textView.TextViewLines.IntersectsBufferSpan(span))
             {
                 return;
             }
 
-            var lineNumber = GetLineNumber(line);
-            if (_lineNumberToMargin.TryGetValue(lineNumber, out var margin))
+            var margin = new MarginGlyph.InheritanceMargin(
+                _threadingContext,
+                _streamingFindUsagesPresenter,
+                _classificationTypeMap,
+                _classificationFormatMap,
+                _operationExecutor,
+                tag,
+                _textView);
+
+            margin.Height = MarginSize;
+            margin.Width = MarginSize;
+            _snapshotSpanToMargin[span] = margin;
+            Canvas.SetTop(margin, textViewLine.TextTop - _textView.ViewportTop);
+            MainCanvas.Children.Add(margin);
+        }
+
+        private void RemoveGlyphByVisualSpan(SnapshotSpan snapshotSpan)
+        {
+            var mariginsToRemove = _snapshotSpanToMargin
+                .Where(kvp => snapshotSpan.IntersectsWith(kvp.Key))
+                .ToImmutableArray();
+            foreach (var (span, margin) in mariginsToRemove)
             {
                 MainCanvas.Children.Remove(margin);
-                _lineNumberToMargin.Remove(lineNumber);
+                _snapshotSpanToMargin.Remove(span);
             }
         }
 
-        private int GetLineNumber(ITextViewLine line)
-        {
-            var linesCollection = _textView.TextViewLines;
-            return linesCollection.GetIndexOfTextLine(line);
-        }
+        private SnapshotSpan GetTaggedSpanForLine(ITextViewLine textViewLine)
+            // InheritanceMargin tagger only tag the first character with zero length
+            => new SnapshotSpan(textViewLine.Start, length: 0);
 
+        #region IWpfTextViewMargin
         public FrameworkElement VisualElement => this;
 
         public double MarginSize => 18;
@@ -157,7 +209,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public void Dispose()
         {
             _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
+            _textView.LayoutChanged -= OnLayoutChanged;
+            _textView.ZoomLevelChanged -= OnZoomLevelChanged;
             _tagAggregator.Dispose();
         }
+        #endregion
     }
 }
