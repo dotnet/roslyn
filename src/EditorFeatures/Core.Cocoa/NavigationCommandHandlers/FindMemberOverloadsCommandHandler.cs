@@ -81,11 +81,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         if (symbol == null || symbol.ContainingType == null)
                             return;
 
+                        var solution = document.Project.Solution;
                         foreach (var curSymbol in symbol.ContainingType.GetMembers()
                                                         .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
-                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+                            await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                     finally

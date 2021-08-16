@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.SetSearchTitleAsync(_callbackId, title, cancellationToken), cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            public ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var id = GetOrAddDefinitionItemId(definition);
                 var dehydratedDefinition = SerializableDefinitionItem.Dehydrate(id, definition);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            public ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 var definitionItem = GetOrAddDefinitionItemId(reference.Definition);
                 var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(definitionItem, reference);

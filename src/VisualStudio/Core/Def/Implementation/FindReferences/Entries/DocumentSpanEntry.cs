@@ -105,7 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public static DocumentSpanEntry? TryCreate(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
+                Guid guid,
+                string projectName,
+                string? projectFlavor,
+                string? filePath,
+                TextSpan sourceSpan,
                 HighlightSpanKind spanKind,
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
@@ -113,8 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
                 var entry = new DocumentSpanEntry(
                     context, definitionBucket,
                     projectName, projectFlavor, guid,
@@ -126,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // for the user. i.e. they're the same file/span.  Showing multiple entries for these
                 // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
                 // collapse things down to only show a single entry for each unique file/span pair.
-                var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
+                var winningEntry = definitionBucket.GetOrAddEntry(filePath, sourceSpan, entry);
 
                 // If we were the one that successfully added this entry to the bucket, then pass us
                 // back out to be put in the ui.

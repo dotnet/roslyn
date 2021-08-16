@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
-
+                        var solution = document.Project.Solution;
                         while (overriddenSymbol != null)
                         {
                             if (cancellationToken.IsCancellationRequested)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             }
 
                             var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
 
                             // try getting the next one
                             overriddenSymbol = overriddenSymbol.GetOverriddenMember();

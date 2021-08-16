@@ -37,34 +37,33 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
+            private DocumentSpan? TryGetDocumentSpan(Workspace workspace)
+            {
+                var currentSolution = workspace.CurrentSolution;
+                var document = currentSolution.GetDocument(SourceSpans[0].DocumentId);
+                return document != null ? new DocumentSpan(document, SourceSpans[0].SourceSpan) : null;
+            }
+
             public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
-                {
                     return false;
-                }
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                {
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
-                }
 
-                return SourceSpans[0].CanNavigateTo(cancellationToken);
+                return TryGetDocumentSpan(workspace) is DocumentSpan span && span.CanNavigateTo(cancellationToken);
             }
 
             public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
-                {
                     return false;
-                }
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                {
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
-                }
 
-                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
+                return TryGetDocumentSpan(workspace) is DocumentSpan span && span.TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

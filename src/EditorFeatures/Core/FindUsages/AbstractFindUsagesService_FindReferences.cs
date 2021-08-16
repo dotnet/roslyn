@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var definition in thirdPartyDefinitions)
             {
                 // Don't need ConfigureAwait(true) here 
-                await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(document.Project.Solution, definition, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 ImmutableArray.Create(TextTags.StringLiteral),
                 ImmutableArray.Create(new TaggedText(TextTags.Text, searchTitle)));
 
-            await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+            await context.OnDefinitionFoundAsync(document.Project.Solution, definition, cancellationToken).ConfigureAwait(false);
 
             var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
 

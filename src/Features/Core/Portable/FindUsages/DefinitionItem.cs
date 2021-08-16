@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
-        public ImmutableArray<DocumentSpan> SourceSpans { get; }
+        public ImmutableArray<SerializableDocumentSpan> SourceSpans { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayParts = displayParts;
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
-            SourceSpans = sourceSpans.NullToEmpty();
+            SourceSpans = sourceSpans.NullToEmpty().SelectAsArray(ss => SerializableDocumentSpan.Dehydrate(ss));
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;

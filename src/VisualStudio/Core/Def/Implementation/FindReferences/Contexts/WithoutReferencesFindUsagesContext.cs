@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 
@@ -35,14 +36,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             // We should never be called in a context where we get references.
-            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            protected override ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
@@ -54,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // definition as what to show.  That way we show enough information for things
                     // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
                     // the user to see the type the method was created in.
-                    var entry = await TryCreateEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
+                    var entry = await TryCreateEntryAsync(solution, definitionBucket, definition, cancellationToken).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
                 else if (definition.SourceSpans.Length == 0)
@@ -72,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
+                            solution,
                             definitionBucket,
                             sourceSpan,
                             HighlightSpanKind.Definition,
@@ -95,9 +97,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private async Task<Entry?> TryCreateEntryAsync(
-                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
+                Solution solution, RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
-                var documentSpan = definition.SourceSpans[0];
+                var document = solution.GetRequiredDocument(definition.SourceSpans[0].DocumentId);
+                var documentSpan = new DocumentSpan(document, definition.SourceSpans[0].SourceSpan);
                 var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
                 var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

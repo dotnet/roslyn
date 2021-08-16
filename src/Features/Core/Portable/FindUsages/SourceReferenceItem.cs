@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// The location of the source item.
         /// </summary>
-        public DocumentSpan SourceSpan { get; }
+        public SerializableDocumentSpan SourceSpan { get; }
 
         /// <summary>
         /// If this reference is a location where the definition is written to.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool isWrittenTo)
         {
             Definition = definition;
-            SourceSpan = sourceSpan;
+            SourceSpan = SerializableDocumentSpan.Dehydrate(sourceSpan);
             SymbolUsageInfo = symbolUsageInfo;
             IsWrittenTo = isWrittenTo;
             AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;

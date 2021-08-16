@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return threadingContext.JoinableTaskFactory.Run(
                 () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
+                    threadingContext, solution, title, definitions, cancellationToken));
         }
 
         public static bool TryGoToDefinition(
@@ -127,23 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return threadingContext.JoinableTaskFactory.Run(() =>
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
-        }
-
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Workspace workspace,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
-        {
-            if (definitions.IsDefaultOrEmpty)
-                return false;
-
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, workspace, title, definitions, cancellationToken));
+                    threadingContext, solution, title, definitions, cancellationToken));
         }
     }
 }

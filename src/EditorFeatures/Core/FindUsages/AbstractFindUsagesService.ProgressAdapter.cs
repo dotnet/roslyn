@@ -42,8 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, cancellationToken).ConfigureAwait(false);
-                await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
+                await _context.OnReferenceFoundAsync(
+                    document.Project.Solution,
+                    new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
             public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
-            public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
+            public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken) => default;
             public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
             public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public async ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
                 var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
-                await _context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                await _context.OnDefinitionFoundAsync(_solution, definitionItem, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                    await _context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+                    await _context.OnReferenceFoundAsync(_solution, referenceItem, cancellationToken).ConfigureAwait(false);
             }
         }
     }

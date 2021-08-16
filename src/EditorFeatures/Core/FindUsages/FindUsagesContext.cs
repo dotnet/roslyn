@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public virtual ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
 
-        public virtual ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken) => default;
+        public virtual ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken) => default;
 
-        public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
+        public virtual ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken) => default;
 
         protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
     }

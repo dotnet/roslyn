@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
-            Workspace workspace,
+            Solution solution,
             string title,
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             // Can only navigate or present items on UI thread.
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var workspace = solution.Workspace;
             // Ignore any definitions that we can't navigate to.
             var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace, cancellationToken));
 
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 try
                 {
                     foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+                        await context.OnDefinitionFoundAsync(solution, definition, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {

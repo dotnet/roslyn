@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -311,27 +312,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
 
-            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            public sealed override ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Gate)
                 {
                     Definitions.Add(definition);
                 }
 
-                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                return OnDefinitionFoundWorkerAsync(solution, definition, cancellationToken);
             }
 
-            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken);
 
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
+                Solution solution,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
+                SerializableDocumentSpan serializableDocumentSpan,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(serializableDocumentSpan.DocumentId);
+                var documentSpan = new DocumentSpan(document, serializableDocumentSpan.SourceSpan);
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
@@ -341,10 +345,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
+                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+
                 return DocumentSpanEntry.TryCreate(
                     this,
                     definitionBucket,
-                    documentSpan,
+                    guid,
+                    projectName,
+                    projectFlavor,
+                    document.FilePath,
+                    documentSpan.SourceSpan,
                     spanKind,
                     mappedDocumentSpan.Value,
                     excerptResult,
@@ -379,10 +389,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => OnReferenceFoundWorkerAsync(reference, cancellationToken);
+            public sealed override ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+                => OnReferenceFoundWorkerAsync(solution, reference, cancellationToken);
 
-            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {

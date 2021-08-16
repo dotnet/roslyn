@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public override async ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -132,9 +133,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                     return;
 
+                var document = solution.GetRequiredDocument(reference.SourceSpan.DocumentId);
+
                 // If this is reference to the same physical location we've already reported, just
                 // filter this out.  it will clutter the UI to show the same places.
-                if (!_referenceLocations.Add((reference.SourceSpan.Document.FilePath, reference.SourceSpan.SourceSpan)))
+                if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
                     return;
 
                 // If the definition hasn't been reported yet, add it to our list of references to report.
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int? definitionId,
             Document document,
             int position,
-            DocumentSpan documentSpan,
+            SerializableDocumentSpan serializableDocumentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
@@ -173,6 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
+            var documentSpan = new DocumentSpan(document.Project.Solution.GetRequiredDocument(serializableDocumentSpan.DocumentId), serializableDocumentSpan.SourceSpan);
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata

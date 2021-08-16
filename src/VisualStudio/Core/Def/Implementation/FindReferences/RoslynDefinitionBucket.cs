@@ -114,9 +114,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            public DocumentSpanEntry GetOrAddEntry(DocumentSpan documentSpan, DocumentSpanEntry entry)
+            public DocumentSpanEntry GetOrAddEntry(string? filePath, TextSpan sourceSpan, DocumentSpanEntry entry)
             {
-                var key = (documentSpan.Document.FilePath, documentSpan.SourceSpan);
+                var key = (filePath, sourceSpan);
                 lock (_locationToEntry)
                 {
                     return _locationToEntry.GetOrAdd(key, entry);

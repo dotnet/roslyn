@@ -38,16 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
             }
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 // If this is a definition we always want to show, then create entries for all the declaration locations
                 // immediately.  Otherwise, we'll create them on demand when we hear about references for this
                 // definition.
                 if (definition.DisplayIfNoReferences)
-                    await AddDeclarationEntriesAsync(definition, expandedByDefault: true, cancellationToken).ConfigureAwait(false);
+                    await AddDeclarationEntriesAsync(solution, definition, expandedByDefault: true, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task AddDeclarationEntriesAsync(DefinitionItem definition, bool expandedByDefault, CancellationToken cancellationToken)
+            private async Task AddDeclarationEntriesAsync(Solution solution, DefinitionItem definition, bool expandedByDefault, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -70,8 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
-                        additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
+                        solution,
+                        definitionBucket,
+                        declarationLocation,
+                        HighlightSpanKind.Definition,
+                        SymbolUsageInfo.None,
+                        definition.DisplayableProperties,
+                        cancellationToken).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -105,14 +110,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            protected override ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 // Normal references go into both sets of entries.  We ensure an entry for the definition, and an entry
                 // for the reference itself.
                 return OnEntryFoundAsync(
+                    solution,
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan,
+                        solution,
+                        bucket,
+                        reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.SymbolUsageInfo,
                         reference.AdditionalProperties,
@@ -124,6 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private async ValueTask OnEntryFoundAsync(
+                Solution solution,
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry?>> createEntryAsync,
                 bool addToEntriesWhenGroupingByDefinition,
@@ -138,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // that we haven't created any declaration entries for (i.e. because it had DisplayIfNoReferences =
                 // false).  Because we've now found a reference, we want to make sure all its declaration entries are
                 // added.
-                await AddDeclarationEntriesAsync(definition, expandedByDefault, cancellationToken).ConfigureAwait(false);
+                await AddDeclarationEntriesAsync(solution, definition, expandedByDefault, cancellationToken).ConfigureAwait(false);
 
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault);
@@ -166,22 +175,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 NotifyChange();
             }
 
-            protected override async Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
+            protected override async Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken)
             {
                 // Now that we know the search is over, create and display any error messages
                 // for definitions that were not found.
-                await CreateMissingReferenceEntriesIfNecessaryAsync(cancellationToken).ConfigureAwait(false);
-                await CreateNoResultsFoundEntryIfNecessaryAsync(cancellationToken).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(solution, cancellationToken).ConfigureAwait(false);
+                await CreateNoResultsFoundEntryIfNecessaryAsync(solution, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task CreateMissingReferenceEntriesIfNecessaryAsync(CancellationToken cancellationToken)
+            private async Task CreateMissingReferenceEntriesIfNecessaryAsync(Solution solution, CancellationToken cancellationToken)
             {
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: true, cancellationToken).ConfigureAwait(false);
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: false, cancellationToken).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(solution, whenGroupingByDefinition: true, cancellationToken).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(solution, whenGroupingByDefinition: false, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync(
-                bool whenGroupingByDefinition, CancellationToken cancellationToken)
+                Solution solution, bool whenGroupingByDefinition, CancellationToken cancellationToken)
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
@@ -191,7 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (definition.IsExternal)
                     {
-                        await OnEntryFoundAsync(definition,
+                        await OnEntryFoundAsync(
+                            solution,
+                            definition,
                             bucket => SimpleMessageEntry.CreateAsync(bucket, bucket, ServicesVSResources.External_reference_found)!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                             addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
@@ -204,7 +215,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         //
                         // We'll place this under a single bucket called "Symbols without references" and we'll allow
                         // the user to navigate on that text entry to that definition if possible.
-                        await OnEntryFoundAsync(SymbolsWithoutReferencesDefinitionItem,
+                        await OnEntryFoundAsync(
+                            solution,
+                            SymbolsWithoutReferencesDefinitionItem,
                             bucket => SimpleMessageEntry.CreateAsync(
                                 definitionBucket: bucket,
                                 navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false),
@@ -255,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task CreateNoResultsFoundEntryIfNecessaryAsync(CancellationToken cancellationToken)
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync(Solution solution, CancellationToken cancellationToken)
             {
                 bool noDefinitions;
                 lock (Gate)
@@ -266,7 +279,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    await OnEntryFoundAsync(NoResultsDefinitionItem,
+                    await OnEntryFoundAsync(
+                        solution,
+                        NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
                         addToEntriesWhenGroupingByDefinition: true,
                         addToEntriesWhenNotGroupingByDefinition: true,

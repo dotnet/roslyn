@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     continue;
 
                 var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, true);
-                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(project.Solution, definitionItem, cancellationToken).ConfigureAwait(false);
             }
         }
     }

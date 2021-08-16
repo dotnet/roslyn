@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 
-            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
+            public ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+                => _underlyingContext.OnReferenceFoundAsync(solution, reference, cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            public ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (_gate)
                 {
                     _definitions.Add(definition);
                 }
 
-                return _underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
+                return _underlyingContext.OnDefinitionFoundAsync(solution, definition, cancellationToken);
             }
 
             public ImmutableArray<DefinitionItem> GetDefinitions()
