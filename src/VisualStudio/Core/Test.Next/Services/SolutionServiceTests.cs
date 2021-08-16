@@ -778,7 +778,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // get new solution
             var newSolution = newSolutionGetter(solution);
             var newSolutionChecksum = await newSolution.State.GetChecksumAsync(CancellationToken.None);
-            await newSolution.AppendAssetMapAsync(map, CancellationToken.None);
+            await newSolution.AppendAssetMapAsync(includeProjectCones: true, map, CancellationToken.None);
 
             // get solution without updating primary workspace
             var recoveredNewSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
@@ -802,7 +802,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
             map ??= new Dictionary<Checksum, object>();
-            await solution.AppendAssetMapAsync(map, CancellationToken.None);
+            await solution.AppendAssetMapAsync(includeProjectCones: true, map, CancellationToken.None);
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
