@@ -71,8 +71,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
                     Assert.True(acutalLineToTagDictionary.ContainsKey(lineNumber))
 
                     Dim acutalTag = acutalLineToTagDictionary(lineNumber)
+                    ' Editor TestView zoom level is 100 based.
                     Dim actualViewModel = InheritanceMarginViewModel.Create(
-                        classificationTypeMap, classificationFormatMap.GetClassificationFormatMap("tooltip"), acutalTag, 1)
+                        classificationTypeMap, classificationFormatMap.GetClassificationFormatMap("tooltip"), acutalTag, 100)
 
                     VerifyTwoViewModelAreSame(expectedViewModel, actualViewModel)
                 Next
@@ -80,9 +81,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
             End Using
         End Function
 
-        Private Shared Sub VerifyTwoViewModelAreSame(expected As InheritanceMarginViewModel, acutal As InheritanceMarginViewModel)
-            Assert.Equal(expected.ImageMoniker, acutal.ImageMoniker)
-            Dim actualTextGetFromTextBlock = acutal.ToolTipTextBlock.Inlines _
+        Private Shared Sub VerifyTwoViewModelAreSame(expected As InheritanceMarginViewModel, actual As InheritanceMarginViewModel)
+            Assert.Equal(expected.ImageMoniker, actual.ImageMoniker)
+            Dim actualTextGetFromTextBlock = actual.ToolTipTextBlock.Inlines _
                 .OfType(Of Run).Select(Function(run) run.Text) _
                 .Aggregate(Function(text1, text2) text1 + text2)
             ' When the text block is created, a unicode 'left to right' would be inserted between the space.
@@ -90,12 +91,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
             Dim leftToRightMarker = Char.ConvertFromUtf32(&H200E)
             Dim actualText = actualTextGetFromTextBlock.Replace(leftToRightMarker, String.Empty)
             Assert.Equal(expected.ToolTipTextBlock.Text, actualText)
-            Assert.Equal(expected.AutomationName, acutal.AutomationName)
-            Assert.Equal(expected.MenuItemViewModels.Length, acutal.MenuItemViewModels.Length)
+            Assert.Equal(expected.AutomationName, actual.AutomationName)
+            Assert.Equal(expected.MenuItemViewModels.Length, actual.MenuItemViewModels.Length)
+            Assert.Equal(expected.ScaleFactor, actual.ScaleFactor)
 
             For i = 0 To expected.MenuItemViewModels.Length - 1
                 Dim expectedMenuItem = expected.MenuItemViewModels(i)
-                Dim actualMenuItem = acutal.MenuItemViewModels(i)
+                Dim actualMenuItem = actual.MenuItemViewModels(i)
             Next
 
         End Sub

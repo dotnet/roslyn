@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.Documentation,
-                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.RemarksDocumentation,
-                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 AddReturnsDocumentationParts(symbol, formatter);
                 AddValueDocumentationParts(symbol, formatter);

@@ -3087,5 +3087,33 @@ public class TestType
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
+
+        [WorkItem(22431, "https://github.com/dotnet/roslyn/issues/22431")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestCDATAComment()
+        {
+            var source = @"
+public enum BinaryOperatorKind
+{
+    /// <summary>
+    /// Represents the <![CDATA['<<']]> operator.
+    /// </summary>
+    LeftShift = 0x8,
+}
+";
+            var symbolName = "BinaryOperatorKind.LeftShift";
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public enum BinaryOperatorKind
+{{
+    //
+    // {FeaturesResources.Summary_colon}
+    //     Represents the '<<' operator.
+    [|LeftShift|] = 8
+}}";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
+        }
     }
 }

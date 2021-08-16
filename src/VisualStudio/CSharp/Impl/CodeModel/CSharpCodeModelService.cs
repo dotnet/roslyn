@@ -439,6 +439,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
         public override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
         {
+            // Filter out all records from code model, they are not supported at all.
+            return GetMemberNodesWorker(container, includeSelf, recursive, logicalFields, onlySupportedNodes).Where(t => t is not RecordDeclarationSyntax);
+        }
+
+        private IEnumerable<SyntaxNode> GetMemberNodesWorker(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
+        {
             if (!IsContainerNode(container))
             {
                 yield break;

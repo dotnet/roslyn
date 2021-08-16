@@ -44,10 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView = textView;
             InitializeComponent();
 
-            // ZoomLevel of textView is percentage based. (e.g. 20 -> 400 means 20% -> 400%)
-            // and the scaleFactor of CrispImage is 1 based. (e.g 1 means 100%)
-            var scaleFactor = textView.ZoomLevel;
-            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, scaleFactor);
+            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };

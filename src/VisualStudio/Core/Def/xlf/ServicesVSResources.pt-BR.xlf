@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../ServicesVSResources.resx">
     <body>
@@ -164,12 +164,12 @@
       </trans-unit>
       <trans-unit id="Carriage_Return_Newline_rn">
         <source>Carriage Return + Newline (\r\n)</source>
-        <target state="new">Carriage Return + Newline (\r\n)</target>
+        <target state="translated">Retorno de Carro + Nova linha (\r\n)</target>
         <note />
       </trans-unit>
       <trans-unit id="Carriage_Return_r">
         <source>Carriage Return (\r)</source>
-        <target state="new">Carriage Return (\r)</target>
+        <target state="translated">Retorno de carro (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
-        <target state="new">Error updating suppressions: {0}</target>
+        <target state="translated">Erro ao atualizar supressões: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">単純なブール式を優先する</target>
+        <target state="translated">簡素化されたブール式を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
         <source>User Types - Record Structs</source>
-        <target state="new">User Types - Record Structs</target>
+        <target state="translated">ユーザー タイプ - レコード構造体</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Records">

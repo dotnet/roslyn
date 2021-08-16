@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../FeaturesResources.resx">
     <body>
@@ -282,7 +282,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Convert_to_record_struct">
         <source>Convert to record struct</source>
-        <target state="new">Convert to record struct</target>
+        <target state="translated">Convertir en struct d’enregistrement</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -352,7 +352,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
         <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">Modifier et continuer n’est pas pris en charge par le Runtime.</target>
+        <target state="translated">Modifier et continuer n’est pas pris en charge par le runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">

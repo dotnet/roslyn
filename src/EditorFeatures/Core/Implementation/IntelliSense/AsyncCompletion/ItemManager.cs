@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterReason = Helpers.GetFilterReason(data.Trigger);
 
-            // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
-            // However, we prefer using the original snapshot in some projection scenarios.
-            var snapshotForDocument = Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation)
-                ? triggerLocation.Snapshot
+            // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
+            // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
+            var snapshotForDocument = TryGetInitialTriggerLocation(data, out var intialTriggerLocation)
+                ? intialTriggerLocation.Snapshot
                 : data.Snapshot;
 
-            var document = snapshotForDocument.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            var document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
@@ -262,6 +262,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Don't call ClearAndFree, which resets the capacity to a default value.
                 initialListOfItemsToBeIncluded.Clear();
                 s_listOfMatchResultPool.Free(initialListOfItemsToBeIncluded);
+            }
+
+            static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
+            {
+                var firstItem = data.InitialSortedList.FirstOrDefault(static item => item.Properties.ContainsProperty(CompletionSource.TriggerLocation));
+                if (firstItem != null)
+                {
+                    return firstItem.Properties.TryGetProperty(CompletionSource.TriggerLocation, out intialTriggerLocation);
+                }
+
+                intialTriggerLocation = default;
+                return false;
             }
 
             static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)

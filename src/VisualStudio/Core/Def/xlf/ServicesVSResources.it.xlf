@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../ServicesVSResources.resx">
     <body>
@@ -164,12 +164,12 @@
       </trans-unit>
       <trans-unit id="Carriage_Return_Newline_rn">
         <source>Carriage Return + Newline (\r\n)</source>
-        <target state="new">Carriage Return + Newline (\r\n)</target>
+        <target state="translated">Ritorno a capo + Nuova riga (\r\n)</target>
         <note />
       </trans-unit>
       <trans-unit id="Carriage_Return_r">
         <source>Carriage Return (\r)</source>
-        <target state="new">Carriage Return (\r)</target>
+        <target state="translated">Ritorno a capo (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
-        <target state="new">Error updating suppressions: {0}</target>
+        <target state="translated">Errore durante l'aggiornamento delle eliminazioni: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
-        <target state="translated">Margine ereditarietà (sperimentale)</target>
+        <target state="translated">Margine di ereditarietà (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -514,12 +514,12 @@
       </trans-unit>
       <trans-unit id="Multiple_members_are_inherited">
         <source>Multiple members are inherited</source>
-        <target state="translated">Più membri vengono ereditati</target>
+        <target state="translated">Più membri sono ereditati</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_members_are_inherited_on_line_0">
         <source>Multiple members are inherited on line {0}</source>
-        <target state="translated">Nella riga {0} vengono ereditati più membri</target>
+        <target state="translated">Più membri sono ereditati a riga {0}</target>
         <note>Line number info is needed for accessibility purpose.</note>
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
@@ -754,12 +754,12 @@
       </trans-unit>
       <trans-unit id="Overridden_members">
         <source>Overridden members</source>
-        <target state="translated">Membri sovrascritti</target>
+        <target state="translated">Membri sottoposti a override</target>
         <note />
       </trans-unit>
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
-        <target state="translated">Override di membri</target>
+        <target state="translated">Membri di override</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -1034,7 +1034,7 @@
       </trans-unit>
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
-        <target state="translated">Mostra margine di ereditarietà</target>
+        <target state="translated">Mostra il margine di ereditarietà</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1344,7 +1344,7 @@
       </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>
-        <target state="translated">'{0}' viene ereditato</target>
+        <target state="translated">'{0}' è ereditato</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
