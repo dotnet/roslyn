@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     if (isFilterTextLowercaseOnly &&
                         onlyDifferInCaseSensitivity &&
-                        highestMatchPriorityInBest > item.Rules.MatchPriority) // don't add if this item has higer MatchPriority than all priori best items
+                        highestMatchPriorityInBest > item.Rules.MatchPriority) // don't add if this item has higer MatchPriority than all prior best items
                     {
                         similarItemsWithHigerMatchPriority.AddRange(bestItems);
                     }
