@@ -675,5 +675,29 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(46614, "https://github.com/dotnet/roslyn/issues/46614")>
+        Public Async Function TestIndexerParameter() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Collections.Immutable;
+
+class A
+{
+    void Main()
+    {
+        var array = ImmutableArray.Create&lt;int&gt;({|item:|}0);
+        var val = array[{|index:|}0];
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace
