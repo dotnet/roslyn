@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,11 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         : DefaultDefinitionsAndReferencesFactory
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
+        public VisualStudioDefinitionsAndReferencesFactory(
+            SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext)
+        {
+            _serviceProvider = serviceProvider;
+            _threadingContext = threadingContext;
+        }
 
         public override async Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
@@ -46,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
                 definitionItem.Tags, displayParts,
-                _serviceProvider, filePath, lineNumber, charOffset);
+                _serviceProvider, _threadingContext,
+                filePath, lineNumber, charOffset);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts(
@@ -77,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private class ExternalDefinitionItem : DefinitionItem
         {
             private readonly IServiceProvider _serviceProvider;
+            private readonly IThreadingContext _threadingContext;
             private readonly string _filePath;
             private readonly int _lineNumber;
             private readonly int _charOffset;
@@ -87,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 IServiceProvider serviceProvider,
+                IThreadingContext threadingContext,
                 string filePath,
                 int lineNumber,
                 int charOffset)
@@ -98,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
+                _threadingContext = threadingContext;
                 _filePath = filePath;
                 _lineNumber = lineNumber;
                 _charOffset = charOffset;
@@ -106,8 +117,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
                 => SpecializedTasks.True;
 
-            public override Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-                => Task.FromResult(TryOpenFile() && TryNavigateToPosition());
+            public override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                return TryOpenFile() && TryNavigateToPosition();
+            }
 
             [Obsolete]
             public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
