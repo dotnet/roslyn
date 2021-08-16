@@ -1777,6 +1777,22 @@ Additional information: {1}</value>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
   </data>
+  <data name="Sync_Namespaces" xml:space="preserve">
+    <value>Sync Namespaces</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Updating_namspaces" xml:space="preserve">
+    <value>Updating namespaces...</value>
+    <comment>"namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Namespaces_have_been_updated" xml:space="preserve">
+    <value>Namespaces have been updated.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="No_namespaces_needed_updating" xml:space="preserve">
+    <value>No namespaces needed updating.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
