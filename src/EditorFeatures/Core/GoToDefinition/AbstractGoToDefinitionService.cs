@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -112,16 +114,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (interfaceImpls.Length == 0)
                 return false;
 
-            var definitions = interfaceImpls.SelectMany(
-                i => GoToDefinitionHelpers.GetDefinitions(
-                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
-
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution, title, definitions, cancellationToken));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+                foreach (var impl in interfaceImpls)
+                {
+                    foreach (var def in await GoToDefinitionHelpers.GetDefinitionsAsync(impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false))
+                        definitions.Add(def);
+                }
+
+                return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, solution, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            });
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)

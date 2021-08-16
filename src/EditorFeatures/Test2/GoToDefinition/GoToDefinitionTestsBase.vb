@@ -14,10 +14,10 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTestsBase
-        Private Shared Async Sub Test(
+        Private Shared Async Function Test(
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
-                executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
+                executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean)) As Task
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -110,10 +110,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 End If
 
             End Using
-        End Sub
+        End Function
 
-        Friend Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
-            Test(workspaceDefinition, expectedResult,
+        Friend Shared Async Function Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True) As Task
+            Await Test(workspaceDefinition, expectedResult,
                 Function(document, cursorPosition, threadingContext, presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
                         DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
-        End Sub
+        End Function
 
     End Class
 End Namespace
