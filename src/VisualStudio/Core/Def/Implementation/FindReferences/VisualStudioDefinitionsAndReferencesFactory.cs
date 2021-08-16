@@ -100,7 +100,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset)
-                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                : base(tags,
+                       displayParts,
+                       nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
