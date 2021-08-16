@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Threading;
 
@@ -35,20 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return;
             }
 
-            // We want ctrl-click GTD to be as close to regular GTD as possible.
-            // This means we have to query for "third party navigation", from
-            // XAML, etc. That call has to be done on the UI thread.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
             var solution = document.Project.Solution;
-            var definitions = GoToDefinitionHelpers.GetDefinitions(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken)
-                .WhereAsArray(d => d.CanNavigateTo(solution.Workspace, cancellationToken));
+            var definitions = await GoToDefinitionHelpers.GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken).ConfigureAwait(false);
 
-            await TaskScheduler.Default;
-
-            foreach (var definition in definitions)
+            foreach (var def in definitions)
             {
-                context.AddItem(WellKnownSymbolTypes.Definition, definition);
+                if (def.CanNavigateTo(solution.Workspace, cancellationToken))
+                    context.AddItem(WellKnownSymbolTypes.Definition, def);
             }
 
             context.Span = span;

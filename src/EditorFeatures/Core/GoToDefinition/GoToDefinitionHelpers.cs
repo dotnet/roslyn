@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static ImmutableArray<DefinitionItem> GetDefinitions(
+        public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
             ISymbol symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             symbol = definition ?? symbol;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 if (factory != null)
                 {
-                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
                     definitions.AddIfNotNull(thirdPartyItem);
                 }
             }
@@ -107,14 +108,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
-
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return threadingContext.JoinableTaskFactory.Run(
-                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution, title, definitions, cancellationToken));
+                async () =>
+                {
+                    var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+
+                    return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                        threadingContext, solution, title, definitions, cancellationToken).ConfigureAwait(false);
+                });
         }
 
         public static bool TryGoToDefinition(

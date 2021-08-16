@@ -200,6 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
             Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             AssertIsForeground();
 
             if (rqName == null)

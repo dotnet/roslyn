@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
@@ -33,16 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
             => _serviceProvider = serviceProvider;
 
-        public override DefinitionItem? GetThirdPartyDefinitionItem(
+        public override async Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
-            if (!symbolNavigationService.WouldNavigateToSymbol(
-                    definitionItem, solution, cancellationToken,
-                    out var filePath, out var lineNumber, out var charOffset))
-            {
+            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, solution, cancellationToken).ConfigureAwait(false);
+            if (result is not var (filePath, lineNumber, charOffset))
                 return null;
-            }
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
