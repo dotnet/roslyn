@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -78,9 +79,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             if (result.GetValueOrDefault())
             {
+                var typeName = viewModel.DestinationName.Split('.').Last();
+                var existingFileNames = document.Project.Documents.Where(doc => doc.Folders.SequenceEqual(document.Folders)).SelectAsArray(doc => doc.Name);
+                var newFileName = NameGenerator.GenerateUniqueName(typeName,
+                    document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb",
+                    candidateName => !existingFileNames.Contains(candidateName));
                 return new MoveStaticMembersOptions(
-                    // TODO: generate unique file name based off of existing folder documents
-                    viewModel.DestinationName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
+                    newFileName,
                     string.Join(".", containingNamespaceDisplay, viewModel.DestinationName),
                     selectMembersViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
             }
