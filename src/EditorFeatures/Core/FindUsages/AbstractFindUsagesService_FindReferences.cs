@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            var thirdPartyDefinitions = GetThirdPartyDefinitions(
-                document.Project.Solution, definitionTrackingContext.GetDefinitions(), cancellationToken);
+            var thirdPartyDefinitions = await GetThirdPartyDefinitionsAsync(
+                document.Project.Solution, definitionTrackingContext.GetDefinitions(), cancellationToken).ConfigureAwait(true);
 
             // From this point on we can do ConfigureAwait(false) as we're not calling back 
             // into third parties anymore.
@@ -74,15 +75,22 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context, cancellationToken).ConfigureAwait(false);
         }
 
-        private static ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
+        private static async Task<ImmutableArray<DefinitionItem>> GetThirdPartyDefinitionsAsync(
             Solution solution,
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var result);
+
             var factory = solution.Workspace.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
-            return definitions.Select(d => factory.GetThirdPartyDefinitionItem(solution, d, cancellationToken))
-                              .WhereNotNull()
-                              .ToImmutableArray();
+
+            foreach (var definition in definitions)
+            {
+                var thirdParty = await factory.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(true);
+                result.AddIfNotNull(thirdParty);
+            }
+
+            return result.ToImmutable();
         }
 
         private static async Task FindSymbolReferencesAsync(

@@ -31,10 +31,14 @@ Friend Class GoToHelpers
             If Not shouldSucceed Then
                 Assert.NotNull(context.Message)
             Else
-                Dim actualDefinitions = context.GetDefinitions().
-                                                SelectMany(Function(d) d.SourceSpans).
-                                                Select(Function(ss) New FilePathAndSpan(solution.GetRequiredDocument(ss.DocumentId).FilePath, ss.SourceSpan)).
-                                                ToList()
+                Dim actualDefinitions = New List(Of FilePathAndSpan)
+
+                For Each definition In context.GetDefinitions()
+                    For Each sourceSpan In definition.SourceSpans
+                        Dim docSpan = Await sourceSpan.RehydrateAsync(solution, CancellationToken.None)
+                        actualDefinitions.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                    Next
+                Next
                 actualDefinitions.Sort()
 
                 Dim expectedDefinitions = workspace.Documents.SelectMany(

@@ -88,8 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
+                if (factory != null)
+                {
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
+                    definitions.AddIfNotNull(thirdPartyItem);
+                }
             }
 
             definitions.Add(definitionItem);
