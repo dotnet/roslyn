@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(),
-                    parameters:=CreateMethodParameters(localFunction),
+                    parameters:=CreateMethodParameters(),
                     statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
                 Return result.With(

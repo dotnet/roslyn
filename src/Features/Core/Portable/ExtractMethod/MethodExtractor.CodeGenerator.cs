@@ -333,28 +333,25 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return typeParameters.ToImmutableAndFree();
             }
 
-            protected ImmutableArray<IParameterSymbol> CreateMethodParameters(bool localFunction)
+            protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
-                /*var root = SemanticDocument.Root;
-                if (localFunction && ShouldLocalFunctionCaptureParameter(root))
-                {
-                    return ImmutableArray.Create<IParameterSymbol>();
-                }*/
-
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
-                    var refKind = GetRefKind(parameter.ParameterModifier);
-                    var type = parameter.GetVariableType(SemanticDocument);
+                    if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)) || !parameter.CanBeCapturedByLocalFunction)
+                    {
+                        var refKind = GetRefKind(parameter.ParameterModifier);
+                        var type = parameter.GetVariableType(SemanticDocument);
 
-                    parameters.Add(
-                        CodeGenerationSymbolFactory.CreateParameterSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
-                            refKind: refKind,
-                            isParams: false,
-                            type: type,
-                            name: parameter.Name));
+                        parameters.Add(
+                            CodeGenerationSymbolFactory.CreateParameterSymbol(
+                                attributes: ImmutableArray<AttributeData>.Empty,
+                                refKind: refKind,
+                                isParams: false,
+                                type: type,
+                                name: parameter.Name));
+                    }
                 }
 
                 return parameters.ToImmutableAndFree();

@@ -5021,7 +5021,7 @@ public class Class
     public void M()
     {
         _ = from a in new object[0]
-            select NewMethod(a);
+            select {|Rename:NewMethod|}(a);
 
         string NewMethod(object a)
         {

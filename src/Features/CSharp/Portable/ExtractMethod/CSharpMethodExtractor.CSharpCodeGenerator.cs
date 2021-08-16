@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
-                    parameters: CreateMethodParameters(localFunction),
+                    parameters: CreateMethodParameters(),
                     statements: result.Data,
                     methodKind: localFunction ? MethodKind.LocalFunction : MethodKind.Ordinary);
 
@@ -584,16 +584,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
                 var arguments = new List<ArgumentSyntax>();
 
-                //if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)))
-                //{
                 foreach (var argument in AnalyzerResult.MethodParameters)
                 {
-                    var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
-
-                    arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)) || !argument.CanBeCapturedByLocalFunction)
+                    {
+                        var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
+                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    }
                 }
-                //}
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,
                                     SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
