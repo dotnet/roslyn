@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
 
             var values = await TryGetNavigationAPIRequiredArgumentsAsync(
-                solution, definitionItem, rqName, cancellationToken).ConfigureAwait(true);
+                solution, definitionItem, rqName, cancellationToken).ConfigureAwait(false);
             if (values is not var (hierarchy, itemID, navigationNotify))
                 return null;
 
