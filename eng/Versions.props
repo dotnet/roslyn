@@ -97,7 +97,7 @@
     <MicrosoftInternalVisualStudioInteropVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioInteropVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta3.21075.2</MicrosoftMetadataVisualizerVersion>
     <MicrosoftNETBuildExtensionsVersion>2.2.101</MicrosoftNETBuildExtensionsVersion>
-    <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCorePlatformsVersion>5.0.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCoreAppRefVersion>5.0.0</MicrosoftNETCoreAppRefVersion>
     <MicrosoftNETFrameworkReferenceAssembliesnet461Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet461Version>
     <MicrosoftNETFrameworkReferenceAssembliesnet451Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet451Version>
@@ -192,23 +192,23 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
-    <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
-    <SystemCodeDomVersion>4.7.0</SystemCodeDomVersion>
+    <SystemCompositionVersion>5.0.1</SystemCompositionVersion>
+    <SystemCodeDomVersion>5.0.0</SystemCodeDomVersion>
     <SystemCommandLineVersion>2.0.0-beta1.20574.7</SystemCommandLineVersion>
     <SystemCommandLineExperimentalVersion>0.3.0-alpha.19577.1</SystemCommandLineExperimentalVersion>
-    <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
-    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
+    <SystemComponentModelCompositionVersion>5.0.0</SystemComponentModelCompositionVersion>
+    <SystemDrawingCommonVersion>5.0.2</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
-    <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
+    <SystemIOPipesAccessControlVersion>5.0.0</SystemIOPipesAccessControlVersion>
     <SystemIOPipelinesVersion>5.0.1</SystemIOPipelinesVersion>
-    <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
+    <SystemManagementVersion>5.0.0</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
-    <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
+    <SystemResourcesExtensionsVersion>5.0.0</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>5.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemSecurityPrincipalVersion>4.3.0</SystemSecurityPrincipalVersion>
-    <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
+    <SystemTextEncodingCodePagesVersion>5.0.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>4.7.0</SystemTextJsonVersion>
