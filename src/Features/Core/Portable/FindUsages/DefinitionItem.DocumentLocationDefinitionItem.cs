@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var documentId = SourceSpans[0].DocumentId;
                 var document = solution.GetDocument(documentId) ??
                                await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                if (document == null)
-                    return null;
-
-                return new DocumentSpan(document, SourceSpans[0].SourceSpan);
+                return document == null ? null : new DocumentSpan(document, SourceSpans[0].SourceSpan);
             }
 
             [Obsolete]
