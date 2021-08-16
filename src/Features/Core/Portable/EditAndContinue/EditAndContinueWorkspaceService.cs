@@ -126,17 +126,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
             }
 
-            var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-            var capabilities = ParseCapabilities(runtimeCapabilities);
-
-            // For now, runtimes aren't returning capabilities, we just fall back to a known set.
-            if (capabilities == EditAndContinueCapabilities.None)
-            {
-                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
-            }
-
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
@@ -152,33 +143,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                group documentId by documentId.ProjectId into projectDocumentIds
                let project = solution.GetRequiredProject(projectDocumentIds.Key)
                select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
-
-        // internal for testing
-        internal static EditAndContinueCapabilities ParseCapabilities(ImmutableArray<string> capabilities)
-        {
-            var caps = EditAndContinueCapabilities.None;
-
-            foreach (var capability in capabilities)
-            {
-                caps |= capability switch
-                {
-                    "Baseline" => EditAndContinueCapabilities.Baseline,
-                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
-                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
-                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
-                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
-                    "UpdateParameters" => EditAndContinueCapabilities.UpdateParameters,
-
-                    // To make it eaiser for  runtimes to specify more broad capabilities
-                    "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-
-                    _ => EditAndContinueCapabilities.None
-                };
-            }
-
-            return caps;
-        }
 
         public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {

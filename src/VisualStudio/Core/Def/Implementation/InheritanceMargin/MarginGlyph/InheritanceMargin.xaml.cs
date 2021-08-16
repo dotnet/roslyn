@@ -104,7 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
-            ResetBorderToInitialColor();
+            // If mouse is still hovering. Don't reset the color. The context menu might be closed because user clicks within the margin
+            if (!IsMouseOver)
+            {
+                ResetBorderToInitialColor();
+            }
             // Move the focus back to textView when the context menu is closed.
             // It ensures the focus won't be left at the margin
             ResetFocus();

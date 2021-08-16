@@ -582,8 +582,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetSolutionToAnalyze(), Processor._logAggregator, Analyzers);
-
                         _workItemQueue.Dispose();
 
                         _projectCache?.Dispose();
