@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
             for (var i = 0; i < sortedActualItems.Length; i++)
             {
-                VerifyInheritanceMember(testWorkspace, sortedExpectedItems[i], sortedActualItems[i]);
+                await VerifyInheritanceMemberAsync(testWorkspace, sortedExpectedItems[i], sortedActualItems[i]);
             }
         }
 
-        private static void VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
+        private static async Task VerifyInheritanceMemberAsync(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
             Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
-                VerifyInheritanceTarget(testWorkspace.CurrentSolution, expectedTargets[i], sortedActualTargets[i]);
+                await VerifyInheritanceTargetAsync(testWorkspace.CurrentSolution, expectedTargets[i], sortedActualTargets[i]);
             }
         }
 
-        private static void VerifyInheritanceTarget(Solution solution, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static async Task VerifyInheritanceTargetAsync(Solution solution, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
-                    Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
-                    var document = solution.GetRequiredDocument(actualDocumentSpans[i].DocumentId);
-                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, document.FilePath);
+                    var docSpan = await actualDocumentSpans[i].RehydrateAsync(solution, CancellationToken.None);
+                    Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.SourceSpan);
+                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Document.FilePath);
                 }
             }
         }

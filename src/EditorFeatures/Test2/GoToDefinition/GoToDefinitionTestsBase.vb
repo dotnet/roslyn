@@ -14,7 +14,7 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTestsBase
-        Private Shared Sub Test(
+        Private Shared Async Sub Test(
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
                 executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
@@ -90,8 +90,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             Dim items = context.GetDefinitions()
 
                             For Each location In items
-                                For Each docSpan In location.SourceSpans
-                                    actualLocations.Add(New FilePathAndSpan(solution.GetRequiredDocument(docSpan.DocumentId).FilePath, docSpan.SourceSpan))
+                                For Each ss In location.SourceSpans
+                                    Dim docSpan = Await ss.RehydrateAsync(solution, CancellationToken.None)
+                                    actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
                                 Next
                             Next
 

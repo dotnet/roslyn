@@ -133,7 +133,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                     return;
 
-                var document = solution.GetRequiredDocument(reference.SourceSpan.DocumentId);
+                var documentSpan = await reference.SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                var document = documentSpan.Document;
 
                 // If this is reference to the same physical location we've already reported, just
                 // filter this out.  it will clutter the UI to show the same places.
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
-            var documentSpan = new DocumentSpan(document.Project.Solution.GetRequiredDocument(serializableDocumentSpan.DocumentId), serializableDocumentSpan.SourceSpan);
+            var documentSpan = await serializableDocumentSpan.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata

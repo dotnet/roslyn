@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var span = new DocumentSpan(solution.GetRequiredDocument(sourceSpan.DocumentId), sourceSpan.SourceSpan);
+                    var span = await sourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
                         locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(span, text, cancellationToken).ConfigureAwait(false));

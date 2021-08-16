@@ -333,8 +333,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var document = solution.GetRequiredDocument(serializableDocumentSpan.DocumentId);
-                var documentSpan = new DocumentSpan(document, serializableDocumentSpan.SourceSpan);
+                var documentSpan = await serializableDocumentSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                var document = documentSpan.Document;
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
 

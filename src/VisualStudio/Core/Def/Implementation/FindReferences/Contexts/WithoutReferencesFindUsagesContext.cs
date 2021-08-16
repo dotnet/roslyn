@@ -99,8 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private async Task<Entry?> TryCreateEntryAsync(
                 Solution solution, RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
-                var document = solution.GetRequiredDocument(definition.SourceSpans[0].DocumentId);
-                var documentSpan = new DocumentSpan(document, definition.SourceSpans[0].SourceSpan);
+                var documentSpan = await definition.SourceSpans[0].RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
                 var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
