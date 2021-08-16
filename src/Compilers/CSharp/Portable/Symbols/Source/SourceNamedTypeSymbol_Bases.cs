@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
             if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                // A generic type cannot derive from '{0}' because it is an attribute class
-                diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
+                MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, baseLocation);
             }
 
             // Check constraints on the first declaration with explicit bases.

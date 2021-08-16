@@ -2568,7 +2568,7 @@ record C
             var src2 = @"
 record struct C
 {
-    private bool PrintMembers(System.Text.StringBuilder builder)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
         return true;
     }
@@ -4052,7 +4052,16 @@ record C(int X)
                 "Update [int a]@22 -> [int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
+                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
@@ -6788,7 +6797,48 @@ class C
                 "Update [string[] args]@35 -> [string[] b]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "string[] b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateParameterAndBody()
+        {
+            var src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main(string[] b)
+    {
+        System.Console.Write(1);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]
@@ -14256,7 +14306,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder1()
+        public void Event_Accessor_Reorder1()
         {
             var src1 = "class C { event int E { add { } remove { } } }";
             var src2 = "class C { event int E { remove { } add { } } }";
@@ -14270,7 +14320,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder2()
+        public void Event_Accessor_Reorder2()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E1 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E2 { remove { } add { } } }";
@@ -14285,7 +14335,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventAccessorReorder3()
+        public void Event_Accessor_Reorder3()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E2 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E1 { remove { } add { } } }";
@@ -14299,7 +14349,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventInsert()
+        public void Event_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { event int E { remove { } add { } } }";
@@ -14311,7 +14361,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventDelete()
+        public void Event_Delete()
         {
             var src1 = "class C { event int E { remove { } add { } } }";
             var src2 = "class C { }";
@@ -14323,7 +14373,7 @@ readonly struct S
         }
 
         [Fact]
-        public void EventInsert_IntoLayoutClass_Sequential()
+        public void Event_Insert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
 using System;
@@ -14465,6 +14515,191 @@ readonly struct S
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IEventSymbol>("E").AddMethod),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IEventSymbol>("E").RemoveMethod));
+        }
+
+        [Fact]
+        public void Field_Event_Attribute_Add()
+        {
+            var src1 = @"
+class C
+{
+    event Action F;
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [event Action F;]@18 -> [[System.Obsolete]event Action F;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[]
+               {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_Attribute_Add()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [event Action F { add {} remove {} }]@18 -> [[System.Obsolete]event Action F { add {} remove {} }]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_Accessor_Attribute_Add()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [remove {}]@42 -> [[System.Obsolete]remove {}]@42");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Field_Event_Attribute_Delete()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+            var src2 = @"
+class C
+{
+    event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]event Action F;]@18 -> [event Action F;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_Attribute_Delete()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]event Action F { add {} remove {} }]@18 -> [event Action F { add {} remove {} }]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_Accessor_Attribute_Delete()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]remove {}]@42 -> [remove {}]@42");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         #endregion
@@ -15546,7 +15781,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15571,7 +15806,7 @@ var name = Console.ReadLine();
                 "Insert [Console.WriteLine(\"What is your name?\");]@54",
                 "Insert [var name = Console.ReadLine();]@96");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15589,7 +15824,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15610,7 +15845,7 @@ Console.WriteLine(""World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"World\");]@48");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -15650,7 +15885,7 @@ Console.WriteLine(""Hello"");
 
             edits.VerifyEdits("Delete [Console.WriteLine(\"World\");]@48");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -16071,7 +16306,7 @@ Console.WriteLine(1);
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16102,7 +16337,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16131,7 +16366,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -16157,7 +16392,7 @@ public class C { }
 
             // Since each individual statement is a separate update to a separate node, this just validates we correctly
             // only analyze the things once
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         [Fact]
@@ -16198,7 +16433,7 @@ public class B
                 new[]
                 {
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")) }),
+                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")) }),
                 });
         }
 

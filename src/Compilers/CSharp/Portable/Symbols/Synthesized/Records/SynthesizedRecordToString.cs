@@ -22,8 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordToString : SynthesizedRecordObjectMethod
     {
         private readonly MethodSymbol _printMethod;
-        public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectToString, memberOffset, diagnostics)
+        public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, bool isReadOnly, BindingDiagnosticBag diagnostics)
+            : base(
+                  containingType,
+                  WellKnownMemberNames.ObjectToString,
+                  memberOffset,
+                  isReadOnly: isReadOnly,
+                  diagnostics)
         {
             Debug.Assert(printMethod is object);
             _printMethod = printMethod;

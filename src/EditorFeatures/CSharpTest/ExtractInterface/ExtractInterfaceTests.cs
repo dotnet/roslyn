@@ -468,7 +468,7 @@ namespace OuterNamespace
 
             Assert.Equal(@"namespace OuterNamespace.InnerNamespace;
 
-interface IMyClass
+internal interface IMyClass
 {
     void Goo();
 }", interfaceCode);
@@ -505,7 +505,7 @@ namespace OuterNamespace
 
             Assert.Equal(@"namespace OuterNamespace.InnerNamespace
 {
-    interface IMyClass
+    internal interface IMyClass
     {
         void Goo();
     }
@@ -543,7 +543,7 @@ namespace OuterNamespace
 
             Assert.Equal(@"namespace OuterNamespace.InnerNamespace
 {
-    interface IMyClass
+    internal interface IMyClass
     {
         void Goo();
     }
@@ -890,6 +890,35 @@ public interface IC4<A, B, C>
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_CodeGen_AccessibilityModifiers()
+        {
+            var markup = @"
+using System;
+
+abstract class MyClass$$
+{
+    public void Goo() { }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(@"internal interface IMyClass
+{
+    void Goo();
+}", interfaceCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]

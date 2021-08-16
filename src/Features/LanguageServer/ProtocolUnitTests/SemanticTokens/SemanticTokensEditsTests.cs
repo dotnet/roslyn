@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -42,10 +43,10 @@ static class C { }";
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(start: 5, deleteCount: 1, data: new int[] { 2 });
+            var expectedEdit = new LSP.SemanticTokensEdit { Start = 5, DeleteCount = 1, Data = new int[] { 2 } };
 
-            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
-            Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)results).Edits.First());
+            Assert.Equal("2", ((LSP.SemanticTokensDelta)results).ResultId);
         }
 
         /// <summary>
@@ -64,10 +65,10 @@ static class C { }";
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(start: 5, deleteCount: 25, data: System.Array.Empty<int>());
+            var expectedEdit = new LSP.SemanticTokensEdit { Start = 5, DeleteCount = 25, Data = System.Array.Empty<int>() };
 
-            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
-            Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)results).Edits.First());
+            Assert.Equal("2", ((LSP.SemanticTokensDelta)results).ResultId);
         }
 
         /// <summary>
@@ -88,11 +89,15 @@ static class C { }
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 });
+            var expectedEdit = new LSP.SemanticTokensEdit
+            {
+                Start = 30,
+                DeleteCount = 0,
+                Data = new int[] { 1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 }
+            };
 
-            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
-            Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)results).Edits.First());
+            Assert.Equal("2", ((LSP.SemanticTokensDelta)results).ResultId);
         }
 
         /// <summary>
@@ -114,18 +119,24 @@ static class C { }
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
-            // 1. Replaces length of token (10 to 5) and replaces token type (comment to keyword)
+            // 1. Updates length of token (10 to 5) and updates token type (comment to keyword)
             // 2. Creates new token for '// Comment'
-            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 0, deleteCount: 5,
-                data: new int[]
+            var expectedEdit = new LSP.SemanticTokensEdit
+            {
+                Start = 2,
+                DeleteCount = 0,
+                Data = new int[]
                 {
-                    0, 0, 5, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword], 0,
-                    1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0
-                });
+                    // 'class'
+                    /* 0, 0, */ 5, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword], 0,
 
-            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits?[0]);
-            Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
+                    // '// Comment'
+                    1, 0, /* 10,  SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 */
+                }
+            };
+
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)results).Edits?[0]);
+            Assert.Equal("2", ((LSP.SemanticTokensDelta)results).ResultId);
         }
 
         /// <summary>
@@ -166,7 +177,7 @@ static class C { }";
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
-            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensEdits)edits);
+            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensDelta)edits);
 
             // Raw tokens
             var rawTokens = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
@@ -188,7 +199,7 @@ internal struct S { }";
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
-            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensEdits)edits);
+            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensDelta)edits);
 
             // Raw tokens
             var rawTokens = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
@@ -217,7 +228,7 @@ class C
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
-            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensEdits)edits);
+            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensDelta)edits);
 
             // Raw tokens
             var rawTokens = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
@@ -225,15 +236,49 @@ class C
             Assert.True(Enumerable.SequenceEqual(rawTokens.Data, editsToTokens));
         }
 
-        private static int[] ApplySemanticTokensEdits(int[]? originalTokens, LSP.SemanticTokensEdits edits)
+        [Fact, WorkItem(54671, "https://github.com/dotnet/roslyn/issues/54671")]
+        public async Task TestConvertSemanticTokenEditsIntoSemanticTokens_FragmentedTokens()
+        {
+            var originalText =
+@"fo {|caret:|}r (int i = 0;/*c*/; i++)
+{
+
+}";
+
+            var updatedText =
+@"for (int i = 0;/*c*/; i++)
+{
+
+}";
+
+            using var testLspServer = CreateTestLspServer(originalText, out var locations);
+            var caretLocation = locations["caret"].First();
+            var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
+            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+
+            // Edits to tokens conversion
+            var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
+            var editsToTokens = ApplySemanticTokensEdits(originalTokens.Data, (LSP.SemanticTokensDelta)edits);
+
+            // Raw tokens
+            var rawTokens = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+
+            Assert.True(Enumerable.SequenceEqual(rawTokens.Data, editsToTokens));
+        }
+
+        private static int[] ApplySemanticTokensEdits(int[]? originalTokens, LSP.SemanticTokensDelta edits)
         {
             var data = originalTokens.ToList();
             if (edits.Edits != null)
             {
-                foreach (var edit in edits.Edits)
+                foreach (var edit in edits.Edits.Reverse())
                 {
                     data.RemoveRange(edit.Start, edit.DeleteCount);
-                    data.InsertRange(edit.Start, edit.Data);
+
+                    if (edit.Data is not null)
+                    {
+                        data.InsertRange(edit.Start, edit.Data);
+                    }
                 }
             }
 
