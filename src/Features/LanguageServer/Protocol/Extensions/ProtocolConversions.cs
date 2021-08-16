@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -91,21 +91,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else if (context.TriggerKind is LSP.CompletionTriggerKind.Invoked or LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
             {
-                if (context is not LSP.VSCompletionContext vsCompletionContext)
+                if (context is not LSP.VSInternalCompletionContext vsCompletionContext)
                 {
                     return Completion.CompletionTrigger.Invoke;
                 }
 
                 switch (vsCompletionContext.InvokeKind)
                 {
-                    case LSP.VSCompletionInvokeKind.Explicit:
+                    case LSP.VSInternalCompletionInvokeKind.Explicit:
                         return Completion.CompletionTrigger.Invoke;
 
-                    case LSP.VSCompletionInvokeKind.Typing:
+                    case LSP.VSInternalCompletionInvokeKind.Typing:
                         var insertionChar = await GetInsertionCharacterAsync(document, position, cancellationToken).ConfigureAwait(false);
                         return Completion.CompletionTrigger.CreateInsertionTrigger(insertionChar);
 
-                    case LSP.VSCompletionInvokeKind.Deletion:
+                    case LSP.VSInternalCompletionInvokeKind.Deletion:
                         Contract.ThrowIfNull(context.TriggerCharacter);
                         Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
                         return Completion.CompletionTrigger.CreateDeletionTrigger(triggerChar);
@@ -206,13 +206,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
             => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
-        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(
+        public static async Task<LSP.VSInternalLocation?> DocumentSpanToLocationWithTextAsync(
             DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {
             var location = await TextSpanToLocationAsync(
                 documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken).ConfigureAwait(false);
 
-            return location == null ? null : new LSP.LocationWithText
+            return location == null ? null : new LSP.VSInternalLocation
             {
                 Uri = location.Uri,
                 Range = location.Range,
@@ -280,9 +280,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new TextDocumentEdit
+            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
             {
-                TextDocument = new VersionedTextDocumentIdentifier { Uri = uri },
+                TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),
             }).ToArray();
 
@@ -344,6 +344,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
                 return location;
             }
+        }
+
+        public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLink)
+        {
+            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
+            {
+                return new LSP.CodeDescription
+                {
+                    Href = uri,
+                };
+            }
+
+            return null;
         }
 
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
@@ -538,31 +551,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
-        public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        public static LSP.VSImageId GetImageIdFromGlyph(Glyph glyph)
         {
-            using var _ = ArrayBuilder<LSP.ReferenceKind>.GetInstance(out var referenceKinds);
+            var imageId = glyph.GetImageId();
+            return new LSP.VSImageId
+            {
+                Guid = imageId.Guid,
+                Id = imageId.Id
+            };
+        }
+
+        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
+        public static LSP.VSInternalReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        {
+            using var _ = ArrayBuilder<LSP.VSInternalReferenceKind>.GetInstance(out var referenceKinds);
             if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
             {
                 var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
                 if (usageInfo.IsReadFrom())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Read);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Read);
                 }
 
                 if (usageInfo.IsWrittenTo())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Write);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Write);
                 }
 
                 if (usageInfo.IsReference())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Reference);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Reference);
                 }
 
                 if (usageInfo.IsNameOnly())
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Name);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Name);
                 }
             }
 
@@ -571,39 +594,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Qualified);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Qualified);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.TypeArgument);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.TypeArgument);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.TypeConstraint);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.TypeConstraint);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.BaseType);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.BaseType);
                 }
 
                 // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
                 if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Constructor);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Constructor);
                 }
 
                 if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Import);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Import);
                 }
 
                 // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
                 if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
                 {
-                    referenceKinds.Add(LSP.ReferenceKind.Declaration);
+                    referenceKinds.Add(LSP.VSInternalReferenceKind.Declaration);
                 }
             }
 
@@ -615,7 +638,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return id.Id + "|" + id.DebugName;
         }
 
-        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        public static ProjectId ProjectContextToProjectId(LSP.VSProjectContext projectContext)
         {
             var delimiter = projectContext.Id.IndexOf('|');
 

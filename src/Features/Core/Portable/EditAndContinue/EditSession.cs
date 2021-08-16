@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
 
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id));
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
                         isBlocked = true;
                         continue;
                     }
@@ -705,6 +705,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (analysis.RudeEditErrors.Length > 0)
                             {
                                 documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
+                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
                             }
                         }
 
@@ -713,18 +714,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                         diagnostics.Add((newProject.Id, createBaselineDiagnostics));
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics, InBreakState);
                         isBlocked = true;
                         continue;
                     }
@@ -746,14 +747,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
-                    var emitResult = newCompilation.EmitDifference(
-                        baseline,
-                        projectChanges.SemanticEdits,
-                        projectChanges.AddedSymbols.Contains,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        cancellationToken);
+                    EmitDifferenceResult emitResult;
+
+                    // The lock protects underlying baseline readers from being disposed while emitting delta.
+                    // If the lock is disposed at this point the session has been incorrectly disposed while operations on it are in progress.
+                    using (baselineAccessLock.DisposableRead())
+                    {
+                        DebuggingSession.ThrowIfDisposed();
+
+                        emitResult = newCompilation.EmitDifference(
+                            baseline,
+                            projectChanges.SemanticEdits,
+                            projectChanges.AddedSymbols.Contains,
+                            metadataStream,
+                            ilStream,
+                            pdbStream,
+                            cancellationToken);
+                    }
 
                     if (emitResult.Success)
                     {
@@ -805,23 +815,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, emitResult.Diagnostics));
                     }
 
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
                 }
 
-                if (isBlocked)
-                {
-                    return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
-                }
+                var update = isBlocked ?
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable()) :
+                    new SolutionUpdate(
+                        new ManagedModuleUpdates(
+                            (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                            deltas.ToImmutable()),
+                        nonRemappableRegions.ToImmutable(),
+                        emitBaselines.ToImmutable(),
+                        diagnostics.ToImmutable(),
+                        documentsWithRudeEdits.ToImmutable());
 
-                return new SolutionUpdate(
-                    new ManagedModuleUpdates(
-                        (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
-                        deltas.ToImmutable()),
-                    nonRemappableRegions.ToImmutable(),
-
-                    emitBaselines.ToImmutable(),
-                    diagnostics.ToImmutable(),
-                    documentsWithRudeEdits.ToImmutable());
+                return update;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

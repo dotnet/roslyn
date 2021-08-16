@@ -274,15 +274,6 @@
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection</value>
   </data>
-  <data name="Selection_doesn_t_contain_any_valid_token" xml:space="preserve">
-    <value>Selection doesn't contain any valid token</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction</value>
-  </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
   </data>

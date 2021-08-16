@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
+        private readonly Action _flushInMemoryDataToDisk;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 CancellationToken.None)!;
 
             // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
+            _flushInMemoryDataToDisk = FlushInMemoryDataToDisk;
             _flushQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromMilliseconds(FlushAllDelayMS),
                 FlushInMemoryDataToDiskIfNotShutdownAsync,

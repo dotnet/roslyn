@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_object_creation">
         <source>Prefer simplified object creation</source>
-        <target state="translated">간소화된 개체 만들기 선호</target>
+        <target state="translated">단순화된 개체 만들기 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports">

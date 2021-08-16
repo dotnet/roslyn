@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -44,6 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
         }
 
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
+
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
@@ -57,10 +60,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var capabilities = isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
 
             // Only turn on CodeAction support for client scenarios. Hosts will get non-LSP lightbulbs automatically.
-            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } };
-            capabilities.CodeActionsResolveProvider = true;
+            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor }, ResolveProvider = true };
 
             return capabilities;
         }
+
+        /// <summary>
+        /// Failures are catastrophic as liveshare guests will not have language features without this server.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpResources.resx">
     <body>
@@ -77,6 +77,16 @@
         <target state="translated">Die init-only-Eigenschaft oder der Indexer "{0}" kann nur in einem Objektinitialisierer oder für "this" oder "base" in einem Instanzkonstruktor oder einer init-Zugriffsmethode zugewiesen werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
@@ -84,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
         <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
-        <target state="translated">Attribute in Lambdaausdrücken erfordern eine in runde Klammern eingeschlossene Parameterliste.</target>
+        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
@@ -199,7 +209,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
+        <target state="needs-review-translation">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -214,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
-        <target state="translated">Der Empfängertyp "{0}" ist kein gültiger Datensatztyp und kein Strukturtyp.</target>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -224,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
-        <target state="translated">Der Delegattyp konnte nicht abgeleitet werden.</target>
+        <target state="new">The delegate type could not be inferred.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -534,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
+        <target state="needs-review-translation">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -549,12 +559,12 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
-        <target state="translated">Eine globale using-Anweisung kann nicht in einer Namespacedeklaration verwendet werden.</target>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
-        <target state="translated">Eine globale using-Anweisung muss allen nicht globalen using-Anweisungen vorangehen.</target>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1232,9 +1242,14 @@
         <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="new">generic attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
-        <target state="translated">globale using-Anweisung</target>
+        <target state="new">global using directive</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -1249,12 +1264,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
-        <target state="translated">abgeleiteter Delegattyp</target>
+        <target state="new">inferred delegate type</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
-        <target state="translated">Lambdaattribute</target>
+        <target state="new">lambda attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1274,12 +1289,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
-        <target state="translated">Positionsfelder in Datensätzen</target>
+        <target state="new">positional fields in records</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
-        <target state="translated">Datensatzstrukturen</target>
+        <target state="new">record structs</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
@@ -1304,7 +1319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
-        <target state="translated">"with" in Strukturen</target>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1315,6 +1330,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Die geladene Assembly verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
+        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1368,8 +1393,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression">
-        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</target>
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
@@ -4568,7 +4593,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensatzklassen, nur Strukturen, nur Datensatzstrukturen oder nur Schnittstellen sein.</target>
+        <target state="needs-review-translation">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensätze, nur Strukturen oder nur Schnittstellen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -4774,11 +4799,6 @@
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
         <target state="translated">NULL kann nicht in den {0}-Typparameter konvertiert werden, weil es sich möglicherweise um einen Non-Nullable-Werttyp handelt. Verwenden Sie stattdessen ggf. default({0}).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Die Attributklasse "{0}" kann nicht angewendet werden, da sie generisch ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -5497,7 +5517,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
         <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
-        <target state="translated">Das Conditional-Attribut ist für "{0}" nicht gültig, weil es sich hierbei um einen Konstruktor, einen Destruktor, einen Operator, einen Lambdaausdruck oder eine explizite Schnittstellenimplementierung handelt.</target>
+        <target state="needs-review-translation">Das Conditional-Attribut ist für "{0}" nicht gültig, weil es sich hierbei um einen Konstruktor, einen Destruktor, einen Operator oder eine explizite Schnittstellenimplementierung handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -5998,11 +6018,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
         <target state="translated">"{0}" kann nicht gleichzeitig "{1}" und "{2}" implementieren, da diese für einige Typparameterersetzungen zusammengeführt werden können.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">Ein generischer Typ kann nicht von "{0}" abgeleitet werden, da dies eine Attributklasse ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
@@ -7265,8 +7280,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">"{0}" ist für "{1}" und "{2}" mehrdeutig. Verwenden Sie "@{0}" oder "{0}Attribute".</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="needs-review-translation">"{0}" ist für "{1}" und "{2}" mehrdeutig. Verwenden Sie "@{0}" oder "{0}Attribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">

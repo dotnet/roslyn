@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
-            var completionList = new LSP.VSCompletionList
+            var completionList = new LSP.VSInternalCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (supportsVSExtensions)
                 {
-                    var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
+                    var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSInternalCompletionItem>(
                         request, document, item, completionResolveData, supportsVSExtensions, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
@@ -354,8 +354,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return lspCommitCharacters;
             }
 
-            static void PromoteCommonCommitCharactersOntoList(LSP.VSCompletionList completionList)
+            static void PromoteCommonCommitCharactersOntoList(LSP.VSInternalCompletionList completionList)
             {
+                var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;
                 string[]? mostUsedCommitCharacters = null;
@@ -365,7 +366,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var commitCharacters = completionItem.CommitCharacters;
                     if (commitCharacters == null)
                     {
-                        continue;
+                        // The commit characters on the item are null, this means the commit characters are actually
+                        // the default commit characters we passed in the initialize request.
+                        commitCharacters = defaultCommitCharacters;
                     }
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
