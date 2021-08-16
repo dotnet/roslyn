@@ -9,6 +9,9 @@ using Microsoft.VisualStudio.Text.Classification;
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -25,43 +28,58 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [Order(Before = Priority.Default)]
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
+        private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindUsagesTableControlEventProcessorProvider()
+        public FindUsagesTableControlEventProcessorProvider(
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListenerProvider asyncProvider)
         {
+            _operationExecutor = operationExecutor;
+            _listener = asyncProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public ITableControlEventProcessor GetAssociatedEventProcessor(
-            IWpfTableControl tableControl)
-        {
-            return new TableControlEventProcessor();
-        }
+        public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
+            => new TableControlEventProcessor(_operationExecutor, _listener);
 
         private class TableControlEventProcessor : TableControlEventProcessorBase
         {
+            private readonly IUIThreadOperationExecutor _operationExecutor;
+            private readonly IAsynchronousOperationListener _listener;
+
+            public TableControlEventProcessor(IUIThreadOperationExecutor operationExecutor, IAsynchronousOperationListener listener)
+            {
+                _operationExecutor = operationExecutor;
+                _listener = listener;
+            }
+
             public override void PreprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs e)
             {
-                if (entry.Identity is ISupportsNavigation supportsNavigation)
+                var supportsNavigation = entry.Identity as ISupportsNavigation ??
+                    (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) ? item as ISupportsNavigation : null);
+                if (supportsNavigation == null)
                 {
-                    // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
-                    if (supportsNavigation.TryNavigateTo(e.IsPreview, CancellationToken.None))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
+                    base.PreprocessNavigate(entry, e);
+                    return;
                 }
 
-                if (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) && item is ISupportsNavigation itemSupportsNavigation)
-                {
-                    // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
-                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview, CancellationToken.None))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                }
+                // Fire and forget
+                e.Handled = true;
+                _ = ProcessNavigateAsync(supportsNavigation, e);
+            }
 
-                base.PreprocessNavigate(entry, e);
+            private async Task ProcessNavigateAsync(ISupportsNavigation supportsNavigation, TableEntryNavigateEventArgs e)
+            {
+                using var token = _listener.BeginAsyncOperation(nameof(ProcessNavigateAsync));
+                using var context = _operationExecutor.BeginExecute(
+                    ServicesVSResources.IntelliSense,
+                    EditorFeaturesResources.Navigating,
+                    allowCancellation: true,
+                    showProgress: false);
+
+                await supportsNavigation.TryNavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
             }
         }
     }

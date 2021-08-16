@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
@@ -102,10 +103,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => true;
+            public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+                => SpecializedTasks.True;
 
+            public override Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+                => Task.FromResult(TryOpenFile() && TryNavigateToPosition());
+
+            [Obsolete]
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
+                => throw ExceptionUtilities.Unreachable;
+
+            [Obsolete]
             public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-                => TryOpenFile() && TryNavigateToPosition();
+                => throw ExceptionUtilities.Unreachable;
 
             private bool TryOpenFile()
             {

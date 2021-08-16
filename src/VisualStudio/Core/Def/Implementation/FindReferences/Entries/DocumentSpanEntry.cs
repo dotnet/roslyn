@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -278,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
+            async Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 // If the document is a source generated document, we need to do the navigation ourselves;
                 // this is because the file path given to the table control isn't a real file path to a file
@@ -290,6 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     if (documentNavigationService != null)
                     {
+                        await this.Presenter.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         return documentNavigationService.TryNavigateToSpan(
                             workspace,
                             _excerptResult.Document.Id,

@@ -4,11 +4,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             foreach (var def in definitions)
             {
-                if (def.CanNavigateTo(solution.Workspace, cancellationToken))
+                if (await def.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
                     context.AddItem(WellKnownSymbolTypes.Definition, def);
             }
 
