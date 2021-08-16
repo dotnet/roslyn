@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private readonly ImmutableArray<string> _existingNames;
 
-        private readonly string _prependedNamespace;
-
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
@@ -33,8 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _destinationName = defaultType;
             _existingNames = existingNames;
-            _prependedNamespace = prependedNamespace;
-            _fullyQualifiedTypeName = string.Join(".", _prependedNamespace, _destinationName);
+            PrependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             OnDestinationUpdated();
@@ -53,14 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public void OnDestinationUpdated()
         {
             // TODO change once we allow movement to existing types
-            FullyQualifiedTypeName = string.Join(".", _prependedNamespace, _destinationName);
-            var isNewType = !_existingNames.Contains(FullyQualifiedTypeName);
-            _isValidName = isNewType && IsValidType(FullyQualifiedTypeName);
+            var fullyQualifiedTypeName = PrependedNamespace + DestinationName;
+            var isNewType = !_existingNames.Contains(fullyQualifiedTypeName);
+            _isValidName = isNewType && IsValidType(fullyQualifiedTypeName);
 
             if (_isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = string.Format(ServicesVSResources.New_type_name_colon_0, FullyQualifiedTypeName);
+                Message = ServicesVSResources.New_Type_Name_colon;
                 ShowMessage = true;
             }
             else
@@ -90,6 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             return true;
         }
+
+        public string PrependedNamespace { get; }
 
         private string _destinationName;
         public string DestinationName
@@ -123,13 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public bool CanSubmit
         {
             get => _isValidName && MemberSelectionViewModel.CheckedMembers.Length > 0;
-        }
-
-        private string _fullyQualifiedTypeName;
-        public string FullyQualifiedTypeName
-        {
-            get => _fullyQualifiedTypeName;
-            private set => SetProperty(ref _fullyQualifiedTypeName, value);
         }
     }
 }

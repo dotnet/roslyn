@@ -1777,7 +1777,4 @@ Additional information: {1}</value>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
   </data>
-  <data name="New_type_name_colon_0" xml:space="preserve">
-    <value>New type name: '{0}'</value>
-  </data>
 </root>

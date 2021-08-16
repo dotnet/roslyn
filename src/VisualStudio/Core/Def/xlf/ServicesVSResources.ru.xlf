@@ -752,11 +752,6 @@
         <target state="translated">Предпочтения для новых строк (экспериментальная функция):</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_type_name_colon_0">
-        <source>New type name: '{0}'</source>
-        <target state="new">New type name: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Newline_n">
         <source>Newline (\\n)</source>
         <target state="translated">Новая строка (\\n)</target>
