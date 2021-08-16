@@ -418,8 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
-            return analysisScope == BackgroundAnalysisScope.FullSolution;
+            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

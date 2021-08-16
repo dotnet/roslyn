@@ -813,8 +813,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             private ImmutableHashSet<string> GetOrCreateSupportedLiveDiagnostics(Project project)
             {
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
-                var fullSolutionAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution;
+                var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
                 if (!project.SupportsCompilation || fullSolutionAnalysis)
                 {
                     // Defer to _allDiagnosticIdMap so we avoid placing FSA diagnostics in _liveDiagnosticIdMap

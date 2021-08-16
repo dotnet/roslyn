@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.Host
                     if (p is null)
                         return null;
 
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(p.Solution.Options, p.Language);
-                    if (analysisScope == BackgroundAnalysisScope.ActiveFile && p.Id != activeProject)
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile
+                        && p.Id != activeProject)
                     {
                         // For open files with Active File analysis scope, only build the compilation if the project is
                         // active.

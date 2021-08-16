@@ -239,7 +239,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
-            if (!documentHadDiagnostics || FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+            if (!documentHadDiagnostics ||
+                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
             {
                 // this is Perf to reduce raising events unnecessarily.
                 return;
@@ -344,8 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(document.Project.Solution.Options, document.Project.Language);
-            if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile)
             {
                 return documentTrackingService.TryGetActiveDocument() == document.Id;
             }
@@ -363,8 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
-            if (analysisScope != BackgroundAnalysisScope.FullSolution)
+            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) != BackgroundAnalysisScope.FullSolution)
             {
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }

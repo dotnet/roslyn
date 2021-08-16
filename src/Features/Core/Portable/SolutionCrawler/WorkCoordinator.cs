@@ -212,20 +212,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
 
                 RoslynDebug.AssertNotNull(activeDocumentId);
-                if (ActiveFileAnalysisSynchronouslyKnownEnabled(activeProject, _shutdownToken))
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
+                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
                     // When the active document changes and we are only analyzing the active file, trigger a document
                     // changed event to reanalyze the newly-active file.
                     EnqueueEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
-                }
-
-                return;
-
-                // Local function
-                static bool ActiveFileAnalysisSynchronouslyKnownEnabled(Project project, CancellationToken cancellationToken)
-                {
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
-                    return analysisScope == BackgroundAnalysisScope.ActiveFile;
                 }
             }
 

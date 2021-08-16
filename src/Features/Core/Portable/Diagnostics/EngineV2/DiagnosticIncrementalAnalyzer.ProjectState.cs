@@ -239,8 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(project.Solution.Options, project.Language);
-                var fullAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution &&
+                var fullAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off
