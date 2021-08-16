@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                             For Each location In items
                                 For Each docSpan In location.SourceSpans
-                                    actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                                    actualLocations.Add(New FilePathAndSpan(solution.GetRequiredDocument(docSpan.DocumentId).FilePath, docSpan.SourceSpan))
                                 Next
                             Next
 

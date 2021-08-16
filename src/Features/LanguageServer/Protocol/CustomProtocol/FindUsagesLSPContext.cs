@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+        public override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
             => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
         public override async ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)

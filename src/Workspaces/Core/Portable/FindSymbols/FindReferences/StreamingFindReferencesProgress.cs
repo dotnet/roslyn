@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             });
         }
 
-        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+        public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
         {
             _progress.OnCompleted();
             return default;

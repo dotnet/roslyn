@@ -303,14 +303,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+            public sealed override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
             {
-                await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await OnCompletedAsyncWorkerAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 _tableDataSink.IsStable = true;
             }
 
-            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
+            protected abstract Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken);
 
             public sealed override ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {

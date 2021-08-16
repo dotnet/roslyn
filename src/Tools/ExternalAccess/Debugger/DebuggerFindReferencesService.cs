@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             }
             finally
             {
-                await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                await context.OnCompletedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
             }
         }
     }

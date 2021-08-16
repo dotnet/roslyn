@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
 

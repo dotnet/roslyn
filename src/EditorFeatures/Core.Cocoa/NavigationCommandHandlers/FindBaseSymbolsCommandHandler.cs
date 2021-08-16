@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     cancellationToken))
                 {
+                    var solution = document.Project.Solution;
                     try
                     {
                         var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
-                        var solution = document.Project.Solution;
                         while (overriddenSymbol != null)
                         {
                             if (cancellationToken.IsCancellationRequested)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

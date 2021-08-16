@@ -525,7 +525,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

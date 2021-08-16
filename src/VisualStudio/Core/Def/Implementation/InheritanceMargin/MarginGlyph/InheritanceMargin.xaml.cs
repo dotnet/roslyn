@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                         showProgress: false),
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
-                        _workspace,
+                        _workspace.CurrentSolution,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,

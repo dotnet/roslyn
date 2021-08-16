@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

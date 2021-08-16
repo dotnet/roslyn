@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                await _progress.OnCompletedAsync(_solution, cancellationToken).ConfigureAwait(false);
             }
         }
 

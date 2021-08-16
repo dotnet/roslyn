@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
-            protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
+            protected override Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)

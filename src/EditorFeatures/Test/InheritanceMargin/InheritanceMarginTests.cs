@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
-                VerifyInheritanceTarget(expectedTargets[i], sortedActualTargets[i]);
+                VerifyInheritanceTarget(testWorkspace.CurrentSolution, expectedTargets[i], sortedActualTargets[i]);
             }
         }
 
-        private static void VerifyInheritanceTarget(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static void VerifyInheritanceTarget(Solution solution, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
-                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].Document.FilePath);
+                    var document = solution.GetRequiredDocument(actualDocumentSpans[i].DocumentId);
+                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, document.FilePath);
                 }
             }
         }

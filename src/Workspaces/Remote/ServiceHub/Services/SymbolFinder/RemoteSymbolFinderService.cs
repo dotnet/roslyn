@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                 {
                     await progressCallback.OnStartedAsync(cancellationToken).ConfigureAwait(false);
-                    await progressCallback.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await progressCallback.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask OnStartedAsync(CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.OnStartedAsync(_callbackId, cancellationToken), cancellationToken);
 
-            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+            public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.OnCompletedAsync(_callbackId, cancellationToken), cancellationToken);
 
             public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)

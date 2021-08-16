@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

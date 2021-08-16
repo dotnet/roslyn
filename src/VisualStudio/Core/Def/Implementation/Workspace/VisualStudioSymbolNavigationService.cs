@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, cancellationToken,
+                    solution, definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -195,8 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            if (WouldNotifyToSpecificSymbol(definitionItem, rqName1, cancellationToken, out filePath, out lineNumber, out charOffset) ||
-                WouldNotifyToSpecificSymbol(definitionItem, rqName2, cancellationToken, out filePath, out lineNumber, out charOffset))
+            if (WouldNotifyToSpecificSymbol(solution, definitionItem, rqName1, cancellationToken, out filePath, out lineNumber, out charOffset) ||
+                WouldNotifyToSpecificSymbol(solution, definitionItem, rqName2, cancellationToken, out filePath, out lineNumber, out charOffset))
             {
                 return true;
             }
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool WouldNotifyToSpecificSymbol(
-            DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken,
+            Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, cancellationToken,
+                    solution, definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -252,6 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool TryGetNavigationAPIRequiredArguments(
+            Solution solution,
             DefinitionItem definitionItem,
             string? rqName,
             CancellationToken cancellationToken,
@@ -276,7 +277,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var documents = sourceLocations.SelectAsArray(loc => loc.Document);
+            var documents = sourceLocations.Select(loc => solution.GetDocument(loc.DocumentId))
+                                           .WhereNotNull()
+                                           .ToImmutableArrayOrEmpty();
 
             // We can only pass one itemid to IVsSymbolicNavigationNotify, so prefer itemids from
             // documents we consider to be "generated" to give external language services the best
