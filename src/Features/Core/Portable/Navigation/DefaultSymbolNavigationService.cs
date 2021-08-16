@@ -19,15 +19,10 @@ namespace Microsoft.CodeAnalysis.Navigation
         public Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public bool WouldNavigateToSymbol(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
+        public Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken)
         {
-            filePath = null;
-            lineNumber = 0;
-            charOffset = 0;
-
-            return false;
+            return Task.FromResult<(string filePath, int lineNumber, int charOffset)?>(null);
         }
     }
 }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -29,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation would be handled.</returns>
-        bool WouldNavigateToSymbol(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset);
+        Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken);
     }
 }

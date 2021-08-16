@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
@@ -172,12 +173,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
-            if (!TryGetNavigationAPIRequiredArguments(
-                    solution, definitionItem, rqName, cancellationToken,
-                    out var hierarchy, out var itemID, out var navigationNotify))
-            {
+            var result = await TryGetNavigationAPIRequiredArgumentsAsync(
+                    solution, definitionItem, rqName, cancellationToken).ConfigureAwait(true);
+            if (result is not var (hierarchy, itemID, navigationNotify))
                 return false;
-            }
 
             var returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
@@ -188,46 +187,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return returnCode == VSConstants.S_OK && navigationHandled == 1;
         }
 
-        public bool WouldNavigateToSymbol(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
+        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            if (WouldNotifyToSpecificSymbol(solution, definitionItem, rqName1, cancellationToken, out filePath, out lineNumber, out charOffset) ||
-                WouldNotifyToSpecificSymbol(solution, definitionItem, rqName2, cancellationToken, out filePath, out lineNumber, out charOffset))
-            {
-                return true;
-            }
-
-            filePath = null;
-            lineNumber = 0;
-            charOffset = 0;
-            return false;
+            return await WouldNotifyToSpecificSymbolAsync(solution, definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
+                   await WouldNotifyToSpecificSymbolAsync(solution, definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
         }
 
-        public bool WouldNotifyToSpecificSymbol(
-            Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
+        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
+            Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            filePath = null;
-            lineNumber = 0;
-            charOffset = 0;
-
             if (rqName == null)
-            {
-                return false;
-            }
+                return null;
 
-            if (!TryGetNavigationAPIRequiredArguments(
-                    solution, definitionItem, rqName, cancellationToken,
-                    out var hierarchy, out var itemID, out var navigationNotify))
-            {
-                return false;
-            }
+            var values = await TryGetNavigationAPIRequiredArgumentsAsync(
+                solution, definitionItem, rqName, cancellationToken).ConfigureAwait(true);
+            if (values is not var (hierarchy, itemID, navigationNotify))
+                return null;
 
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
@@ -240,46 +221,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 navigateToTextSpan,
                 out var wouldNavigate);
 
-            if (queryNavigateStatusCode == VSConstants.S_OK && wouldNavigate == 1)
-            {
-                navigateToHierarchy.GetCanonicalName(navigateToItem, out filePath);
-                lineNumber = navigateToTextSpan[0].iStartLine;
-                charOffset = navigateToTextSpan[0].iStartIndex;
-                return true;
-            }
+            if (queryNavigateStatusCode != VSConstants.S_OK || wouldNavigate != 1)
+                return null;
 
-            return false;
+            navigateToHierarchy.GetCanonicalName(navigateToItem, out var filePath);
+            var lineNumber = navigateToTextSpan[0].iStartLine;
+            var charOffset = navigateToTextSpan[0].iStartIndex;
+
+            return (filePath, lineNumber, charOffset);
         }
 
-        private bool TryGetNavigationAPIRequiredArguments(
+        private async Task<(IVsHierarchy hierarchy, uint itemId, IVsSymbolicNavigationNotify navigationNotify)?> TryGetNavigationAPIRequiredArgumentsAsync(
             Solution solution,
             DefinitionItem definitionItem,
             string? rqName,
-            CancellationToken cancellationToken,
-            [NotNullWhen(true)] out IVsHierarchy? hierarchy,
-            out uint itemID,
-            [NotNullWhen(true)] out IVsSymbolicNavigationNotify? navigationNotify)
+            CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            hierarchy = null;
-            navigationNotify = null;
-            itemID = (uint)VSConstants.VSITEMID.Nil;
-
             if (rqName == null)
-            {
-                return false;
-            }
+                return null;
 
             var sourceLocations = definitionItem.SourceSpans;
             if (!sourceLocations.Any())
+                return null;
+
+            using var _ = ArrayBuilder<Document>.GetInstance(out var documentsBuilder);
+            foreach (var loc in sourceLocations)
             {
-                return false;
+                var docSpan = await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(true);
+                documentsBuilder.AddIfNotNull(docSpan.Document);
             }
 
-            var documents = sourceLocations.Select(loc => solution.GetDocument(loc.DocumentId))
-                                           .WhereNotNull()
-                                           .ToImmutableArrayOrEmpty();
+            var documents = documentsBuilder.ToImmutable();
 
             // We can only pass one itemid to IVsSymbolicNavigationNotify, so prefer itemids from
             // documents we consider to be "generated" to give external language services the best
@@ -288,18 +262,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var generatedDocuments = documents.WhereAsArray(d => d.IsGeneratedCode(cancellationToken));
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
-            if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))
-            {
-                return false;
-            }
+            if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
+                return null;
 
-            navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
+            var navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
             if (navigationNotify == null)
-            {
-                return false;
-            }
+                return null;
 
-            return true;
+            return (hierarchy, itemID, navigationNotify);
         }
 
         private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)
