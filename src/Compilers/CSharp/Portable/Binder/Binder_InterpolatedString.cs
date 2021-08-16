@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = null;
 
-                if (InExpressionTree || unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
+                if (InExpressionTree || !ValidateInterpolatedStringParts(unconvertedInterpolatedString))
                 {
                     return false;
                 }
@@ -203,6 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
         }
+
+        private bool ValidateInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
+            => !unconvertedInterpolatedString.Parts.ContainsAwaitExpression()
+               && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value: { Type: { TypeKind: TypeKind.Dynamic } } });
 
         private static bool AllInterpolatedStringPartsAreStrings(ImmutableArray<BoundExpression> parts)
             => parts.All(p => p is BoundLiteral or BoundStringInsert { Value: { Type: { SpecialType: SpecialType.System_String } }, Alignment: null, Format: null });
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundUnconvertedInterpolatedString interpolatedString:
                         isConstant = isConstant && interpolatedString.ConstantValue is not null;
 
-                        if (interpolatedString.Parts.ContainsAwaitExpression())
+                        if (!ValidateInterpolatedStringParts(interpolatedString))
                         {
                             // Exception to case 3. Delegate to standard binding.
                             stack.Free();
