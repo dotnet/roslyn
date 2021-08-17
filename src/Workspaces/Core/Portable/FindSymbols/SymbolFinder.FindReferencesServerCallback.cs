@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 => _progress.OnStartedAsync(cancellationToken);
 
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
-                => _progress.OnCompletedAsync(_solution, cancellationToken);
+                => _progress.OnCompletedAsync(cancellationToken);
 
             public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {

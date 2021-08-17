@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     cancellationToken))
                 {
-                    var solution = document.Project.Solution;
                     var symbolsToLookup = new List<ISymbol>();
 
                     foreach (var curSymbol in symbol.ContainingType.GetMembers()
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, cancellationToken))
                         {
                             // assumption here is, that FindSimilarSymbols returns symbols inside same project
-                            var symbolsToAdd = await GatherSymbolsAsync(sym, solution, cancellationToken).ConfigureAwait(false);
+                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                             symbolsToLookup.AddRange(symbolsToAdd);
                         }
                     }

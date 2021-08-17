@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         if (candidateSymbolProjectPair?.symbol == null)
                             return;
 
-                        var candidates = await GatherSymbolsAsync(
-                            candidateSymbolProjectPair.Value.symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
+                            document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                         foreach (var candidate in candidates)
                         {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         IStreamingProgressTracker ProgressTracker { get; }
 
         ValueTask OnStartedAsync(CancellationToken cancellationToken);
-        ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken);
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
         ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
         ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);

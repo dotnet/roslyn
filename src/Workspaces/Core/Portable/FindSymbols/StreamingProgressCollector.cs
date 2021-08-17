@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ValueTask OnStartedAsync(CancellationToken cancellationToken)
             => _underlyingProgress.OnStartedAsync(cancellationToken);
 
-        public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
-            => _underlyingProgress.OnCompletedAsync(solution, cancellationToken);
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+            => _underlyingProgress.OnCompletedAsync(cancellationToken);
 
         public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
         public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);

@@ -42,9 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, cancellationToken).ConfigureAwait(false);
-                await _context.OnReferenceFoundAsync(
-                    new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None),
-                    cancellationToken).ConfigureAwait(false);
+                await _context.OnReferenceFoundAsync(new SourceReferenceItem(
+                    _definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
             public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
-            public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken) => default;
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
             public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
             public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 

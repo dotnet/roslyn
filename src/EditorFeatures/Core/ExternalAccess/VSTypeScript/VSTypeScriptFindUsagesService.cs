@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             private readonly Dictionary<VSTypeScriptDefinitionItem, DefinitionItem> _definitionItemMap = new();
 
             public VSTypeScriptFindUsagesContext(IFindUsagesContext context)
-                => _context = context;
+            {
+                _context = context;
+            }
 
             public IVSTypeScriptStreamingProgressTracker ProgressTracker => new VSTypeScriptStreamingProgressTracker(_context.ProgressTracker);
 

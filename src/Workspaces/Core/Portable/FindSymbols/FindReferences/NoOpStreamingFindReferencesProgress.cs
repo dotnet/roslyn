@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
 #pragma warning restore IDE0060 // Remove unused parameter
 
-        public ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken) => default;
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
         public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
         public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => default;
         public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken) => default;

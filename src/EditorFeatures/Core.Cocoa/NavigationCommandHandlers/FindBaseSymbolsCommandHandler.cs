@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
+
                         while (overriddenSymbol != null)
                         {
                             if (cancellationToken.IsCancellationRequested)
