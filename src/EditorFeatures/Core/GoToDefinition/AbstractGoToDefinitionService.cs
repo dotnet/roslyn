@@ -122,12 +122,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
                 foreach (var impl in interfaceImpls)
                 {
-                    foreach (var def in await GoToDefinitionHelpers.GetDefinitionsAsync(impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false))
+                    // Use ConfigureAwait(true) here.  Not for a correctness requirements, but because we're
+                    // already blocking the UI thread by being in a JTF.Run call.  So we might as well try to
+                    // continue to use the blocking UI thread to do as much work as possible instead of making
+                    // it wait for threadpool threads to be available to process the work.
+                    foreach (var def in await GoToDefinitionHelpers.GetDefinitionsAsync(impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true))
                         definitions.Add(def);
                 }
 
                 return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(false);
+                    _threadingContext, solution, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
             });
         }
 
