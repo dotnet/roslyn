@@ -16,11 +16,11 @@ using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -41,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
         private readonly IWpfTableControl _tableControl;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IDiagnosticAnalyzerService diagnosticService,
-            ICodeActionEditHandlerService editHandlerService)
+            ICodeActionEditHandlerService editHandlerService,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
@@ -62,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
+            _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -177,8 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
             if (pathToAnalyzerConfigDoc != null)
             {
-                // Fire and forget
-                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project);
+                var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
+                SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project).CompletesAsyncOperation(token);
             }
         }
 
