@@ -160,6 +160,16 @@ namespace RunTests
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
                 var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
                 var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
+
+                // some random no-op command that works everywhere.
+                var werValues = lsCommand;
+                var localDumpsValues = lsCommand;
+                if (!isUnix)
+                {
+                    werValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting""";
+                    localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
+                }
+
                 var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
                     : "";
@@ -172,6 +182,8 @@ namespace RunTests
                 {lsCommand}
                 {setRollforward}
                 {setPrereleaseRollforward}
+                {werValues}
+                {localDumpsValues}
                 dotnet --info
                 {setTestIOperation}
                 dotnet {commandLineArguments}
