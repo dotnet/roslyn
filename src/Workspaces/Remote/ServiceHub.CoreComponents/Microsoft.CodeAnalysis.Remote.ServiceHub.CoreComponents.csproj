@@ -14,6 +14,13 @@
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <!--
+      The following are our transitive dependencies, they need to be explicitly specified here
+      to ensure all the binaries we are deploying to run on ServiceHub Core host are actually compatible with .Net 6.
+    -->
+    <PackageReference Include="System.Management" Version="$(SystemManagementVersion)" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="$(SystemDiagnosticsPerformanceCounterVersion)" />
   </ItemGroup>
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">

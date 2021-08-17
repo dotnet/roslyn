@@ -254,6 +254,13 @@
     <SystemCollectionsImmutableVersion>5.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>5.0.0</MicrosoftBclAsyncInterfacesVersion>
+    <!--
+      The following dependencies need to be explicitly specified to ensure all the binaries deployed
+      to run on ServiceHub Core host are compatible with .Net 6.
+    -->
+    <SystemManagementVersion>5.0.0</SystemManagementVersion>
+    <SystemConfigurationConfigurationManagerVersion>5.0.0</SystemConfigurationConfigurationManagerVersion>
+    <SystemDiagnosticsPerformanceCounterVersion>5.0.0</SystemDiagnosticsPerformanceCounterVersion>    
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
