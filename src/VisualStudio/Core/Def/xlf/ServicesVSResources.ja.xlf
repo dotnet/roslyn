@@ -1082,6 +1082,11 @@
         <target state="translated">暗黙的なオブジェクト作成のヒントを表示します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">ラムダ パラメーター型のヒントを表示する</target>

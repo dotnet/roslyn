@@ -1082,6 +1082,11 @@
         <target state="translated">암시적 개체 만들기에 대한 힌트 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">람다 매개 변수 형식에 대한 힌트 표시</target>

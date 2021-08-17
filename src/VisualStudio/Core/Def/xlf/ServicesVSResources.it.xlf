@@ -1082,6 +1082,11 @@
         <target state="translated">Mostra i suggerimenti per la creazione implicita di oggetti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Mostra suggerimenti per i tipi di parametro lambda</target>

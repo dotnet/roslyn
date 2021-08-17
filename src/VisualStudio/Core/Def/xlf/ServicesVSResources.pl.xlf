@@ -1082,6 +1082,11 @@
         <target state="translated">Pokazuj wskazówki dotyczące niejawnego tworzenia obiektów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Pokaż wskazówki dla typów parametrów funkcji lambda</target>
