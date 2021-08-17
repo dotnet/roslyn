@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpResources.resx">
     <body>
@@ -77,6 +77,16 @@
         <target state="translated">init 専用プロパティまたはインデクサー '{0}' を割り当てることができるのは、オブジェクト初期化子の中か、インスタンス コンストラクターまたは 'init' アクセサーの 'this' か 'base' 上のみです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
@@ -84,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
         <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
-        <target state="translated">ラムダ式での属性には、かっこで囲まれたパラメーター リストが必要です。</target>
+        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
@@ -199,7 +209,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
+        <target state="needs-review-translation">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -214,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
-        <target state="translated">レシーバーの種類 '{0}' は有効なレコード型でも構造体型でもありません。</target>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -224,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
-        <target state="translated">デリゲート型を推論できませんでした。</target>
+        <target state="new">The delegate type could not be inferred.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -534,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
+        <target state="needs-review-translation">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -549,12 +559,12 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
-        <target state="translated">グローバル using ディレクティブを名前空間宣言で使用することはできません。</target>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
-        <target state="translated">グローバル using ディレクティブは、すべての非グローバル using ディレクティブの前に指定する必要があります。</target>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1232,9 +1242,14 @@
         <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="new">generic attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
-        <target state="translated">グローバル using ディレクティブ</target>
+        <target state="new">global using directive</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -1249,12 +1264,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
-        <target state="translated">推論されたデリゲート型</target>
+        <target state="new">inferred delegate type</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
-        <target state="translated">ラムダ属性</target>
+        <target state="new">lambda attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1274,12 +1289,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
-        <target state="translated">レコード内の位置指定フィールド</target>
+        <target state="new">positional fields in records</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
-        <target state="translated">レコード構造体</target>
+        <target state="new">record structs</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
@@ -1304,7 +1319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
-        <target state="translated">構造体の場合</target>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1315,6 +1330,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
+        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="new">Type cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -4568,7 +4593,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード クラス、すべての構造体、すべてのレコード構造体、すべてのインターフェイスのいずれかにする必要があります</target>
+        <target state="needs-review-translation">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード、すべての構造体、またはすべてのインターフェイスにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -4774,11 +4799,6 @@
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
         <target state="translated">Null 非許容の値型である可能性があるため、Null を型パラメーター '{0}' に変換できません。'default({0})' を使用してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">ジェネリックであるため属性クラス '{0}' を適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -5497,7 +5517,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
         <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
-        <target state="translated">条件付き属性は、コンストラクター、デストラクター、演算子、ラムダ式、明示的インターフェイスのいずれかの実装であるため、'{0}' では無効です</target>
+        <target state="needs-review-translation">条件付き属性は、コンストラクター、デストラクター、演算子または明示的インターフェイスの実装であるため、'{0}' では無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -5998,11 +6018,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
         <target state="translated">'型パラメーターの代用に対して統合している可能性があるため、'{0}' は '{1}' と '{2}' の両方を実装することはできません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">ジェネリック型は属性クラスであるため、 '{0}' から派生できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
@@ -7265,8 +7280,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">'{0}' は、'{1}' と '{2}' 間であいまいです。'@{0}' または '{0}Attribute' のどちらか一方を使用してください</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="needs-review-translation">'{0}' は、'{1}' と '{2}' 間であいまいです。'@{0}' または '{0}Attribute' のどちらか一方を使用してください</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">

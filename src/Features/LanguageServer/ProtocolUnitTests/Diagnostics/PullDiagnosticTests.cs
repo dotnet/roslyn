@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +13,9 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -19,6 +23,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -400,6 +405,30 @@ class B {";
         }
 
         [Fact]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage()
+        {
+            var csharpMarkup =
+@"class A {";
+            var typeScriptMarkup = "???";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\C.cs"">{csharpMarkup}</Document>
+    </Project>
+    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
+        <Document FilePath=""C:\T.ts"">{typeScriptMarkup}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = CreateTestWorkspaceFromXml(workspaceXml, BackgroundAnalysisScope.FullSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+
+            Assert.True(results.All(r => r.TextDocument!.Uri.OriginalString == "C:\\C.cs"));
+        }
+
+        [Fact]
         public async Task TestWorkspaceDiagnosticsForRemovedDocument()
         {
             var markup1 =
@@ -664,9 +693,11 @@ class A {";
                 workspace.Options
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript, scope)
                     .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, diagnosticMode)));
 
-            var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
+                InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer())));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
@@ -674,6 +705,26 @@ class A {";
 
             var diagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
             diagnosticService.Register(new TestHostDiagnosticUpdateSource(workspace));
+        }
+
+        protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
+
+        [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]
+        private class MockTypescriptDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+            "TS01", "TS error", "TS error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+                => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(ImmutableArray.Create(
+                    Diagnostic.Create(Descriptor, Location.Create(document.FilePath!, default, default))));
+            }
         }
     }
 }

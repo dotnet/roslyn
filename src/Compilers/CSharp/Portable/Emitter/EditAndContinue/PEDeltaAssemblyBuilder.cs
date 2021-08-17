@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -125,6 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // internal for testing
         internal static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
+            // In general, the anonymous type name is "<{module-id}>f__AnonymousType{index}#{submission-index}",
+            // but EnC is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index.
+            const string AnonymousNameWithoutModulePrefix = "<>f__AnonymousType";
+
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
             foreach (var handle in reader.TypeDefinitions)
             {
@@ -133,10 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     continue;
                 }
-                if (!reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousNamePrefix))
+
+                if (!reader.StringComparer.StartsWith(def.Name, AnonymousNameWithoutModulePrefix))
                 {
                     continue;
                 }
+
                 var metadataName = reader.GetString(def.Name);
                 var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out _);
                 int index;
@@ -150,9 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
                         result.Add(key, value);
                     }
+
                     builder.Free();
                 }
             }
+
             return result;
         }
 
@@ -195,8 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             foreach (var typeParameterHandle in def.GetGenericParameters())
             {
                 var typeParameter = reader.GetGenericParameter(typeParameterHandle);
-                string fieldName;
-                if (!GeneratedNames.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out fieldName))
+                if (!GeneratedNameParser.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out var fieldName))
                 {
                     return false;
                 }

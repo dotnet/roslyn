@@ -595,17 +595,46 @@ interface I
     object F();
 }";
             var compilation = CreateCompilation(source);
-            using (var process = new Process(new Module(compilation.EmitToArray())))
-            {
-                var resolver = Resolver.CSharpResolver;
-                Resolve(process, resolver, "F", "B.F()", "C.F()");
-                Resolve(process, resolver, "A.F");
-                Resolve(process, resolver, "B.F", "B.F()");
-                Resolve(process, resolver, "B.F()", "B.F()");
-                Resolve(process, resolver, "B.F(object)");
-                Resolve(process, resolver, "B.F<T>");
-                Resolve(process, resolver, "C.F", "C.F()");
-            }
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "F", "B.F()", "C.F()");
+            Resolve(process, resolver, "A.F");
+            Resolve(process, resolver, "B.F", "B.F()");
+            Resolve(process, resolver, "B.F()", "B.F()");
+            Resolve(process, resolver, "B.F(object)");
+            Resolve(process, resolver, "B.F<T>");
+            Resolve(process, resolver, "C.F", "C.F()");
+        }
+
+        [Fact]
+        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
+        public void Methods_ExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I { void F(); }
+interface J { void F(); }
+
+class C : I, J
+{
+    class I { void F() { } } 
+
+    void global::I.F() { }
+    void J.F() { }
+}
+";
+            var compilation = CreateCompilation(source);
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "C.F", "C.global::I.F()", "C.J.F()");
+
+            // resolves to the nested class members:
+            Resolve(process, resolver, "C.I.F", "C.I.F()");
+
+            // does not resolve
+            Resolve(process, resolver, "C.J.F");
         }
 
         [Fact]
@@ -633,25 +662,145 @@ interface I
     object P { get; set; }
 }";
             var compilation = CreateCompilation(source);
-            using (var process = new Process(new Module(compilation.EmitToArray())))
-            {
-                var resolver = Resolver.CSharpResolver;
-                Resolve(process, resolver, "P", "B.get_P()", "B.set_P(System.Object)", "C.get_P()", "D.set_P(System.Int32)");
-                Resolve(process, resolver, "A.P");
-                Resolve(process, resolver, "B.P", "B.get_P()", "B.set_P(System.Object)");
-                Resolve(process, resolver, "B.P()");
-                Resolve(process, resolver, "B.P(object)");
-                Resolve(process, resolver, "B.P<T>");
-                Resolve(process, resolver, "C.P", "C.get_P()");
-                Resolve(process, resolver, "C.P()");
-                Resolve(process, resolver, "D.P", "D.set_P(System.Int32)");
-                Resolve(process, resolver, "D.P()");
-                Resolve(process, resolver, "D.P(object)");
-                Resolve(process, resolver, "get_P", "B.get_P()", "C.get_P()");
-                Resolve(process, resolver, "set_P", "B.set_P(System.Object)", "D.set_P(System.Int32)");
-                Resolve(process, resolver, "B.get_P()", "B.get_P()");
-                Resolve(process, resolver, "B.set_P", "B.set_P(System.Object)");
-            }
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "P", "B.get_P()", "B.set_P(System.Object)", "C.get_P()", "D.set_P(System.Int32)");
+            Resolve(process, resolver, "A.P");
+            Resolve(process, resolver, "B.P", "B.get_P()", "B.set_P(System.Object)");
+            Resolve(process, resolver, "B.P()");
+            Resolve(process, resolver, "B.P(object)");
+            Resolve(process, resolver, "B.P<T>");
+            Resolve(process, resolver, "C.P", "C.get_P()");
+            Resolve(process, resolver, "C.P()");
+            Resolve(process, resolver, "D.P", "D.set_P(System.Int32)");
+            Resolve(process, resolver, "D.P()");
+            Resolve(process, resolver, "D.P(object)");
+            Resolve(process, resolver, "get_P", "B.get_P()", "C.get_P()");
+            Resolve(process, resolver, "set_P", "B.set_P(System.Object)", "D.set_P(System.Int32)");
+            Resolve(process, resolver, "B.get_P()", "B.get_P()");
+            Resolve(process, resolver, "B.set_P", "B.set_P(System.Object)");
+        }
+
+        [Fact]
+        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
+        public void Properties_ExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I { int P { get; set; } }
+interface J { int P { get; set; } }
+
+class C : I, J
+{
+    class I { int P { get; set; } } 
+
+    int global::I.P { get; set; }
+    int J.P { get; set; }
+}
+";
+            var compilation = CreateCompilation(source);
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "C.P", "C.global::I.get_P()", "C.global::I.set_P(System.Int32)", "C.J.get_P()", "C.J.set_P(System.Int32)");
+            Resolve(process, resolver, "C.get_P", "C.global::I.get_P()", "C.J.get_P()");
+            Resolve(process, resolver, "C.set_P", "C.global::I.set_P(System.Int32)", "C.J.set_P(System.Int32)");
+
+            // resolves to the nested class members:
+            Resolve(process, resolver, "C.I.P", "C.I.get_P()", "C.I.set_P(System.Int32)");
+            Resolve(process, resolver, "C.I.get_P", "C.I.get_P()");
+            Resolve(process, resolver, "C.I.set_P", "C.I.set_P(System.Int32)");
+
+            // does not resolve
+            Resolve(process, resolver, "C.J.P");
+            Resolve(process, resolver, "C.J.get_P");
+            Resolve(process, resolver, "C.J.set_P");
+        }
+
+        [Fact]
+        public void Events()
+        {
+            var source = @"
+abstract class A
+{
+    abstract internal event System.Action E;
+}
+class B
+{
+    event System.Action E;
+}
+class C
+{
+    static event System.Action E;
+}
+class D
+{
+    event System.Action E 
+    {
+        add {} 
+        remove {} 
+    }
+}
+interface I
+{
+    event System.Action E;
+}";
+            var compilation = CreateCompilation(source);
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "E", "B.add_E(System.Action)", "B.remove_E(System.Action)", "C.add_E(System.Action)", "C.remove_E(System.Action)", "D.add_E(System.Action)", "D.remove_E(System.Action)");
+            Resolve(process, resolver, "A.E");
+            Resolve(process, resolver, "B.E", "B.add_E(System.Action)", "B.remove_E(System.Action)");
+            Resolve(process, resolver, "B.E()");
+            Resolve(process, resolver, "B.E(System.Action)", "B.add_E(System.Action)", "B.remove_E(System.Action)");
+            Resolve(process, resolver, "B.E<T>");
+            Resolve(process, resolver, "C.E", "C.add_E(System.Action)", "C.remove_E(System.Action)");
+            Resolve(process, resolver, "C.E(System.Action)", "C.add_E(System.Action)", "C.remove_E(System.Action)");
+            Resolve(process, resolver, "D.E", "D.add_E(System.Action)", "D.remove_E(System.Action)");
+            Resolve(process, resolver, "D.E()");
+            Resolve(process, resolver, "D.E(System.Action)", "D.add_E(System.Action)", "D.remove_E(System.Action)");
+            Resolve(process, resolver, "add_E", "B.add_E(System.Action)", "C.add_E(System.Action)", "D.add_E(System.Action)");
+            Resolve(process, resolver, "remove_E", "B.remove_E(System.Action)", "C.remove_E(System.Action)", "D.remove_E(System.Action)");
+            Resolve(process, resolver, "B.add_E(System.Action)", "B.add_E(System.Action)");
+            Resolve(process, resolver, "B.remove_E", "B.remove_E(System.Action)");
+        }
+
+        [Fact]
+        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
+        public void Events_ExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I { event System.Action E; }
+interface J { event System.Action E; }
+
+class C : I, J
+{
+    class I { event System.Action E { add {} remove {} } } 
+
+    event System.Action global::I.E { add {} remove {} }
+    event System.Action J.E { add {} remove {} }
+}
+";
+            var compilation = CreateCompilation(source);
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "C.E", "C.global::I.add_E(System.Action)", "C.global::I.remove_E(System.Action)", "C.J.add_E(System.Action)", "C.J.remove_E(System.Action)");
+            Resolve(process, resolver, "C.add_E", "C.global::I.add_E(System.Action)", "C.J.add_E(System.Action)");
+            Resolve(process, resolver, "C.remove_E", "C.global::I.remove_E(System.Action)", "C.J.remove_E(System.Action)");
+
+            // resolves to the nested class members:
+            Resolve(process, resolver, "C.I.E", "C.I.add_E(System.Action)", "C.I.remove_E(System.Action)");
+            Resolve(process, resolver, "C.I.add_E", "C.I.add_E(System.Action)");
+            Resolve(process, resolver, "C.I.remove_E", "C.I.remove_E(System.Action)");
+
+            // does not resolve
+            Resolve(process, resolver, "C.J.E");
+            Resolve(process, resolver, "C.J.add_E");
+            Resolve(process, resolver, "C.J.remove_E");
         }
 
         [Fact]
@@ -674,18 +823,24 @@ class D
 {
     static object A => null;
     static void B<T>() { }
-}";
+}
+class E
+{
+    static int x = 1;
+}
+";
             var compilation = CreateCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
-                Resolve(process, resolver, "A", "A..ctor()", "A..ctor(System.Object)", "D.get_A()");
-                Resolve(process, resolver, "A.A", "A..ctor()", "A..ctor(System.Object)");
+                Resolve(process, resolver, "A", "A..cctor()", "A..ctor()", "A..ctor(System.Object)", "D.get_A()");
+                Resolve(process, resolver, "A.A", "A..cctor()", "A..ctor()", "A..ctor(System.Object)");
                 Resolve(process, resolver, "B", "B..ctor()");
                 Resolve(process, resolver, "B<T>", "D.B<T>()");
                 Resolve(process, resolver, "C", "C<T>..ctor()");
                 Resolve(process, resolver, "C<T>");
                 Resolve(process, resolver, "C<T>.C", "C<T>..ctor()");
+                Resolve(process, resolver, "E", "E..ctor()", "E..cctor()");
                 Assert.Null(MemberSignatureParser.Parse(".ctor"));
                 Assert.Null(MemberSignatureParser.Parse("A..ctor"));
             }
@@ -1311,6 +1466,38 @@ class C
                 var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F()");
             }
+        }
+
+        [Fact]
+        [WorkItem(55242, "https://github.com/dotnet/roslyn/issues/55242")]
+        public void LocalFunctions()
+        {
+            var source = @"
+void F()
+{
+    void G()
+    {
+    }
+}
+
+class F
+{
+    void G()
+    {
+        void G()
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            using var process = new Process(new Module(compilation.EmitToArray()));
+
+            var resolver = Resolver.CSharpResolver;
+            Resolve(process, resolver, "G", "Program.<<Main>$>g__G|0_1()", "F.G()", "F.<G>g__G|0_0()");
+            Resolve(process, resolver, "Program.G", "Program.<<Main>$>g__G|0_1()");
+            Resolve(process, resolver, "F.G", "F.G()", "F.<G>g__G|0_0()");
+            Resolve(process, resolver, "F.G.G");
         }
 
         [Fact(Skip = "global:: not supported")]
