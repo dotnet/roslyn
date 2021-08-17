@@ -4,6 +4,8 @@
 
 using System;
 using System.Composition;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -44,11 +46,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             var result = dialog.ShowModal();
 
-            if (result.GetValueOrDefault())
+            return GenerateOptions(document.Project.Language, viewModel, result.GetValueOrDefault());
+        }
+
+        // internal for testing purposes
+        internal static MoveStaticMembersOptions GenerateOptions(string language, MoveStaticMembersDialogViewModel viewModel, bool dialogResult)
+        {
+            if (dialogResult)
             {
+                // if the destination name contains extra namespaces, we want the last one as that is the real type name
+                var typeName = viewModel.DestinationName.Split('.').Last();
+                var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
                 return new MoveStaticMembersOptions(
-                    // TODO: generate unique file name based off of existing folder documents
-                    viewModel.DestinationName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
+                    newFileName,
                     viewModel.PrependedNamespace + viewModel.DestinationName,
                     viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
             }

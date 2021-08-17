@@ -62,6 +62,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
 #Region "C#"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function CSTestBasicSubmit() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+        <Document>
+            namespace TestNs
+            {
+                public class TestClass
+                {
+                    public static int Bar$$bar()
+                    {
+                        return 12345;
+                    }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            ' We can call the method, but we need the document still to test submission
+            Dim viewModel = Await GetViewModelAsync(markUp).ConfigureAwait(False)
+
+            Assert.Equal("TestClassHelpers", viewModel.DestinationName)
+            viewModel.DestinationName = "ExtraNs.TestClassHelpers"
+            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim cancelledOptions = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel, False)
+            Assert.True(cancelledOptions.IsCancelled)
+
+            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel, True)
+            Assert.False(options.IsCancelled)
+            Assert.Equal("TestClassHelpers.cs", options.FileName)
+            Assert.Equal("TestClassHelpers", options.TypeName)
+            Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function CSTestNameConflicts() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -286,6 +325,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 #End Region
 
 #Region "VB"
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function VBTestBasicSubmit() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+        <Document>
+            Namespace TestNs
+                Public Class TestClass
+                    Public Shared Function Bar$$bar() As Integer
+                        Return 12345;
+                    End Function
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            ' We can call the method, but we need the document still to test submission
+            Dim viewModel = Await GetViewModelAsync(markUp).ConfigureAwait(False)
+
+            Assert.Equal("TestClassHelpers", viewModel.DestinationName)
+            viewModel.DestinationName = "ExtraNs.TestClassHelpers"
+            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim cancelledOptions = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel, False)
+            Assert.True(cancelledOptions.IsCancelled)
+
+            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel, True)
+            Assert.False(options.IsCancelled)
+            Assert.Equal("TestClassHelpers.vb", options.FileName)
+            Assert.Equal("TestClassHelpers", options.TypeName)
+            Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function VBTestNameConflicts() As Task
             Dim markUp = <Text><![CDATA[
