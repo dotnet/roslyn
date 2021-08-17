@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            private async Task<DocumentSpan?> TryGetDocumentSpanAsync(Workspace workspace, CancellationToken cancellationToken)
+            private async Task<DocumentSpan?> TryGetDocumentSpanAsync(CancellationToken cancellationToken)
             {
-                var solution = workspace.CurrentSolution;
+                var solution = Workspace.CurrentSolution;
                 var documentId = SourceSpans[0].DocumentId;
                 var document = solution.GetDocument(documentId) ??
                                await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await TryGetDocumentSpanAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await TryGetDocumentSpanAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);

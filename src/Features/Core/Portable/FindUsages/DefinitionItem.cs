@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Tags;
@@ -110,6 +111,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
+        protected readonly Workspace Workspace;
+
         // F# uses this
         protected DefinitionItem(
             ImmutableArray<string> tags,
@@ -155,6 +158,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
             }
+
+            Workspace = sourceSpans.FirstOrDefault().Document?.Project.Solution.Workspace;
         }
 
         [Obsolete("Override CanNavigateToAsync instead", error: false)]
