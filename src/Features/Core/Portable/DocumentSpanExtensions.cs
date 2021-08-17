@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
+        [Obsolete("Use CanNavigateToAsync instead", error: false)]
         public static bool CanNavigateTo(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var workspace = documentSpan.Document.Project.Solution.Workspace;
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis
             return (workspace, service, options);
         }
 
+        [Obsolete("Use TryNavigateToAsync instead", error: false)]
         public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
         {
             var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
