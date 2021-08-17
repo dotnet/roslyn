@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             if (expr is TLiteralExpressionSyntax)
             {
                 var argumentName = generator.SyntaxFacts.GetNameForArgument(argument);
-                var newArgumentName = isRecord ? argumentName : parameterNamingRule.NamingStyle.MakeCompliant(name).First();
+                var newArgumentName = isRecord ? argumentName : parameterNamingRule.NamingStyle.MakeCompliant(argumentName).First();
 
                 return GetArgumentWithChangedName(argument, newArgumentName);
             }
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             using var _ = PooledDictionary<string, ISymbol>.GetInstance(out var parameterToPropMap);
             var parameters = fields.SelectAsArray(field =>
             {
-                var parameterName = isRecord ? field.Name : parameterNamingRule.NamingStyle.MakeCompliant(name).First();
+                var parameterName = isRecord ? field.Name : parameterNamingRule.NamingStyle.MakeCompliant(field.Name).First();
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
                     field.Type, parameterName);
 
