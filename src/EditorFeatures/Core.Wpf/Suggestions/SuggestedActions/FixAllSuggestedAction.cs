@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -64,14 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public string GetDiagnosticID()
             => Diagnostic.GetTelemetryDiagnosticID();
 
-        protected override void InnerInvoke(
+        protected override async Task InnerInvokeAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            // Even though we're async, we should still be on the UI thread at this point.
             this.AssertIsForeground();
 
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
-                base.InnerInvoke(progressTracker, cancellationToken);
+                await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
     }

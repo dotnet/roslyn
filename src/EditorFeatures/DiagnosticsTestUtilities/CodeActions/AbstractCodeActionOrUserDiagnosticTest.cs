@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> navigationSpans,
             DocumentId expectedChangedDocumentId)
         {
-            var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
+            var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
             var oldSolution = appliedChanges.Item1;
             var newSolution = appliedChanges.Item2;
 
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await action.GetOperationsAsync(CancellationToken.None);
         }
 
-        protected static Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
+        protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 else if (operation.ApplyDuringTests)
                 {
                     var oldSolution = workspace.CurrentSolution;
-                    operation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
+                    await operation.TryApplyAsync(workspace, new ProgressTracker(), CancellationToken.None);
                     var newSolution = workspace.CurrentSolution;
                     result = Tuple.Create(oldSolution, newSolution);
                 }
