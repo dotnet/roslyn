@@ -146,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 var metadataName = reader.GetString(def.Name);
                 var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out _);
-                int index;
-                if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
+
+                if (name.StartsWith(AnonymousNameWithoutModulePrefix, StringComparison.Ordinal) &&
+                    int.TryParse(name.Substring(AnonymousNameWithoutModulePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out int index))
                 {
                     var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
                     if (TryGetAnonymousTypeKey(reader, def, builder))
