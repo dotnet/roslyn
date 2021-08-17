@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     public abstract class ResultProvider : IDkmClrResultProvider
     {
         // TODO: There is a potential that these values will conflict with debugger defined flags in future.
-        // It'd be better if we attached these flags ot the DkmClrValue object via data items, however DkmClrValue is currently mutable
+        // It'd be better if we attached these flags to the DkmClrValue object via data items, however DkmClrValue is currently mutable
         // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
         // to do so due to mutability.
         // See https://github.com/dotnet/roslyn/issues/55676.
