@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public SerializableDocumentSpan(DocumentId documentId, TextSpan sourceSpan)
         {
-            Contract.ThrowIfNull(documentId);
             DocumentId = documentId;
             SourceSpan = sourceSpan;
         }
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayParts,
                    item.NameDisplayParts,
                    item.OriginationParts,
-                   item.SourceSpans.SelectAsArray(ss => new SerializableDocumentSpan(ss.DocumentId, ss.SourceSpan)),
+                   item.SourceSpans.SelectAsArray(ss => SerializableDocumentSpan.Dehydrate(ss)),
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
@@ -264,7 +263,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
             => new(definitionId,
-                   new SerializableDocumentSpan(item.SourceSpan.DocumentId, item.SourceSpan.SourceSpan),
+                   SerializableDocumentSpan.Dehydrate(item.SourceSpan),
                    item.SymbolUsageInfo,
                    item.AdditionalProperties);
 

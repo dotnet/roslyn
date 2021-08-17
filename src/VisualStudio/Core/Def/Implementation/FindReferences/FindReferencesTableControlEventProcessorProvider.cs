@@ -67,19 +67,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // Fire and forget
                 e.Handled = true;
-                _ = ProcessNavigateAsync(supportsNavigation, e);
-            }
+                _ = ProcessNavigateAsync(supportsNavigation, e, _listener, _operationExecutor);
 
-            private async Task ProcessNavigateAsync(ISupportsNavigation supportsNavigation, TableEntryNavigateEventArgs e)
-            {
-                using var token = _listener.BeginAsyncOperation(nameof(ProcessNavigateAsync));
-                using var context = _operationExecutor.BeginExecute(
-                    ServicesVSResources.IntelliSense,
-                    EditorFeaturesResources.Navigating,
-                    allowCancellation: true,
-                    showProgress: false);
+                return;
 
-                await supportsNavigation.TryNavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
+                async static Task ProcessNavigateAsync(
+                    ISupportsNavigation supportsNavigation, TableEntryNavigateEventArgs e,
+                    IAsynchronousOperationListener listener,
+                    IUIThreadOperationExecutor operationExecutor)
+                {
+                    using var token = listener.BeginAsyncOperation(nameof(ProcessNavigateAsync));
+                    using var context = operationExecutor.BeginExecute(
+                        ServicesVSResources.IntelliSense,
+                        EditorFeaturesResources.Navigating,
+                        allowCancellation: true,
+                        showProgress: false);
+
+                    await supportsNavigation.TryNavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }

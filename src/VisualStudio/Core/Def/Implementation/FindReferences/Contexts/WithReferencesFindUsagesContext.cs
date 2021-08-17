@@ -70,12 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket,
-                        declarationLocation,
-                        HighlightSpanKind.Definition,
-                        SymbolUsageInfo.None,
-                        definition.DisplayableProperties,
-                        cancellationToken).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
+                        additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -116,8 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
-                        bucket,
-                        reference.SourceSpan,
+                        bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.SymbolUsageInfo,
                         reference.AdditionalProperties,
@@ -196,8 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (definition.IsExternal)
                     {
-                        await OnEntryFoundAsync(
-                            definition,
+                        await OnEntryFoundAsync(definition,
                             bucket => SimpleMessageEntry.CreateAsync(bucket, bucket, ServicesVSResources.External_reference_found)!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                             addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
@@ -210,8 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         //
                         // We'll place this under a single bucket called "Symbols without references" and we'll allow
                         // the user to navigate on that text entry to that definition if possible.
-                        await OnEntryFoundAsync(
-                            SymbolsWithoutReferencesDefinitionItem,
+                        await OnEntryFoundAsync(SymbolsWithoutReferencesDefinitionItem,
                             bucket => SimpleMessageEntry.CreateAsync(
                                 definitionBucket: bucket,
                                 navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false),
@@ -273,8 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    await OnEntryFoundAsync(
-                        NoResultsDefinitionItem,
+                    await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
                         addToEntriesWhenGroupingByDefinition: true,
                         addToEntriesWhenNotGroupingByDefinition: true,

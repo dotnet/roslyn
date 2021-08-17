@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// perform the navigation.</returns>
         Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
-        /// <returns>True if the navigation would be handled.</returns>
+        /// <returns>Non-null if the navigation would be handled.</returns>
         Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
             DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
