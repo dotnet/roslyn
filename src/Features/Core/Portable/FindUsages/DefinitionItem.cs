@@ -111,6 +111,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
+        /// <summary>
+        /// The workspace containing the location of the <see cref="SourceSpans"/> for this definition item.
+        /// Definitions may be in different workspaces, including a different workspace than where a command
+        /// was originally invoked from.  For example, when using metadata-as-source symbols (and their definitions
+        /// and references) may be found in different workspaces (like the metadata-as-source-workspace and the
+        /// primary/vs workspace).
+        /// </summary>
         protected readonly Workspace Workspace;
 
         // F# uses this
