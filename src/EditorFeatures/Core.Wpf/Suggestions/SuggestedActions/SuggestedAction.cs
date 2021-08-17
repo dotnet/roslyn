@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            // Fire and forget
-            _ = InvokeAsync(cancellationToken);
+            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
+            InvokeAsync(cancellationToken).CompletesAsyncOperation(token);
         }
 
         private async Task InvokeAsync(CancellationToken cancellationToken)
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
                 using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
 
-                await InvokeAsync(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token).ConfigureAwait(false);
+                await InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -123,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(IUIThreadOperationContext context)
         {
-            // Fire and forget
-            _ = InvokeAsync(context);
+            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
+            InvokeAsync(context).CompletesAsyncOperation(token);
         }
 
         private async Task InvokeAsync(IUIThreadOperationContext context)
@@ -132,27 +133,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             try
             {
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
-                await this.InvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
+                await this.InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
-            }
-        }
-
-        private async Task InvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            // While we're not technically doing anything async here, we need to let the
-            // integration test harness know that it should not proceed until all this
-            // work is done.  Otherwise it might ask to do some work before we finish.
-            // That can happen because although we're on the UI thread, we may do things
-            // that end up causing VS to pump the messages that the test harness enqueues
-            // to the UI thread as well.
-            using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
-            {
-                await InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
 
