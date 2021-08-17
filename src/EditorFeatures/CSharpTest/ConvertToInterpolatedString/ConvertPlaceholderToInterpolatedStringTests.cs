@@ -124,7 +124,7 @@ class T
         [|Console.WriteLine(GetString(), i)|];
     }
 
-    void GetString() => """";
+    string GetString() => """";
 }");
         }
 
@@ -143,7 +143,7 @@ class T
         [|Console.Write(GetString(), i)|];
     }
 
-    void GetString() => """";
+    string GetString() => """";
 }");
         }
 
