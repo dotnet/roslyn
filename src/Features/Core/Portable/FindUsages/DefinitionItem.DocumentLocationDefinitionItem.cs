@@ -38,21 +38,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            private async Task<DocumentSpan?> TryGetDocumentSpanAsync(CancellationToken cancellationToken)
-            {
-                // We explicitly do not use SerializableDefinitionItem.RehydrateAsync here.  That method
-                // only is guaranteed to work if passed the original Solution that the definition item 
-                // was created against (and it will throw if is passed a different solution that it can't
-                // find the document in).  Because we are using .CurrentSolution here, we need to be resilient
-                // to the possibility that we may no longer be able to find/navigate to this document.
-                var span = SourceSpans[0];
-                var solution = span.Workspace.CurrentSolution;
-                var documentId = span.DocumentId;
-                var document = solution.GetDocument(documentId) ??
-                               await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                return document == null ? null : new DocumentSpan(document, SourceSpans[0].SourceSpan);
-            }
-
             [Obsolete]
             public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
                 => throw ExceptionUtilities.Unreachable;
@@ -69,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await TryGetDocumentSpanAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await this.SourceSpans[0].TryRehydrateAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
@@ -83,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await TryGetDocumentSpanAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await this.SourceSpans[0].TryRehydrateAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
