@@ -101,6 +101,7 @@ namespace Analyzer.Utilities
         public const string SystemAttributeTargets = "System.AttributeTargets";
         public const string SystemAttributeUsageAttribute = "System.AttributeUsageAttribute";
         public const string SystemBoolean = "System.Boolean";
+        public const string SystemBuffer = "System.Buffer";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemByte = "System.Byte";
         public const string SystemChar = "System.Char";
@@ -266,6 +267,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
+        public const string SystemRuntimeCompilerServicesModuleInitializerAttribute = "System.Runtime.CompilerServices.ModuleInitializerAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRuntimeFeature = "System.Runtime.CompilerServices.RuntimeFeature";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
