@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask ItemCompletedAsync(CancellationToken _) => new();
 
-            public ValueTask OnCompletedAsync(Solution solution, CancellationToken _) => new();
+            public ValueTask OnCompletedAsync(CancellationToken _) => new();
 
             public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup, CancellationToken _) => new();
 

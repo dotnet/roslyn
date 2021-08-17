@@ -8,6 +8,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Similar to <see cref="DocumentSpan"/> but can be held without rooting a particular <see cref="Solution"/>
+    /// snapshot indefinitely.
+    /// </summary>
     internal readonly struct DocumentIdSpan
     {
         public Workspace Workspace { get; }
