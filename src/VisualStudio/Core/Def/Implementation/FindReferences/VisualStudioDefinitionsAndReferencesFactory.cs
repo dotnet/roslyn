@@ -50,17 +50,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             if (result is not var (filePath, lineNumber, charOffset))
                 return null;
 
-            var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var displayParts = GetDisplayParts_MustCallOnUIThread(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
                 definitionItem.Tags, displayParts,
                 _serviceProvider, _threadingContext,
                 filePath, lineNumber, charOffset);
         }
 
-        private ImmutableArray<TaggedText> GetDisplayParts(
+        private ImmutableArray<TaggedText> GetDisplayParts_MustCallOnUIThread(
             string filePath, int lineNumber, int charOffset)
         {
-            var sourceLine = GetSourceLine(filePath, lineNumber).Trim(' ', '\t');
+            var sourceLine = GetSourceLine_MustCallOnUIThread(filePath, lineNumber).Trim(' ', '\t');
 
             // Put the line in 1-based for the presentation of this item.
             var formatted = $"{filePath} - ({lineNumber + 1}, {charOffset + 1}) : {sourceLine}";
@@ -68,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             return ImmutableArray.Create(new TaggedText(TextTags.Text, formatted));
         }
 
-        private string GetSourceLine(string filePath, int lineNumber)
+        private string GetSourceLine_MustCallOnUIThread(string filePath, int lineNumber)
         {
             using var invisibleEditor = new InvisibleEditor(
                 _serviceProvider, filePath, hierarchy: null, needsSave: false, needsUndoDisabled: false);
