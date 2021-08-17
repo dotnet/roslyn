@@ -153,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                // Ensure we come back to the UI thread.
                 var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
