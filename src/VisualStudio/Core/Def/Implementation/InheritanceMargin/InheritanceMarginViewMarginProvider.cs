@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -16,7 +17,8 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     [Export(typeof(IWpfTextViewMarginProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Name(nameof(InheritanceMarginViewMarginProvider))]
     [MarginContainer(PredefinedMarginNames.Left)]
     [Order(After = PredefinedMarginNames.Glyph)]
@@ -48,18 +50,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
         }
 
-        public IWpfTextViewMargin CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
+        public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
         {
             var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(wpfTextViewHost.TextView);
+            var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
+            {
+                return new InheritanceMarginViewMargin(
+                    wpfTextViewHost,
+                    _threadingContext,
+                    _streamingFindUsagesPresenter,
+                    _operationExecutor,
+                    _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
+                    _classificationTypeMap,
+                    tagAggregator,
+                    document);
+            }
 
-            return new InheritanceMarginViewMargin(
-                wpfTextViewHost,
-                _threadingContext,
-                _streamingFindUsagesPresenter,
-                _operationExecutor,
-                _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
-                _classificationTypeMap,
-                tagAggregator);
+            return null;
         }
     }
 }

@@ -9,8 +9,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -31,7 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IOptionService _optionService;
+        private readonly string _languageName;
         private Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin> _snapshotSpanToMargin;
+        // Same size as the glyph margin
+        private const double HeightAndWidthOfMargin = 18;
 
         public InheritanceMarginViewMargin(
             IWpfTextViewHost textViewHost,
@@ -40,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IUIThreadOperationExecutor operationExecutor,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap,
-            ITagAggregator<InheritanceMarginTag> tagAggregator)
+            ITagAggregator<InheritanceMarginTag> tagAggregator,
+            Document document)
         {
             InitializeComponent();
             _textViewHost = textViewHost;
@@ -63,6 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
             MainCanvas.LayoutTransform.Freeze();
+
+            _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            _languageName = document.Project.Language;
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
@@ -164,6 +175,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
+            if (this.Visibility == Visibility.Collapsed)
+            {
+                var inheritanceMarginEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
+                if (inheritanceMarginEnabled == true)
+                {
+                    this.Visibility = Visibility.Visible;
+                }
+            }
+
             var margin = new MarginGlyph.InheritanceMargin(
                 _threadingContext,
                 _streamingFindUsagesPresenter,
@@ -178,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _snapshotSpanToMargin[span] = margin;
             Canvas.SetTop(margin, textViewLine.TextTop - _textView.ViewportTop);
             MainCanvas.Children.Add(margin);
+
         }
 
         private void RemoveGlyphByVisualSpan(SnapshotSpan snapshotSpan)
@@ -190,12 +211,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 MainCanvas.Children.Remove(margin);
                 _snapshotSpanToMargin.Remove(span);
             }
+
+            if (MainCanvas.Children.Count == 0)
+            {
+                var inheritanceMarginEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
+                if (inheritanceMarginEnabled == false)
+                {
+                    this.Visibility = Visibility.Collapsed;
+                }
+            }
         }
 
         #region IWpfTextViewMargin
         public FrameworkElement VisualElement => this;
 
-        public double MarginSize => 18;
+        public double MarginSize => HeightAndWidthOfMargin;
 
         public bool Enabled => true;
 
