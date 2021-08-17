@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IWpfTableControl _tableControl;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
         private readonly ICodeFixService _codeFixService;
@@ -64,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IVsHierarchyItemManager vsHierarchyItemManager)
+            IVsHierarchyItemManager vsHierarchyItemManager,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -79,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
+            _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
         }
 
         public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
@@ -231,7 +235,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
             // Fire and forget
-            _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
+            var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
+            ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog)
+                .CompletesAsyncOperation(token);
             return true;
         }
 
