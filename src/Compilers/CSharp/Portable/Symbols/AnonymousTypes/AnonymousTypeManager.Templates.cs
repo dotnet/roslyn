@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public string MakeTypeName()
             {
-                return GeneratedNames.MakeDynamicCallSiteDelegateName(_byRefs, _returnsVoid, _generation);
+                return GeneratedNames.MakeSynthesizedDelegateName(_byRefs, _returnsVoid, _generation);
             }
 
             public override bool Equals(object obj)
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // types are available for subsequent edit and continue generations.
             foreach (var key in moduleBeingBuilt.GetPreviousSynthesizedDelegates())
             {
-                GeneratedNames.ParseDynamicCallSiteName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount);
+                GeneratedNames.ParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount);
                 var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
                 this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key.Name, refKinds, returnsVoid, parameterCount));
             }

@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
-        internal static string MakeDynamicCallSiteDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
+        internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static void ParseDynamicCallSiteName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
+        internal static void ParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
             name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
 
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 generation = int.Parse(name[(lastBraceIndex + 2)..]);
             }
 
-            Debug.Assert(name == MakeDynamicCallSiteDelegateName(byRefs, returnsVoid, generation));
+            Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
         }
 
         internal static string AsyncBuilderFieldName()
