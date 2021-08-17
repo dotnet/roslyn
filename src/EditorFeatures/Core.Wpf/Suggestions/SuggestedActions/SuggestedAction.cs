@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
                     _isApplied = await EditHandler.ApplyAsync(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
                         progressTracker, cancellationToken).ConfigureAwait(false);
