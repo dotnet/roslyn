@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             private async Task<DocumentSpan?> TryGetDocumentSpanAsync(CancellationToken cancellationToken)
             {
+                // We explicitly do not use SerializableDefinitionItem.RehydrateAsync here.  That method
+                // only is guaranteed to work if passed the original Solution that the definition item 
+                // was created against (and it will throw if is passed a different solution that it can't
+                // find the document in).  Because we are using .CurrentSolution here, we need to be resilient
+                // to the possibility that we may no longer be able to find/navigate to this document.
                 var solution = Workspace.CurrentSolution;
                 var documentId = SourceSpans[0].DocumentId;
                 var document = solution.GetDocument(documentId) ??
