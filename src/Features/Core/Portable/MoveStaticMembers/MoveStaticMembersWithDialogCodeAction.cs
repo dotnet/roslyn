@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
-            // refactor member access references in other files
+            // refactor member access references from the source file and other files
             var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
             var locationsToDoc = memberReferenceLocations.ToLookup(loc => loc.location.Document.Id);
             var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType!, cancellationToken).ConfigureAwait(false);
@@ -220,14 +220,25 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     continue;
                 }
 
+                // We add a simplifier annotation in both cases (second case is done within the method)
+                // Because sometimes the qualification is wholly or partly unneccessary
                 // static member access should never be pointer or conditional member access
                 if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
                 {
                     var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
                     if (expression != null)
                     {
-                        docEditor.ReplaceNode(expression, (node, generator) => generator.TypeExpression(newType).WithTriviaFrom(node));
+                        docEditor.ReplaceNode(expression, (node, generator) => generator.TypeExpression(newType)
+                            .WithTriviaFrom(node)
+                            .WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
                     }
+                }
+                else if (syntaxFacts.IsIdentifierName(refNode))
+                {
+                    // We now are in an identifier name that isn't a member access expression
+                    // This could either be because of a static using, module usage in VB, or because we are in the original source type
+                    // either way, we want to change it to a member access expression for the type that is imported
+                    docEditor.ReplaceNode(refNode, (node, generator) => generator.MemberAccessExpression(generator.TypeExpression(newType), node).WithTriviaFrom(node));
                 }
             }
         }

@@ -660,6 +660,131 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorSourceUsage() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+
+        Public Shared Function TestFunc2() As Integer
+            Return TestFunc() + 1
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function TestFunc2() As Integer
+            Return TestFunc() + 1
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Module Class1Helpers
+        Public Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFieldAndRefactorSourceUsage() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Test[||]Field As Integer = 0
+
+        Public Shared Function TestFunc2() As Integer
+            Return TestField + 1
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestField")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function TestFunc2() As Integer
+            Return TestField + 1
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Module Class1Helpers
+        Public TestField As Integer = 0
+
+    End Module
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMovePropertyAndRefactorSourceUsage() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Private Shared _testProperty As Integer
+
+        Public Shared Property Test[||]Property As Integer
+            Get
+                Return _testProperty
+            End Get
+            Set
+                _testProperty = value
+            End Set
+        End Property
+
+        Public Shared Function TestFunc2() As Integer
+            Return TestProperty + 1
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "ExtraNs.Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("_testProperty", "TestProperty")
+            Dim expectedText1 = "
+Imports TestNs.ExtraNs
+
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function TestFunc2() As Integer
+            Return TestProperty + 1
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs.ExtraNs
+    Module Class1Helpers
+        Private _testProperty As Integer
+
+
+        Public Property Test[||]Property As Integer
+            Get
+                Return _testProperty
+            End Get
+            Set
+                _testProperty = value
+            End Set
+        End Property
+    End Module
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveFunctionAndRefactorUsageDifferentNamespace() As Task
             Dim initialMarkup = "
 Imports TestNs
@@ -839,6 +964,60 @@ Imports C1 = TestNs.Class1
 Public Class Class2
     Public Shared Function TestFunc2() As Integer
         Return Class1Helpers.TestFunc() + 1
+    End Function
+End Class"
+            Dim expectedText2 = "Namespace TestNs
+    Module Class1Helpers
+        Public Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace
+"
+
+            Dim test = New Test(newTypeName, selection, newFileName)
+            test.TestState.Sources.Add(initialMarkup1)
+            test.TestState.Sources.Add(initialMarkup2)
+            test.FixedState.Sources.Add(expectedText1)
+            test.FixedState.Sources.Add(expectedText3)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
+
+            Await test.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionAndRefactorClassImports() As Task
+            Dim initialMarkup1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim initialMarkup2 = "
+Imports TestNs.Class1
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return TestFunc() + 1
+    End Function
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText3 = "
+Imports TestNs
+Imports TestNs.Class1
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return TestFunc() + 1
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
