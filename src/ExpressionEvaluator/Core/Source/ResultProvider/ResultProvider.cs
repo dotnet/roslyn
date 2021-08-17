@@ -101,8 +101,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)0x20000;
-        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)0x40000;
+        // TODO: There is a potential that these values will conflict with debugger defined flags in future.
+        // It'd be better if we attached these flags ot the DkmClrValue object via data items, however DkmClrValue is currently mutable
+        // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
+        // to do so due to mutability.
+        // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1375050.
+        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)(1 << 30);
+        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)(1 << 31);
 
         void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
