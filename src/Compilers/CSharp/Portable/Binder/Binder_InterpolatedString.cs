@@ -204,12 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ValidateInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
+        private static bool ValidateInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
             => !unconvertedInterpolatedString.Parts.ContainsAwaitExpression()
-               && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value: { Type: { TypeKind: TypeKind.Dynamic } } });
+               && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value.Type.TypeKind: TypeKind.Dynamic });
 
         private static bool AllInterpolatedStringPartsAreStrings(ImmutableArray<BoundExpression> parts)
-            => parts.All(p => p is BoundLiteral or BoundStringInsert { Value: { Type: { SpecialType: SpecialType.System_String } }, Alignment: null, Format: null });
+            => parts.All(p => p is BoundLiteral or BoundStringInsert { Value.Type.SpecialType: SpecialType.System_String, Alignment: null, Format: null });
 
         private bool TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(BoundBinaryOperator binaryOperator, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundBinaryOperator? convertedBinaryOperator)
         {
