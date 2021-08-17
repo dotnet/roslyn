@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
             if (IsReturnStatement(node))
             {
-                await TryToRegisterCodeFixesForReturnStatement(context, node, diagnostic).ConfigureAwait(false);
+                await TryToRegisterCodeFixesForReturnStatementAsync(context, node, diagnostic).ConfigureAwait(false);
                 return;
             }
 
             if (IsMethodInvocationParameter(node))
             {
-                await TryToRegisterCodeFixesForMethodInvocationParameter(context, node, diagnostic).ConfigureAwait(false);
+                await TryToRegisterCodeFixesForMethodInvocationParameterAsync(context, node, diagnostic).ConfigureAwait(false);
                 return;
             }
         }
 
-        private async Task TryToRegisterCodeFixesForMethodInvocationParameter(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
+        private async Task TryToRegisterCodeFixesForMethodInvocationParameterAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsExpectedParameterReadonlySequence(node, semanticModel) && node is ArgumentSyntax argument)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             }
         }
 
-        private async Task TryToRegisterCodeFixesForReturnStatement(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
+        private async Task TryToRegisterCodeFixesForReturnStatementAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsInsideMemberReturningEnumerable(node, semanticModel))
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                             objectCreation.Type is GenericNameSyntax genericName)
                         {
                             var codeAction = CodeAction.Create(_title,
-                                token => Transform(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
+                                token => TransformAsync(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
                                 _title);
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                         if (CanBeReplaceWithEnumerableEmpty(arrayCreation))
                         {
                             var codeAction = CodeAction.Create(_title,
-                                token => Transform(context.Document, node, arrayCreation.Type.ElementType, token),
+                                token => TransformAsync(context.Document, node, arrayCreation.Type.ElementType, token),
                                 _title);
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             return methodDeclaration != null && IsReturnTypeReadonlySequence(semanticModel, methodDeclaration);
         }
 
-        private static async Task<Document> Transform(Document contextDocument, SyntaxNode node, TypeSyntax typeArgument, CancellationToken cancellationToken)
+        private static async Task<Document> TransformAsync(Document contextDocument, SyntaxNode node, TypeSyntax typeArgument, CancellationToken cancellationToken)
         {
             var noAllocation = SyntaxFactory.ParseExpression($"Array.Empty<{typeArgument}>()");
             var newNode = ReplaceExpression(node, noAllocation);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -265,12 +265,15 @@ namespace Analyzer.Utilities.Extensions
             return !member.IsStatic && !member.IsDefaultConstructor();
         }
 
-        public static bool IsXUnitTestAttribute(this INamedTypeSymbol attributeClass, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        public static bool IsBenchmarkOrXUnitTestAttribute(this INamedTypeSymbol attributeClass, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol? benchmarkAttribute, INamedTypeSymbol? xunitFactAttribute)
         {
             if (knownTestAttributes.TryGetValue(attributeClass, out var isTest))
                 return isTest;
 
-            return knownTestAttributes.GetOrAdd(attributeClass, attributeClass.DerivesFrom(xunitFactAttribute));
+            var derivedFromKnown =
+                (xunitFactAttribute is not null && attributeClass.DerivesFrom(xunitFactAttribute))
+                || (benchmarkAttribute is not null && attributeClass.DerivesFrom(benchmarkAttribute));
+            return knownTestAttributes.GetOrAdd(attributeClass, derivedFromKnown);
         }
 
         /// <summary>
