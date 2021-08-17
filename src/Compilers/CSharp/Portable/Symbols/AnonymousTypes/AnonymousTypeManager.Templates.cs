@@ -235,12 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }
 
-        private SynthesizedDelegateValue CreatePlaceholderSynthesizedDelegateValue(CodeAnalysis.Emit.SynthesizedDelegateKey key)
+        private SynthesizedDelegateValue CreatePlaceholderSynthesizedDelegateValue(string name, RefKindVector refKinds, bool returnsVoid, int parameterCount)
         {
-            GeneratedNames.ParseDynamicCallSiteName(key.Name, out var refKinds, out var returnsVoid, out _, out var parameterCount);
             var symbol = new SynthesizedDelegateSymbol(
                this.Compilation.Assembly.GlobalNamespace,
-               MetadataHelpers.InferTypeArityAndUnmangleMetadataName(key.Name, out _),
+               MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out _),
                this.System_Object,
                Compilation.GetSpecialType(SpecialType.System_IntPtr),
                returnsVoid ? Compilation.GetSpecialType(SpecialType.System_Void) : null,
@@ -334,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 GeneratedNames.ParseDynamicCallSiteName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount);
                 var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
-                this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key));
+                this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key.Name, refKinds, returnsVoid, parameterCount));
             }
 
             var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
