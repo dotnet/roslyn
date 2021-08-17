@@ -1,12 +1,6 @@
 {
   "isRoot": true,
   "tools": {
-    "dotnet-format": {
-      "version": "6.0.231801",
-      "commands": [
-        "dotnet-format"
-      ]
-    },
     "powershell": {
       "version": "7.0.0",
       "commands": [
