@@ -130,6 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private async Task InvokeAsync(IUIThreadOperationContext context)
         {
+            // Even though we're async, we should still be on the UI thread at this point.
+            AssertIsForeground();
+
             try
             {
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
