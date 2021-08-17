@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // It'd be better if we attached these flags ot the DkmClrValue object via data items, however DkmClrValue is currently mutable
         // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
         // to do so due to mutability.
-        // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1375050.
+        // See https://github.com/dotnet/roslyn/issues/55676.
         internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)(1 << 30);
         internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)(1 << 31);
 
