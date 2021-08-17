@@ -21,7 +21,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
     {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 },
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 ContainerName = containerName,
-                Icon = new ImageElement(item.Glyph.GetImageId()),
+                Icon = ProtocolConversions.GetImageIdFromGlyph(item.Glyph),
             };
         }
 

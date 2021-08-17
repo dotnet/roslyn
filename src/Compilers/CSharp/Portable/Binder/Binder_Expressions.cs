@@ -1338,8 +1338,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
+            if (!hasError)
+            {
+                CheckDisallowedAttributeDependentType(typeWithAnnotations, isError: false, node.Location, diagnostics);
+            }
+
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
+        }
+
+        /// <summary>Called when an "attribute-dependent" type such as 'dynamic', 'string?', etc. is not permitted.</summary>
+        private void CheckDisallowedAttributeDependentType(TypeWithAnnotations typeArgument, bool isError, Location errorLocation, BindingDiagnosticBag diagnostics)
+        {
+            var diagnosticId = isError ? ErrorCode.ERR_AttrDependentTypeNotAllowed : ErrorCode.WRN_AttrDependentTypeNotAllowed;
+            typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
+            {
+                var (topLevelType, diagnosticId, errorLocation, diagnostics) = arg;
+                var type = typeWithAnnotations.Type;
+                if (type.IsDynamic()
+                    || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
+                    || type.IsNativeIntegerType
+                    || (type.IsTupleType && !type.TupleElementNames.IsDefault))
+                {
+                    diagnostics.Add(diagnosticId, errorLocation, topLevelType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    return true;
+                }
+
+                return false;
+            }, typePredicate: null, arg: (typeArgument, diagnosticId, errorLocation, diagnostics));
         }
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)

@@ -28,10 +28,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
 
-        private readonly ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
+        // Maps active statement instructions reported by the debugger to their latest spans that might not yet have been applied
+        // (remapping not triggered yet). Consumed by the next edit session and updated when changes are committed at the end of the edit session.
+        //
+        // Consider a function F containing a call to function G. While G is being executed, F is updated a couple of times (in two edit sessions)
+        // before the thread returns from G and is remapped to the latest version of F. At the start of the second edit session,
+        // the active instruction reported by the debugger is still at the original location since function F has not been remapped yet (G has not returned yet).
+        //
+        // '>' indicates an active statement instruction for non-leaf frame reported by the debugger.
+        // v1 - before first edit, G executing
+        // v2 - after first edit, G still executing
+        // v3 - after second edit and G returned
+        //
+        // F v1:        F v2:       F v3:
+        // 0: nop       0: nop      0: nop
+        // 1> G()       1> nop      1: nop
+        // 2: nop       2: G()      2: nop
+        // 3: nop       3: nop      3> G()
+        //
+        // When entering a break state we query the debugger for current active statements.
+        // The returned statements reflect the current state of the threads in the runtime.
+        // When a change is successfully applied we remember changes in active statement spans.
+        // These changes are passed to the next edit session.
+        // We use them to map the spans for active statements returned by the debugger.
+        //
+        // In the above case the sequence of events is
+        // 1st break: get active statements returns (F, v=1, il=1, span1) the active statement is up-to-date
+        // 1st apply: detected span change for active statement (F, v=1, il=1): span1->span2
+        // 2nd break: previously updated statements contains (F, v=1, il=1)->span2
+        //            get active statements returns (F, v=1, il=1, span1) which is mapped to (F, v=1, il=1, span2) using previously updated statements
+        // 2nd apply: detected span change for active statement (F, v=1, il=1): span2->span3
+        // 3rd break: previously updated statements contains (F, v=1, il=1)->span3
+        //            get active statements returns (F, v=3, il=3, span3) the active statement is up-to-date
+        //
+        internal readonly ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions;
 
         /// <summary>
-        /// Lazily calculated map of base active statements.
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// Retrieved lazily from <see cref="DebuggingSession.DebuggerService"/> since they are only needed when changes are detected in the solution.
+        /// </summary>
+        internal readonly AsyncLazy<EditAndContinueCapabilities> Capabilities;
+
+        /// <summary>
+        /// Map of base active statements.
+        /// Calculated lazily based on info retrieved from <see cref="DebuggingSession.DebuggerService"/> since it is only needed when changes are detected in the solution.
         /// </summary>
         internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
@@ -40,6 +80,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly EditAndContinueDocumentAnalysesCache Analyses;
 
+        /// <summary>
+        /// True for Edit and Continue edit sessions - when the application is in break state.
+        /// False for Hot Reload edit sessions - when the application is running.
+        /// </summary>
         internal readonly bool InBreakState;
 
         /// <summary>
@@ -50,20 +94,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
-        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, bool inBreakState)
+        internal EditSession(
+            DebuggingSession debuggingSession,
+            ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
+            EditSessionTelemetry telemetry,
+            bool inBreakState)
         {
             DebuggingSession = debuggingSession;
+            NonRemappableRegions = nonRemappableRegions;
             Telemetry = telemetry;
-
-            _nonRemappableRegions = debuggingSession.NonRemappableRegions;
-
             InBreakState = inBreakState;
 
             BaseActiveStatements = inBreakState ?
-                new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true) :
+                new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
                 new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
 
-            Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
+            Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
+            Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
         }
 
         /// <summary>
@@ -87,13 +134,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
         }
 
+        private async Task<EditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                var result = EditAndContinueCapabilitiesParser.Parse(capabilities);
+
+                // For now, runtimes aren't returning capabilities, we just fall back to a known set.
+                // https://github.com/dotnet/roslyn/issues/54386
+                if (result == EditAndContinueCapabilities.None)
+                {
+                    result = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+                }
+
+                return result;
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                return EditAndContinueCapabilities.Baseline;
+            }
+        }
+
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
                 var debugInfos = await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
-                return ActiveStatementsMap.Create(debugInfos, _nonRemappableRegions);
+                return ActiveStatementsMap.Create(debugInfos, NonRemappableRegions);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -291,7 +360,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, DebuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
+            var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             return (analyses, documentDiagnostics.ToImmutable());
         }
 
@@ -718,7 +787,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -747,14 +816,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
-                    var emitResult = newCompilation.EmitDifference(
-                        baseline,
-                        projectChanges.SemanticEdits,
-                        projectChanges.AddedSymbols.Contains,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        cancellationToken);
+                    EmitDifferenceResult emitResult;
+
+                    // The lock protects underlying baseline readers from being disposed while emitting delta.
+                    // If the lock is disposed at this point the session has been incorrectly disposed while operations on it are in progress.
+                    using (baselineAccessLock.DisposableRead())
+                    {
+                        DebuggingSession.ThrowIfDisposed();
+
+                        emitResult = newCompilation.EmitDifference(
+                            baseline,
+                            projectChanges.SemanticEdits,
+                            projectChanges.AddedSymbols.Contains,
+                            metadataStream,
+                            ilStream,
+                            pdbStream,
+                            cancellationToken);
+                    }
 
                     if (emitResult.Success)
                     {
@@ -768,7 +846,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             mvid,
                             oldActiveStatementsMap,
                             updatedMethodTokens,
-                            _nonRemappableRegions,
+                            NonRemappableRegions,
                             projectChanges.ActiveStatementChanges,
                             out var activeStatementsInUpdatedMethods,
                             out var moduleNonRemappableRegions,

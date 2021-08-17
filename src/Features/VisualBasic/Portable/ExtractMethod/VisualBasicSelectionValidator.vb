@@ -469,12 +469,12 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
             If firstTokenInSelection.Kind = SyntaxKind.None OrElse lastTokenInSelection.Kind = SyntaxKind.None Then
-                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
             End If
 
             If firstTokenInSelection <> lastTokenInSelection AndAlso
                firstTokenInSelection.Span.End > lastTokenInSelection.SpanStart Then
-                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
             End If
 
             If (Not adjustedSpan.Contains(firstTokenInSelection.Span)) AndAlso (Not adjustedSpan.Contains(lastTokenInSelection.Span)) Then
@@ -506,6 +506,16 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
                        }
+            End If
+
+            If Not commonRoot.ContainedInValidType() Then
+                Return New SelectionInfo With
+                    {
+                        .Status = New OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),
+                        .OriginalSpan = adjustedSpan,
+                        .FirstTokenInOriginalSpan = firstTokenInSelection,
+                        .LastTokenInOriginalSpan = lastTokenInSelection
+                    }
             End If
 
             Dim selectionInExpression = TypeOf commonRoot Is ExpressionSyntax AndAlso

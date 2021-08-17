@@ -12558,13 +12558,14 @@ class A<T, S>
         public void CS0698ERR_GenericDerivingFromAttribute01()
         {
             var text =
-@"class C<T> : System.Attribute  // CS0698
+@"class C<T> : System.Attribute
 {
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (1,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(1, 14));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class C<T> : System.Attribute
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12577,11 +12578,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (2,14): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(2, 14),
-                // (5,15): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(5, 15));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class B<T> : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
+                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     class B : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
         }
 
         [Fact]
@@ -16505,7 +16508,22 @@ class A : Attribute
     public Type T;
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (6,8): warning CS8959: Type 'dynamic[]' cannot be used in this context because it cannot be represented in metadata.
+                // [A(T = typeof(dynamic[]))]     // Dev11 reports error, but this should be ok
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(dynamic[])").WithArguments("dynamic[]").WithLocation(6, 8),
+                // (7,8): warning CS8959: Type 'C<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // [A(T = typeof(C<dynamic>))]
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>)").WithArguments("C<dynamic>").WithLocation(7, 8),
+                // (8,8): warning CS8959: Type 'C<dynamic>[]' cannot be used in this context because it cannot be represented in metadata.
+                // [A(T = typeof(C<dynamic>[]))]
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>[])").WithArguments("C<dynamic>[]").WithLocation(8, 8),
+                // (9,8): warning CS8959: Type 'C<dynamic>.D[]' cannot be used in this context because it cannot be represented in metadata.
+                // [A(T = typeof(C<dynamic>.D[]))]
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>.D[])").WithArguments("C<dynamic>.D[]").WithLocation(9, 8),
+                // (10,8): warning CS8959: Type 'C<dynamic>.D*[]' cannot be used in this context because it cannot be represented in metadata.
+                // [A(T = typeof(C<dynamic>.D*[]))]
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>.D*[])").WithArguments("C<dynamic>.D*[]").WithLocation(10, 8));
         }
 
         [Fact]
