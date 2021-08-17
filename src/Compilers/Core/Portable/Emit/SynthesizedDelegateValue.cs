@@ -6,7 +6,7 @@ using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct SynthesizedDelegateValue
+    internal readonly struct SynthesizedDelegateValue
     {
         public readonly ITypeDefinition Delegate;
 

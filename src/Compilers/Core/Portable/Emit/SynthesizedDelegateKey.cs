@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
+    internal readonly struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
     {
         public readonly string Name;
 
