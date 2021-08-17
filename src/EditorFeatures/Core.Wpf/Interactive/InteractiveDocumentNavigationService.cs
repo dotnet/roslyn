@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
+            // This switch is technically not needed as the call to CanNavigateToSpan just returns 'true'.
+            // However, this abides by the contract that CanNavigateToSpan only be called on the UI thread.
+            // It also means if we ever update that method, this code will stay corrrect.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
         }
