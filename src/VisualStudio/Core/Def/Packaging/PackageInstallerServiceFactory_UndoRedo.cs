@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Threading;
 using Microsoft.VisualStudio.OLE.Interop;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -13,10 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private bool TryInstallAndAddUndoAction(
             string source, string packageName, string versionOpt, bool includePrerelease,
-            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
+            VSUtilities.IUIThreadOperationContext? context, CancellationToken cancellationToken)
         {
             var installed = TryInstallPackage(
-                source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject);
+                source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, context, cancellationToken);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
@@ -31,9 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private bool TryUninstallAndAddRedoAction(
             string source, string packageName, string versionOpt, bool includePrerelease,
-            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
+            VSUtilities.IUIThreadOperationContext? context, CancellationToken cancellationToken)
         {
-            var uninstalled = TryUninstallPackage(packageName, projectGuid, dte, dteProject);
+            var uninstalled = TryUninstallPackage(packageName, projectGuid, dte, dteProject, context, cancellationToken);
             if (uninstalled)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
@@ -112,9 +114,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public override void Do(IOleUndoManager pUndoManager)
             {
+                var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+                using var context = this.packageInstallerService._operationExecutor.BeginExecute(NugetTitle, description, allowCancellation: true, showProgress: false);
+
                 packageInstallerService.TryUninstallAndAddRedoAction(
                     source, packageName, versionOpt, includePrerelease,
-                    projectGuid, dte, dteProject, undoManager);
+                    projectGuid, dte, dteProject, undoManager,
+                    context, context.UserCancellationToken);
             }
 
             public override void GetDescription(out string pBstr)
@@ -144,8 +150,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public override void Do(IOleUndoManager pUndoManager)
             {
+                var description = string.Format(ServicesVSResources.Installing_0, packageName);
+                using var context = this.packageInstallerService._operationExecutor.BeginExecute(
+                    NugetTitle, description, allowCancellation: true, showProgress: false);
+
                 packageInstallerService.TryInstallAndAddUndoAction(
-                    source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager);
+                    source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager, context,
+                    context.UserCancellationToken);
             }
         }
     }

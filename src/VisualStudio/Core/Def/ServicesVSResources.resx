@@ -1821,4 +1821,10 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
 </root>
