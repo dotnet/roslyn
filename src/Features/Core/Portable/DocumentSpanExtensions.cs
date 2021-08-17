@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,7 +20,15 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        public static Task<bool> CanNavigateToAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
+        {
+            var workspace = documentSpan.Document.Project.Solution.Workspace;
+            var service = workspace.Services.GetService<IDocumentNavigationService>();
+            return service.CanNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
+        }
+
+        private static (Workspace workspace, IDocumentNavigationService service, OptionSet options) GetNavigationParts(
+            DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
@@ -28,7 +37,19 @@ namespace Microsoft.CodeAnalysis
             var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
             options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
 
+            return (workspace, service, options);
+        }
+
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        {
+            var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
             return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
+        }
+
+        public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        {
+            var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
+            return service.TryNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
         }
 
         public static async Task<bool> IsHiddenAsync(

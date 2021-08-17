@@ -63,8 +63,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
 
-                return await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is DocumentSpan span &&
-                       span.CanNavigateTo(cancellationToken);
+                if (await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                    return false;
+
+                return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
             public override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
@@ -75,8 +77,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
 
-                return await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is DocumentSpan span &&
-                       span.TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
+                if (await TryGetDocumentSpanAsync(workspace, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                    return false;
+
+                return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

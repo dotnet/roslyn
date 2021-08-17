@@ -7,8 +7,10 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal sealed class InteractiveDocumentNavigationService : IDocumentNavigationService
     {
+        private readonly IThreadingContext _threadingContext;
+
+        public InteractiveDocumentNavigationService(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
+        public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
+        }
+
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
             => true;
 
@@ -27,6 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => false;
+
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
+        }
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {

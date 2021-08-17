@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -17,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// Determines whether it is possible to navigate to the given position in the specified document.
         /// </summary>
         bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Determines whether it is possible to navigate to the given position in the specified document.
+        /// </summary>
+        Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines whether it is possible to navigate to the given line/offset in the specified document.
@@ -32,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
         bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Navigates to the given position in the specified document, opening it if necessary.
+        /// </summary>
+        Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Navigates to the given line/offset in the specified document, opening it if necessary.
@@ -54,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public static bool TryNavigateToSpan(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
             => service.TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
+
+        public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+            => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
         public static bool TryNavigateToLineAndOffset(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
             => service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options: null, cancellationToken);
