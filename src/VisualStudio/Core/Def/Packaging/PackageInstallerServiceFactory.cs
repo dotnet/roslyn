@@ -38,8 +38,6 @@ using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Free threaded wrapper around the NuGet.VisualStudio STA package installer interfaces.
     /// We want to be able to make queries about packages from any thread.  For example, the
@@ -278,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             DocumentId documentId,
             string source,
             string packageName,
-            string versionOpt,
+            string? version,
             bool includePrerelease,
             IProgressTracker progressTracker,
             CancellationToken cancellationToken)
@@ -302,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     // We're being called from the lightbulb.  In that case we have no IUIThreadOperationContext
                     // to pass along to update with our progress.  That's ok, we'll just let the 
                     return TryInstallAndAddUndoAction(
-                        source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager,
+                        source, packageName, version, includePrerelease, projectGuid, dte, dteProject, undoManager,
                         progressTracker, cancellationToken);
                 }
             }
@@ -313,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private bool TryInstallPackage(
             string source,
             string packageName,
-            string versionOpt,
+            string? version,
             bool includePrerelease,
             Guid projectGuid,
             EnvDTE.DTE dte,
@@ -343,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                         // Once we start the installation, we can't cancel anymore.
                         cancellationToken = default;
-                        if (versionOpt == null)
+                        if (version == null)
                         {
                             _packageInstaller.Value.InstallLatestPackage(
                                 source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
@@ -351,11 +349,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         else
                         {
                             _packageInstaller.Value.InstallPackage(
-                                source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+                                source, dteProject, packageName, version, ignoreDependencies: false);
                         }
 
                         installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
-                        var installedVersion = installedPackagesMap.TryGetValue(packageName, out var version) ? version : null;
+                        var installedVersion = installedPackagesMap.TryGetValue(packageName, out var result) ? result : null;
 
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,

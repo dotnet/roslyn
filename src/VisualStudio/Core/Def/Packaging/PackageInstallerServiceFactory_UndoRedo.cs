@@ -3,30 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
-using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageInstallerService
     {
         private bool TryInstallAndAddUndoAction(
-            string source, string packageName, string versionOpt, bool includePrerelease,
+            string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var installed = TryInstallPackage(
-                source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, progressTracker, cancellationToken);
+                source, packageName, version, includePrerelease, projectGuid, dte, dteProject, progressTracker, cancellationToken);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
                 undoManager?.Add(new UninstallPackageUndoUnit(
                     this, source, packageName,
-                    versionOpt, includePrerelease,
+                    version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager));
             }
 
@@ -34,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private bool TryUninstallAndAddRedoAction(
-            string source, string packageName, string versionOpt, bool includePrerelease,
+            string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
@@ -44,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // if the install succeeded, then add an uninstall item to the undo manager.
                 undoManager?.Add(new InstallPackageUndoUnit(
                     this, source, packageName,
-                    versionOpt, includePrerelease,
+                    version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager));
             }
 
@@ -60,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             protected readonly string source;
             protected readonly string packageName;
             protected readonly IOleUndoManager undoManager;
-            protected readonly string versionOpt;
+            protected readonly string? version;
             protected readonly bool includePrerelease;
 
             protected BaseUndoUnit(
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
                 Guid projectGuid,
                 EnvDTE.DTE dte,
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 this.packageInstallerService = packageInstallerService;
                 this.source = source;
                 this.packageName = packageName;
-                this.versionOpt = versionOpt;
+                this.version = version;
                 this.includePrerelease = includePrerelease;
                 this.projectGuid = projectGuid;
                 this.dte = dte;
@@ -103,14 +101,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
                 Guid projectGuid,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
                 IOleUndoManager undoManager)
                 : base(packageInstallerService, source, packageName,
-                       versionOpt, includePrerelease,
+                       version, includePrerelease,
                        projectGuid, dte, dteProject, undoManager)
             {
             }
@@ -122,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 using var scope = context.AddScope(allowCancellation: true, description);
 
                 packageInstallerService.TryUninstallAndAddRedoAction(
-                    source, packageName, versionOpt, includePrerelease,
+                    source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
                     new UIThreadOperationContextProgressTracker(scope),
                     context.UserCancellationToken);
@@ -138,14 +136,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
                 Guid projectGuid,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
                 IOleUndoManager undoManager)
                 : base(packageInstallerService, source, packageName,
-                       versionOpt, includePrerelease,
+                       version, includePrerelease,
                        projectGuid, dte, dteProject, undoManager)
             {
             }
@@ -160,7 +158,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 using var scope = context.AddScope(allowCancellation: true, description);
 
                 packageInstallerService.TryInstallAndAddUndoAction(
-                    source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager,
+                    source, packageName, version, includePrerelease,
+                    projectGuid, dte, dteProject, undoManager,
                     new UIThreadOperationContextProgressTracker(scope),
                     context.UserCancellationToken);
             }
