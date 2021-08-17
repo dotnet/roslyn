@@ -170,6 +170,8 @@ namespace RunTests
                     localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
                 }
 
+                var checkDumpLocation = lsCommand + @" C:\cores";
+
                 var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
                     : "";
@@ -184,9 +186,11 @@ namespace RunTests
                 {setPrereleaseRollforward}
                 {werValues}
                 {localDumpsValues}
+                {checkDumpLocation}
                 dotnet --info
                 {setTestIOperation}
                 dotnet {commandLineArguments}
+                {checkDumpLocation}
             </Command>
             <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
