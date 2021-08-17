@@ -130,6 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private async Task InvokeAsync(IUIThreadOperationContext context)
         {
+            // Even though we're async, we should still be on the UI thread at this point.
+            AssertIsForeground();
+
             try
             {
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
@@ -145,6 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private async Task InvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            // Even though we're async, we should still be on the UI thread at this point.
+            AssertIsForeground();
+
             await InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(true);
             foreach (var actionCallback in SourceProvider.ActionCallbacks)
                 actionCallback.Value.OnSuggestedActionExecuted(this);
