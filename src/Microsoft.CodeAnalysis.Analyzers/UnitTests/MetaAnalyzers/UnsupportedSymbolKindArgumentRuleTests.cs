@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class UnsupportedSymbolKindArgumentRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -86,7 +86,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -152,7 +152,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -205,7 +205,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System

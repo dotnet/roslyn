@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class DiagnosticAnalyzerApiUsageAnalyzerTests
     {
         [Fact]
-        public async Task NoDiagnosticCases()
+        public async Task NoDiagnosticCasesAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -112,7 +112,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_InDeclaration_Diagnostic()
+        public async Task DirectlyAccessedType_InDeclaration_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -165,7 +165,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_InMemberDeclaration_Diagnostic()
+        public async Task DirectlyAccessedType_InMemberDeclaration_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -226,7 +226,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_InMemberBody_Diagnostic()
+        public async Task DirectlyAccessedType_InMemberBody_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -285,7 +285,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_StaticMember_Diagnostic()
+        public async Task DirectlyAccessedType_StaticMember_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -345,7 +345,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_StaticMember_02_Diagnostic()
+        public async Task DirectlyAccessedType_StaticMember_02_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -405,7 +405,7 @@ End Class
         }
 
         [Fact]
-        public async Task DirectlyAccessedType_CastAndTypeCheck_Diagnostic()
+        public async Task DirectlyAccessedType_CastAndTypeCheck_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -465,7 +465,7 @@ End Class
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_StaticMember_Diagnostic()
+        public async Task IndirectlyAccessedType_StaticMember_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -507,7 +507,7 @@ class Fixer : CodeFixProvider
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_ExtensionMethod_Diagnostic()
+        public async Task IndirectlyAccessedType_ExtensionMethod_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -584,7 +584,7 @@ End Module
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_InvokedFromAnalyzer_Diagnostic()
+        public async Task IndirectlyAccessedType_InvokedFromAnalyzer_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -658,7 +658,7 @@ End Class
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_NotInvokedFromAnalyzer_Diagnostic()
+        public async Task IndirectlyAccessedType_NotInvokedFromAnalyzer_DiagnosticAsync()
         {
             // We report diagnostic if there is a transitive access to a type referencing something from Workspaces.
             // This is regardless of whether the transitive access is actually reachable from a possible code path or not.
@@ -756,7 +756,7 @@ End Class
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_Transitive_Diagnostic()
+        public async Task IndirectlyAccessedType_Transitive_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -839,7 +839,7 @@ End Class
         }
 
         [Fact]
-        public async Task TypeDependencyGraphWithCycles_Diagnostic()
+        public async Task TypeDependencyGraphWithCycles_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
