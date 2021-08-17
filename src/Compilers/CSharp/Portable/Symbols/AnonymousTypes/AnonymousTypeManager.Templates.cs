@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder.Free();
 
-            // Ensure all previous anonymous type templates are included so the
+            // Ensure all previous sythesized delegates are included so the
             // types are available for subsequent edit and continue generations.
             foreach (var key in moduleBeingBuilt.GetPreviousSynthesizedDelegates())
             {

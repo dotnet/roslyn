@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public SynthesizedDelegateValue(ITypeDefinition @delegate)
         {
-            this.Delegate = @delegate;
+            Delegate = @delegate;
         }
     }
 }

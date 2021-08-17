@@ -104,10 +104,8 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
 
-            foreach (var pair in anonymousTypeMap)
+            foreach (var (key, value) in anonymousTypeMap)
             {
-                var key = pair.Key;
-                var value = pair.Value;
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
                 RoslynDebug.Assert(type != null);
                 result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
@@ -120,11 +118,11 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
-            foreach (var pair in synthesizedDelegates)
+            foreach (var (key, value) in synthesizedDelegates)
             {
-                var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(pair.Value.Delegate);
+                var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
                 RoslynDebug.Assert(delegateTypeDef != null);
-                result.Add(pair.Key, new SynthesizedDelegateValue(delegateTypeDef));
+                result.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
             }
 
             return result;

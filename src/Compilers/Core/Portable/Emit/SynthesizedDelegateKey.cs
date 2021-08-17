@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -13,22 +12,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public SynthesizedDelegateKey(string name)
         {
-            this.Name = name;
+            Name = name;
         }
 
         public override bool Equals(object? obj)
-        {
-            return obj is SynthesizedDelegateKey other && Equals(other);
-        }
+            => obj is SynthesizedDelegateKey other && Equals(other);
 
         public bool Equals(SynthesizedDelegateKey other)
-        {
-            return this.Name.Equals(other.Name, StringComparison.Ordinal);
-        }
+            => Name.Equals(other.Name, StringComparison.Ordinal);
 
         public override int GetHashCode()
-        {
-            return this.Name.GetHashCode();
-        }
+            => Name.GetHashCode();
     }
 }

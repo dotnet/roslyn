@@ -75,9 +75,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public readonly object MetadataDecoder;
 
-            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates, object metadataDecoder, ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
+            public MetadataSymbols(
+                IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes,
+                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+                object metadataDecoder,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
                 Debug.Assert(anonymousTypes != null);
+                Debug.Assert(synthesizedDelegates != null);
                 Debug.Assert(metadataDecoder != null);
                 Debug.Assert(assemblyReferenceIdentityMap != null);
 

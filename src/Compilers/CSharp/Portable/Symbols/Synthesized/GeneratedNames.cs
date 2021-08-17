@@ -531,7 +531,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lastBraceIndex = name.LastIndexOf('}');
 
             // The prefix is 3 characters long, plus one for the open brace, so ref kinds start at 4
-            var refKindString = name[4..lastBraceIndex];
+            var startIndex = (ActionDelegateNamePrefix + "{").Length;
+            var refKindString = name[startIndex..lastBraceIndex];
             byRefs = RefKindVector.Parse(refKindString, arity);
 
             // If there is a generation index it will be directly after the brace, otherwise the brace
