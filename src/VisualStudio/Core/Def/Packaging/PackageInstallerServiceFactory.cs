@@ -34,6 +34,7 @@ using NuGet.VisualStudio;
 using NuGet.VisualStudio.Contracts;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -51,6 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
     internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
     {
+        // Proper name, should not be localized.
+        private const string NugetTitle = "NuGet";
+
+        private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
@@ -91,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
             IThreadingContext threadingContext,
+            VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
@@ -105,6 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                    SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
+            _operationExecutor = operationExecutor;
             _workspace = workspace;
 
             _serviceProvider = serviceProvider;
@@ -292,7 +299,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(
-                        source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager);
+                        source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager,
+                        context: null, cancellationToken);
                 }
             }
 
@@ -306,28 +314,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             bool includePrerelease,
             Guid projectGuid,
             EnvDTE.DTE dte,
-            EnvDTE.Project dteProject)
+            EnvDTE.Project dteProject,
+            VSUtilities.IUIThreadOperationContext? operationContext,
+            CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
-            // TODO: consider putting this under a TWD so it would actually be cancellable.
-            var cancellationToken = CancellationToken.None;
+            var description = string.Format(ServicesVSResources.Installing_0, packageName);
+            dte.StatusBar.Text = description;
 
             try
             {
-                return this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                {
-                    return this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
+                return this.ThreadingContext.JoinableTaskFactory.Run(
+                    () => this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                     {
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                         var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
                         if (installedPackagesMap.ContainsKey(packageName))
                             return false;
 
-                        dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
+                        // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                        await TaskScheduler.Default;
+                        cancellationToken.ThrowIfCancellationRequested();
 
+                        // Once we start the installation, we can't cancel anymore.
+                        using var scope = operationContext?.AddScope(allowCancellation: false, description);
+                        cancellationToken = default;
                         if (versionOpt == null)
                         {
                             _packageInstaller.Value.InstallLatestPackage(
@@ -341,12 +353,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                         installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
                         var installedVersion = installedPackagesMap.TryGetValue(packageName, out var version) ? version : null;
+
+                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
                             GetStatusBarText(packageName, installedVersion));
 
                         return true;
-                    }, cancellationToken);
-                });
+                    }, cancellationToken));
+            }
+            catch (OperationCanceledException)
+            {
+                dte.StatusBar.Text = ServicesVSResources.Package_install_canceled;
+                return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -365,35 +383,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
-            string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+            string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
+            VSUtilities.IUIThreadOperationContext? context, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
-            // TODO: consider putting this under a TWD so it would actually be cancellable.
-            var cancellationToken = CancellationToken.None;
+            var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+            dte.StatusBar.Text = description;
 
             try
             {
-                return this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                {
-                    return this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
+                return this.ThreadingContext.JoinableTaskFactory.Run(
+                    () => this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                     {
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                         var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
                         if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
                             return false;
 
-                        dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+                        // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                        await TaskScheduler.Default;
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // Once we start the installation, we can't cancel anymore.
+                        using var scope = context?.AddScope(allowCancellation: false, description);
+                        cancellationToken = default;
                         _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
+                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
                             GetStatusBarText(packageName, installedVersion));
 
                         return true;
-                    }, cancellationToken);
-                });
+                    }, cancellationToken));
+            }
+            catch (OperationCanceledException)
+            {
+                dte.StatusBar.Text = ServicesVSResources.Package_uninstall_canceled;
+                return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -482,6 +509,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
             Func<INuGetProjectService, CancellationToken, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
         {
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
