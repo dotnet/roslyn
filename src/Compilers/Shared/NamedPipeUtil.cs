@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.IO.Pipes;
 using System.Security.AccessControl;
@@ -68,7 +67,6 @@ namespace Microsoft.CodeAnalysis
                 (string name, bool admin) getIdentity(bool impersonating)
                 {
                     var currentIdentity = WindowsIdentity.GetCurrent(impersonating);
-                    Contract.Assert(currentIdentity != null);
                     var currentPrincipal = new WindowsPrincipal(currentIdentity);
                     var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
                     return (currentIdentity.Name, elevatedToAdmin);
