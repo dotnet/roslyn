@@ -281,13 +281,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            return this.ThreadingContext.JoinableTaskFactory.Run(
+                () => TryInstallPackageAsync(workspace, documentId, source, packageName, version, includePrerelease, progressTracker, cancellationToken));
+        }
 
+        private async Task<bool> TryInstallPackageAsync(
+            Workspace workspace,
+            DocumentId documentId,
+            string source,
+            string packageName,
+            string? version,
+            bool includePrerelease,
+            IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
+        {
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
             if (workspace == _workspace && _workspace != null && IsEnabled)
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
                 var dteProject = _workspace.TryGetDTEProject(projectId);
@@ -297,18 +311,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
-                    // We're being called from the lightbulb.  In that case we have no IUIThreadOperationContext
-                    // to pass along to update with our progress.  That's ok, we'll just let the 
-                    return TryInstallAndAddUndoAction(
+                    return await TryInstallAndAddUndoActionAsync(
                         source, packageName, version, includePrerelease, projectGuid, dte, dteProject, undoManager,
-                        progressTracker, cancellationToken);
+                        progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return false;
         }
 
-        private bool TryInstallPackage(
+        private async Task<bool> TryInstallPackageAsync(
             string source,
             string packageName,
             string? version,
@@ -319,56 +331,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
+
+            // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+            await TaskScheduler.Default;
 
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
             progressTracker.Description = description;
-            dte.StatusBar.Text = description;
+            await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                return this.ThreadingContext.JoinableTaskFactory.Run(
-                    () => this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
+                return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
+                {
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    if (installedPackagesMap.ContainsKey(packageName))
+                        return false;
+
+                    // Once we start the installation, we can't cancel anymore.
+                    cancellationToken = default;
+                    if (version == null)
                     {
-                        var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
-                        if (installedPackagesMap.ContainsKey(packageName))
-                            return false;
+                        _packageInstaller.Value.InstallLatestPackage(
+                            source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
+                    }
+                    else
+                    {
+                        _packageInstaller.Value.InstallPackage(
+                            source, dteProject, packageName, version, ignoreDependencies: false);
+                    }
 
-                        // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-                        await TaskScheduler.Default;
-                        cancellationToken.ThrowIfCancellationRequested();
+                    installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    var installedVersion = installedPackagesMap.TryGetValue(packageName, out var result) ? result : null;
 
-                        // Once we start the installation, we can't cancel anymore.
-                        cancellationToken = default;
-                        if (version == null)
-                        {
-                            _packageInstaller.Value.InstallLatestPackage(
-                                source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
-                        }
-                        else
-                        {
-                            _packageInstaller.Value.InstallPackage(
-                                source, dteProject, packageName, version, ignoreDependencies: false);
-                        }
+                    await UpdateStatusBarAsync(
+                        dte, string.Format(ServicesVSResources.Installing_0_completed, GetStatusBarText(packageName, installedVersion)),
+                        cancellationToken).ConfigureAwait(false);
 
-                        installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
-                        var installedVersion = installedPackagesMap.TryGetValue(packageName, out var result) ? result : null;
-
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
-                            GetStatusBarText(packageName, installedVersion));
-
-                        return true;
-                    }, cancellationToken));
+                    return true;
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                dte.StatusBar.Text = ServicesVSResources.Package_install_canceled;
+                await UpdateStatusBarAsync(dte, ServicesVSResources.Package_install_canceled, cancellationToken).ConfigureAwait(false);
                 return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
@@ -380,51 +390,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
+        private async Task UpdateStatusBarAsync(EnvDTE.DTE dte, string text, CancellationToken cancellationToken)
+        {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            dte.StatusBar.Text = text;
+        }
+
         private static string GetStatusBarText(string packageName, string? installedVersion)
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
-        private bool TryUninstallPackage(
+        private async Task<bool> TryUninstallPackageAsync(
             string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
+
+            // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+            await TaskScheduler.Default;
 
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
             progressTracker.Description = description;
-            dte.StatusBar.Text = description;
+            await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                return this.ThreadingContext.JoinableTaskFactory.Run(
-                    () => this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
-                    {
-                        var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
-                        if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
-                            return false;
+                return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
+                {
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
+                        return false;
 
-                        // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-                        await TaskScheduler.Default;
-                        cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                        // Once we start the installation, we can't cancel anymore.
-                        cancellationToken = default;
-                        _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
+                    // Once we start the installation, we can't cancel anymore.
+                    cancellationToken = default;
+                    _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
-                            GetStatusBarText(packageName, installedVersion));
+                    await UpdateStatusBarAsync(
+                        dte, string.Format(ServicesVSResources.Uninstalling_0_completed, GetStatusBarText(packageName, installedVersion)), cancellationToken).ConfigureAwait(false);
 
-                        return true;
-                    }, cancellationToken));
+                    return true;
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                dte.StatusBar.Text = ServicesVSResources.Package_uninstall_canceled;
+                await UpdateStatusBarAsync(dte, ServicesVSResources.Package_uninstall_canceled, cancellationToken).ConfigureAwait(false);
                 return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
@@ -510,15 +525,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
             Func<INuGetProjectService, CancellationToken, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
         {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
                 return default;
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
 
             var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
