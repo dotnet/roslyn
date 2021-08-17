@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal struct RefKindVector : IEquatable<RefKindVector>
     {
+        private static readonly ulong[] s_emptyBits = Array.Empty<ulong>();
+
         private BitVector _bits;
 
         internal static RefKindVector Create(int capacity)
@@ -104,28 +106,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static RefKindVector Parse(string refKindString, int capacity)
         {
-            int index = 0;
-            // To avoid having to map ref kinds again we can just deserialize the BitVector which is what
-            // would have produced the string in the method above
-            var bitVector = BitVector.Create(capacity * 2);
+            ulong? firstWord = null;
+            List<ulong>? otherWords = null;
             foreach (var word in refKindString.Split(','))
             {
                 var value = Convert.ToUInt64(word, 16);
-                var valueBytes = BitConverter.GetBytes(value);
-                var bits = new System.Collections.BitArray(valueBytes);
-
-                // BitVector will happily grow, and GetBytes will always return 64 bytes, so we need to limit
-                for (int i = 0; i < bits.Length && index < bitVector.Capacity; i++)
+                if (firstWord is null)
                 {
-                    bitVector[index++] = bits.Get(i);
+                    firstWord = value;
                 }
-
-                if (index == bitVector.Capacity)
+                else
                 {
-                    break;
+                    otherWords ??= new List<ulong>();
+                    otherWords.Add(value);
                 }
             }
 
+            Debug.Assert(firstWord is not null);
+
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArray() ?? s_emptyBits, capacity * 2);
             return new RefKindVector(bitVector);
         }
     }
