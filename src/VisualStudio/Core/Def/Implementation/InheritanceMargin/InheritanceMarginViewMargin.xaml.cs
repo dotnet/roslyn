@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             SetSnapshotAndUpdate(e.NewOrReformattedLines);
             foreach (var line in e.NewOrReformattedLines)
             {
-                RemoveGlyphByVisualSpan(GetTaggedSpanForLine(line));
+                RemoveGlyphByVisualSpan(line.Extent);
                 RefreshGlyphsOver(line);
             }
         }
@@ -191,10 +191,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _snapshotSpanToMargin.Remove(span);
             }
         }
-
-        private SnapshotSpan GetTaggedSpanForLine(ITextViewLine textViewLine)
-            // InheritanceMargin tagger only tag the first character with zero length
-            => new SnapshotSpan(textViewLine.Start, length: 0);
 
         #region IWpfTextViewMargin
         public FrameworkElement VisualElement => this;

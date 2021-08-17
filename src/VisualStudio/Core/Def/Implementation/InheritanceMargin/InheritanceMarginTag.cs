@@ -7,12 +7,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal class InheritanceMarginTag : IGlyphTag
+    internal class InheritanceMarginTag : ITag
     {
         /// <summary>
         /// Margin moniker.

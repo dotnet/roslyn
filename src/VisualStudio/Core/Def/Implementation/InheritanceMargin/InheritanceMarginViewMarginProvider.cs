@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     [Export(typeof(IWpfTextViewMarginProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(nameof(InheritanceGlyphFactoryProvider))]
+    [Name(nameof(InheritanceMarginViewMarginProvider))]
     [MarginContainer(PredefinedMarginNames.Left)]
     [Order(After = PredefinedMarginNames.Glyph)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
