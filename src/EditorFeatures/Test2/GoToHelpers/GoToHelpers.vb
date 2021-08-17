@@ -35,8 +35,8 @@ Friend Class GoToHelpers
 
                 For Each definition In context.GetDefinitions()
                     For Each sourceSpan In definition.SourceSpans
-                        Dim docSpan = Await sourceSpan.RehydrateAsync(solution, CancellationToken.None)
-                        actualDefinitions.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                        Dim docSpan = Await sourceSpan.TryRehydrateAsync(CancellationToken.None)
+                        actualDefinitions.Add(New FilePathAndSpan(docSpan.Value.Document.FilePath, docSpan.Value.SourceSpan))
                     Next
                 Next
                 actualDefinitions.Sort()

@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
                         solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }
                 else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
                         solution, includeHiddenLocations: true);
-                    await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }
             }

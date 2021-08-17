@@ -46,20 +46,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var findUsagesContext = new SimpleFindUsagesContext();
             await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
 
-            var solution = document.Project.Solution;
             foreach (var definition in findUsagesContext.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var span = await sourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var span = await sourceSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                    if (span == null)
+                        continue;
+
                     if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(span, text, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(span.Value, text, cancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(span, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(span.Value, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }

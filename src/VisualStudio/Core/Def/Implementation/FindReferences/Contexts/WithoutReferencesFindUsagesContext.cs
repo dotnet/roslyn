@@ -36,14 +36,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             // We should never be called in a context where we get references.
-            protected override ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
-            protected override Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken)
+            protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // definition as what to show.  That way we show enough information for things
                     // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
                     // the user to see the type the method was created in.
-                    var entry = await TryCreateEntryAsync(solution, definitionBucket, definition, cancellationToken).ConfigureAwait(false);
+                    var entry = await TryCreateEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
                 else if (definition.SourceSpans.Length == 0)
@@ -73,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            solution,
                             definitionBucket,
                             sourceSpan,
                             HighlightSpanKind.Definition,
@@ -97,14 +96,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private async Task<Entry?> TryCreateEntryAsync(
-                Solution solution, RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
+                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
-                var documentSpan = await definition.SourceSpans[0].RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
-                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentSpan = await definition.SourceSpans[0].TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                if (documentSpan == null)
+                    return null;
 
-                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Value.Document);
+                var sourceText = await documentSpan.Value.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.Value.SourceSpan.Start);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan.Value, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result

@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     cancellationToken))
                 {
-                    var solution = document.Project.Solution;
                     try
                     {
                         var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             }
 
                             var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                             // try getting the next one
                             overriddenSymbol = overriddenSymbol.GetOverriddenMember();
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

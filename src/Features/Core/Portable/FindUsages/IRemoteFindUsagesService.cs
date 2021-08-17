@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 _idToDefinition.Add(id, rehydrated);
             }
 
-            await _context.OnDefinitionFoundAsync(_solution, rehydrated, cancellationToken).ConfigureAwait(false);
+            await _context.OnDefinitionFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
         {
             var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
 
-            await _context.OnReferenceFoundAsync(_solution, rehydrated, cancellationToken).ConfigureAwait(false);
+            await _context.OnReferenceFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
         }
 
         private DefinitionItem GetDefinition(int definitionId)
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayParts,
                    item.NameDisplayParts,
                    item.OriginationParts,
-                   item.SourceSpans,
+                   item.SourceSpans.SelectAsArray(ss => new SerializableDocumentSpan(ss.DocumentId, ss.SourceSpan)),
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
             => new(definitionId,
-                   item.SourceSpan,
+                   new SerializableDocumentSpan(item.SourceSpan.DocumentId, item.SourceSpan.SourceSpan),
                    item.SymbolUsageInfo,
                    item.AdditionalProperties);
 

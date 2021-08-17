@@ -91,8 +91,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                             For Each location In items
                                 For Each ss In location.SourceSpans
-                                    Dim docSpan = Await ss.RehydrateAsync(solution, CancellationToken.None)
-                                    actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                                    Dim docSpan = Await ss.TryRehydrateAsync(CancellationToken.None)
+                                    actualLocations.Add(New FilePathAndSpan(docSpan.Value.Document.FilePath, docSpan.Value.SourceSpan))
                                 Next
                             Next
 

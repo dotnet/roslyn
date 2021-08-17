@@ -168,13 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             AssertIsForeground();
 
-            var solution = project.Solution;
-
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
-            var result = await TryGetNavigationAPIRequiredArgumentsAsync(
-                    solution, definitionItem, rqName, cancellationToken).ConfigureAwait(true);
+            var result = await TryGetNavigationAPIRequiredArgumentsAsync(definitionItem, rqName, cancellationToken).ConfigureAwait(true);
             if (result is not var (hierarchy, itemID, navigationNotify))
                 return false;
 
@@ -188,23 +185,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken)
+            DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            return await WouldNotifyToSpecificSymbolAsync(solution, definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
-                   await WouldNotifyToSpecificSymbolAsync(solution, definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
+            return await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
+                   await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
-            Solution solution, DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
+            DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
             if (rqName == null)
                 return null;
 
             var values = await TryGetNavigationAPIRequiredArgumentsAsync(
-                solution, definitionItem, rqName, cancellationToken).ConfigureAwait(false);
+                definitionItem, rqName, cancellationToken).ConfigureAwait(false);
             if (values is not var (hierarchy, itemID, navigationNotify))
                 return null;
 
@@ -232,7 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private async Task<(IVsHierarchy hierarchy, uint itemId, IVsSymbolicNavigationNotify navigationNotify)?> TryGetNavigationAPIRequiredArgumentsAsync(
-            Solution solution,
             DefinitionItem definitionItem,
             string? rqName,
             CancellationToken cancellationToken)
@@ -247,8 +243,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             using var _ = ArrayBuilder<Document>.GetInstance(out var documentsBuilder);
             foreach (var loc in sourceLocations)
             {
-                var docSpan = await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                documentsBuilder.AddIfNotNull(docSpan.Document);
+                var docSpan = await loc.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                documentsBuilder.AddIfNotNull(docSpan?.Document);
             }
 
             var documents = documentsBuilder.ToImmutable();

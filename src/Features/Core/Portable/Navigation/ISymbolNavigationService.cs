@@ -29,6 +29,6 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         /// <returns>True if the navigation would be handled.</returns>
         Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken);
+            DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 }

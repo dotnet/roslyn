@@ -40,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TrySymbolNavigationNotifyReturnValue As Boolean
 
             Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
-            Public WouldNavigateToSymbolProvidedSolution As Solution
             Public NavigationFilePathReturnValue As String = String.Empty
             Public NavigationLineNumberReturnValue As Integer
             Public NavigationCharOffsetReturnValue As Integer
@@ -64,10 +63,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public Function WouldNavigateToSymbolAsync(
                     definitionItem As DefinitionItem,
-                    solution As Solution,
                     cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
                 Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem
-                Me.WouldNavigateToSymbolProvidedSolution = solution
 
                 Return Task.FromResult(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?)((Me.NavigationFilePathReturnValue, Me.NavigationLineNumberReturnValue, Me.NavigationCharOffsetReturnValue))
             End Function

@@ -303,42 +303,44 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            public sealed override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
+            public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             {
-                await OnCompletedAsyncWorkerAsync(solution, cancellationToken).ConfigureAwait(false);
+                await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
 
                 _tableDataSink.IsStable = true;
             }
 
-            protected abstract Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken);
+            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
 
-            public sealed override ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
+            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Gate)
                 {
                     Definitions.Add(definition);
                 }
 
-                return OnDefinitionFoundWorkerAsync(solution, definition, cancellationToken);
+                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
             }
 
-            protected abstract ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
 
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
-                Solution solution,
                 RoslynDefinitionBucket definitionBucket,
-                SerializableDocumentSpan serializableDocumentSpan,
+                DocumentIdSpan idSpan,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var documentSpan = await serializableDocumentSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                var document = documentSpan.Document;
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
+                var documentSpan = await idSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                if (documentSpan == null)
+                    return null;
 
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
+                var document = documentSpan.Value.Document;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan.Value, cancellationToken).ConfigureAwait(false);
+
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan.Value, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result
@@ -354,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     projectName,
                     projectFlavor,
                     document.FilePath,
-                    documentSpan.SourceSpan,
+                    documentSpan.Value.SourceSpan,
                     spanKind,
                     mappedDocumentSpan.Value,
                     excerptResult,
@@ -389,10 +391,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
-                => OnReferenceFoundWorkerAsync(solution, reference, cancellationToken);
+            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+                => OnReferenceFoundWorkerAsync(reference, cancellationToken);
 
-            protected abstract ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {

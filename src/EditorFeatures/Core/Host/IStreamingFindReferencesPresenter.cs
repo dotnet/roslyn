@@ -61,12 +61,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
-            Solution solution,
+            Workspace workspace,
             string title,
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
         {
-            var workspace = solution.Workspace;
             // Ignore any definitions that we can't navigate to.
 
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
@@ -120,11 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 try
                 {
                     foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(solution, definition, cancellationToken).ConfigureAwait(false);
+                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 

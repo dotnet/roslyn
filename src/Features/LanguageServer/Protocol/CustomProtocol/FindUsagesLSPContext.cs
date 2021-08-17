@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
+        public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -133,8 +133,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                     return;
 
-                var documentSpan = await reference.SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                var document = documentSpan.Document;
+                var documentSpan = await reference.SourceSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                if (documentSpan == null)
+                    return;
+
+                var document = documentSpan.Value.Document;
 
                 // If this is reference to the same physical location we've already reported, just
                 // filter this out.  it will clutter the UI to show the same places.
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int? definitionId,
             Document document,
             int position,
-            SerializableDocumentSpan? serializableDocumentSpan,
+            DocumentIdSpan? serializableDocumentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
@@ -178,8 +181,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken cancellationToken)
         {
             var documentSpan = serializableDocumentSpan == null
-                ? default
-                : await serializableDocumentSpan.Value.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                ? null
+                : await serializableDocumentSpan.Value.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
@@ -210,10 +213,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 result.Location = location;
             }
 
-            if (documentSpan.Document != null)
+            if (documentSpan != null)
             {
-                result.DocumentName = documentSpan.Document.Name;
-                result.ProjectName = documentSpan.Document.Project.Name;
+                result.DocumentName = documentSpan.Value.Document.Name;
+                result.ProjectName = documentSpan.Value.Document.Project.Name;
             }
 
             if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
@@ -228,15 +231,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             static async Task<LSP.Location?> ComputeLocationAsync(
                 Document document,
                 int position,
-                DocumentSpan documentSpan,
+                DocumentSpan? documentSpan,
                 IMetadataAsSourceFileService metadataAsSourceFileService,
                 CancellationToken cancellationToken)
             {
                 // If we have no document span, our location may be in metadata.
-                if (documentSpan != default)
+                if (documentSpan != null)
                 {
                     // We do have a document span, so compute location normally.
-                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan.Value, cancellationToken).ConfigureAwait(false);
                 }
 
                 // If we have no document span, our location may be in metadata or may be a namespace.
@@ -276,19 +279,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
             static async Task<ClassifiedTextElement?> ComputeTextAsync(
                 int id, int? definitionId,
-                DocumentSpan documentSpan,
+                DocumentSpan? documentSpan,
                 ClassifiedTextElement? definitionText,
                 bool isWrittenTo,
                 CancellationToken cancellationToken)
             {
                 // General case
-                if (documentSpan != default)
+                if (documentSpan != null)
                 {
                     var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                        documentSpan, cancellationToken).ConfigureAwait(false);
+                        documentSpan.Value, cancellationToken).ConfigureAwait(false);
                     var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                    var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan, isWrittenTo, classifiedSpans, docText);
+                    var docText = await documentSpan.Value.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                     return new ClassifiedTextElement(classifiedTextRuns.ToArray());
                 }

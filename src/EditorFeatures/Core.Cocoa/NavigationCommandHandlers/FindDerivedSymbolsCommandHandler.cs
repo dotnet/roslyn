@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         private async Task FindDerivedSymbolsAsync(
             Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
-            var solution = document.Project.Solution;
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
@@ -102,18 +101,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             return;
 
                         var candidates = await GatherSymbolsAsync(
-                            candidateSymbolProjectPair.Value.symbol, solution, cancellationToken).ConfigureAwait(false);
+                            candidateSymbolProjectPair.Value.symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                         foreach (var candidate in candidates)
                         {
                             var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

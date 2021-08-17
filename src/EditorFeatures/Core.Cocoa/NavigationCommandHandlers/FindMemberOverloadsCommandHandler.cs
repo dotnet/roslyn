@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     cancellationToken))
                 {
-                    var solution = document.Project.Solution;
                     try
                     {
                         var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
@@ -85,13 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         foreach (var curSymbol in symbol.ContainingType.GetMembers()
                                                         .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
-                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
-                            await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

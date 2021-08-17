@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, solution, cancellationToken).ConfigureAwait(false);
+            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             if (result is not var (filePath, lineNumber, charOffset))
                 return null;
 

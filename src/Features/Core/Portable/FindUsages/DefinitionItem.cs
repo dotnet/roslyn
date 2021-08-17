@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
-        public ImmutableArray<SerializableDocumentSpan> SourceSpans { get; }
+        public ImmutableArray<DocumentIdSpan> SourceSpans { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -110,15 +110,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public bool DisplayIfNoReferences { get; }
 
         internal abstract bool IsExternal { get; }
-
-        /// <summary>
-        /// The workspace containing the location of the <see cref="SourceSpans"/> for this definition item.
-        /// Definitions may be in different workspaces, including a different workspace than where a command
-        /// was originally invoked from.  For example, when using metadata-as-source symbols (and their definitions
-        /// and references) may be found in different workspaces (like the metadata-as-source-workspace and the
-        /// primary/vs workspace).
-        /// </summary>
-        protected readonly Workspace Workspace;
 
         // F# uses this
         protected DefinitionItem(
@@ -155,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayParts = displayParts;
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
-            SourceSpans = sourceSpans.NullToEmpty().SelectAsArray(ss => SerializableDocumentSpan.Dehydrate(ss));
+            SourceSpans = sourceSpans.NullToEmpty().SelectAsArray(ss => new DocumentIdSpan(ss));
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
@@ -165,8 +156,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
             }
-
-            Workspace = sourceSpans.FirstOrDefault().Document?.Project.Solution.Workspace;
         }
 
         [Obsolete("Override CanNavigateToAsync instead", error: false)]

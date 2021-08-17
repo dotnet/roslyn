@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 // was created against (and it will throw if is passed a different solution that it can't
                 // find the document in).  Because we are using .CurrentSolution here, we need to be resilient
                 // to the possibility that we may no longer be able to find/navigate to this document.
-                var solution = Workspace.CurrentSolution;
-                var documentId = SourceSpans[0].DocumentId;
+                var span = SourceSpans[0];
+                var solution = span.Workspace.CurrentSolution;
+                var documentId = span.DocumentId;
                 var document = solution.GetDocument(documentId) ??
                                await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return document == null ? null : new DocumentSpan(document, SourceSpans[0].SourceSpan);
