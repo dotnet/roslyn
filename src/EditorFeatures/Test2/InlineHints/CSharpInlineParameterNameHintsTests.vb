@@ -683,14 +683,36 @@ class A
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document>
-using System.Collections.Immutable;
-
-class A
+public class TempRecord
 {
-    void Main()
+    // Array of temperature values
+    float[] temps = new float[10]
     {
-        var array = ImmutableArray.Create&lt;int&gt;({|item:|}0);
-        var val = array[{|index:|}0];
+        56.2F, 56.7F, 56.5F, 56.9F, 58.8F,
+        61.3F, 65.9F, 62.1F, 59.2F, 57.5F
+    };
+
+    // To enable client code to validate input
+    // when accessing your indexer.
+    public int Length => temps.Length;
+    
+    // Indexer declaration.
+    // If index is out of range, the temps array will throw the exception.
+    public float this[int index]
+    {
+        get => temps[index];
+        set => temps[index] = value;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var tempRecord = new TempRecord();
+
+        // Use the indexer's set accessor
+        var temp = tempRecord[{|index:|}3];
     }
 }
                     </Document>
