@@ -280,6 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string packageName,
             string versionOpt,
             bool includePrerelease,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
@@ -298,9 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
+                    // We're being called from the lightbulb.  In that case we have no IUIThreadOperationContext
+                    // to pass along to update with our progress.  That's ok, we'll just let the 
                     return TryInstallAndAddUndoAction(
                         source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager,
-                        context: null, cancellationToken);
+                        progressTracker, cancellationToken);
                 }
             }
 
@@ -315,13 +318,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Guid projectGuid,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject,
-            VSUtilities.IUIThreadOperationContext? operationContext,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
+            progressTracker.Description = description;
             dte.StatusBar.Text = description;
 
             try
@@ -338,7 +342,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // Once we start the installation, we can't cancel anymore.
-                        using var scope = operationContext?.AddScope(allowCancellation: false, description);
                         cancellationToken = default;
                         if (versionOpt == null)
                         {
@@ -384,12 +387,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private bool TryUninstallPackage(
             string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
-            VSUtilities.IUIThreadOperationContext? context, CancellationToken cancellationToken)
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+            progressTracker.Description = description;
             dte.StatusBar.Text = description;
 
             try
@@ -406,7 +410,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // Once we start the installation, we can't cancel anymore.
-                        using var scope = context?.AddScope(allowCancellation: false, description);
                         cancellationToken = default;
                         _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
