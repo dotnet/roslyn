@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public SerializableDocumentSpan(DocumentId documentId, TextSpan sourceSpan)
         {
+            Contract.ThrowIfNull(documentId);
             DocumentId = documentId;
             SourceSpan = sourceSpan;
         }

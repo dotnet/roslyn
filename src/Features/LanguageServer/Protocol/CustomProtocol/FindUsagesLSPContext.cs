@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
+                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrNull(),
                     definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
                     definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int? definitionId,
             Document document,
             int position,
-            SerializableDocumentSpan serializableDocumentSpan,
+            SerializableDocumentSpan? serializableDocumentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
@@ -177,7 +177,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
-            var documentSpan = await serializableDocumentSpan.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var documentSpan = serializableDocumentSpan == null
+                ? default
+                : await serializableDocumentSpan.Value.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
