@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
         private readonly IServiceProvider _serviceProvider;
-
+        private readonly IAsynchronousOperationListener _listener;
         private ContextMenuController _analyzerFolderContextMenuController;
         private ContextMenuController _analyzerContextMenuController;
         private ContextMenuController _diagnosticContextMenuController;
@@ -79,11 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _tracker = tracker;
             _analyzerReferenceManager = analyzerReferenceManager;
             _serviceProvider = serviceProvider;
+            _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         /// <summary>
@@ -399,8 +402,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void SetSeverityHandler(object sender, EventArgs args)
         {
-            // Fire and forget
-            _ = SetSeverityHandlerAsync(sender, args);
+            var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
+            SetSeverityHandlerAsync(sender, args).CompletesAsyncOperation(token);
         }
 
         private async Task SetSeverityHandlerAsync(object sender, EventArgs args)
