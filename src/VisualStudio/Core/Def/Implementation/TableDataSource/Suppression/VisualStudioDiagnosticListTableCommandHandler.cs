@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -176,33 +177,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
             if (pathToAnalyzerConfigDoc != null)
             {
-                var result = _uiThreadOperationExecutor.Execute(
+                // Fire and forget
+                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project);
+            }
+        }
+
+        private async Task SetSeverityHandlerAsync(ReportDiagnostic? reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
+        {
+            try
+            {
+                using var context = _uiThreadOperationExecutor.BeginExecute(
                     title: ServicesVSResources.Updating_severity,
                     defaultDescription: ServicesVSResources.Updating_severity,
                     allowCancellation: true,
-                    showProgress: true,
-                    action: context =>
-                    {
-                        var newSolution = ConfigureSeverityAsync(context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
-                        var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                        var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
-                        _editHandlerService.Apply(
-                            _workspace,
-                            fromDocument: null,
-                            operations: operations,
-                            title: ServicesVSResources.Updating_severity,
-                            progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                            cancellationToken: context.UserCancellationToken);
-                    });
+                    showProgress: true);
 
-                if (result == UIThreadOperationStatus.Completed && selectedDiagnostic.DocumentId != null)
+                var newSolution = await ConfigureSeverityAsync(context.UserCancellationToken).ConfigureAwait(false);
+                var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
+                await _editHandlerService.ApplyAsync(
+                    _workspace,
+                    fromDocument: null,
+                    operations: operations,
+                    title: ServicesVSResources.Updating_severity,
+                    progressTracker: new UIThreadOperationContextProgressTracker(scope),
+                    cancellationToken: context.UserCancellationToken).ConfigureAwait(false);
+
+                if (selectedDiagnostic.DocumentId != null)
                 {
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
-                    Task.Run(() =>
+                    _ = Task.Run(() =>
                     {
                         _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
                     });
                 }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
             }
 
             return;

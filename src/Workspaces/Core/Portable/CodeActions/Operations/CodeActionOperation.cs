@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -25,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
         }
 
-        internal virtual bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal virtual Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.Apply(workspace, cancellationToken);
-            return true;
+            return SpecializedTasks.True;
         }
 
         /// <summary>
