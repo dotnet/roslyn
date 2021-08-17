@@ -24,27 +24,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
 
-            // Need ConfigureAwait(true) here so we get back to the UI thread before calling 
-            // GetThirdPartyDefinitions.  We need to call that on the UI thread to match behavior
-            // of how the language service always worked in the past.
-            //
-            // Any async calls before GetThirdPartyDefinitions must be ConfigureAwait(true).
             await FindLiteralOrSymbolReferencesAsync(
-                document, position, definitionTrackingContext, cancellationToken).ConfigureAwait(true);
+                document, position, definitionTrackingContext, cancellationToken).ConfigureAwait(false);
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
             var thirdPartyDefinitions = await GetThirdPartyDefinitionsAsync(
-                document.Project.Solution, definitionTrackingContext.GetDefinitions(), cancellationToken).ConfigureAwait(true);
-
-            // From this point on we can do ConfigureAwait(false) as we're not calling back 
-            // into third parties anymore.
+                document.Project.Solution, definitionTrackingContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in thirdPartyDefinitions)
-            {
-                // Don't need ConfigureAwait(true) here 
                 await context.OnDefinitionFoundAsync(document.Project.Solution, definition, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         Task IFindUsagesLSPService.FindReferencesAsync(
