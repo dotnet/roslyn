@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -27,7 +27,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
-            if (context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute) is not { } factAttribute)
+            context.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute, out var factAttribute);
+            context.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.BenchmarkDotNetAttributesBenchmarkAttribute, out var benchmarkAttribute);
+            if (factAttribute is null && benchmarkAttribute is null)
             {
                 return;
             }
@@ -48,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var semanticModel = context.GetSemanticModel(tree);
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(node, context.CancellationToken);
                 if (declaredSymbol is IMethodSymbol method
-                    && method.IsXUnitTestMethod(knownTestAttributes, factAttribute))
+                    && method.IsBenchmarkOrXUnitTestMethod(knownTestAttributes, benchmarkAttribute, factAttribute))
                 {
                     context.ReportSuppression(Suppression.Create(Rule, diagnostic));
                 }
