@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -297,6 +298,61 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             return ImmutableArray<TaggedText>.Empty;
+        }
+
+        private static bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey, ImmutableDictionary<string, string> properties)
+            => TryNavigateToMetadataSymbol(workspace, symbolKey, properties, action: (symbol, project, service) => true);
+
+        private static bool TryNavigateToMetadataSymbol(Workspace workspace, string symbolKey, ImmutableDictionary<string, string> properties)
+        {
+            return TryNavigateToMetadataSymbol(
+                workspace, symbolKey, properties,
+                action: (symbol, project, service) =>
+                {
+                    return service.TryNavigateToSymbol(
+                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                });
+        }
+
+        private static bool TryNavigateToMetadataSymbol(
+            Workspace workspace, string symbolKey, ImmutableDictionary<string, string> properties, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+        {
+            var projectAndSymbol = TryResolveSymbolInCurrentSolution(workspace, symbolKey, properties);
+
+            var project = projectAndSymbol.project;
+            var symbol = projectAndSymbol.symbol;
+            if (symbol == null || project == null)
+            {
+                return false;
+            }
+
+            if (symbol.Kind == SymbolKind.Namespace)
+            {
+                return false;
+            }
+
+            var navigationService = workspace.Services.GetService<ISymbolNavigationService>();
+            return action(symbol, project, navigationService);
+        }
+
+        private static (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
+            Workspace workspace, string symbolKey, ImmutableDictionary<string, string> properties)
+        {
+            if (!properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+                !properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
+            {
+                return default;
+            }
+
+            var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+            if (project == null)
+                return default;
+
+            var compilation = project.GetCompilationAsync(CancellationToken.None)
+                                     .WaitAndGetResult(CancellationToken.None);
+
+            var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;
+            return (project, symbol);
         }
     }
 }
