@@ -23,19 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public class TestNFWThrows
     {
-        private XunitTraceListener _logger;
-        public TestNFWThrows(ITestOutputHelper output)
-        {
-            //var converter = new Converter(output);
-            //Console.SetOut(converter);
-            _logger = new XunitTraceListener(output);
-        }
 
         [Fact]
         public async Task Throws()
         {
             Console.WriteLine("Running test");
-            _logger.WriteLine("[Logger] running test");
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess);
             using var localWorkspace = new TestWorkspace(composition: localComposition);
 
@@ -51,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 tasks.Add(Task.Run(() =>
                 {
                     Console.WriteLine("fail " + i);
-                    _logger.Write("[Logger] Fail " + i);
                     FatalError.ReportAndCatch(new Exception("TestException"));
                 }));
             }
