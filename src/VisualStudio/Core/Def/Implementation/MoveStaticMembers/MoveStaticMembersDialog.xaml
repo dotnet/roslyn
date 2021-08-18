@@ -50,7 +50,7 @@
                 Name="DestinationBox"
                 AutomationProperties.Name="DestinationName"
                 Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
-                Margin="0 0 20 0"/>
+                Margin="2 0 2 0"/>
 
 
             <GroupBox>
