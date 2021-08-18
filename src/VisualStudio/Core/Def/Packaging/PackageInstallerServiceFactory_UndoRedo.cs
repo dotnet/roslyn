@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 
@@ -94,8 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public void Do(IOleUndoManager pUndoManager)
             {
-                // Fire and forget
-                _ = DoAsync(pUndoManager);
+                var token = this.packageInstallerService._listener.BeginAsyncOperation($"{GetType().Name}.{nameof(Do)}");
+                DoAsync(pUndoManager).CompletesAsyncOperation(token);
             }
 
             private async Task DoAsync(IOleUndoManager pUndoManager)
