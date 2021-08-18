@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal sealed class XmlFragmentParser
     {
         private XmlReader _xmlReader;
-        private readonly Reader _textReader = new Reader();
+        private readonly Reader _textReader = new();
 
         private static readonly ObjectPool<XmlFragmentParser> s_pool = SharedPools.Default<XmlFragmentParser>();
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };

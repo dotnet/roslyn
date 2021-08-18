@@ -62,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetAttributeExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetAttributeExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
             {
                 return null;
             }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attribute, cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType))
+            if (semanticModel.GetTypeInfo(attribute, cancellationToken).Type is not INamedTypeSymbol attributeType)
             {
                 return null;
             }
@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormatter = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList!);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken);
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out var expression) &&
-                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
+                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList!).Start)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
+                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList!, position);
             }
 
             return null;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private static List<SymbolDisplayPart> GetParameterPrefixDisplayParts(int i)
+        private static List<SymbolDisplayPart>? GetParameterPrefixDisplayParts(int i)
         {
             if (i == 0)
             {

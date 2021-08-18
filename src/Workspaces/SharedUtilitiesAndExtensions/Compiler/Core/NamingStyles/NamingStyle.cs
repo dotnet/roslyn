@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
-            => new WordSpanEnumerable(name, nameSpan, WordSeparator);
+            => new(name, nameSpan, WordSeparator);
 
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
@@ -435,6 +437,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
+
                     words = newWords;
                 }
             }
@@ -477,7 +480,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         internal XElement CreateXElement()
-            => new XElement(nameof(NamingStyle),
+            => new(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
@@ -486,7 +489,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
-            => new NamingStyle(
+            => new(
                 id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
                 name: namingStyleElement.Attribute(nameof(Name)).Value,
                 prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,

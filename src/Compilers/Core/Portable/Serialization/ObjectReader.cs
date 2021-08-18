@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -184,13 +187,11 @@ namespace Roslyn.Utilities
             object value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
-                    () => ReadValueWorker(),
-                    _cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
+                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
 
                 // We must not proceed until the additional task completes. After returning from a read, the underlying
                 // stream providing access to raw memory will be closed; if this occurs before the separate thread
@@ -310,16 +311,16 @@ namespace Roslyn.Utilities
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
-            private readonly List<T> _values;
+            private readonly SegmentedList<T> _values;
 
-            private static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+            private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
+                = new(() => new SegmentedList<T>(20));
 
-            private ReaderReferenceMap(List<T> values)
+            private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {

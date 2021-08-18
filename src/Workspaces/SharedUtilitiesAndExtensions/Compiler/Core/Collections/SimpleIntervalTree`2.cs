@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -49,14 +46,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
             => GetIntervalsThatContain(start, length, in _introspector);
 
-        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatOverlapWith(start, length, builder, in _introspector);
+        public void FillWithIntervalsThatOverlapWith(int start, int length, ref TemporaryArray<T> builder)
+            => FillWithIntervalsThatOverlapWith(start, length, ref builder, in _introspector);
 
-        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatIntersectWith(start, length, builder, in _introspector);
+        public void FillWithIntervalsThatIntersectWith(int start, int length, ref TemporaryArray<T> builder)
+            => FillWithIntervalsThatIntersectWith(start, length, ref builder, in _introspector);
 
-        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatContain(start, length, builder, in _introspector);
+        public void FillWithIntervalsThatContain(int start, int length, ref TemporaryArray<T> builder)
+            => FillWithIntervalsThatContain(start, length, ref builder, in _introspector);
 
         public bool HasIntervalThatIntersectsWith(int position)
             => HasIntervalThatIntersectsWith(position, in _introspector);

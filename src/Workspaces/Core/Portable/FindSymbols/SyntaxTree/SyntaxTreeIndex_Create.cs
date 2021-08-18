@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// doesn't need to be kept around further.
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new ConditionalWeakTable<Project, StringTable>();
+            new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
@@ -89,6 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
                 var containsGlobalAttributes = false;
+                var containsConversion = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -119,6 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
+                            containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -179,7 +183,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 {nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
 {nameof(root.FullSpan)} = {root.FullSpan}";
 
-                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+                                    FatalError.ReportAndCatch(new InvalidOperationException(message));
                                 }
                             }
                         }
@@ -267,7 +271,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsAwait,
                             containsTupleExpressionOrTupleType,
                             containsImplicitObjectCreation,
-                            containsGlobalAttributes),
+                            containsGlobalAttributes,
+                            containsConversion),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(

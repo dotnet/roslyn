@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -26,6 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static bool IsCompletionItemStartCharacter(char ch)
             => ch == '@' || IsWordCharacter(ch);
+
+        public static bool TreatAsDot(SyntaxToken token, int characterPosition)
+        {
+            if (token.Kind() == SyntaxKind.DotToken)
+                return true;
+
+            // if we're right after the first dot in .. then that's considered completion on dot.
+            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
+                return true;
+
+            return false;
+        }
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {

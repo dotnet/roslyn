@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -662,6 +664,32 @@ namespace NS
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
+        }
+
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [InlineData("do")]
+        [InlineData("for (;;)")]
+        [InlineData("if (true)")]
+        [InlineData("void localFunction()")]
+        [InlineData("static void localFunction()")]
+        public void EmbeddedStatement2(string statement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{statement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 4);
         }
 
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]

@@ -4,12 +4,12 @@
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
@@ -37,15 +37,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             nextAction()
         End Sub
 
-        Protected Overrides Function TreatAsReturn(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function TreatAsReturn(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean
             ' No special handling in VB.
             Return False
         End Function
 
-        Protected Overrides Sub FormatAndApply(document As Document, position As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifySelectedNode(args as AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
+        End Sub
+
+        Protected Overrides Function GetValidNodeToModifyBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?
+            Return Nothing
+        End Function
+
+        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, cancellationToken As CancellationToken) As Document
             ' vb does automatic line commit
             ' no need to do explicit formatting
-        End Sub
+            Return document
+        End Function
 
         Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
             ' prepare expansive information from document

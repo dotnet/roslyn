@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -394,6 +392,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cloneRoot: false);
         }
 
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text lazily. The syntax tree is realized when
+        /// <see cref="CSharpSyntaxTree.GetRoot(CancellationToken)"/> is called.
+        /// </summary>
+        internal static SyntaxTree ParseTextLazy(
+            SourceText text,
+            CSharpParseOptions? options = null,
+            string path = "")
+        {
+            return new LazySyntaxTree(text, options ?? CSharpParseOptions.Default, path, diagnosticOptions: null);
+        }
+
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
         // expansion
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
@@ -714,11 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NullableContextState GetNullableContextState(int position)
             => GetNullableContextStateMap().GetContextState(position);
 
-        /// <summary>
-        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
-        /// This does not include any restore directives.
-        /// </summary>
-        internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
+        internal bool? IsNullableAnalysisEnabled(TextSpan span) => GetNullableContextStateMap().IsNullableAnalysisEnabled(span);
 
         internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {

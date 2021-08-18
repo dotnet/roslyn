@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -35,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 bool shouldMoveNextStatementToSwitchExpression,
                 bool generateDeclaration)
             {
+                if (switchStatement.ContainsDirectives)
+                {
+                    // Do not rewrite statements with preprocessor directives
+                    return switchStatement;
+                }
+
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.

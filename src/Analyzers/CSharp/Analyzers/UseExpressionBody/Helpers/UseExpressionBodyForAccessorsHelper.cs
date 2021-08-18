@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,10 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForAccessorsHelper :
         UseExpressionBodyHelper<AccessorDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForAccessorsHelper Instance = new UseExpressionBodyForAccessorsHelper();
+        public static readonly UseExpressionBodyForAccessorsHelper Instance = new();
 
         private UseExpressionBodyForAccessorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForAccessors,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,

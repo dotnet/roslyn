@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 // uncomment the below define to dump binlogs of each test
 //#define DUMP_MSBUILD_BIN_LOG
-
 
 using System;
 using System.Collections.Generic;
@@ -715,6 +712,39 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <{propertyName}>{propertyValue.Value}</{propertyName}>
     </PropertyGroup>";
             }
+        }
+
+        [Fact]
+        public void ProjectCapabilityIsNotAddedWhenRoslynComponentIsUnspecified()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var caps = instance.GetItems("ProjectCapability").Select(c => c.EvaluatedInclude);
+            Assert.DoesNotContain("RoslynComponent", caps);
+        }
+
+        [Fact]
+        public void ProjectCapabilityIsAddedWhenRoslynComponentSpecified()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <IsRoslynComponent>true</IsRoslynComponent>
+    </PropertyGroup>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var caps = instance.GetItems("ProjectCapability").Select(c => c.EvaluatedInclude);
+            Assert.Contains("RoslynComponent", caps);
         }
 
         private static ProjectInstance CreateProjectInstance(XmlReader reader)

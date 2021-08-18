@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -78,16 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishMethodChecks = 1 << 14,
         MethodSymbolAll = Attributes | ReturnTypeAttributes | Parameters | Type | TypeParameters | StartMethodChecks | FinishMethodChecks | StartAsyncMethodChecks | FinishAsyncMethodChecks,
 
+        // For complex parameter symbols
+        StartDefaultSyntaxValue = 1 << 11,
+        EndDefaultSyntaxValue = 1 << 12,
+        EndDefaultSyntaxValueDiagnostics = 1 << 13,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics,
+
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,
 
         // For property symbols
-        StartPropertyParameters = 1 << 4,
-        FinishPropertyParameters = 1 << 5,
-        StartPropertyType = 1 << 6,
-        FinishPropertyType = 1 << 7,
-        PropertySymbolAll = Attributes | StartPropertyParameters | FinishPropertyParameters | StartPropertyType | FinishPropertyType,
+        StartPropertyEnsureSignature = 1 << 4,
+        FinishPropertyEnsureSignature = 1 << 5,
+        StartPropertyParameters = 1 << 6,
+        FinishPropertyParameters = 1 << 7,
+        StartPropertyType = 1 << 8,
+        FinishPropertyType = 1 << 9,
+        PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

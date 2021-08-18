@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         ErrorReadingFile = 1,
         CannotApplyChangesUnexpectedError = 2,
-        ChangesNotAppliedWhileRunning = 3,
+        // ChangesNotAppliedWhileRunning = 3, // obsolete
         ChangesDisallowedWhileStoppedAtException = 4,
         DocumentIsOutOfSyncWithDebuggee = 5,
         UnableToReadSourceFileOrPdb = 6,

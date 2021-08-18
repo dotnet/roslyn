@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
           ""id"": ""CS0169"",
           ""shortDescription"": ""Field is never used"",
           ""defaultLevel"": ""warning"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -84,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         ""CS5001"": {{
           ""id"": ""CS5001"",
           ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -149,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
           ""id"": ""CS0169"",
           ""shortDescription"": ""Field is never used"",
           ""defaultLevel"": ""warning"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -161,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         ""CS5001"": {{
           ""id"": ""CS5001"",
           ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -193,11 +199,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogWithSuppressionResultsAndRulesText(cmd.Compilation);
+            return expectedHeader + expectedIssues;
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", 
             AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly),
+            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+        public void AnalyzerDiagnosticsSuppressedWithJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly),
+            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+        public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly),
+            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+        public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly),
+            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+        public void AnalyzerDiagnosticsSuppressedWithNullJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
     }
 }

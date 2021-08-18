@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return Update(refKeyword, readOnlyKeyword: default, type);
+            return Update(refKeyword, ReadOnlyKeyword, type);
         }
     }
 }

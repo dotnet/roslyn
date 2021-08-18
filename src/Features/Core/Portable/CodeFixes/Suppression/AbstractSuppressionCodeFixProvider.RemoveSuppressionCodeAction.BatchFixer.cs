@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,17 +20,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
-            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                => new BatchFixer(suppressionFixProvider);
+            public static FixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                => new RemoveSuppressionBatchFixAllProvider(suppressionFixProvider);
 
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class BatchFixer : BatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
             {
                 private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
-                public BatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
                     => _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                         // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
-                        var batchAttributeRemoveFix = Create(
+                        var batchAttributeRemoveFix = CodeAction.Create(
                             attributeRemoveFixes.First().Title,
                             createChangedSolution: ct => Task.FromResult(currentSolution),
                             equivalenceKey: fixAllState.CodeActionEquivalenceKey);

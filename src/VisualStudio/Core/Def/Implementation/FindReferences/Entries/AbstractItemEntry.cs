@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter = presenter;
             }
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {

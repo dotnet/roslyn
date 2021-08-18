@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -543,7 +545,7 @@ public class Test
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, or explicit interface implementation
+                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 //     [Conditional("Debug")]
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""Debug"")").WithArguments("Test.~Test()"));
         }

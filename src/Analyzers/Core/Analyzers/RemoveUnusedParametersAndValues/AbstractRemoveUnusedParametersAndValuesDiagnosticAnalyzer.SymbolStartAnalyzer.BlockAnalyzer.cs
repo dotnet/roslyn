@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
                     {
-                        var compilation = firstBlock.SemanticModel.Compilation;
+                        var compilation = firstBlock.SemanticModel!.Compilation;
                         var notImplementedExceptionType = compilation.NotImplementedExceptionType();
                         if (notImplementedExceptionType == null)
                             return false;
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);
 
-                    static IOperation UnwrapImplicitConversion(IOperation value)
+                    static IOperation? UnwrapImplicitConversion(IOperation? value)
                         => value is IConversionOperation conversion && conversion.IsImplicit
                             ? conversion.Operand
                             : value;
@@ -210,7 +208,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    //  2. Bail out for semantic error (invalid operation) cases.
+                    //  2. Bail out if the return type is dynamic as it could actually be void returning, and throw at runtime
+                    if (value.Type.TypeKind == TypeKind.Dynamic)
+                    {
+                        return;
+                    }
+
+                    //  3. Bail out for semantic error (invalid operation) cases.
                     //     Also bail out for constant expressions in expression statement syntax, say as "1;",
                     //     which do not seem to have an invalid operation in the operation tree.
                     if (value is IInvalidOperation ||
@@ -219,14 +223,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    //  3. Assignments, increment/decrement operations: value is actually being assigned.
+                    //  4. Assignments, increment/decrement operations: value is actually being assigned.
                     if (value is IAssignmentOperation ||
                         value is IIncrementOrDecrementOperation)
                     {
                         return;
                     }
 
-                    //  4. Bail out if there is language specific syntax to indicate an explicit discard.
+                    //  5. Bail out if there is language specific syntax to indicate an explicit discard.
                     //     For example, VB call statement is used to explicitly ignore the value returned by
                     //     an invocation by prefixing the invocation with keyword "Call".
                     //     Similarly, we do not want to flag an expression of a C# expression body.
@@ -624,7 +628,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
-                            IsSymbolWithSpecialDiscardName(symbol))
+                            symbol.IsSymbolWithSpecialDiscardName())
                         {
                             return false;
                         }

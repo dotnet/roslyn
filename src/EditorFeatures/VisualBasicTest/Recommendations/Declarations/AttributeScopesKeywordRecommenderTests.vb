@@ -6,63 +6,63 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class AttributeScopeKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesInFileTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>&lt;|</File>, "Assembly", "Module")
-        End Function
+        Public Sub AttributeScopesInFileTest()
+            VerifyRecommendationsContain(<File>&lt;|</File>, "Assembly", "Module")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesInFileAfterImportsTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub AttributeScopesInFileAfterImportsTest()
+            VerifyRecommendationsContain(<File>
 Imports Goo
 &lt;|</File>, "Assembly", "Module")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesInFileBeforeClassTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub AttributeScopesInFileBeforeClassTest()
+            VerifyRecommendationsContain(<File>
 &lt;|
 Class Goo
 End Class</File>, "Assembly", "Module")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesInFileInsideClassTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>
+        Public Sub AttributeScopesInFileInsideClassTest()
+            VerifyRecommendationsAreExactly(<File>
 Class Goo
 &lt;|
 End Class</File>, {"Global"})
-        End Function
+        End Sub
 
         <WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesInFileAtStartOfMalformedAttributeTest() As Task
-            Await VerifyRecommendationsContainAsync(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,
+        Public Sub AttributeScopesInFileAtStartOfMalformedAttributeTest()
+            VerifyRecommendationsContain(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,
                                          "Assembly", "Module")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesAtEndOfFileTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub AttributeScopesAtEndOfFileTest()
+            VerifyRecommendationsContain(<File>
 Class goo
 End Class
 &lt;|
 </File>, "Assembly", "Module")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AttributeScopesAfterEolTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub AttributeScopesAfterEolTest()
+            VerifyRecommendationsContain(<File>
 Class goo
 End Class
 &lt;
 |
 </File>, "Assembly", "Module")
-        End Function
+        End Sub
     End Class
 End Namespace

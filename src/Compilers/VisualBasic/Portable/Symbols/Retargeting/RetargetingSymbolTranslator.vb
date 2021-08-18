@@ -819,8 +819,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 ' A retargeted error symbol must trigger an error on use so that a dependent compilation won't
                 ' improperly succeed. We therefore ensure we have a use-site diagnostic.
-                Dim useSiteDiagnostic = type.GetUseSiteErrorInfo
-                If useSiteDiagnostic IsNot Nothing Then
+                Dim useSiteDiagnostic = type.GetUseSiteInfo
+                If useSiteDiagnostic.DiagnosticInfo IsNot Nothing Then
                     Return type
                 End If
 

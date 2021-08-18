@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -24,14 +26,5 @@ namespace Microsoft.CodeAnalysis.Structure
         public abstract string Language { get; }
 
         public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Gets the <see cref="BlockStructure"/> for the provided document. Note that the
-        /// default implementation works by calling into <see cref="GetBlockStructureAsync"/>
-        /// and blocking on the async operation. Subclasses should provide more efficient
-        /// implementations that do not block on async operations if possible.
-        /// </summary>
-        public virtual BlockStructure GetBlockStructure(Document document, CancellationToken cancellationToken)
-            => GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
     }
 }

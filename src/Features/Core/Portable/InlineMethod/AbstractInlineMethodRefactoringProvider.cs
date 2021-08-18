@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -103,6 +101,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             if (!calleeMethodSymbol.IsOrdinaryMethod() && !calleeMethodSymbol.IsExtensionMethod)
+            {
+                return;
+            }
+
+            if (calleeMethodSymbol.IsVararg)
             {
                 return;
             }
@@ -592,7 +595,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public MySolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, null)
+                : base(title, createChangedSolution)
             {
             }
         }

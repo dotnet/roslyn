@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -100,6 +99,7 @@ namespace Microsoft.CodeAnalysis
     /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
     /// </summary>
+    [DataContract]
     internal partial struct SymbolKey
     {
         /// <summary>
@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const int FormatVersion = 1;
 
+        [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
 
         /// <summary>
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
         public static SymbolKey Create(ISymbol? symbol, CancellationToken cancellationToken = default)
-            => new SymbolKey(CreateString(symbol, cancellationToken));
+            => new(CreateString(symbol, cancellationToken));
 
         /// <summary>
         /// Returns an <see cref="IEqualityComparer{T}"/> that determines if two <see cref="SymbolKey"/>s

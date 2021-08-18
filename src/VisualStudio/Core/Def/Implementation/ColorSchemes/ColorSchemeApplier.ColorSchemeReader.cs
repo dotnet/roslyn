@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private static class ColorSchemeReader
         {
-            private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+            private static readonly XmlReaderSettings s_xmlSettings = new() { DtdProcessing = DtdProcessing.Prohibit };
             private const string RawColorType = nameof(__VSCOLORTYPE.CT_RAW);
             private const string SystemColorType = nameof(__VSCOLORTYPE.CT_SYSCOLOR);
 

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         public const string TagId = "RoslynPreviewWarningTag";
 
-        public static readonly PreviewWarningTag Instance = new PreviewWarningTag();
+        public static readonly PreviewWarningTag Instance = new();
 
         private PreviewWarningTag()
             : base(TagId)

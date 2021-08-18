@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -12,45 +13,40 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     /// This is useful for cases where acquiring an entire snapshot might be expensive (for example, during 
     /// solution load), but querying the data is still desired.
     /// </summary>
+    [DataContract]
     internal readonly struct ProjectKey
     {
+        [DataMember(Order = 0)]
         public readonly SolutionKey Solution;
 
+        [DataMember(Order = 1)]
         public readonly ProjectId Id;
-        public readonly string FilePath;
+
+        [DataMember(Order = 2)]
+        public readonly string? FilePath;
+
+        [DataMember(Order = 3)]
         public readonly string Name;
 
-        public ProjectKey(SolutionKey solution, ProjectId id, string filePath, string name)
+        [DataMember(Order = 4)]
+        public readonly Checksum ParseOptionsChecksum;
+
+        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
             Id = id;
             FilePath = filePath;
             Name = name;
+            ParseOptionsChecksum = parseOptionsChecksum;
         }
 
-        public static explicit operator ProjectKey(Project project)
-            => new ProjectKey((SolutionKey)project.Solution, project.Id, project.FilePath, project.Name);
+        public static ProjectKey ToProjectKey(Project project)
+            => ToProjectKey(project.Solution.State, project.State);
 
-        public SerializableProjectKey Dehydrate()
-        {
-            return new SerializableProjectKey
-            {
-                Solution = Solution.Dehydrate(),
-                Id = Id,
-                FilePath = FilePath,
-                Name = Name,
-            };
-        }
-    }
+        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
 
-    internal class SerializableProjectKey
-    {
-        public SerializableSolutionKey Solution;
-        public ProjectId Id;
-        public string FilePath;
-        public string Name;
-
-        public ProjectKey Rehydrate()
-            => new ProjectKey(Solution.Rehydrate(), Id, FilePath, Name);
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
     }
 }

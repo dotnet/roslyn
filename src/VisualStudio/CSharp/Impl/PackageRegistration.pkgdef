@@ -18,8 +18,16 @@
 @="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
 "Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
 "LangResID"=dword:00000065
+
+"DefaultToInsertSpaces"=dword:00000001
+"EnableAdvancedMembersOption"=dword:00000001
 "RequestStockColors"=dword:00000001
+"ShowBraceCompletion"=dword:00000001
+"ShowCompletion"=dword:00000001
 "ShowDropdownBarOption"=dword:00000001
+"ShowSmartIndent"=dword:00000001
+"SupportsImageCaching"=dword:00000001
+// DesignerLoader is still set in the VS Repo since it contains a VS version number
 
 [$RootKey$\Services\{694dd9b6-b865-4c5b-ad85-86356e9c88dc}]
 @="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"

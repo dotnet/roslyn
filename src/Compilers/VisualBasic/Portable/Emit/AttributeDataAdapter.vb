@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Details: https://github.com/dotnet/roslyn/issues/19394
 
                 If reportDiagnostics Then
-                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.SyntaxNodeOpt?.GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.SyntaxNode?.GetLocation(), NoLocation.Singleton), Me.AttributeClass)
                 End If
 
                 Return Nothing
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.Translate(AttributeConstructor, needDeclaration:=False,
-                                              syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                                              syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function GetNamedArguments1(context As EmitContext) As ImmutableArray(Of Cci.IMetadataNamedArgument) Implements Cci.ICustomAttribute.GetNamedArguments
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetType1(context As EmitContext) As Cci.ITypeReference Implements Cci.ICustomAttribute.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.Translate(AttributeClass, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(AttributeClass, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property AllowMultiple1 As Boolean Implements Cci.ICustomAttribute.AllowMultiple
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(argument.ValueInternal IsNot Nothing)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
-            Dim syntaxNodeOpt = DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode)
+            Dim syntaxNodeOpt = DirectCast(context.SyntaxNode, VisualBasicSyntaxNode)
             Dim diagnostics = context.Diagnostics
             Return New MetadataTypeOf(moduleBeingBuilt.Translate(DirectCast(argument.ValueInternal, TypeSymbol), syntaxNodeOpt, diagnostics),
                                       moduleBeingBuilt.Translate(DirectCast(argument.TypeInternal, TypeSymbol), syntaxNodeOpt, diagnostics))
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function CreateMetadataConstant(type As ITypeSymbolInternal, value As Object, context As EmitContext) As MetadataConstant
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
 
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
-            Return New MetadataNamedArgument(sym, moduleBeingBuilt.Translate(type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics), value)
+            Return New MetadataNamedArgument(sym, moduleBeingBuilt.Translate(type, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics), value)
         End Function
 
         Private Function LookupName(name As String) As Symbol

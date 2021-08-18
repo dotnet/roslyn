@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -693,9 +693,16 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue"),
-                Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "i.MaxValue"))
+            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            c1.AssertTheseDiagnostics(
+<expected>
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+    Const i As Integer = j.MaxValue
+                         ~~~~~~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+    Const j As Integer = i.MaxValue
+                         ~~~~~~~~~~
+</expected>)
 
         End Sub
 

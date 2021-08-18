@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
+            if (ch == '}' && !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -100,19 +99,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return _supportedChars.Contains(ch);
         }
 
-        public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>> GetFormattingChangesAsync(
+            Document document,
+            TextSpan? textSpan,
+            DocumentOptionSet? documentOptions,
+            CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
+            var options = documentOptions ?? await document.GetDocumentOptionsWithInferredIndentationAsync(
+                explicitFormat: true, _indentationManagerService, cancellationToken).ConfigureAwait(false);
 
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: true, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
             return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
                 document.Project.Solution.Workspace, options, cancellationToken);
         }
 
-        public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(
+            Document document,
+            TextSpan textSpan,
+            DocumentOptionSet? documentOptions,
+            CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -126,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = documentOptions ?? await document.GetDocumentOptionsWithInferredIndentationAsync(
+                explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
@@ -138,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+        Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(
+            Document document, int caretPosition, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => SpecializedTasks.Null<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
@@ -174,7 +184,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return false;
         }
 
-        public async Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>?> GetFormattingChangesAsync(
+            Document document,
+            char typedChar,
+            int caretPosition,
+            DocumentOptionSet? documentOptions,
+            CancellationToken cancellationToken)
         {
             // first, find the token user just typed.
             var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
@@ -199,6 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             {
                 return null;
             }
+
+            var options = documentOptions ?? await document.GetDocumentOptionsWithInferredIndentationAsync(
+                explicitFormat: false, _indentationManagerService, cancellationToken).ConfigureAwait(false);
 
             // Do not attempt to format on open/close brace if autoformat on close brace feature is
             // off, instead just smart indent.
@@ -228,8 +246,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // If the user hits `}` then we will properly smart indent the `}` to match the `{`.
             // However, we won't touch any of the other code in that block, unlike if we were
             // formatting.
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
-
             var onlySmartIndent =
                 (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(options)) ||
                 (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(options));
@@ -257,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
-            return !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) ||
+            return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
                    !options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
         }
 

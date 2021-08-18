@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -83,6 +86,7 @@ class C
     static int i;
     static int? nullable;
     static object o;
+    static char ch;
 }
 ";
             return initialMarkup.Replace("EXPRESSION", expression);
@@ -115,7 +119,9 @@ class C
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
         [InlineData("i < 1 && 2 <= i", "i is < 1 and >= 2")]
         [InlineData("i < 1 && 2 <= i && i is not 0", "i is < 1 and >= 2 and not 0")]
-        [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int.MaxValue - 1D) and > 0")]
+        [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int)(int.MaxValue - 1D) and > 0")]
+        [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "ch is < ' ' or >= (char)0x100 or 'a'")]
+        [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
         {
@@ -246,6 +252,131 @@ class C
         q.Where(item => item == 1 [||]|| item == 2);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (Property != null [|&&|] I == 1)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (I == 1 [|&&|] Property != null)
+        {
+        }
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] p.StartInfo != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] this != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    public void M()
+    {{
+            var o1 = new object();
+            if (o1 is IAsyncResult ar [|{logicalOperator}|] ar.AsyncWaitHandle != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    private static bool IsS(char[] ch, int count)
+    {{
+        return count == 1 [|{logicalOperator}|] ch[0] == 'S';
+    }}
+}}");
         }
     }
 }

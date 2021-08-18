@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
-        internal static readonly CSharpSemanticFacts Instance = new CSharpSemanticFacts();
+        internal static readonly CSharpSemanticFacts Instance = new();
 
         private CSharpSemanticFacts()
         {
@@ -56,12 +58,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var ancestor in token.GetAncestors<SyntaxNode>())
             {
                 var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
-
                 if (symbol != null)
                 {
-                    if (symbol.Locations.Contains(location))
+                    if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
                     {
-                        return symbol;
+                        // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                        // So check if the symbol's location encompasses the span of the token we're asking about.
+                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                            return symbol;
+                    }
+                    else
+                    {
+                        // For any other symbols, we only care if the name directly matches the span of the token
+                        if (symbol.Locations.Contains(location))
+                            return symbol;
                     }
 
                     // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
@@ -185,9 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
@@ -197,15 +207,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is ForEachVariableStatementSyntax @foreach)
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
         }
 
-        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ArrayBuilder<IMethodSymbol> builder)
+        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
             if (method != null)
@@ -215,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var nested in deconstruction.Nested)
             {
-                FlattenDeconstructionMethods(nested, builder);
+                FlattenDeconstructionMethods(nested, ref builder);
             }
         }
 

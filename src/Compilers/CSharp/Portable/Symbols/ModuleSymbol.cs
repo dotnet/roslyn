@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -343,11 +345,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(namespaceSymbol));
             }
 
-            var moduleNs = namespaceSymbol as NamespaceSymbol;
-            if ((object)moduleNs != null && moduleNs.Extent.Kind == NamespaceKind.Module && moduleNs.ContainingModule == this)
+            if (namespaceSymbol.NamespaceKind == NamespaceKind.Module)
+            {
+                var moduleNs = (namespaceSymbol as PublicModel.NamespaceSymbol)?.UnderlyingNamespaceSymbol;
+                if ((object)moduleNs != null && moduleNs.ContainingModule == this)
+                {
+                    // this is already the correct module namespace
+                    return moduleNs;
+                }
+            }
+
+            if (namespaceSymbol.IsGlobalNamespace || (object)namespaceSymbol.ContainingNamespace == null)
+            {
+                return this.GlobalNamespace;
+            }
+            else
+            {
+                var cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace);
+                if ((object)cns != null)
+                {
+                    return cns.GetNestedNamespace(namespaceSymbol.Name);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Given a namespace symbol, returns the corresponding module specific namespace symbol
+        /// </summary>
+        public NamespaceSymbol GetModuleNamespace(NamespaceSymbol namespaceSymbol)
+        {
+            if (namespaceSymbol == null)
+            {
+                throw new ArgumentNullException(nameof(namespaceSymbol));
+            }
+
+            if (namespaceSymbol.Extent.Kind == NamespaceKind.Module && namespaceSymbol.ContainingModule == this)
             {
                 // this is already the correct module namespace
-                return moduleNs;
+                return namespaceSymbol;
             }
 
             if (namespaceSymbol.IsGlobalNamespace || (object)namespaceSymbol.ContainingNamespace == null)

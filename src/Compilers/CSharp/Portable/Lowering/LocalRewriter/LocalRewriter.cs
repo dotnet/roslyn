@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly SynthesizedSubmissionFields _previousSubmissionFields;
         private readonly bool _allowOmissionOfConditionalCalls;
-        private readonly LoweredDynamicOperationFactory _dynamicFactory;
+        private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
-        private bool _sawLocalFunctions;
+        private int _availableLocalFunctionOrdinal;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Instrumenter instrumenter)
         {
             _compilation = compilation;
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool instrumentForDynamicAnalysis,
             ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DebugDocumentProvider debugDocumentProvider,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(loweredStatement is { });
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
-                sawLocalFunctions = localRewriter._sawLocalFunctions;
+                sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
@@ -250,23 +248,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
-            CheckRefReadOnlySymbols(node.Symbol);
+
+            var lambda = node.Symbol;
+            CheckRefReadOnlySymbols(lambda);
 
             var oldContainingSymbol = _factory.CurrentFunction;
+            var oldInstrumenter = _instrumenter;
             try
             {
-                _factory.CurrentFunction = node.Symbol;
+                _factory.CurrentFunction = lambda;
+                if (lambda.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                }
                 return base.VisitLambda(node)!;
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+                _instrumenter = oldInstrumenter;
             }
         }
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            _sawLocalFunctions = true;
+            int localFunctionOrdinal = _availableLocalFunctionOrdinal++;
 
             var localFunction = node.Symbol;
             CheckRefReadOnlySymbols(localFunction);
@@ -302,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = _instrumenter;
+            var oldDynamicFactory = _dynamicFactory;
             try
             {
                 _factory.CurrentFunction = localFunction;
@@ -309,12 +316,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
+
+                if (localFunction.IsGenericMethod)
+                {
+                    // Each generic local function gets its own dynamic factory because it 
+                    // needs its own container to cache dynamic call-sites. That type (the container) "inherits"
+                    // local function's type parameters as well as type parameters of all containing methods.
+                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
+                }
+
                 return base.VisitLocalFunctionStatement(node)!;
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
                 _instrumenter = oldInstrumenter;
+                _dynamicFactory = oldDynamicFactory;
             }
         }
 
@@ -483,10 +500,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol method;
             if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
@@ -508,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
         }
 
-        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method)
         {
             return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
@@ -926,6 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }
+        }
+
+        private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
 #if DEBUG

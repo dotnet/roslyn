@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +25,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             AbstractOrderModifiersHelpers helpers,
             string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
+                   EnforceOnBuildValues.OrderModifiers,
                    option,
                    language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Order_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),

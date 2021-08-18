@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     Public Class VisualBasicCodeModelLifetimeTests
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(33080, "https://github.com/dotnet/roslyn/issues/33080")>
         Public Sub RemovingAndReAddingSourceFileWorksCorrectly()

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias InteractiveHost;
 
 using System;
@@ -47,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
                 var waitIndicator = GetWaitIndicator();
-                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.Building_Project, allowCancel: true, showProgress: false);
+                var waitContext = waitIndicator.StartWait(title, EditorFeaturesWpfResources.Building_Project, allowCancel: true, showProgress: false);
 
                 var resetInteractiveTask = ResetInteractiveAsync(
                     interactiveWindow,
@@ -100,15 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             // Then reset the REPL
-            waitContext.Message = InteractiveEditorFeaturesResources.Resetting_Interactive;
+            waitContext.Message = EditorFeaturesWpfResources.Resetting_Interactive;
             evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 
             // TODO: load context from an rsp file.
 
             // Now send the reference paths we've collected to the repl.
-            // The SetPathsAsync method is not available through an Interface.
-            // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);

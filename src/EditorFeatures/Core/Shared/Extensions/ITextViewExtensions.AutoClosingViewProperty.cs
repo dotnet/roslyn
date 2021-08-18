@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<object, TProperty> _map = new Dictionary<object, TProperty>();
+            private readonly Dictionary<object, TProperty> _map = new();
 
             public static bool GetOrCreateValue(
                 TTextView textView,
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 Contract.ThrowIfTrue(textView.IsClosed);
 
                 var properties = textView.Properties.GetOrCreateSingletonProperty(() => new AutoClosingViewProperty<TProperty, TTextView>(textView));
-                if (!properties.TryGetValue(key, out value))
+                if (!properties.TryGetValue(key, out var priorValue))
                 {
                     // Need to create it.
                     value = valueCreator(textView);
@@ -34,13 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 }
 
                 // Already there.
+                value = priorValue;
                 return false;
             }
 
             public static bool TryGetValue(
                 TTextView textView,
                 object key,
-                out TProperty value)
+                [MaybeNullWhen(false)] out TProperty value)
             {
                 Contract.ThrowIfTrue(textView.IsClosed);
 
@@ -73,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _textView.Closed += OnTextViewClosed;
             }
 
-            private void OnTextViewClosed(object sender, EventArgs e)
+            private void OnTextViewClosed(object? sender, EventArgs e)
             {
                 _textView.Closed -= OnTextViewClosed;
                 _textView.Properties.RemoveProperty(typeof(AutoClosingViewProperty<TProperty, TTextView>));
             }
 
-            public bool TryGetValue(object key, out TProperty value)
+            public bool TryGetValue(object key, [MaybeNullWhen(false)] out TProperty value)
                 => _map.TryGetValue(key, out value);
 
             public void Add(object key, TProperty value)

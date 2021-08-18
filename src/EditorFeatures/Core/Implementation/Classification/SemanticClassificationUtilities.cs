@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -15,7 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -27,17 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationUtilities
     {
-        /// <summary>
-        /// Mapping from workspaces to a task representing when they are fully loaded.  While this task is not complete,
-        /// the workspace is still loading.  Once complete the workspace is loaded.  We store the task around, instead
-        /// of just awaiting <see cref="IWorkspaceStatusService.IsFullyLoadedAsync"/> as actually awaiting that call
-        /// takes non-neglible time (upwards of several hundred ms, to a second), whereas we can actually just use the
-        /// status of the <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync"/> task to know when we have
-        /// actually transitioned to a loaded state.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
-            new ConditionalWeakTable<Workspace, Task>();
-
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
@@ -46,9 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             var document = spanToTag.Document;
             if (document == null)
-            {
                 return;
-            }
+
+            // Don't block getting classifications on building the full compilation.  This may take a significant amount
+            // of time and can cause a very latency sensitive operation (copying) to block the user while we wait on this
+            // work to happen.  
+            //
+            // It's also a better experience to get classifications to the user faster versus waiting a potentially
+            // large amount of time waiting for all the compilation information to be built.  For example, we can
+            // classify types that we've parsed in other files, or partially loaded from metadata, even if we're still
+            // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
+            // as we do not have to wait on skeletons to be built.
+
+            document = document.WithFrozenPartialSemantics(context.CancellationToken);
+            spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
                     context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
@@ -145,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                     await AddSemanticClassificationsAsync(
                         document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
-                    ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
+                    foreach (var span in classifiedSpans)
+                        context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     context.State = version;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -170,30 +171,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Document document,
             TextSpan textSpan,
             IClassificationService classificationService,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
-            // Note: we do this work in a Task.Run to ensure that nothing we do (sync or async) ends up causing blocking
-            // on the UI thread inside of IWorkspaceStatusService.  This is necessary as synchronous tagging will cause
-            // us to make an explicit .Wait call on the tagging tasks.  If this thread in any way ended up blocking on 
-            // the UI thread, we would deadlock.
-            var fullyLoadedStateTask = s_workspaceToFullyLoadedStateTask.GetValue(
-                document.Project.Solution.Workspace,
-                w => Task.Run(async () =>
-                {
-                    var workspaceLoadedService = w.Services.GetRequiredService<IWorkspaceStatusService>();
-                    await workspaceLoadedService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-                }));
+            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
-            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
-            // New code will not be semantically classified, but will eventually when the project fully loads.
-            //
             // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
             // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
             // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
             // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
             // fully loaded.
-            var isFullyLoaded = fullyLoadedStateTask.IsCompleted;
+            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
+            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+
+            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
+            // New code will not be semantically classified, but will eventually when the project fully loads.
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
@@ -204,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
             Document document,
             TextSpan textSpan,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
@@ -220,7 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var checksum = checksums.Text;
 
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                (DocumentKey)document, textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
+                textSpan, checksum, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 

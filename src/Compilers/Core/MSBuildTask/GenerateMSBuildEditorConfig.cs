@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 // write the section for this item
                 builder.AppendLine()
-                       .Append("[")
-                       .Append(group.Key)
-                       .AppendLine("]");
+                       .Append("[");
+                EncodeString(builder, group.Key);
+                builder.AppendLine("]");
 
                 foreach (var item in group)
                 {
@@ -99,6 +99,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             ConfigFileContents = builder.ToString();
             return true;
+        }
+
+        /// <remarks>
+        /// Filenames with special characters like '#' and'{' get written
+        /// into the section names in the resulting .editorconfig file. Later,
+        /// when the file is parsed in configuration options these special
+        /// characters are interpretted as invalid values and ignored by the
+        /// processor. We encode the special characters in these strings
+        /// before writing them here.
+        /// </remarks>
+
+        private static void EncodeString(StringBuilder builder, string value)
+        {
+            foreach (var c in value)
+            {
+                if (c is '*' or '?' or '{' or ',' or ';' or '}' or '[' or ']' or '#' or '!')
+                {
+                    builder.Append("\\");
+                }
+                builder.Append(c);
+            }
         }
 
         /// <remarks>

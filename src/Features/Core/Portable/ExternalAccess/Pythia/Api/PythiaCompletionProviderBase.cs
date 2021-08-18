@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -44,7 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             SupportedPlatformData? supportedPlatforms = null,
             ImmutableDictionary<string, string>? properties = null,
             ImmutableArray<string> tags = default)
-            => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, symbols, rules, contextPosition, sortText, insertionText, filterText, supportedPlatforms, properties, tags);
+            => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, symbols, rules, contextPosition, sortText, insertionText,
+                filterText, displayTextPrefix: null, inlineDescription: null, glyph: null, supportedPlatforms, properties, tags);
 
         public static ImmutableArray<SymbolDisplayPart> CreateRecommendedKeywordDisplayParts(string keyword, string toolTip)
             => RecommendedKeyword.CreateDisplayParts(keyword, toolTip);

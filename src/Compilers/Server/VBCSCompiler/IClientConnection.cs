@@ -6,9 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
@@ -17,12 +14,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </summary>
     internal interface IClientConnection : IDisposable
     {
-        /// <summary>
-        /// A value which can be used to identify this connection for logging purposes only.  It has 
-        /// no guarantee of uniqueness.  
-        /// </summary>
-        string LoggingIdentifier { get; }
-
         /// <summary>
         /// This task resolves if the client disconnects from the server.
         /// </summary>

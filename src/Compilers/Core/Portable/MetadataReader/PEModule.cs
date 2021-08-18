@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -1179,7 +1181,7 @@ namespace Microsoft.CodeAnalysis
 
             return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
         }
-#nullable restore
+#nullable disable
 
         internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
@@ -1195,6 +1197,27 @@ namespace Microsoft.CodeAnalysis
             }
             when = false;
             return false;
+        }
+
+        internal ImmutableHashSet<string> GetStringValuesOfNotNullIfNotNullAttribute(EntityHandle token)
+        {
+            var attributeInfos = FindTargetAttributes(token, AttributeDescription.NotNullIfNotNullAttribute);
+
+            var result = ImmutableHashSet<string>.Empty;
+            if (attributeInfos is null)
+            {
+                return result;
+            }
+
+            foreach (var attributeInfo in attributeInfos)
+            {
+                if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName))
+                {
+                    result = result.Add(parameterName);
+                }
+            }
+
+            return result;
         }
 
         internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
@@ -1466,7 +1489,7 @@ namespace Microsoft.CodeAnalysis
             blobReader = default;
             return false;
         }
-#nullable restore
+#nullable disable
 
         private ObsoleteAttributeData TryExtractDeprecatedDataFromAttribute(AttributeInfo attributeInfo)
         {
@@ -1792,7 +1815,7 @@ namespace Microsoft.CodeAnalysis
 
             return (diagnosticId, urlFormat);
         }
-#nullable restore
+#nullable disable
 
         private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
@@ -2064,7 +2087,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
+        internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {
             return FindTargetAttribute(MetadataReader, hasAttribute, description);
         }

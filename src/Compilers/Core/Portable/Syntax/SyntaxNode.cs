@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determine whether this node is structurally equivalent to another.
         /// </summary>
-        public bool IsEquivalentTo(SyntaxNode other)
+        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode? other)
         {
             if (this == other)
             {
@@ -350,6 +348,23 @@ namespace Microsoft.CodeAnalysis
 
             return this.Green.IsEquivalentTo(other.Green);
         }
+
+        /// <summary>
+        /// Returns true if these two nodes are considered "incrementally identical".  An incrementally identical node
+        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
+        /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
+        /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
+        /// they could have different parents, and may occur at different positions in their respective trees.  If two nodes are
+        /// incrementally identical, all children of each node will be incrementally identical as well.
+        /// </summary>
+        /// <remarks>
+        /// Incrementally identical nodes can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees from shared nodes for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical nodes could have different parents and may occur at different positions in their respective trees.
+        /// </remarks>
+        public bool IsIncrementallyIdenticalTo([NotNullWhen(true)] SyntaxNode? other)
+            => this.Green != null && this.Green == other?.Green;
 
         /// <summary>
         /// Determines whether the node represents a language construct that was actually parsed
@@ -1101,7 +1116,7 @@ recurse:
         /// <summary>
         /// Determines whether this node has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return this.Green.HasAnnotation(annotation);
         }

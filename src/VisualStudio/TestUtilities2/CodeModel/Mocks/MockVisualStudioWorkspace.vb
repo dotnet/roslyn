@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Private ReadOnly _documentId As DocumentId
         Private ReadOnly _workspace As TestWorkspace
-        Private ReadOnly _needsClose As Boolean = False
+        Private ReadOnly _needsClose As Boolean
 
         Public Sub New(documentId As DocumentId, workspace As TestWorkspace)
             Me._documentId = documentId

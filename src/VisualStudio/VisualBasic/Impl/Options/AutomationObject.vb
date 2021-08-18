@@ -7,9 +7,11 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -18,18 +20,18 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As CodeAnalysis.Workspace
+        Private ReadOnly _workspace As Workspace
 
-        Friend Sub New(workspace As CodeAnalysis.Workspace)
+        Friend Sub New(workspace As Workspace)
             _workspace = workspace
         End Sub
 
         Public Property AutoComment As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration)
+                Return GetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value)
+                SetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration, value)
             End Set
         End Property
 
@@ -291,6 +293,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As Integer)
                 SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value)
+            End Set
+        End Property
+
+        Public Property Fading_FadeOutUnreachableCode As Boolean
+            Get
+                Return GetBooleanOption(FadingOptions.FadeOutUnreachableCode)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value)
+            End Set
+        End Property
+
+        Public Property Fading_FadeOutUnusedImports As Boolean
+            Get
+                Return GetBooleanOption(FadingOptions.FadeOutUnusedImports)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FadingOptions.FadeOutUnusedImports, value)
             End Set
         End Property
 

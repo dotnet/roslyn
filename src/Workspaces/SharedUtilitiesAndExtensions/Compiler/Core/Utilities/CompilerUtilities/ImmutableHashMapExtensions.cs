@@ -18,12 +18,14 @@ namespace Roslyn.Utilities
         /// <typeparam name="TArg">The type of argument supplied to the value factory.</typeparam>
         /// <param name="location">The variable or field to atomically update if the specified <paramref name="key" /> is not in the dictionary.</param>
         /// <param name="key">The key for the value to retrieve or add.</param>
-        /// <param name="valueFactory">The function to execute to obtain the value to insert into the dictionary if the key is not found.</param>
+        /// <param name="valueProvider">The function to execute to obtain the value to insert into the dictionary if the key is not found. Returns null if the value can't be obtained.</param>
         /// <param name="factoryArgument">The argument to pass to the value factory.</param>
-        /// <returns>The value obtained from the dictionary or <paramref name="valueFactory" /> if it was not present.</returns>
-        public static TValue GetOrAdd<TKey, TValue, TArg>(ref ImmutableHashMap<TKey, TValue> location, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+        /// <returns>The value obtained from the dictionary or <paramref name="valueProvider" /> if it was not present.</returns>
+        public static TValue? GetOrAdd<TKey, TValue, TArg>(ref ImmutableHashMap<TKey, TValue> location, TKey key, Func<TKey, TArg, TValue?> valueProvider, TArg factoryArgument)
+            where TKey : notnull
+            where TValue : class
         {
-            Contract.ThrowIfNull(valueFactory);
+            Contract.ThrowIfNull(valueProvider);
 
             var map = Volatile.Read(ref location);
             Contract.ThrowIfNull(map);
@@ -32,7 +34,11 @@ namespace Roslyn.Utilities
                 return existingValue;
             }
 
-            var newValue = valueFactory(key, factoryArgument);
+            var newValue = valueProvider(key, factoryArgument);
+            if (newValue is null)
+            {
+                return null;
+            }
 
             do
             {

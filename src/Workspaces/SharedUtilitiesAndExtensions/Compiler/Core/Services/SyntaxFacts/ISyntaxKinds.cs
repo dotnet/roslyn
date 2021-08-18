@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     /// <summary>
@@ -95,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
@@ -131,12 +130,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
-
+        int ParameterList { get; }
         #endregion
 
         #region other
 
         int Interpolation { get; }
+        int InterpolatedStringText { get; }
 
         #endregion
     }

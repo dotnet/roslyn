@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
             // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
             return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
                 ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
                 : TrivialTemporaryStorageService.Instance;
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// available in source control history. The use of exclusive locks was not causing any measurable
             /// performance overhead even on 28-thread machines at the time this was written.</para>
             /// </remarks>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             /// <summary>
             /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer

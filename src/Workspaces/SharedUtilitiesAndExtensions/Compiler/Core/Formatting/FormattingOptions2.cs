@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             defaultValue: 120);
 
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
-            new BidirectionalMap<string, string>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("lf", "\n"),
                 KeyValuePairUtil.Create("cr", "\r"),
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     internal static class FormattingOptionGroups
     {
-        public static readonly OptionGroup IndentationAndSpacing = new OptionGroup(WorkspacesResources.Indentation_and_spacing, priority: 1);
-        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, priority: 2);
+        public static readonly OptionGroup IndentationAndSpacing = new(WorkspacesResources.Indentation_and_spacing, priority: 1);
+        public static readonly OptionGroup NewLine = new(WorkspacesResources.New_line_preferences, priority: 2);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                         constructorCandidate.MissingParameters,
                         useSubMenuName: false));
                 }
+
                 result.Add(GetOptionalContructorParametersCodeAction(
                     document,
                     constructorCandidate,
@@ -104,6 +107,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                             constructorCandidate.MissingParameters,
                             useSubMenuName: true));
                     }
+
                     optionalParameterCodeActions.Add(GetOptionalContructorParametersCodeAction(
                         document,
                         constructorCandidate,

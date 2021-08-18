@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _razorSpanMappingService = razorSpanMappingService ?? throw new ArgumentNullException(nameof(razorSpanMappingService));
         }
 
+        /// <summary>
+        /// Modern razor span mapping service can handle if we add imports.  Razor will then rewrite that
+        /// to their own form.
+        /// </summary>
+        public bool SupportsMappingImportDirectives => true;
+
         public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
             var razorSpans = await _razorSpanMappingService.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);

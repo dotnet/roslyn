@@ -10,9 +10,6 @@ using System.IO.Pipes;
 using System.Reflection;
 using System.Net.Sockets;
 using Roslyn.Test.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     /// <summary>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editing
 #endif
     {
         internal abstract ISyntaxFacts SyntaxFacts { get; }
+
+        internal abstract SyntaxTrivia EndOfLine(string text);
 
         /// <summary>
         /// Creates a statement that declares a single local variable with an optional initializer.
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract bool RequiresLocalDeclarationType();
 
-        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content, string value);
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);

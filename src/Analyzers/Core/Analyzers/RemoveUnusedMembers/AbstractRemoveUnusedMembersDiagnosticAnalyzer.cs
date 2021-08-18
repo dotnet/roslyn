@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnusedMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -32,6 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -629,7 +633,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Do not flag unused entry point (Main) method.
-                                    if (IsEntryPoint(methodSymbol))
+                                    if (methodSymbol.IsEntryPoint(_taskType, _genericTaskType))
                                     {
                                         return false;
                                     }
@@ -695,15 +699,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return false;
             }
 
-            private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
-                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
-                   methodSymbol.IsStatic &&
-                   (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
-
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
@@ -723,7 +718,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     if (methodSymbol.Name.StartsWith(prefix))
                     {
-                        var suffix = methodSymbol.Name.Substring(prefix.Length);
+                        var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
                             methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
                     }

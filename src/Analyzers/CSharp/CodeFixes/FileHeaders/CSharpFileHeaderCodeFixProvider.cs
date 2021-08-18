@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     /// <summary>
     /// Implements a code fix for file header diagnostics.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpFileHeaderCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FileHeader)]
     [Shared]
     internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
     {

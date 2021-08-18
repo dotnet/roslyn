@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -35,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
         internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+        internal override SyntaxTrivia EndOfLine(string text)
+            => SyntaxFactory.EndOfLine(text);
 
         internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
         {
@@ -97,11 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
             => SyntaxFactory.InterpolatedStringText(textToken);
 
-        internal override SyntaxToken InterpolatedStringTextToken(string content)
+        internal override SyntaxToken InterpolatedStringTextToken(string content, string value)
             => SyntaxFactory.Token(
                 SyntaxFactory.TriviaList(),
                 SyntaxKind.InterpolatedStringTextToken,
-                content, "",
+                content, value,
                 SyntaxFactory.TriviaList());
 
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)

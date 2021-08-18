@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,9 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             BlockSyntax node,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             var parentKind = node.Parent.Kind();
@@ -77,7 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         private static TextSpan GetHintSpan(BlockSyntax node)
         {
-            var start = node.Parent.Span.Start;
+            var parent = node.Parent;
+            if (parent.IsKind(SyntaxKind.IfStatement) && parent.IsParentKind(SyntaxKind.ElseClause))
+            {
+                parent = parent.Parent;
+            }
+
+            var start = parent.Span.Start;
             var end = GetEnd(node);
             return TextSpan.FromBounds(start, end);
         }

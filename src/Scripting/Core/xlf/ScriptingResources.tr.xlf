@@ -108,7 +108,8 @@ Script directives:
   Enter         Geçerli gönderim tamamlanmış görünüyorsa değerlendir. Aksi takdirde, yeni bir satır ekle.
   Escape        Geçerli gönderimi sil.
   Yukarı Ok       Geçerli gönderimi önceki bir gönderimle değiştir.
-  Aşağı Ok     Geçerli gönderimi sonraki bir gönderimle değiştir (daha önce geriye gittikten sonra).  Ctrl-C        REPL'den çık.
+  Aşağı Ok     Geçerli gönderimi sonraki bir gönderimle değiştir (daha önce geriye gittikten sonra).
+  Ctrl-C        REPL'den çık.
 REPL komutları:
   #help         Kullanılabilir komutlarda ve anahtar bağlamalarında yardımı görüntüle.
 Betik yönergeleri:

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -402,17 +400,19 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 var visitor = new LocalVariableDeclarationVisitor(cancellationToken);
                 var operation = semanticModel.GetOperation(methodDeclarationSyntax, cancellationToken);
-                if (operation != null)
-                {
-                    visitor.Visit(operation);
-                }
+                visitor.Visit(operation);
 
                 return visitor._allSymbols.ToImmutableHashSet();
             }
 
-            public override void Visit(IOperation operation)
+            public override void Visit(IOperation? operation)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
+                if (operation == null)
+                {
+                    return;
+                }
+
                 if (operation is IVariableDeclaratorOperation variableDeclarationOperation)
                 {
                     _allSymbols.Add(variableDeclarationOperation.Symbol);
