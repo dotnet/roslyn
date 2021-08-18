@@ -381,7 +381,6 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public void SetGlobalOption(OptionKey optionKey, object? value)
-<<<<<<< HEAD
             => SetGlobalOptions(ImmutableArray.Create(optionKey), ImmutableArray.Create(value));
 
         public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
@@ -416,16 +415,6 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             RaiseOptionChangedEvent(changedOptions);
-=======
-        {
-            lock (_gate)
-            {
-                // not updating _changedOptionKeys since that's only relevant for serializable options, not global ones
-                _currentValues = _currentValues.SetItem(optionKey, value);
-            }
-
-            PersistOption(GetOptionPersisters(), optionKey, value);
->>>>>>> 1ffc1486567 (KeybindingResetDetector refactoring)
         }
 
         public void SetOptions(OptionSet optionSet)
@@ -471,15 +460,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey optionKey, object? value)
         {
-<<<<<<< HEAD
             foreach (var persister in persisters)
             {
                 if (persister.TryPersist(optionKey, value))
-=======
-            foreach (var serializer in persisters)
-            {
-                if (serializer.TryPersist(optionKey, value))
->>>>>>> 1ffc1486567 (KeybindingResetDetector refactoring)
                 {
                     break;
                 }
