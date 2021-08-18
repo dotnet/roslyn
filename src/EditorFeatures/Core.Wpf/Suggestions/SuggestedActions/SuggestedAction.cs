@@ -123,8 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
                 InnerInvoke(progressTracker, cancellationToken);
-                foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    actionCallback.Value.OnSuggestedActionExecuted(this);
             }
         }
 

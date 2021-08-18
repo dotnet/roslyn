@@ -58,6 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_everything_else
             => ServicesVSResources.Show_hints_for_everything_else;
 
+        public static string Option_Show_hints_for_indexers
+            => ServicesVSResources.Show_hints_for_indexers;
+
         public static string Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent
             => ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent;
 
