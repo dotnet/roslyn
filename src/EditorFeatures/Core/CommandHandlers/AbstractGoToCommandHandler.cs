@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         protected abstract string ScopeDescription { get; }
         protected abstract FunctionId FunctionId { get; }
         protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
+        protected abstract Task<Solution> GetSolutionAsync(Document document, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TCommandArgs args)
         {
@@ -125,8 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             if (context.Message != null)
                 return context.Message;
 
+            var solution = await GetSolutionAsync(document, cancellationToken).ConfigureAwait(false);
             await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext, document.Project.Solution, context.SearchTitle, context.GetDefinitions(), cancellationToken).ConfigureAwait(false);
+                _threadingContext, solution, context.SearchTitle, context.GetDefinitions(), cancellationToken).ConfigureAwait(false);
             return null;
         }
     }

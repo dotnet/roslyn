@@ -35,5 +35,8 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
 
         public Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
             => Task.FromResult(new SymbolMappingResult(document.Project, symbol));
+
+        public Task<Project> MapDocumentAsync(Document document, CancellationToken cancellationToken)
+            => Task.FromResult(document.Project);
     }
 }

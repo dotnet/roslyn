@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -44,5 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override IFindUsagesService? GetService(Document? document)
             => document?.GetLanguageService<IFindUsagesService>();
+
+        protected override async Task<Solution> GetSolutionAsync(Document document, CancellationToken cancellationToken)
+        {
+            var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+            var mappedProject = await mappingService.MapDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return mappedProject?.Solution ?? document.Project.Solution;
+        }
     }
 }

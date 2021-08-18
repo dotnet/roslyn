@@ -31,5 +31,12 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
         /// <param name="cancellationToken">To cancel symbol resolution</param>
         /// <returns>The matching symbol from the correct solution or null</returns>
         Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Given an the document that a particular <cref see="ISymbol"/>
+        /// came from, locate the project in the correct solution that contained the symbol
+        /// this document was created for.
+        /// </summary>
+        Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken);
     }
 }
