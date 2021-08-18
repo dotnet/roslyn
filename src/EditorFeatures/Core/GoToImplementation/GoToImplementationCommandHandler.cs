@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override async Task<Solution> GetSolutionAsync(Document document, CancellationToken cancellationToken)
         {
+            // The original document we may be starting with might be in a metadata-as-source workspace.
+            // Ensure that we map back to the real primary workspace to present symbols in so we can
+            // navigate back to source implementations there.
             var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
             var mappedProject = await mappingService.MapDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             return mappedProject?.Solution ?? document.Project.Solution;
