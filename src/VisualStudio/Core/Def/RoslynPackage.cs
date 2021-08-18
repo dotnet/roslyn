@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
 
-            // Initialize any keybinding reset detector
+            // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
         }
 

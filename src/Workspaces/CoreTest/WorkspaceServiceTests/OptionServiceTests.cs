@@ -93,6 +93,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void GlobalOptions()
+        {
+            using var workspace = new AdhocWorkspace();
+            var optionService = TestOptionService.GetGlobalOptionService(workspace.Services);
+            var option1 = new Option<int>("Test Feature 1", "Test Name 1", defaultValue: 1);
+            var option2 = new Option<int>("Test Feature 2", "Test Name 2", defaultValue: 2);
+
+            var values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2));
+            Assert.Equal(1, values[0]);
+            Assert.Equal(2, values[1]);
+
+            optionService.SetGlobalOptions(
+                ImmutableArray.Create<OptionKey>(option1, option2),
+                ImmutableArray.Create<object?>(5, 6));
+
+            values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2));
+            Assert.Equal(5, values[0]);
+            Assert.Equal(6, values[1]);
+
+            Assert.Equal(5, optionService.GetOption(option1));
+            Assert.Equal(6, optionService.GetOption(option2));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void GettingOptionWithChangedOption()
         {
             using var workspace = new AdhocWorkspace();

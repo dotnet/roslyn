@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -60,8 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         private const uint ResumeId = 707;
         private const uint SuspendId = 708;
         private const uint ToggleSuspendId = 709;
-        private static readonly Guid ReSharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
-        private static readonly Guid ReSharperCommandGroup = new("{47F03277-5055-4922-899C-0F7F30D26BF1}");
+
+        private static readonly Guid s_resharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
+        private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
+
+        private static readonly ImmutableArray<OptionKey> s_statusOptions = ImmutableArray.Create<OptionKey>(
+            KeybindingResetOptions.ReSharperStatus,
+            KeybindingResetOptions.NeedsReset);
 
         private readonly IGlobalOptionService _optionService;
         private readonly System.IServiceProvider _serviceProvider;
@@ -130,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             }
 
             var vsShell = IServiceProviderExtensions.GetService<SVsShell, IVsShell>(_serviceProvider);
-            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
+            var hr = vsShell.IsPackageInstalled(s_resharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
                 FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
@@ -180,7 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
         {
-            var lastStatus = _optionService.GetOption(KeybindingResetOptions.ReSharperStatus);
+            var options = _optionService.GetOptions(s_statusOptions);
+            var lastStatus = (ReSharperStatus)options[0];
+            var needsReset = (bool)options[1];
 
             ReSharperStatus currentStatus;
             try
@@ -196,10 +204,6 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             {
                 return;
             }
-
-            _optionService.SetGlobalOption(KeybindingResetOptions.ReSharperStatus, currentStatus);
-
-            var needsReset = _optionService.GetOption(KeybindingResetOptions.NeedsReset);
 
             switch (lastStatus)
             {
@@ -227,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                     break;
             }
 
-            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, needsReset);
+            _optionService.SetGlobalOptions(s_statusOptions, ImmutableArray.Create<object>(currentStatus, needsReset));
 
             if (needsReset)
             {
@@ -322,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                var hr = _oleCommandTarget.QueryStatus(s_resharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
                     FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
@@ -405,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             // Technically can be called on any thread, though VS will only ever call it on the UI thread.
             ThisCanBeCalledOnAnyThread();
-            if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
+            if (pguidCmdGroup == s_resharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
                 StartUpdateStateMachine();
