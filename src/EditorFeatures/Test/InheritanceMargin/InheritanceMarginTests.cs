@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
             for (var i = 0; i < sortedActualItems.Length; i++)
             {
-                await VerifyInheritanceMember(testWorkspace, sortedExpectedItems[i], sortedActualItems[i]);
+                await VerifyInheritanceMemberAsync(testWorkspace, sortedExpectedItems[i], sortedActualItems[i]);
             }
         }
 
-        private static async Task VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
+        private static async Task VerifyInheritanceMemberAsync(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
             Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
-                await VerifyInheritanceTarget(expectedTargets[i], sortedActualTargets[i]);
+                await VerifyInheritanceTargetAsync(expectedTargets[i], sortedActualTargets[i]);
             }
         }
 
-        private static async Task VerifyInheritanceTarget(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static async Task VerifyInheritanceTargetAsync(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
