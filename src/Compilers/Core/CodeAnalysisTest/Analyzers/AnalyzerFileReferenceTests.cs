@@ -230,9 +230,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
-            var directory = Temp.CreateDirectory();
-            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.FaultyAnalyzer.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -364,7 +362,7 @@ public class Generator : ISourceGenerator
  }}";
 
                 var directory = Temp.CreateDirectory();
-                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+                var generatorPath = Path.Combine(directory.Path, $"generator_{targetFramework}.dll");
 
                 var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
                                                            new[] { CSharpSyntaxTree.ParseText(generatorSource) },

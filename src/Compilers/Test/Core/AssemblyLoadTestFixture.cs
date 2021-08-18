@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile Delta2 { get; }
         public TempFile Epsilon { get; }
 
+        public TempFile UserSystemCollectionsImmutable { get; }
+        public TempFile AnalyzerReferencesSystemCollectionsImmutable1 { get; }
+        public TempFile AnalyzerReferencesSystemCollectionsImmutable2 { get; }
+
+        public TempFile FaultyAnalyzer { get; }
+
         public AssemblyLoadTestFixture()
         {
             _temp = new TempRoot();
@@ -138,6 +144,64 @@ namespace Epsilon
     }
 }
 ", delta2Reference);
+
+            var sciUserDirectory = _directory.CreateDirectory("SCIUser");
+            var compilerReference = MetadataReference.CreateFromFile(typeof(Microsoft.CodeAnalysis.SyntaxNode).Assembly.Location);
+
+            UserSystemCollectionsImmutable = GenerateDll("System.Collections.Immutable", sciUserDirectory, @"
+namespace System.Collections.Immutable
+{
+    public static class ImmutableArray
+    {
+        public static ImmutableArray<T> Create<T>(T t) => new();
+    }
+
+    public struct ImmutableArray<T>
+    {
+        public int Length => 42;
+
+        public static int MyMethod() => 42;
+    }
+}
+", compilerReference);
+
+            var userSystemCollectionsImmutableReference = MetadataReference.CreateFromFile(UserSystemCollectionsImmutable.Path);
+            AnalyzerReferencesSystemCollectionsImmutable1 = GenerateDll("AnalyzerUsesSystemCollectionsImmutable1", sciUserDirectory, @"
+using System.Text;
+using System.Collections.Immutable;
+
+public class Analyzer
+{
+    public void Method(StringBuilder sb)
+    {
+        sb.Append(ImmutableArray<object>.MyMethod());
+    }
+}
+", userSystemCollectionsImmutableReference, compilerReference);
+
+            AnalyzerReferencesSystemCollectionsImmutable2 = GenerateDll("AnalyzerUsesSystemCollectionsImmutable2", sciUserDirectory, @"
+using System.Text;
+using System.Collections.Immutable;
+
+public class Analyzer
+{
+    public void Method(StringBuilder sb)
+    {
+        sb.Append(ImmutableArray.Create(""a"").Length);
+    }
+}
+", userSystemCollectionsImmutableReference, compilerReference);
+
+            var faultyAnalyzerDirectory = _directory.CreateDirectory("FaultyAnalyzer");
+            FaultyAnalyzer = GenerateDll("FaultyAnalyzer", faultyAnalyzerDirectory, @"
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+public abstract class TestAnalyzer : DiagnosticAnalyzer
+{
+}
+", compilerReference);
         }
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
@@ -152,6 +216,8 @@ namespace Epsilon
                     TestMetadata.NetStandard20.SystemRuntime
                 }.Concat(additionalReferences),
                 options: s_dllWithMaxWarningLevel);
+
+            analyzerDependencyCompilation.VerifyDiagnostics();
 
             var tempFile = directory.CreateFile($"{assemblyName}.dll");
             tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());

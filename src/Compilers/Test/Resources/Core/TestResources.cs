@@ -6,12 +6,6 @@
 
 namespace TestResources
 {
-    public static class AnalyzerTests
-    {
-        private static byte[] s_faultyAnalyzer;
-        public static byte[] FaultyAnalyzer => ResourceLoader.GetOrCreateResource(ref s_faultyAnalyzer, "Analyzers.FaultyAnalyzer.dll");
-    }
-
     public static class DiagnosticTests
     {
         private static byte[] s_badresfile;

@@ -5,13 +5,17 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -26,9 +30,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+        private readonly ITestOutputHelper _output;
         private readonly AssemblyLoadTestFixture _testFixture;
-        public DefaultAnalyzerAssemblyLoaderTests(AssemblyLoadTestFixture testFixture)
+        public DefaultAnalyzerAssemblyLoaderTests(ITestOutputHelper output, AssemblyLoadTestFixture testFixture)
         {
+            _output = output;
             _testFixture = testFixture;
         }
 
@@ -276,5 +282,93 @@ Delta: Epsilon: Test E
                     actual);
             }
         }
+
+        [Fact]
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.UserSystemCollectionsImmutable.Path);
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var ex = Assert.ThrowsAny<Exception>(() => analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb }));
+                Assert.True(ex is MissingMethodException or TargetInvocationException, $@"Unexpected exception type: ""{ex.GetType()}""");
+            }
+            else
+            {
+                analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+                Assert.Equal("42", sb.ToString());
+            }
+        }
+
+        [Fact]
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.UserSystemCollectionsImmutable.Path);
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesSystemCollectionsImmutable2.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesSystemCollectionsImmutable2.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+            analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+            Assert.Equal(ExecutionConditionUtil.IsCoreClr ? "1" : "42", sb.ToString());
+        }
+
+#if NETCOREAPP
+        [Fact]
+        public void VerifyCompilerAssemblySimpleNames()
+        {
+            var caAssembly = typeof(Microsoft.CodeAnalysis.SyntaxNode).Assembly;
+            var caReferences = caAssembly.GetReferencedAssemblies();
+            var builder = ArrayBuilder<string>.GetInstance();
+            builder.Add(caAssembly.GetName().Name ?? throw new InvalidOperationException());
+            foreach (var reference in caReferences)
+            {
+                builder.Add(reference.Name ?? throw new InvalidOperationException());
+            }
+
+            var csAssembly = typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode).Assembly;
+            builder.Add(csAssembly.GetName().Name ?? throw new InvalidOperationException());
+            var csReferences = csAssembly.GetReferencedAssemblies();
+            foreach (var reference in csReferences)
+            {
+                var name = reference.Name ?? throw new InvalidOperationException();
+                if (!builder.Contains(name, StringComparer.OrdinalIgnoreCase))
+                {
+                    builder.Add(name);
+                }
+            }
+
+            var vbAssembly = typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly;
+            var vbReferences = vbAssembly.GetReferencedAssemblies();
+            builder.Add(vbAssembly.GetName().Name ?? throw new InvalidOperationException());
+            foreach (var reference in vbReferences)
+            {
+                var name = reference.Name ?? throw new InvalidOperationException();
+                if (!builder.Contains(name, StringComparer.OrdinalIgnoreCase))
+                {
+                    builder.Add(name);
+                }
+            }
+
+            var allReferenceSimpleNames = builder.ToImmutableAndFree();
+            if (!Enumerable.SequenceEqual(allReferenceSimpleNames, DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames))
+            {
+                var allNames = string.Join(",\r\n                ", allReferenceSimpleNames.Select(name => $@"""{name}"""));
+                _output.WriteLine("        internal static readonly ImmutableArray<string> CompilerAssemblySimpleNames =");
+                _output.WriteLine("            ImmutableArray.Create(");
+                _output.WriteLine($"                {allNames});");
+                Assert.True(false, $"{nameof(DefaultAnalyzerAssemblyLoader)}.{nameof(DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames)} is not up to date. Paste in the standard output of this test to update it.");
+            }
+        }
+#endif
     }
 }

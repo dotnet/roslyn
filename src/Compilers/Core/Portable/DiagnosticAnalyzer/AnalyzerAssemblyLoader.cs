@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        protected bool ShouldLoadInAnalyzerContext(string fullPath)
+        protected bool IsKnownDependencyLocation(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);

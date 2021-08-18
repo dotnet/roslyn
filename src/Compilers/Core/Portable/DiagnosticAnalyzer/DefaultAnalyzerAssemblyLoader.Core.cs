@@ -7,8 +7,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -16,6 +16,46 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
+        internal static readonly ImmutableArray<string> CompilerAssemblySimpleNames =
+            ImmutableArray.Create(
+                "Microsoft.CodeAnalysis",
+                "System.Runtime",
+                "System.Resources.ResourceManager",
+                "System.Runtime.Extensions",
+                "System.Diagnostics.Debug",
+                "System.Collections.Immutable",
+                "System.Collections",
+                "System.Reflection.Metadata",
+                "System.IO.FileSystem",
+                "System.Collections.Concurrent",
+                "System.Threading.ThreadPool",
+                "System.Diagnostics.StackTrace",
+                "System.Linq",
+                "System.Security.Cryptography.Algorithms",
+                "System.Threading",
+                "System.Threading.Tasks.Parallel",
+                "System.Threading.Tasks",
+                "System.Xml.XDocument",
+                "System.Threading.Thread",
+                "System.Security.Cryptography.Primitives",
+                "System.Runtime.InteropServices",
+                "System.Reflection.Primitives",
+                "System.Text.RegularExpressions",
+                "System.Xml.ReaderWriter",
+                "System.Runtime.Loader",
+                "System.IO.Compression",
+                "System.Memory",
+                "System.Runtime.Numerics",
+                "System.Runtime.Serialization.Primitives",
+                "System.Console",
+                "System.Xml.XPath.XDocument",
+                "System.Text.Encoding.Extensions",
+                "System.Text.Encoding.CodePages",
+                "System.Runtime.CompilerServices.Unsafe",
+                "Microsoft.CodeAnalysis.CSharp",
+                "System.Linq.Expressions",
+                "Microsoft.CodeAnalysis.VisualBasic");
+
         private readonly object _guard = new object();
         private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>();
 
@@ -37,6 +77,19 @@ namespace Microsoft.CodeAnalysis
             return loadContext.LoadFromAssemblyName(name);
         }
 
+        private bool ShouldLoadInAnalyzerContext(string? assemblySimpleName, string fullPath)
+        {
+            foreach (var compilerAssemblySimpleName in CompilerAssemblySimpleNames)
+            {
+                if (string.Equals(compilerAssemblySimpleName, assemblySimpleName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return IsKnownDependencyLocation(fullPath);
+        }
+
         private sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             private readonly string _directory;
@@ -50,15 +103,9 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                var currentAssembly = Assembly.GetExecutingAssembly();
-                if (shouldLoadInCompilerContext())
-                {
-                    return AssemblyLoadContext.GetLoadContext(currentAssembly)!.LoadFromAssemblyName(assemblyName);
-                }
-
                 var simpleName = assemblyName.Name;
-                var assemblyPath = Path.Combine(_directory, assemblyName.Name + ".dll");
-                if (!_loader.ShouldLoadInAnalyzerContext(assemblyPath))
+                var assemblyPath = Path.Combine(_directory, simpleName + ".dll");
+                if (!_loader.ShouldLoadInAnalyzerContext(simpleName, assemblyPath))
                 {
                     return null;
                 }
@@ -71,25 +118,6 @@ namespace Microsoft.CodeAnalysis
                 catch (FileNotFoundException)
                 {
                     return null;
-                }
-
-                bool shouldLoadInCompilerContext()
-                {
-                    if (assemblyName.Name is "Microsoft.CodeAnalysis" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic")
-                    {
-                        return true;
-                    }
-
-                    var referencedAssemblies = currentAssembly.GetReferencedAssemblies();
-                    foreach (var referencedAssemblyName in referencedAssemblies)
-                    {
-                        if (AssemblyName.ReferenceMatchesDefinition(referencedAssemblyName, assemblyName))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
                 }
             }
 
