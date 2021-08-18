@@ -336,10 +336,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
-
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
                 foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
-                    if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)) || !parameter.CanBeCapturedByLocalFunction)
+                    if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
                     {
                         var refKind = GetRefKind(parameter.ParameterModifier);
                         var type = parameter.GetVariableType(SemanticDocument);

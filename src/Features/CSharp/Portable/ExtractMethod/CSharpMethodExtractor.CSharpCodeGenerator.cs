@@ -583,10 +583,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
                 var arguments = new List<ArgumentSyntax>();
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
 
                 foreach (var argument in AnalyzerResult.MethodParameters)
                 {
-                    if (!(LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root)) || !argument.CanBeCapturedByLocalFunction)
+                    if (!isLocalFunction || !argument.CanBeCapturedByLocalFunction)
                     {
                         var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
                         var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
