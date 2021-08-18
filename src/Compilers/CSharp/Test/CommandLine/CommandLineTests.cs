@@ -13598,7 +13598,7 @@ public class Generator : ISourceGenerator
 
                 var generatorPath = Path.Combine(directory.Path, "generator.dll");
 
-                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                var compilation = CSharpCompilation.Create($"generator",
                                                            new[] { CSharpSyntaxTree.ParseText(generatorSource) },
                                                            TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
                                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
