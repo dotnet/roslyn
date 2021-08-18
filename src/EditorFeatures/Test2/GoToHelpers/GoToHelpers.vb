@@ -35,7 +35,7 @@ Friend Class GoToHelpers
 
                 For Each definition In context.GetDefinitions()
                     For Each sourceSpan In definition.SourceSpans
-                        Dim docSpan = Await sourceSpan.TryRehydrateAsync(CancellationToken.None)
+                        Dim docSpan = Await sourceSpan.TryRehydrateAsync(solution, CancellationToken.None)
                         actualDefinitions.Add(New FilePathAndSpan(docSpan.Value.Document.FilePath, docSpan.Value.SourceSpan))
                     Next
                 Next

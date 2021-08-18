@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                                         var definitionItem = reducedMethod.ToNonClassifiedDefinitionItem(solution, true);
 
-                                        await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                                        await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

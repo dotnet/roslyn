@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
-            Workspace workspace,
+            Solution solution,
             string title,
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
             foreach (var item in items)
             {
-                if (await item.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
+                if (await item.CanNavigateToAsync(solution, cancellationToken).ConfigureAwait(false))
                     definitionsBuilder.Add(item);
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (await item.TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
+                if (await item.TryNavigateToAsync(solution, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
                     return true;
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
                 return await nonExternalItems[0].TryNavigateToAsync(
-                    workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
+                    solution, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
             }
 
             if (presenter != null)
@@ -119,11 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 try
                 {
                     foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+                        await context.OnDefinitionFoundAsync(solution, definition, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
 

@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct DocumentIdSpan
     {
-        public Workspace Workspace { get; }
         public DocumentId DocumentId { get; }
         public TextSpan SourceSpan { get; }
 
@@ -24,20 +23,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         public DocumentIdSpan(Document document, TextSpan sourceSpan)
-            : this(document.Project.Solution.Workspace, document.Id, sourceSpan)
+            : this(document.Id, sourceSpan)
         {
         }
 
-        public DocumentIdSpan(Workspace workspace, DocumentId documentId, TextSpan sourceSpan)
+        public DocumentIdSpan(DocumentId documentId, TextSpan sourceSpan)
         {
-            Workspace = workspace;
             DocumentId = documentId;
             SourceSpan = sourceSpan;
         }
 
-        public async Task<DocumentSpan?> TryRehydrateAsync(CancellationToken cancellationToken)
+        public async Task<DocumentSpan?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var solution = Workspace.CurrentSolution;
             var document = solution.GetDocument(DocumentId) ??
                            await solution.GetSourceGeneratedDocumentAsync(DocumentId, cancellationToken).ConfigureAwait(false);
             return document == null ? null : new DocumentSpan(document, SourceSpan);

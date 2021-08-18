@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                                                         .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
                             var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
-                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(document.Project.Solution, definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

@@ -83,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.AnnotatedSpans(DefinitionKey).ToList())).ToList()
 
                     Dim actualDefinitions = Await GetFileNamesAndSpansAsync(
+                        solution,
                         context.Definitions.Where(AddressOf context.ShouldShow).
                                             SelectMany(Function(d) d.SourceSpans))
 
@@ -95,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.SelectedSpans.ToList())).ToList()
 
                     Dim actualReferences = Await GetFileNamesAndSpansAsync(
+                        solution,
                         context.References.Select(Function(r) r.SourceSpan))
 
                     Assert.Equal(expectedReferences, actualReferences)
@@ -108,6 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.AnnotatedSpans(key).ToList())).ToList()
                         Dim valueUsageInfoField = key.Substring(ValueUsageInfoKey.Length)
                         Dim actual = Await GetFileNamesAndSpansAsync(
+                            solution,
                             context.References.Where(Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField).Select(Function(r) r.SourceSpan))
 
                         Assert.Equal(expected, actual)
@@ -122,6 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.AnnotatedSpans(key).ToList())).ToList()
                         Dim typeOrNamespaceUsageInfoFieldNames = key.Substring(TypeOrNamespaceUsageInfoKey.Length).Split(","c).Select(Function(s) s.Trim)
                         Dim actual = Await GetFileNamesAndSpansAsync(
+                            solution,
                             context.References.Where(Function(r)
                                                          Return r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt IsNot Nothing AndAlso
                                                                 r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt.ToString().Split(","c).Select(Function(s) s.Trim).SetEquals(typeOrNamespaceUsageInfoFieldNames)
@@ -141,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                 Select(Function(d) New FileNameAndSpans(
                                                        d.Name, d.AnnotatedSpans(annotationKey).ToList())).ToList()
                             Dim actual = Await GetFileNamesAndSpansAsync(
+                                solution,
                                 context.References.Where(Function(r)
                                                              Dim actualValue As String = Nothing
                                                              If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
@@ -177,11 +182,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return additionalPropertiesMap
         End Function
 
-        Private Shared Async Function GetFileNamesAndSpansAsync(items As IEnumerable(Of DocumentIdSpan)) As Task(Of List(Of FileNameAndSpans))
+        Private Shared Async Function GetFileNamesAndSpansAsync(solution As Solution, items As IEnumerable(Of DocumentIdSpan)) As Task(Of List(Of FileNameAndSpans))
             Dim dict = New Dictionary(Of Document, List(Of DocumentIdSpan))
 
             For Each item In items
-                Dim docSpan = Await item.TryRehydrateAsync(CancellationToken.None)
+                Dim docSpan = Await item.TryRehydrateAsync(solution, CancellationToken.None)
 
                 Dim list As List(Of DocumentIdSpan) = Nothing
                 If Not dict.TryGetValue(docSpan.Value.Document, list) Then
@@ -244,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
+            Public Overrides Function OnDefinitionFoundAsync(solution As Solution, definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
@@ -252,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
+            Public Overrides Function OnReferenceFoundAsync(solution As Solution, reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock

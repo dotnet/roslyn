@@ -303,28 +303,28 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+            public sealed override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
             {
-                await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
-
+                await OnCompletedAsyncWorkerAsync(solution, cancellationToken).ConfigureAwait(false);
                 _tableDataSink.IsStable = true;
             }
 
-            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
+            protected abstract Task OnCompletedAsyncWorkerAsync(Solution solution, CancellationToken cancellationToken);
 
-            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            public sealed override ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Gate)
                 {
                     Definitions.Add(definition);
                 }
 
-                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                return OnDefinitionFoundWorkerAsync(solution, definition, cancellationToken);
             }
 
-            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken);
 
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
+                Solution solution,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentIdSpan idSpan,
                 HighlightSpanKind spanKind,
@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var documentSpan = await idSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                var documentSpan = await idSpan.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                     return null;
 
@@ -391,10 +391,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => OnReferenceFoundWorkerAsync(reference, cancellationToken);
+            public sealed override ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+                => OnReferenceFoundWorkerAsync(solution, reference, cancellationToken);
 
-            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {

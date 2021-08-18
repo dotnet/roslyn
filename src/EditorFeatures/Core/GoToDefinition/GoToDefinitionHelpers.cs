@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
                     return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                        threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
+                        threadingContext, solution, title, definitions, cancellationToken).ConfigureAwait(false);
                 });
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return threadingContext.JoinableTaskFactory.Run(() =>
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
+                    threadingContext, solution, title, definitions, cancellationToken));
         }
     }
 }

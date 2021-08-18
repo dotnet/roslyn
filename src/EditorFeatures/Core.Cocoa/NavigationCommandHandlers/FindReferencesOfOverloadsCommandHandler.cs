@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     // that means that a new search has started.  We don't care about telling the
                     // context it has completed.  In the latter case something wrong has happened
                     // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

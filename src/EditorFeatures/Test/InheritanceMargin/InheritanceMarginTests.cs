@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
-                await VerifyInheritanceTargetAsync(expectedTargets[i], sortedActualTargets[i]);
+                await VerifyInheritanceTargetAsync(testWorkspace.CurrentSolution, expectedTargets[i], sortedActualTargets[i]);
             }
         }
 
-        private static async Task VerifyInheritanceTargetAsync(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static async Task VerifyInheritanceTargetAsync(Solution solution, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
-                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(CancellationToken.None);
+                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(solution, CancellationToken.None);
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                     Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
                 }

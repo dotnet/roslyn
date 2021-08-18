@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
             if (result is not var (filePath, lineNumber, charOffset))
                 return null;
 
@@ -117,10 +117,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            public override Task<bool> CanNavigateToAsync(Solution solution, CancellationToken cancellationToken)
                 => SpecializedTasks.True;
 
-            public override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public override async Task<bool> TryNavigateToAsync(Solution solution, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 return TryOpenFile() && TryNavigateToPosition();

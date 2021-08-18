@@ -46,29 +46,29 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
                 => throw ExceptionUtilities.Unreachable;
 
-            public override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            public override async Task<bool> CanNavigateToAsync(Solution solution, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return CanNavigateToMetadataSymbol(workspace, symbolKey);
+                    return CanNavigateToMetadataSymbol(solution.Workspace, symbolKey);
 
-                if (await this.SourceSpans[0].TryRehydrateAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await this.SourceSpans[0].TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public override async Task<bool> TryNavigateToAsync(Solution solution, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return TryNavigateToMetadataSymbol(workspace, symbolKey);
+                    return TryNavigateToMetadataSymbol(solution.Workspace, symbolKey);
 
-                if (await this.SourceSpans[0].TryRehydrateAsync(cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
+                if (await this.SourceSpans[0].TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
                     return false;
 
                 return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);

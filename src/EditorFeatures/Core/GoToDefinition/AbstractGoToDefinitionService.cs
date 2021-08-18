@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
 
                 return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
+                    _threadingContext, solution, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
             });
         }
 

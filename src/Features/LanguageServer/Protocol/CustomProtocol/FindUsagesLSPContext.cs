@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+        public override async ValueTask OnCompletedAsync(Solution solution, CancellationToken cancellationToken)
             => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public override async ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                     return;
 
-                var documentSpan = await reference.SourceSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                var documentSpan = await reference.SourceSpan.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                     return;
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         {
             var documentSpan = serializableDocumentSpan == null
                 ? null
-                : await serializableDocumentSpan.Value.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                : await serializableDocumentSpan.Value.TryRehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata

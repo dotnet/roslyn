@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var span = await sourceSpan.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                    var span = await sourceSpan.TryRehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     if (span == null)
                         continue;
 
