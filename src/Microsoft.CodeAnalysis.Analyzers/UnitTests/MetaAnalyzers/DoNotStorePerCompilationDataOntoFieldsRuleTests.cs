@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class DoNotStorePerCompilationDataOntoFieldsRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -70,7 +70,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -119,7 +119,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -199,7 +199,7 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System
@@ -271,7 +271,7 @@ End Class
         }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
-        public async Task CSharp_NestedStruct_NoDiagnostic()
+        public async Task CSharp_NestedStruct_NoDiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
