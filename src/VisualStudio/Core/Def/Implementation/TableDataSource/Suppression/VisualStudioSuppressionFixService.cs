@@ -234,7 +234,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
-            // Fire and forget
             var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
             ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog)
                 .CompletesAsyncOperation(token);
