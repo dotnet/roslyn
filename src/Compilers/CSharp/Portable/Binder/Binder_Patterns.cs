@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DefaultLiteralExpression:
                         diagnostics.Add(ErrorCode.ERR_DefaultPattern, e.Location);
                         hasErrors = true;
-                        goto default;
+                        return e;
                     case SyntaxKind.ParenthesizedExpression:
                         e = ((ParenthesizedExpressionSyntax)e).Expression;
                         continue;
