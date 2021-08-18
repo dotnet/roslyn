@@ -972,6 +972,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.NotEmpty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
 
             AssertEx.Equal(new[]
@@ -1024,6 +1025,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+            debuggingSession.DiscardSolutionUpdate();
 
             if (breakMode)
             {
@@ -1922,6 +1924,7 @@ class C { int Y => 2; }
             {
                 Assert.True(hasChanges);
                 Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+                debuggingSession.DiscardSolutionUpdate();
             }
 
             ExitBreakState(debuggingSession);
@@ -2226,6 +2229,7 @@ class C { int Y => 2; }
                 Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
                 ValidateDelta(updates.Updates.Single());
+                debuggingSession.DiscardSolutionUpdate();
             }
 
             if (breakMode)
@@ -2354,6 +2358,7 @@ class C { int Y => 2; }
                 (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
                 Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
                 Assert.Empty(emitDiagnostics);
+                debuggingSession.DiscardSolutionUpdate();
             }
             else
             {
@@ -2427,6 +2432,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
             Assert.Equal(6, delta.UpdatedMethods.Length);  // F, C.C(), D.D(), E.E(int), E.E(int, int), lambda
             AssertEx.SetEqual(new[] { 0x02000002, 0x02000003, 0x02000004, 0x02000005 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2473,6 +2479,7 @@ class C { int Y => 2; }
             Assert.Equal(2, delta.UpdatedMethods.Length);
             AssertEx.Equal(new[] { 0x02000002, 0x02000003 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2535,6 +2542,7 @@ class G
             Assert.Empty(delta.UpdatedMethods);
             Assert.Empty(delta.UpdatedTypes);
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2579,6 +2587,7 @@ partial class C { int X = 1; }
             Assert.Equal(1, delta.UpdatedMethods.Length); // constructor update
             Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2626,6 +2635,7 @@ class C { int Y => 1; }
             Assert.Equal(1, delta.UpdatedMethods.Length);
             Assert.Equal(0x02000003, delta.UpdatedTypes.Single());
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2669,6 +2679,7 @@ class C { int Y => 1; }
             Assert.Equal(1, delta.UpdatedMethods.Length);
             Assert.Equal(0x02000003, delta.UpdatedTypes.Single());
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2709,6 +2720,7 @@ class C { int Y => 1; }
             Assert.Equal(1, delta.UpdatedMethods.Length);
             Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -3404,6 +3416,7 @@ class C
                 "a.razor: [0 -> 1]"
             }, delta.SequencePoints.Inspect());
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -3493,6 +3506,7 @@ class C
             Assert.Empty(emitDiagnostics);
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
@@ -3878,6 +3892,7 @@ class C
                 var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, s_noActiveSpans, CancellationToken.None);
                 Assert.Empty(result1.Diagnostics);
                 Assert.Equal(1, result1.ModuleUpdates.Updates.Length);
+                encService.DiscardSolutionUpdate(sessionId);
 
                 var solution2 = solution1.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 

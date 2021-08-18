@@ -179,6 +179,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Report all rude edits.
 
+            Contract.ThrowIfFalse(rudeEdits.Length > 0 && solution != null);
+
             foreach (var (documentId, diagnostics) in rudeEdits)
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
