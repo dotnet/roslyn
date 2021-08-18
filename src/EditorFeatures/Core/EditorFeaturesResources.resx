@@ -1080,7 +1080,4 @@ Do you want to proceed?</value>
   <data name="All_methods" xml:space="preserve">
     <value>All methods</value>
   </data>
-  <data name="Execute_Suggested_Action" xml:space="preserve">
-    <value>Execute Suggested Action</value>
-  </data>
 </root>

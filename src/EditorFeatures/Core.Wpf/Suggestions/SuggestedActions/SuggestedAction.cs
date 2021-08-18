@@ -125,28 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // So we need to take ownership of it and start our own TWD instead to track this.
             context.TakeOwnership();
 
-            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-            InvokeAsync().CompletesAsyncOperation(token);
-        }
-
-        private async Task InvokeAsync()
-        {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
-
-            try
-            {
-                using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
-                    EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
-                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
-                await this.InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
+            // A None cancellation token is fine to pass.  the Invoke call will create it's own cancellable
+            // threaded wait dialog.
+            Invoke(CancellationToken.None);
         }
 
         protected virtual async Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -367,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 => _suggestedAction = suggestedAction;
 
             public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync();
+                => _suggestedAction.InvokeAsync(CancellationToken.None);
         }
     }
 }
