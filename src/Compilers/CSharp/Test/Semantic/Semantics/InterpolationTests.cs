@@ -12764,5 +12764,250 @@ format:
 }
 ");
         }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("")]
+        public void ArgumentsOnLocalFunctions_01(string mod)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+M($"""");
+
+" + mod + @" void M([InterpolatedStringHandlerArgument("""")] CustomHandler c) { }
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // M($"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 3),
+                // (6,10): error CS8944: 'M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                //  void M([InterpolatedStringHandlerArgument("")] CustomHandler c) { }
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M(CustomHandler)").WithLocation(6, 10 + mod.Length)
+            );
+        }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("")]
+        public void ArgumentsOnLocalFunctions_02(string mod)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+M(1, $"""");
+
+" + mod + @" void M(int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c) => Console.WriteLine(c.ToString());
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int i) : this(literalLength, formattedCount) => _builder.Append(""i:"" + i.ToString());
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: @"i:1");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  newobj     ""CustomHandler..ctor(int, int, int)""
+  IL_000b:  call       ""void Program.<<Main>$>g__M|0_0(int, CustomHandler)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("")]
+        public void ArgumentsOnLambdas_01(string mod)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+var a = " + mod + @" ([InterpolatedStringHandlerArgument("""")] CustomHandler c) => { };
+
+a($"""");
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS8971: InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.
+                // var a =  ([InterpolatedStringHandlerArgument("")] CustomHandler c) => { };
+                Diagnostic(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, @"InterpolatedStringHandlerArgument("""")").WithLocation(4, 12 + mod.Length),
+                // (4,12): error CS8944: 'lambda expression' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // var a =  ([InterpolatedStringHandlerArgument("")] CustomHandler c) => { };
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("lambda expression").WithLocation(4, 12 + mod.Length)
+            );
+        }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("")]
+        public void ArgumentsOnLambdas_02(string mod)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+var a = " + mod + @" (int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c) => Console.WriteLine(c.ToString());
+
+a(1, $"""");
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int i) => throw null;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: @"");
+            verifier.VerifyDiagnostics(
+                // (5,19): warning CS8971: InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.
+                // var a =  (int i, [InterpolatedStringHandlerArgument("i")] CustomHandler c) => Console.WriteLine(c.ToString());
+                Diagnostic(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, @"InterpolatedStringHandlerArgument(""i"")").WithLocation(5, 19 + mod.Length)
+            );
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  IL_0000:  ldsfld     ""System.Action<int, CustomHandler> Program.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""void Program.<>c.<<Main>$>b__0_0(int, CustomHandler)""
+  IL_0014:  newobj     ""System.Action<int, CustomHandler>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Action<int, CustomHandler> Program.<>c.<>9__0_0""
+  IL_001f:  ldc.i4.1
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.0
+  IL_0022:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0027:  callvirt   ""void System.Action<int, CustomHandler>.Invoke(int, CustomHandler)""
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ArgumentsOnDelegateTypes_01()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+M m = null;
+
+m($"""");
+
+delegate void M([InterpolatedStringHandlerArgument("""")] CustomHandler c);
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (6,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // m($"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(6, 3),
+                // (8,18): error CS8944: 'M.Invoke(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // delegate void M([InterpolatedStringHandlerArgument("")] CustomHandler c);
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("M.Invoke(CustomHandler)").WithLocation(8, 18)
+            );
+        }
+
+        [Fact]
+        public void ArgumentsOnDelegateTypes_02()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Delegate Sub M(<InterpolatedStringHandlerArgument("""")> c As CustomHandler)
+
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var code = @"
+M m = null;
+
+m($"""");
+";
+
+            var comp = CreateCompilation(code, references: new[] { vbComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (4,3): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // m($"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 3),
+                // (4,3): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
+                // m($"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "2").WithLocation(4, 3),
+                // (4,3): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
+                // m($"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(4, 3)
+            );
+        }
+
+        [Fact]
+        public void ArgumentsOnDelegateTypes_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+M m = (i, c) => Console.WriteLine(c.ToString());
+
+m(1, $"""");
+
+delegate void M(int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c);
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int i) : this(literalLength, formattedCount) => _builder.Append(""i:"" + i.ToString());
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: @"i:1");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  5
+  .locals init (int V_0)
+  IL_0000:  ldsfld     ""M Program.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000e:  ldftn      ""void Program.<>c.<<Main>$>b__0_0(int, CustomHandler)""
+  IL_0014:  newobj     ""M..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""M Program.<>c.<>9__0_0""
+  IL_001f:  ldc.i4.1
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldloc.0
+  IL_0025:  newobj     ""CustomHandler..ctor(int, int, int)""
+  IL_002a:  callvirt   ""void M.Invoke(int, CustomHandler)""
+  IL_002f:  ret
+}
+");
+        }
     }
 }
