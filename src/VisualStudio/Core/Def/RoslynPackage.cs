@@ -259,12 +259,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
 
-            // Initialize any experiments async
-            var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
-            foreach (var experiment in experiments)
-            {
-                await experiment.InitializeAsync().ConfigureAwait(true);
-            }
+            // Initialize any keybinding reset detector
+            await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

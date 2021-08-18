@@ -21,7 +21,21 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceService(typeof(IInfoBarService), layer: ServiceLayer.Host), Shared]
-    internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
+    internal sealed class VisualStudioInfoBarWorkspaceService : IInfoBarService
+    {
+        private readonly VisualStudioInfoBarService _service;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioInfoBarWorkspaceService(VisualStudioInfoBarService service)
+            => _service = service;
+
+        public void ShowInfoBar(string message, params InfoBarUI[] items)
+            => _service.ShowInfoBar(message, items);
+    }
+
+    [Export(typeof(VisualStudioInfoBarService)), Shared]
+    internal sealed class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject
     {
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _listener;

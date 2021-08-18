@@ -101,19 +101,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
         {
-            // If _lazyOptionSerializers is already initialized, return its value directly.
-            if (_lazyOptionSerializers is { IsDefault: false } optionSerializers)
+            if (_lazyOptionSerializers.IsDefault)
             {
-                return optionSerializers;
+                // Option persisters cannot be initialized while holding the global options lock
+                // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1353715
+                Debug.Assert(!Monitor.IsEntered(_gate));
+
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _lazyOptionSerializers,
+                    GetOptionPersistersSlow(_workspaceThreadingService, _optionSerializerProviders, CancellationToken.None));
             }
-
-            // Option persisters cannot be initialized while holding the global options lock
-            // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1353715
-            Debug.Assert(!Monitor.IsEntered(_gate));
-
-            ImmutableInterlocked.InterlockedInitialize(
-                ref _lazyOptionSerializers,
-                GetOptionPersistersSlow(_workspaceThreadingService, _optionSerializerProviders, CancellationToken.None));
 
             return _lazyOptionSerializers;
 
@@ -361,6 +358,17 @@ namespace Microsoft.CodeAnalysis.Options
             _changedOptionKeys = _changedOptionKeys.Add(optionKey);
         }
 
+        public void SetGlobalOption(OptionKey optionKey, object? value)
+        {
+            lock (_gate)
+            {
+                // not updating _changedOptionKeys since that's only relevant for serializable options, not global ones
+                _currentValues = _currentValues.SetItem(optionKey, value);
+            }
+
+            PersistOption(GetOptionPersisters(), optionKey, value);
+        }
+
         public void SetOptions(OptionSet optionSet)
         {
             var changedOptionKeys = optionSet switch
@@ -372,39 +380,45 @@ namespace Microsoft.CodeAnalysis.Options
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
-            // Ensure the option persisters are available before taking the global lock
-            var persisters = GetOptionPersisters();
-
             lock (_gate)
             {
                 foreach (var optionKey in changedOptionKeys)
                 {
-                    var setValue = optionSet.GetOption(optionKey);
+                    var newValue = optionSet.GetOption(optionKey);
                     var currentValue = this.GetOption(optionKey);
 
-                    if (object.Equals(currentValue, setValue))
+                    if (object.Equals(currentValue, newValue))
                     {
                         // Identical, so nothing is changing
                         continue;
                     }
 
                     // The value is actually changing, so update
-                    changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
+                    changedOptions.Add(new OptionChangedEventArgs(optionKey, newValue));
 
-                    SetOptionCore(optionKey, setValue);
-
-                    foreach (var serializer in persisters)
-                    {
-                        if (serializer.TryPersist(optionKey, setValue))
-                        {
-                            break;
-                        }
-                    }
+                    SetOptionCore(optionKey, newValue);
                 }
+            }
+
+            var persisters = GetOptionPersisters();
+            foreach (var changedOption in changedOptions)
+            {
+                PersistOption(persisters, changedOption.OptionKey, changedOption.Value);
             }
 
             // Outside of the lock, raise the events on our task queue.
             UpdateRegisteredWorkspacesAndRaiseEvents(changedOptions);
+        }
+
+        private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey optionKey, object? value)
+        {
+            foreach (var serializer in persisters)
+            {
+                if (serializer.TryPersist(optionKey, value))
+                {
+                    break;
+                }
+            }
         }
 
         public void RefreshOption(OptionKey optionKey, object? newValue)
@@ -435,13 +449,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             // Ensure that the Workspace's CurrentSolution snapshot is updated with new options for all registered workspaces
             // prior to raising option changed event handlers.
-            using var disposer = ArrayBuilder<Workspace>.GetInstance(out var workspacesBuilder);
-            lock (_gate)
-            {
-                workspacesBuilder.AddRange(_registeredWorkspaces);
-            }
-
-            foreach (var workspace in workspacesBuilder)
+            foreach (var workspace in _registeredWorkspaces)
             {
                 workspace.UpdateCurrentSolutionOnOptionsChanged();
             }
@@ -458,20 +466,10 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public void RegisterWorkspace(Workspace workspace)
-        {
-            lock (_gate)
-            {
-                _registeredWorkspaces = _registeredWorkspaces.Add(workspace);
-            }
-        }
+            => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Add(workspace), workspace);
 
         public void UnregisterWorkspace(Workspace workspace)
-        {
-            lock (_gate)
-            {
-                _registeredWorkspaces = _registeredWorkspaces.Remove(workspace);
-            }
-        }
+            => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Remove(workspace), workspace);
 
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
     }

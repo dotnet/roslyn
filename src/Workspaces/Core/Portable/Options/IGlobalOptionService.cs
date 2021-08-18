@@ -45,9 +45,18 @@ namespace Microsoft.CodeAnalysis.Options
         object? GetOption(OptionKey optionKey);
 
         /// <summary>
-        /// Applies a set of options, invoking serializers if needed.
+        /// Applies a set of options.
+        /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
         /// </summary>
         void SetOptions(OptionSet optionSet);
+
+        /// <summary>
+        /// Sets the value of a global option.
+        /// Invokes registered option persisters.
+        /// Does not update any workspace (since this option is not a solution option).
+        /// Does not trigger <see cref="OptionChanged"/>.
+        /// </summary>
+        void SetGlobalOption(OptionKey optionKey, object? value);
 
         /// <summary>
         /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
