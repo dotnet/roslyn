@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     public class TestNFWThrows
     {
 
-        [Fact]
+        [Fact, Trait("NonFatalWatsonThrowsTrait", "NonFatalWatsonThrowsValue")]
         public async Task Throws()
         {
             Console.WriteLine("Running test");
