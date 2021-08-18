@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             try
             {
-                // If we want to report progress, we need to create a scope inside the context -- the main context itself doesn't have a way
-                // to report progress. We pass the same allow cancellation and message so otherwise nothing changes.
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
                 using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
