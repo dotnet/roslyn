@@ -222,6 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_prefer_simple_using_statement",
             $"TextEditor.CSharp.Specific.{nameof(PreferSimpleUsingStatement)}");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferSimplePropertyPattern = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimplePropertyPattern),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            "csharp_prefer_simple_property_pattern",
+            $"TextEditor.CSharp.Specific.{nameof(PreferSimplePropertyPattern)}");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferLocalOverAnonymousFunction = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
             defaultValue: s_trueWithSuggestionEnforcement,
