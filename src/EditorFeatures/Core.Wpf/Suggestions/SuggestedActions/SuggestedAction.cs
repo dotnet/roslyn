@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
                 using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
 
-                await InvokeAsync(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token).ConfigureAwait(false);
+                await InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             try
             {
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
-                await this.InvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
+                await this.InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -144,16 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
             }
-        }
-
-        private async Task InvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
-
-            await InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(true);
-            foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                actionCallback.Value.OnSuggestedActionExecuted(this);
         }
 
         protected virtual async Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
