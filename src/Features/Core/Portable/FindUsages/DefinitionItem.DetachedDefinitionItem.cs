@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     var documentSpan = await ss.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
                     if (documentSpan == null)
                         return null;
+                        
+                    converted.Add(documentSpan.Value);
                 }
 
                 return new DefaultDefinitionItem(
