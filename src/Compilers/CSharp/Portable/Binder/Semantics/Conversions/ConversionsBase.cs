@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
-        protected abstract Conversion GetInterpolatedStringConversion(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+        protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -932,13 +931,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedInterpolatedString:
                 case BoundKind.BinaryOperator when ((BoundBinaryOperator)sourceExpression).IsUnconvertedInterpolatedStringAddition:
-                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion(destination, ref useSiteInfo);
+                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion(sourceExpression, destination, ref useSiteInfo);
                     if (interpolatedStringConversion.Exists)
                     {
                         return interpolatedStringConversion;
                     }
                     break;
-
                 case BoundKind.StackAllocArrayCreation:
                     var stackAllocConversion = GetStackAllocConversion((BoundStackAllocArrayCreation)sourceExpression, destination, ref useSiteInfo);
                     if (stackAllocConversion.Exists)
@@ -1395,7 +1393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (delegateType is null)
             {
-                return LambdaConversionResult.Success;
+                Debug.Assert(IsFeatureInferredDelegateTypeEnabled(anonymousFunction));
+                return GetInferredDelegateTypeResult(anonymousFunction);
             }
 
             return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
@@ -1410,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
                 {
-                    return LambdaConversionResult.Success;
+                    return GetInferredDelegateTypeResult(anonymousFunction);
                 }
             }
             else if (type.IsDelegateType())
@@ -1431,6 +1430,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
         {
             return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
+        }
+
+        private static LambdaConversionResult GetInferredDelegateTypeResult(UnboundLambda anonymousFunction)
+        {
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return anonymousFunction.InferDelegateType(ref discardedUseSiteInfo) is null ?
+                LambdaConversionResult.CannotInferDelegateType :
+                LambdaConversionResult.Success;
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)

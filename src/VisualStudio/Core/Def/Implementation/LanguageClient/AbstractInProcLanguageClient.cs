@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,6 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
         public abstract string Name { get; }
+
+        /// <summary>
+        /// The set of languages that this LSP server supports and can return results for.
+        /// </summary>
+        protected abstract ImmutableArray<string> SupportedLanguages { get; }
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
@@ -205,6 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _listenerProvider,
                 logger,
                 _diagnosticService,
+                SupportedLanguages,
                 clientName: _diagnosticsClientName,
                 userVisibleServerName: this.Name,
                 telemetryServerTypeName: this.GetType().Name);

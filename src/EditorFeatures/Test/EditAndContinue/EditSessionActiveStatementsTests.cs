@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var mockDebuggerService = new MockManagedEditAndContinueDebuggerService()
             {
-                GetActiveStatementsImpl = () => activeStatements
+                GetActiveStatementsImpl = () => activeStatements,
             };
 
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 new DebuggingSessionId(1),
                 solution,
                 mockDebuggerService,
-                EditAndContinueTestHelpers.Net5RuntimeCapabilities,
                 mockCompilationOutputsProvider,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
                 reportDiagnostics: true);
@@ -60,8 +59,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.GetTestAccessor().SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
-            debuggingSession.RestartEditSession(inBreakState: true, out _);
+            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);
             return debuggingSession.EditSession;
         }
 

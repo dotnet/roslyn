@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -48,5 +49,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Whether the runtime supports updating the Param table, and hence related edits (eg parameter renames)
         /// </summary>
         UpdateParameters = 1 << 6,
+    }
+
+    internal static class EditAndContinueCapabilitiesParser
+    {
+        public static EditAndContinueCapabilities Parse(ImmutableArray<string> capabilities)
+        {
+            var caps = EditAndContinueCapabilities.None;
+
+            foreach (var capability in capabilities)
+            {
+                caps |= capability switch
+                {
+                    "Baseline" => EditAndContinueCapabilities.Baseline,
+                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
+                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
+                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
+                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
+                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
+                    "UpdateParameters" => EditAndContinueCapabilities.UpdateParameters,
+
+                    // To make it eaiser for  runtimes to specify more broad capabilities
+                    "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
+
+                    _ => EditAndContinueCapabilities.None
+                };
+            }
+
+            return caps;
+        }
     }
 }
