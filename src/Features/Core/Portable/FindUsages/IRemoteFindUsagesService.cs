@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpan = sourceSpan;
         }
 
-        public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
-            => new(documentSpan.Document.Id, documentSpan.SourceSpan);
+        public static SerializableDocumentSpan Dehydrate(DocumentIdSpan documentSpan)
+            => new(documentSpan.DocumentId, documentSpan.SourceSpan);
 
         public async ValueTask<DocumentSpan> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
