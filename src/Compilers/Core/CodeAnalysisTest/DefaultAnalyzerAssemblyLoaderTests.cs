@@ -359,6 +359,7 @@ Delta: Epsilon: Test E
                 }
             }
 
+            builder.Sort();
             var allReferenceSimpleNames = builder.ToImmutableAndFree();
             if (!Enumerable.SequenceEqual(allReferenceSimpleNames, DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames))
             {
