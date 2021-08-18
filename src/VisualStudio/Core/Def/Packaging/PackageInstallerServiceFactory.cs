@@ -58,11 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly SVsServiceProvider _serviceProvider;
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IAsynchronousOperationListener _listener;
 
         private readonly Lazy<IVsPackageInstaller2>? _packageInstaller;
         private readonly Lazy<IVsPackageUninstaller>? _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider>? _packageSourceProvider;
-
         private IVsPackage? _nugetPackageManager;
 
         /// <summary>
@@ -122,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageInstaller = packageInstaller;
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
+            _listener = listenerProvider.GetListener(FeatureAttribute.PackageInstaller);
 
             // Setup the work queue to allow us to hear about flurries of changes and then respond to them in batches
             // every second.  Note: we pass in EqualityComparer<...>.Default since we don't care about ordering, and
@@ -131,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkQueueAsync,
                 equalityComparer: EqualityComparer<(bool solutionChanged, ProjectId? changedProject)>.Default,
-                listenerProvider.GetListener(FeatureAttribute.PackageInstaller),
+                _listener,
                 this.DisposalToken);
         }
 
