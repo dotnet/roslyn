@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 => _suggestedAction = suggestedAction;
 
             public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync();
+                => _suggestedAction.InvokeAsync(CancellationToken.None);
         }
     }
 }
