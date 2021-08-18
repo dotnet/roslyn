@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,37 +23,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public class TestNFWThrows
     {
-        /*public TestNFWThrows(ITestOutputHelper output)
+        private XunitTraceListener _logger;
+        public TestNFWThrows(ITestOutputHelper output)
         {
-            var converter = new Converter(output);
-            Console.SetOut(converter);
+            //var converter = new Converter(output);
+            //Console.SetOut(converter);
+            _logger = new XunitTraceListener(output);
         }
-
-        private class Converter : TextWriter
-        {
-            ITestOutputHelper _output;
-            public Converter(ITestOutputHelper output)
-            {
-                _output = output;
-            }
-            public override Encoding Encoding
-            {
-                get { return Encoding.UTF8; }
-            }
-            public override void WriteLine(string message)
-            {
-                _output.WriteLine(message);
-            }
-            public override void WriteLine(string format, params object[] args)
-            {
-                _output.WriteLine(format, args);
-            }
-        }*/
 
         [Fact]
         public async Task Throws()
         {
             Console.WriteLine("Running test");
+            _logger.WriteLine("[Logger] running test");
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess);
             using var localWorkspace = new TestWorkspace(composition: localComposition);
 
@@ -63,23 +46,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
             ServiceBase.Equals(1, 1);
             var tasks = new List<Task>();
-            WriteSomethingInDebug();
             for (var i = 0; i < 10; i++)
             {
                 tasks.Add(Task.Run(() =>
                 {
                     Console.WriteLine("fail " + i);
+                    _logger.Write("[Logger] Fail " + i);
                     FatalError.ReportAndCatch(new Exception("TestException"));
                 }));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        [Conditional("DEBUG")]
-        private void WriteSomethingInDebug()
-        {
-            Console.WriteLine("Yes, this is debug");
         }
     }
 }
