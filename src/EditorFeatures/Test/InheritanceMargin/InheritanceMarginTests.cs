@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
-                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].Document.FilePath);
+                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].TryRehydrate()!.Value.Document.FilePath);
                 }
             }
         }

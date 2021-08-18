@@ -4,65 +4,58 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal partial class DefinitionItem
     {
-        internal sealed class DetachedDefinitionItem : CommonDefinitionItem
+        internal readonly struct DetachedDefinitionItem
         {
-            private readonly Workspace? _workspace;
-            private readonly DocumentId? _documentId;
-            private readonly TextSpan _sourceSpan;
+            public readonly ImmutableArray<string> Tags;
+            public readonly ImmutableDictionary<string, string> Properties;
+            public readonly ImmutableDictionary<string, string> DisplayableProperties;
+            public readonly ImmutableArray<TaggedText> NameDisplayParts;
+            public readonly ImmutableArray<TaggedText> DisplayParts;
+            public readonly ImmutableArray<TaggedText> OriginationParts;
+            public readonly bool DisplayIfNoReferences;
+
+            public readonly ImmutableArray<DocumentIdSpan> SourceSpans;
 
             public DetachedDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> nameDisplayParts,
                 ImmutableArray<TaggedText> originationParts,
-                DocumentSpan sourceSpan,
+                ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
                 ImmutableDictionary<string, string> displayableProperties,
                 bool displayIfNoReferences)
-                : base(tags,
-                       displayParts,
-                       nameDisplayParts,
-                       originationParts,
-                       ImmutableArray<DocumentSpan>.Empty,
-                       properties,
-                       displayableProperties,
-                       displayIfNoReferences)
             {
-                _workspace = sourceSpan.Document?.Project.Solution.Workspace;
-                _documentId = sourceSpan.Document?.Id;
-                _sourceSpan = sourceSpan.SourceSpan;
+                Tags = tags;
+                DisplayParts = displayParts;
+                NameDisplayParts = nameDisplayParts;
+                OriginationParts = originationParts;
+                Properties = properties;
+                DisplayableProperties = displayableProperties;
+                DisplayIfNoReferences = displayIfNoReferences;
+                SourceSpans = sourceSpans.SelectAsArray(ss => new DocumentIdSpan(ss));
             }
 
-            protected override bool CanNavigateToSource(CancellationToken cancellationToken)
+            public DefaultDefinitionItem? TryRehydrate()
             {
-                if (_workspace == null)
-                    return false;
+                using var converted = TemporaryArray<DocumentSpan>.Empty;
+                foreach (var ss in SourceSpans)
+                {
+                    var documentSpan = ss.TryRehydrate();
+                    if (documentSpan == null)
+                        return null;
+                }
 
-                var document = _workspace.CurrentSolution.GetDocument(_documentId);
-                if (document == null)
-                    return false;
-
-                var documentSpan = new DocumentSpan(document, _sourceSpan);
-                return documentSpan.CanNavigateTo(cancellationToken);
-            }
-
-            protected override bool TryNavigateToSource(bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            {
-                if (_workspace == null)
-                    return false;
-
-                var document = _workspace.CurrentSolution.GetDocument(_documentId);
-                if (document == null)
-                    return false;
-
-                var documentSpan = new DocumentSpan(document, _sourceSpan);
-                return documentSpan.TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
+                return new DefaultDefinitionItem(
+                    Tags, DisplayParts, NameDisplayParts, OriginationParts,
+                    converted.ToImmutableAndClear(),
+                    Properties, DisplayableProperties, DisplayIfNoReferences);
             }
         }
     }

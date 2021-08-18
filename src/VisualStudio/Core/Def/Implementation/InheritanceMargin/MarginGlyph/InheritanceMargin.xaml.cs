@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
@@ -71,13 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                         defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
                         allowCancellation: true,
                         showProgress: false),
-                    context => GoToDefinitionHelpers.TryGoToDefinition(
-                        ImmutableArray.Create(viewModel.DefinitionItem),
-                        _workspace,
-                        string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
-                        _threadingContext,
-                        _streamingFindUsagesPresenter,
-                        context.UserCancellationToken));
+                    context =>
+                    {
+                        var rehydrated = viewModel.DefinitionItem.TryRehydrate();
+                        if (rehydrated != null)
+                        {
+                            GoToDefinitionHelpers.TryGoToDefinition(
+                                ImmutableArray.Create<DefinitionItem>(rehydrated),
+                                _workspace,
+                                string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
+                                _threadingContext,
+                                _streamingFindUsagesPresenter,
+                                context.UserCancellationToken);
+                        }
+                    });
             }
         }
 
