@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
