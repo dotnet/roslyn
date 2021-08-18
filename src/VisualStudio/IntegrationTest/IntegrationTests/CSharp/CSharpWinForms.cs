@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -103,7 +105,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55703"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -114,6 +116,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "SomeButtonHandler");
             // Rename the control
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Name", propertyValue: "SomeNewButton");
+            Thread.Sleep(TimeSpan.FromSeconds(20));
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             // Verify that the rename propagated in designer code
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
