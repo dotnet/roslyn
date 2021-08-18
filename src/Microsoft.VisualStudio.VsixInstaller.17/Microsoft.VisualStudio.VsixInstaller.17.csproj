@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-1-31318-291" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-3-31605-261" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="17.0.0-previews-1-31318-291" />
   </ItemGroup>
 
