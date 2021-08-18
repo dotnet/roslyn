@@ -10481,6 +10481,79 @@ literal:literal
         }
 
         [Theory]
+        [InlineData(@"$""literal""")]
+        [InlineData(@"$"""" + $""literal""")]
+        public void InterpolatedStringHandlerArgumentsAttribute_DictionaryInitializer(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+_ = new C(1) { [" + expression + @"] = 1 };
+
+public class C
+{
+    public int Field;
+
+    public C(int i)
+    {
+        Field = i;
+    }
+
+    public int this[[InterpolatedStringHandlerArgument("""")] CustomHandler c]
+    {
+        set => Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine(""c.Field:"" + c.Field.ToString());
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+c.Field:1
+literal:literal
+");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (C V_0,
+                CustomHandler V_1,
+                CustomHandler V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     ""C..ctor(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  ldc.i4.7
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldstr      ""literal""
+  IL_0018:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.1
+  IL_0021:  ldc.i4.1
+  IL_0022:  callvirt   ""void C.this[CustomHandler].set""
+  IL_0027:  ret
+}
+");
+        }
+
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_AttributeOnAppendFormatCall(bool useBoolReturns, bool validityParameter,
             [CombinatorialValues(@"$""{$""Inner string""}{2}""", @"$""{$""Inner string""}"" + $""{2}""")] string expression)
