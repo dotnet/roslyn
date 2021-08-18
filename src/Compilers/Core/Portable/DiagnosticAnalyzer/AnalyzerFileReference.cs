@@ -31,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
-        private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace!;
-        private static readonly string s_generatorAttributeNamespace = typeof(GeneratorAttribute).Namespace!;
-        // <Caravela>
-TODO: remove like s_diagnosticAnalyzerAttributeNamespace and s_generatorAttributeNamespace
-        private static readonly string s_transformerAttributeNamespace = typeof(TransformerAttribute).Namespace!;
-        // </Caravela>
-
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
         private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
@@ -72,8 +65,8 @@ TODO: remove like s_diagnosticAnalyzerAttributeNamespace and s_generatorAttribut
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
             // <Caravela>
-            _transformers = new Extensions<ISourceTransformer>(this, IsTransformerAttribute, GetTransformersSupportedLanguages, allowNetFramework: false);
-            _plugins = new Extensions<object>(this, IsPluginAttribute, GetTransformersSupportedLanguages, allowNetFramework: false);
+            _transformers = new(this, typeof(TransformerAttribute), GetTransformersSupportedLanguages, allowNetFramework: false);
+            _plugins = new(this, Type.GetType($"{CompilerPlugInAttributeTypeNamespace}.{CompilerPlugInAttributeTypeName}, {CompilerPlugInAttributeAssembly}")!, GetTransformersSupportedLanguages, allowNetFramework: false);
             // </Caravela>
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
@@ -148,14 +141,12 @@ TODO: remove like s_diagnosticAnalyzerAttributeNamespace and s_generatorAttribut
         // <Caravela>
         public override ImmutableArray<ISourceTransformer> GetTransformers()
         {
-TODO GetGenerators moved from GetExtensionsForAllLanguages() to GetExtensions(LanguageNames.CSharp). Why? Should we?
-            return _transformers.GetExtensionsForAllLanguages();
+            return _transformers.GetExtensions(LanguageNames.CSharp);
         }
 
         public override ImmutableArray<object> GetPlugins()
         {
-TODO GetGenerators moved from GetExtensionsForAllLanguages() to GetExtensions(LanguageNames.CSharp). Why? Should we?
-            return _plugins.GetExtensionsForAllLanguages();
+            return _plugins.GetExtensions(LanguageNames.CSharp);
         }
         // </Caravela>
 
@@ -380,22 +371,12 @@ TODO GetGenerators moved from GetExtensionsForAllLanguages() to GetExtensions(La
 
 
         // <Caravela>
-        private static bool IsTransformerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            return peModule.IsTargetAttribute(customAttrHandle, s_transformerAttributeNamespace, nameof(TransformerAttribute), ctor: out _);
-        }
-
         private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
         // These constants are referenced in Caravela.Try.
         public const string CompilerPlugInAttributeTypeName = "CompilerPluginAttribute";
-        public const string CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Sdk";
-
-        private static bool IsPluginAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            // This type is defined in Caravela.Framework.Sdk project, in the Caravela repo.
-            return peModule.IsTargetAttribute(customAttrHandle, CompilerPlugInAttributeTypeNamespace, CompilerPlugInAttributeTypeName, ctor: out _);
-        }
+        public const string CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Impl.Sdk";
+        public const string CompilerPlugInAttributeAssembly = "Caravela.Framework.Sdk";
         // </Caravela>
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)

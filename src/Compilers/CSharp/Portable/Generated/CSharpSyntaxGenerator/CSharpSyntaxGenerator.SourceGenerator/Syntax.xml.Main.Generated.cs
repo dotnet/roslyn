@@ -4988,6 +4988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            globalKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(globalKeyword);
             usingKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
             staticKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(staticKeyword);
             alias = Caravela.Compiler.TreeTracker.TrackIfNeeded(alias);
@@ -5303,6 +5304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            classOrStructKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(classOrStructKeyword);
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);

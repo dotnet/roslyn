@@ -1,4 +1,6 @@
 *REMOVED*Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeAssembly = "Caravela.Framework.Sdk" -> string!
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Impl.Sdk" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
@@ -33,7 +35,6 @@ Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnal
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.IOperation! operation, TArgument argument) -> object?
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation? operation, TArgument argument) -> object?
@@ -58,7 +59,6 @@ Caravela.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalys
 Caravela.Compiler.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
 Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeName = "CompilerPluginAttribute" -> string
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Sdk" -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Caravela.Compiler.ISourceTransformer>
 static Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle

@@ -65,10 +65,8 @@ namespace Microsoft.CodeAnalysis
         internal const int Succeeded = 0;
 
 
-TODO: remove        private readonly string _clientDirectory;
-        
         // <Caravela>
-TODO: use FileSystem instead
+        // TODO: We might want to use FileSystem to work with this path.
         private readonly string _workingDirectory;
         // </Caravela>
 
@@ -801,7 +799,7 @@ TODO: use FileSystem instead
             }
 
             // <Caravela>
-            if (ReportDiagnostics(TimeBomb.GetExplosionDiagnostics(), consoleOutput, errorLogger))
+            if (ReportDiagnostics(TimeBomb.GetExplosionDiagnostics(), consoleOutput, errorLogger, compilation: null))
             {
                 return Failed;
             }
