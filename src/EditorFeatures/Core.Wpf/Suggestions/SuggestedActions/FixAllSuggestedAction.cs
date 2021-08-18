@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected override async Task InnerInvokeAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // Even though we're async, we should still be on the UI thread at this point.
-            this.AssertIsForeground();
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {

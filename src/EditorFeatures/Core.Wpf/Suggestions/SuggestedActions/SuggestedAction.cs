@@ -130,9 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private async Task InvokeAsync(IUIThreadOperationContext context)
         {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
-
             try
             {
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
@@ -148,8 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected virtual async Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
@@ -162,9 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected async Task InvokeCoreAsync(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
-
             var extensionManager = Workspace.Services.GetService<IExtensionManager>();
             await extensionManager.PerformActionAsync(Provider, async () =>
             {
@@ -175,8 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private async Task InvokeWorkerAsync(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // Even though we're async, we should still be on the UI thread at this point.
-            AssertIsForeground();
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             IEnumerable<CodeActionOperation> operations = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
