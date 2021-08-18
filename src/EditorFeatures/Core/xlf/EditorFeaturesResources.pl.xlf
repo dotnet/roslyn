@@ -57,6 +57,11 @@
         <target state="translated">Czy nadal chcesz kontynuować? Może to spowodować uszkodzenie kodu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">elementy z nieimportowanych przestrzeni nazw</target>

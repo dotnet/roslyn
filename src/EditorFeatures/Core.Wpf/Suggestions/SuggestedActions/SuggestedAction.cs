@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
 
-        private bool _isApplied;
-
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
         internal SuggestedAction(
@@ -124,14 +122,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(IUIThreadOperationContext context)
         {
+            // we're going to return immediately from Invoke and kick off our own async work to invoke the
+            // code action. Once this returns, the editor will close the threaded wait dialog it created.
+            // So we need to take ownership of it and start our own TWD instead to track this.
+            context.TakeOwnership();
+
             var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-            InvokeAsync(context).CompletesAsyncOperation(token);
+            InvokeAsync().CompletesAsyncOperation(token);
         }
 
-        private async Task InvokeAsync(IUIThreadOperationContext context)
+        private async Task InvokeAsync()
         {
             try
             {
+                using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
+                    EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
                 await this.InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken).ConfigureAwait(false);
             }
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    _isApplied = await EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    await EditHandler.ApplyAsync(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
                         progressTracker, cancellationToken).ConfigureAwait(false);
                 }
@@ -356,7 +361,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public TestAccessor(SuggestedAction suggestedAction)
                 => _suggestedAction = suggestedAction;
 
-            public ref bool IsApplied => ref _suggestedAction._isApplied;
+            public Task InvokeAsync()
+                => _suggestedAction.InvokeAsync();
         }
     }
 }

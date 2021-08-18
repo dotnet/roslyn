@@ -57,6 +57,11 @@
         <target state="translated">仍要繼續嗎? 這可能產生中斷的程式碼。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">來自未匯入命名空間的項目</target>
