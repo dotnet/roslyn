@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact]
         public async Task Throws()
         {
-            Console.WriteLine("Hello my friend");
+            Console.WriteLine("Running test");
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess);
             using var localWorkspace = new TestWorkspace(composition: localComposition);
 
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
             ServiceBase.Equals(1, 1);
             var tasks = new List<Task>();
-            Console.WriteLine("Test");
             WriteSomethingInDebug();
             for (var i = 0; i < 10; i++)
             {
                 tasks.Add(Task.Run(() =>
                 {
+                    Console.WriteLine("fail " + i);
                     FatalError.ReportAndCatch(new Exception("TestException"));
                 }));
             }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Conditional("DEBUG")]
         private void WriteSomethingInDebug()
         {
-            Console.WriteLine("Yes, debug");
+            Console.WriteLine("Yes, this is debug");
         }
     }
 }
