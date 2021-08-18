@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.FindUsages
