@@ -12669,7 +12669,6 @@ format:
 ");
         }
 
-
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
         [InlineData(@"$""{h1}"" + $""{h2}""")]
@@ -12687,6 +12686,83 @@ CustomHandler c = " + expression + ";";
             // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
             // error here. This will crash at runtime because of this.
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(@"$""Literal{1}""")]
+        [InlineData(@"$""Literal"" + $""{1}""")]
+        public void ConversionInParamsArguments(string expression)
+        {
+            var code = @"
+using System;
+using System.Linq;
+
+M(" + expression + ", " + expression + @");
+
+void M(params CustomHandler[] handlers)
+{
+    Console.WriteLine(string.Join(""\n"", handlers.Select(h => h.ToString())));
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, expectedOutput: @"
+literal:Literal
+value:1
+alignment:0
+format:
+
+literal:Literal
+value:1
+alignment:0
+format:
+");
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      100 (0x64)
+  .maxstack  7
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""CustomHandler""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.7
+  IL_000b:  ldc.i4.1
+  IL_000c:  call       ""CustomHandler..ctor(int, int)""
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldstr      ""Literal""
+  IL_0018:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  ldc.i4.1
+  IL_0020:  box        ""int""
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldnull
+  IL_0027:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_002c:  ldloc.0
+  IL_002d:  stelem     ""CustomHandler""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.1
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldc.i4.7
+  IL_0037:  ldc.i4.1
+  IL_0038:  call       ""CustomHandler..ctor(int, int)""
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  ldstr      ""Literal""
+  IL_0044:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0049:  ldloca.s   V_0
+  IL_004b:  ldc.i4.1
+  IL_004c:  box        ""int""
+  IL_0051:  ldc.i4.0
+  IL_0052:  ldnull
+  IL_0053:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0058:  ldloc.0
+  IL_0059:  stelem     ""CustomHandler""
+  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler[])""
+  IL_0063:  ret
+}
+");
         }
     }
 }
