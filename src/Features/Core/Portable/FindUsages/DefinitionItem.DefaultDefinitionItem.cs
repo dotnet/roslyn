@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 => SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
 
             public DetachedDefinitionItem Detach()
-                => new DetachedDefinitionItem(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.FirstOrDefault(), Properties, DisplayableProperties, DisplayIfNoReferences);
+                => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.FirstOrDefault(), Properties, DisplayableProperties, DisplayIfNoReferences);
         }
     }
 }
