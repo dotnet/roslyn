@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -23,26 +23,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _languageServices;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
         private readonly string _languageName;
         private bool _initialized = false;
 
         public AbstractCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
-            IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
             string languageName)
         {
             _workspace = workspace;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _threadingContext = threadingContext;
             _languageName = languageName;
-            _languageServices = languageServices;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             if (!_initialized)
             {
-                CreateServicesOnUIThread();
-                CreateServicesInBackground();
+                var token = _listener.BeginAsyncOperation(nameof(InitializeServicesAsync));
+                InitializeServicesAsync().CompletesAsyncOperation(token);
+
                 _initialized = true;
             }
         }
@@ -51,35 +55,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        /// <summary>
-        /// Must be invoked from the UI thread.
-        /// </summary>
-        private void CreateServicesOnUIThread()
+        private async Task InitializeServicesAsync()
         {
-            var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
-            foreach (var languageService in _languageServices)
-            {
-                if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
-                    languageService.Metadata.Language == _languageName)
-                {
-                    _ = languageService.Value;
-                    break;
-                }
-            }
-        }
+            await TaskScheduler.Default;
 
-        private void CreateServicesInBackground()
-        {
-            _ = Task.Run(ImportCompletionProviders);
+            var languageServices = _workspace.Services.GetExtendedLanguageServices(_languageName);
+
+            _ = languageServices.GetService<ISnippetInfoService>();
 
             // Preload completion providers on a background thread since assembly loads can be slow
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
-            void ImportCompletionProviders()
+            if (languageServices.GetService<CompletionService>() is CompletionServiceWithProviders service)
             {
-                if (_workspace.Services.GetLanguageService<CompletionService>(_languageName) is CompletionServiceWithProviders service)
-                {
-                    _ = service.GetImportedProviders().SelectAsArray(p => p.Value);
-                }
+                _ = service.GetImportedProviders().SelectAsArray(p => p.Value);
             }
         }
     }

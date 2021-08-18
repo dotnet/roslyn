@@ -11206,6 +11206,50 @@ public partial class CustomHandler
             };
         }
 
+        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        public void AsFormattableString()
+        {
+            var code = @"
+M($""{1}"" + $""literal"");
+System.FormattableString s = $""{1}"" + $""literal"";
+
+void M(System.FormattableString s)
+{
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'string' to 'System.FormattableString'
+                // M($"{1}" + $"literal");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"$""{1}"" + $""literal""").WithArguments("1", "string", "System.FormattableString").WithLocation(2, 3),
+                // (3,30): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                // System.FormattableString s = $"{1}" + $"literal";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{1}"" + $""literal""").WithArguments("string", "System.FormattableString").WithLocation(3, 30)
+                );
+        }
+
+        [Fact, WorkItem(1370647, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1370647")]
+        public void AsIFormattable()
+        {
+            var code = @"
+M($""{1}"" + $""literal"");
+System.IFormattable s = $""{1}"" + $""literal"";
+
+void M(System.IFormattable s)
+{
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'string' to 'System.IFormattable'
+                // M($"{1}" + $"literal");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"$""{1}"" + $""literal""").WithArguments("1", "string", "System.IFormattable").WithLocation(2, 3),
+                // (3,25): error CS0029: Cannot implicitly convert type 'string' to 'System.IFormattable'
+                // System.IFormattable s = $"{1}" + $"literal";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{1}"" + $""literal""").WithArguments("string", "System.IFormattable").WithLocation(3, 25)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void DefiniteAssignment_01(bool useBoolReturns, bool trailingOutParameter,
@@ -12180,6 +12224,98 @@ value:3
   IL_0041:  ret
 }
 ");
+        }
+
+        [Theory]
+        [InlineData(@"$""({i1}),"" + $""[{i2}],"" + $""{{{i3}}}""")]
+        [InlineData(@"($""({i1}),"" + $""[{i2}],"") + $""{{{i3}}}""")]
+        [InlineData(@"$""({i1}),"" + ($""[{i2}],"" + $""{{{i3}}}"")")]
+        public void InterpolatedStringsAddedUnderObjectAddition2(string expression)
+        {
+            var code = $@"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+System.Console.WriteLine({expression});";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            CompileAndVerify(comp, expectedOutput: @"
+(
+value:1
+),
+[
+value:2
+],
+{
+value:3
+}
+");
+        }
+
+        [Fact]
+        public void InterpolatedStringsAddedUnderObjectAddition3()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+try
+{
+    var s = string.Empty;
+    Console.WriteLine($""{s = null}{s.Length}"" + $"""");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine(""Null reference exception caught."");
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            CompileAndVerify(comp, expectedOutput: "Null reference exception caught.").VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (string V_0, //s
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  .try
+  {
+    IL_0000:  ldsfld     ""string string.Empty""
+    IL_0005:  stloc.0
+    IL_0006:  ldc.i4.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_000d:  stloc.1
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  ldnull
+    IL_0011:  dup
+    IL_0012:  stloc.0
+    IL_0013:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+    IL_0018:  ldloca.s   V_1
+    IL_001a:  ldloc.0
+    IL_001b:  callvirt   ""int string.Length.get""
+    IL_0020:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+    IL_0025:  ldloca.s   V_1
+    IL_0027:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_002c:  call       ""void System.Console.WriteLine(string)""
+    IL_0031:  leave.s    IL_0040
+  }
+  catch System.NullReferenceException
+  {
+    IL_0033:  pop
+    IL_0034:  ldstr      ""Null reference exception caught.""
+    IL_0039:  call       ""void System.Console.WriteLine(string)""
+    IL_003e:  leave.s    IL_0040
+  }
+  IL_0040:  ret
+}
+").VerifyDiagnostics(
+    // (9,36): warning CS8602: Dereference of a possibly null reference.
+    //     Console.WriteLine($"{s = null}{s.Length}" + $"");
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 36)
+    );
         }
 
         [Fact]
