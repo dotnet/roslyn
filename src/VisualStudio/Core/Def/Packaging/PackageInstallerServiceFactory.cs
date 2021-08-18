@@ -526,6 +526,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
             Func<INuGetProjectService, CancellationToken, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
         {
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true).
+            // GetServiceAsync/GetProxyAsync and the cast below are all explicitly documented as being BG thread safe.
+            await TaskScheduler.Default;
+
             var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
