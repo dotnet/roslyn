@@ -1765,6 +1765,9 @@ Additional information: {1}</value>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
   </data>
+  <data name="Show_hints_for_indexers" xml:space="preserve">
+    <value>Show hints for indexers</value>
+  </data>
   <data name="Sync_Namespaces" xml:space="preserve">
     <value>Sync Namespaces</value>
     <comment>"Namespaces" is the programming language concept</comment>
@@ -1799,5 +1802,17 @@ Additional information: {1}</value>
   </data>
   <data name="Package_uninstall_canceled" xml:space="preserve">
     <value>Package uninstall canceled</value>
+  </data>
+  <data name="Default_Current_Document" xml:space="preserve">
+    <value>Default (Current Document)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Entire_Solution" xml:space="preserve">
+    <value>Default (Entire Solution)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Open_Documents" xml:space="preserve">
+    <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
   </data>
 </root>
