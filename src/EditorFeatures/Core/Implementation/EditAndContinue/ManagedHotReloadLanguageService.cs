@@ -45,16 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 => Task.CompletedTask;
         }
 
-        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
-        private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
+        private readonly EditAndContinueLanguageService _encService;
         private readonly DebuggerService _debuggerService;
-
-        private RemoteDebuggingSessionProxy? _debuggingSession;
-        private bool _disabled;
 
         /// <summary>
         /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedHotReloadService"/> lazily so that the host does not need to implement them
@@ -62,146 +54,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ManagedHotReloadLanguageService(
-            Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedHotReloadService> hotReloadService,
-            IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
+        public ManagedHotReloadLanguageService(EditAndContinueLanguageService encService, Lazy<IManagedHotReloadService> hotReloadService)
         {
-            _workspaceProvider = workspaceProvider;
+            _encService = encService;
             _debuggerService = new DebuggerService(hotReloadService);
-            _diagnosticService = diagnosticService;
-            _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
-        private RemoteDebuggingSessionProxy GetDebuggingSession()
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
-
-        private Solution GetCurrentCompileTimeSolution()
-        {
-            var workspace = _workspaceProvider.Value.Workspace;
-            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
-        }
-
-        public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return;
-            }
-
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                var workspace = _workspaceProvider.Value.Workspace;
-                var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
-                var proxy = new RemoteEditAndContinueServiceProxy(workspace);
-
-                _debuggingSession = await proxy.StartDebuggingSessionAsync(
-                    solution,
-                    _debuggerService,
-                    captureMatchingDocuments: openedDocumentIds,
-                    captureAllMatchingDocuments: false,
-                    reportDiagnostics: true,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-            }
-
-            // the service failed, error has been reported - disable further operations
-            _disabled = _debuggingSession == null;
-        }
+        public ValueTask StartSessionAsync(CancellationToken cancellationToken)
+            => _encService.StartSessionAsync(_debuggerService, cancellationToken);
 
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         {
-            if (_disabled)
+            var (solution, moduleUpdates, diagnosticData, rudeEdits) = await _encService.GetUpdatesAsync(trackActiveStatements: false, cancellationToken).ConfigureAwait(false);
+            if (solution == null)
             {
+                // TODO: internal error
                 return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
             }
 
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+            var updates = moduleUpdates.Updates.SelectAsArray(
+                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
 
-                var updates = moduleUpdates.Updates.SelectAsArray(
-                    update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, cancellationToken).ConfigureAwait(false);
 
-                var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, cancellationToken).ConfigureAwait(false);
-
-                return new ManagedHotReloadUpdates(updates, diagnostics);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                // TODO: better error
-                var diagnostic = new ManagedHotReloadDiagnostic(
-                    descriptor.Id,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message),
-                    ManagedHotReloadDiagnosticSeverity.Error,
-                    filePath: "",
-                    span: default);
-
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray.Create(diagnostic));
-            }
+            return new ManagedHotReloadUpdates(updates, diagnostics);
         }
 
-        public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return;
-            }
+        public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.CommitUpdatesAsync(cancellationToken);
 
-            try
-            {
-                await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                _disabled = true;
-            }
-        }
-
-        public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return;
-            }
-
-            try
-            {
-                await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                _disabled = true;
-            }
-        }
+        public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.DiscardUpdatesAsync(cancellationToken);
 
         public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return;
-            }
-
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                _disabled = true;
-            }
-        }
+            => _encService.EndSessionAsync(cancellationToken);
     }
 }

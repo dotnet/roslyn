@@ -21,49 +21,41 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Shared]
-    [Export(typeof(IManagedEditAndContinueLanguageService))]
-    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
+    [Export(typeof(EditAndContinueLanguageService)), Shared]
+    internal sealed class EditAndContinueLanguageService
     {
+        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
-        private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
-        private RemoteDebuggingSessionProxy? _debuggingSession;
+        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
 
         private bool _disabled;
+        private RemoteDebuggingSessionProxy? _debuggingSession;
 
         /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedEditAndContinueDebuggerService"/> lazily so that the host does not need to implement them
-        /// unless it implements debugger components.
+        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
+        /// unless the host implements debugger components.
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ManagedEditAndContinueLanguageService(
+        public EditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
-            _workspaceProvider = workspaceProvider;
-            _debuggerService = debuggerService;
+            WorkspaceProvider = workspaceProvider;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
         private Solution GetCurrentCompileTimeSolution()
         {
-            var workspace = _workspaceProvider.Value.Workspace;
+            var workspace = WorkspaceProvider.Value.Workspace;
             return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
         }
-
-        private IDebuggingWorkspaceService GetDebuggingService()
-            => _workspaceProvider.Value.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
-
-        private IActiveStatementTrackingService GetActiveStatementTrackingService()
-            => _workspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
         {
@@ -72,14 +64,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             return debuggingSession;
         }
 
+        private IActiveStatementTrackingService GetActiveStatementTrackingService()
+            => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+
+        internal void Disable()
+            => _disabled = true;
+
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
         /// </summary>
-        public async Task StartDebuggingAsync(DebugSessionFlags flags, CancellationToken cancellationToken)
+        public async ValueTask StartSessionAsync(IManagedEditAndContinueDebuggerService debugger, CancellationToken cancellationToken)
         {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
-            _disabled = (flags & DebugSessionFlags.EditAndContinueDisabled) != 0;
-
             if (_disabled)
             {
                 return;
@@ -87,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                var workspace = _workspaceProvider.Value.Workspace;
+                var workspace = WorkspaceProvider.Value.Workspace;
                 var solution = GetCurrentCompileTimeSolution();
                 var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
                 var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    _debuggerService.Value,
+                    debugger,
                     captureMatchingDocuments: openedDocumentIds,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
@@ -108,10 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _disabled = _debuggingSession == null;
         }
 
-        public async Task EnterBreakStateAsync(CancellationToken cancellationToken)
+        public async ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
         {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
-
             if (_disabled)
             {
                 return;
@@ -135,19 +128,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public void ExitBreakState()
         {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
-
             if (!_disabled)
             {
                 GetActiveStatementTrackingService().EndTracking();
             }
-
-            return Task.CompletedTask;
         }
 
-        public async Task CommitUpdatesAsync(CancellationToken cancellationToken)
+        public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -159,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public async Task DiscardUpdatesAsync(CancellationToken cancellationToken)
+        public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
             {
@@ -175,10 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public async Task StopDebuggingAsync(CancellationToken cancellationToken)
+        public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
         {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
-
             if (_disabled)
             {
                 return;
@@ -205,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
         /// </summary>
-        public async Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+        public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
@@ -225,18 +212,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
+        public async ValueTask<(Solution? solution, ManagedModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>)>
+            GetUpdatesAsync(bool trackActiveStatements, CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return (solution: null,
+                        new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
+                        ImmutableArray<DiagnosticData>.Empty,
+                        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+            }
+
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                var (updates, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
-                return updates;
+                var activeStatementSpanProvider = trackActiveStatements ? GetActiveStatementSpanProvider(solution) : s_noActiveStatementSpanProvider;
+                var (updates, diagnostics, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                return (solution, updates, diagnostics, rudeEdits);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                return (solution: null,
+                        new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty),
+                        ImmutableArray<DiagnosticData>.Empty,
+                        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+
+                //var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
+
+                //// TODO: better error
+                //var diagnostic = new ManagedHotReloadDiagnostic(
+                //    descriptor.Id,
+                //    string.Format(descriptor.MessageFormat.ToString(), "", e.Message),
+                //    ManagedHotReloadDiagnosticSeverity.Error,
+                //    filePath: "",
+                //    span: default);
+
+                //return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray.Create(diagnostic));
             }
         }
 
@@ -271,5 +282,85 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return null;
             }
         }
+    }
+
+    [Shared]
+    [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
+    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
+    {
+        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
+        private readonly EditAndContinueLanguageService _encService;
+
+        /// <summary>
+        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedEditAndContinueDebuggerService"/> lazily so that the host does not need to implement them
+        /// unless it implements debugger components.
+        /// </summary>
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ManagedEditAndContinueLanguageService(EditAndContinueLanguageService encService, Lazy<IManagedEditAndContinueDebuggerService> debuggerService)
+        {
+            _encService = encService;
+            _debuggerService = debuggerService;
+        }
+
+        private IDebuggingWorkspaceService GetDebuggingService()
+            => _encService.WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+
+        /// <summary>
+        /// Called by the debugger when a debugging session starts and managed debugging is being used.
+        /// </summary>
+        public Task StartDebuggingAsync(DebugSessionFlags flags, CancellationToken cancellationToken)
+        {
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
+
+            if (flags.HasFlag(DebugSessionFlags.EditAndContinueDisabled))
+            {
+                _encService.Disable();
+                return Task.CompletedTask;
+            }
+
+            return _encService.StartSessionAsync(_debuggerService.Value, cancellationToken).AsTask();
+        }
+
+        public Task EnterBreakStateAsync(CancellationToken cancellationToken)
+        {
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
+            return _encService.EnterBreakStateAsync(cancellationToken).AsTask();
+        }
+
+        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        {
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
+            _encService.ExitBreakState();
+            return Task.CompletedTask;
+        }
+
+        public Task CommitUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.CommitUpdatesAsync(cancellationToken).AsTask();
+
+        public Task DiscardUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.DiscardUpdatesAsync(cancellationToken).AsTask();
+
+        public Task StopDebuggingAsync(CancellationToken cancellationToken)
+        {
+            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
+            return _encService.EndSessionAsync(cancellationToken).AsTask();
+        }
+
+        public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+            => _encService.HasChangesAsync(sourceFilePath, cancellationToken).AsTask();
+
+        public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
+        {
+            var (_, updates, _, _) = await _encService.GetUpdatesAsync(trackActiveStatements: true, cancellationToken).ConfigureAwait(false);
+            return updates;
+        }
+
+        public Task<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
+            => _encService.GetCurrentActiveStatementPositionAsync(instruction, cancellationToken);
+
+        public Task<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
+            => _encService.IsActiveStatementInExceptionRegionAsync(instruction, cancellationToken);
     }
 }
