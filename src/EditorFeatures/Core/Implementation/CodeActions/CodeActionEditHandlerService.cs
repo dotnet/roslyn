@@ -283,6 +283,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             Workspace workspace, ImmutableArray<CodeActionOperation> operations,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var applied = true;
             var seenApplyChanges = false;
             foreach (var operation in operations)
@@ -297,8 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
 
                 this.AssertIsForeground();
-                applied &= await operation.TryApplyAsync(
-                    workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;
