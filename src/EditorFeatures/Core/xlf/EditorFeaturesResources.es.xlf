@@ -57,6 +57,11 @@
         <target state="translated">¿Desea continuar? Esto puede producir código roto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">elementos de espacios de nombres no importados</target>
