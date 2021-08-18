@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile AnalyzerReferencesSystemCollectionsImmutable2 { get; }
 
         public TempFile FaultyAnalyzer { get; }
+
+        public TempFile AnalyzerWithDependency { get; }
+        public TempFile AnalyzerDependency { get; }
 
         public AssemblyLoadTestFixture()
         {
@@ -202,6 +206,32 @@ public abstract class TestAnalyzer : DiagnosticAnalyzer
 {
 }
 ", compilerReference);
+
+            var realSciReference = MetadataReference.CreateFromFile(typeof(ImmutableArray).Assembly.Location);
+            var analyzerWithDependencyDirectory = _directory.CreateDirectory("AnalyzerWithDependency");
+            AnalyzerDependency = GenerateDll("AnalyzerDependency", analyzerWithDependencyDirectory, @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
+{
+    protected static string SomeString = nameof(SomeString);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
+}
+", realSciReference, compilerReference);
+
+            AnalyzerWithDependency = GenerateDll("Analyzer", analyzerWithDependencyDirectory, @"
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public sealed class TestAnalyzer : AbstractTestAnalyzer
+{
+    private static string SomeString2 = AbstractTestAnalyzer.SomeString;
+}", realSciReference, compilerReference, MetadataReference.CreateFromFile(AnalyzerDependency.Path));
         }
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)

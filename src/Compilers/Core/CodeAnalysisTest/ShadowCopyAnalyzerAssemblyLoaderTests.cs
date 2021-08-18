@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency()
         {
-            var directory = Temp.CreateDirectory();
-            var immutable = directory.CopyFile(typeof(ImmutableArray).Assembly.Location);
-            var microsoftCodeAnalysis = directory.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-
-            var originalDirectory = directory.CreateDirectory("Analyzer");
-            var analyzerDependencyFile = CreateAnalyzerDependency();
-            var analyzerMainFile = CreateMainAnalyzerWithDependency(analyzerDependencyFile);
-            var loader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(directory.Path, "AnalyzerAssemblyLoader"));
+            var analyzerDependencyFile = _testFixture.AnalyzerDependency;
+            var analyzerMainFile = _testFixture.AnalyzerWithDependency;
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(analyzerDependencyFile.Path);
 
             var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
             analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
@@ -48,65 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, analyzerDependencyReference.GetAnalyzersForAllLanguages().Length);
 
             Assert.NotNull(analyzerDependencyReference.GetAssembly());
-
-            TempFile CreateAnalyzerDependency()
-            {
-                var analyzerDependencySource = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
-{
-    protected static string SomeString = nameof(SomeString);
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
-    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
-}";
-
-                var analyzerDependencyCompilation = CSharpCompilation.Create(
-                   "AnalyzerDependency",
-                   new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerDependencySource) },
-                   new MetadataReference[]
-                   {
-                    TestMetadata.NetStandard20.mscorlib,
-                    TestMetadata.NetStandard20.netstandard,
-                    TestMetadata.NetStandard20.SystemRuntime,
-                    MetadataReference.CreateFromFile(immutable.Path),
-                    MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path)
-                   },
-                   s_dllWithMaxWarningLevel);
-
-                return originalDirectory.CreateFile("AnalyzerDependency.dll").WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
-            }
-
-            TempFile CreateMainAnalyzerWithDependency(TempFile analyzerDependency)
-            {
-                var analyzerMainSource = @"
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class TestAnalyzer : AbstractTestAnalyzer
-{
-    private static string SomeString2 = AbstractTestAnalyzer.SomeString;
-}";
-                var analyzerMainCompilation = CSharpCompilation.Create(
-                   "AnalyzerMain",
-                   new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerMainSource) },
-                   new MetadataReference[]
-                   {
-                        TestMetadata.NetStandard20.mscorlib,
-                        TestMetadata.NetStandard20.netstandard,
-                        TestMetadata.NetStandard20.SystemRuntime,
-                        MetadataReference.CreateFromFile(immutable.Path),
-                        MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path),
-                        MetadataReference.CreateFromFile(analyzerDependency.Path)
-                   },
-                   s_dllWithMaxWarningLevel);
-
-                return originalDirectory.CreateFile("AnalyzerMain.dll").WriteAllBytes(analyzerMainCompilation.EmitToArray());
-            }
         }
 
         [Fact]
