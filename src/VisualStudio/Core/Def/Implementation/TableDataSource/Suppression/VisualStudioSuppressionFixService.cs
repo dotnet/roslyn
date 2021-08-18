@@ -244,11 +244,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             try
             {
-                var waitDialogTitle = GetFixTitle(isAddSuppression);
+                var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
                 using var context = _uiThreadOperationExecutor.BeginExecute(
-                    waitDialogTitle,
+                    title,
                     waitDialogMessage,
                     allowCancellation: true,
                     showProgress: true);
@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 suppressionFixer,
                                 suppressionFixAllProvider,
                                 equivalenceKey,
-                                waitDialogTitle,
+                                title,
                                 waitDialogMessage,
                                 cancellationToken);
                             if (newSolution == null)
@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  suppressionFixer,
                                  suppressionFixAllProvider,
                                  equivalenceKey,
-                                 waitDialogTitle,
+                                 title,
                                  waitDialogMessage,
                                  cancellationToken);
                             if (newSolution == null)
@@ -357,8 +357,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         newSolution = FixAllGetFixesService.PreviewChanges(
                             _workspace.CurrentSolution,
                             newSolution,
-                            fixAllPreviewChangesTitle: waitDialogTitle,
-                            fixAllTopLevelHeader: waitDialogTitle,
+                            fixAllPreviewChangesTitle: title,
+                            fixAllTopLevelHeader: title,
                             languageOpt: languages?.Count == 1 ? languages.Single() : null,
                             workspace: _workspace);
                         if (newSolution == null)
@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         _workspace,
                         fromDocument: null,
                         operations: operations,
-                        title: waitDialogTitle,
+                        title: title,
                         progressTracker: new UIThreadOperationContextProgressTracker(scope),
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
