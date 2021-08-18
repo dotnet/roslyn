@@ -834,6 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                          InterpolatedStringHandlerArgumentIndexes.IsEmpty: true
                                                      });
 #pragma warning restore format
+            Debug.Assert(!interpolatedStringParameter.IsParams || memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm);
 
             if (interpolatedStringParameter.HasInterpolatedStringHandlerArgumentError)
             {

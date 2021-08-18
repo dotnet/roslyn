@@ -12701,7 +12701,7 @@ M(" + expression + ", " + expression + @");
 
 void M(params CustomHandler[] handlers)
 {
-    Console.WriteLine(string.Join(""\n"", handlers.Select(h => h.ToString())));
+    Console.WriteLine(string.Join(Environment.NewLine, handlers.Select(h => h.ToString())));
 }
 ";
 
@@ -13008,6 +13008,627 @@ partial struct CustomHandler
   IL_002f:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithDefaultArgument_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M($"""");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private int _i = 0;
+    public CustomHandler(int literalLength, int formattedCount, int i = 1) => _i = i;
+    public override string ToString() => _i.ToString();
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"1");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""CustomHandler..ctor(int, int, int)""
+  IL_0008:  call       ""void C.M(CustomHandler)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithDefaultArgument_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M($""Literal"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, int formattedCount, out bool isValid, int i = 1) { _s = i.ToString(); isValid = false; }
+    public void AppendLiteral(string s) => _s += s;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"1");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (CustomHandler V_0,
+                bool V_1)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""CustomHandler..ctor(int, int, out bool, int)""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  brfalse.s  IL_001d
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldstr      ""Literal""
+  IL_0015:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
+  IL_001e:  pop
+  IL_001f:  ldloc.0
+  IL_0020:  call       ""void C.M(CustomHandler)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithDefaultArgument_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M(1, $"""");
+
+class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, int formattedCount, int i1, int i2 = 2) { _s = i1.ToString() + i2.ToString(); }
+    public void AppendLiteral(string s) => _s += s;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  5
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.2
+  IL_0007:  newobj     ""CustomHandler..ctor(int, int, int, int)""
+  IL_000c:  call       ""void C.M(int, CustomHandler)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithDefaultArgument_04()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M(1, $""Literal"");
+
+class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, int formattedCount, int i1, out bool isValid, int i2 = 2) { _s = i1.ToString() + i2.ToString(); isValid = false; }
+    public void AppendLiteral(string s) => _s += s;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  6
+  .locals init (int V_0,
+                CustomHandler V_1,
+                bool V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.7
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldloca.s   V_2
+  IL_0008:  ldc.i4.2
+  IL_0009:  newobj     ""CustomHandler..ctor(int, int, int, out bool, int)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  brfalse.s  IL_0021
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldstr      ""Literal""
+  IL_0019:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_001e:  ldc.i4.1
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.0
+  IL_0022:  pop
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""void C.M(int, CustomHandler)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithParamsArgument_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = 2;
+C.M($""Literal{i}"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(params int[] arr) { _s = arr[0].ToString() + arr[1].ToString(); }
+    public void AppendLiteral(string s) => _s += s;
+    public void AppendFormatted(int i) => _s += i;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"71Literal2");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  5
+  .locals init (int V_0, //i
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.2
+  IL_0005:  newarr     ""int""
+  IL_000a:  dup
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.7
+  IL_000d:  stelem.i4
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  call       ""CustomHandler..ctor(params int[])""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      ""Literal""
+  IL_001e:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldloc.0
+  IL_0026:  call       ""void CustomHandler.AppendFormatted(int)""
+  IL_002b:  ldloc.1
+  IL_002c:  call       ""void C.M(CustomHandler)""
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithParamsArgument_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = 2;
+C.M($""Literal{i}"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(params object[] arr) { _s = arr[0].ToString() + arr[1].ToString(); }
+    public void AppendLiteral(string s) => _s += s;
+    public void AppendFormatted(int i) => _s += i;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"71Literal2");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  5
+  .locals init (int V_0, //i
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.2
+  IL_0005:  newarr     ""object""
+  IL_000a:  dup
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.7
+  IL_000d:  box        ""int""
+  IL_0012:  stelem.ref
+  IL_0013:  dup
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  box        ""int""
+  IL_001b:  stelem.ref
+  IL_001c:  call       ""CustomHandler..ctor(params object[])""
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  ldstr      ""Literal""
+  IL_0028:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002d:  ldloca.s   V_1
+  IL_002f:  ldloc.0
+  IL_0030:  call       ""void CustomHandler.AppendFormatted(int)""
+  IL_0035:  ldloc.1
+  IL_0036:  call       ""void C.M(CustomHandler)""
+  IL_003b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithParamsArgument_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = 2;
+C.M($""Literal{i}"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, params object[] arr) { _s = literalLength.ToString() + arr[0].ToString(); }
+    public void AppendLiteral(string s) => _s += s;
+    public void AppendFormatted(int i) => _s += i;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"71Literal2");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  6
+  .locals init (int V_0, //i
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.7
+  IL_0005:  ldc.i4.1
+  IL_0006:  newarr     ""object""
+  IL_000b:  dup
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  box        ""int""
+  IL_0013:  stelem.ref
+  IL_0014:  call       ""CustomHandler..ctor(int, params object[])""
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldstr      ""Literal""
+  IL_0020:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldloc.0
+  IL_0028:  call       ""void CustomHandler.AppendFormatted(int)""
+  IL_002d:  ldloc.1
+  IL_002e:  call       ""void C.M(CustomHandler)""
+  IL_0033:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithParamsArgument_04()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = 2;
+C.M($""Literal{i}"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, int formattedCount, params object[] arr) { _s = literalLength.ToString() + formattedCount.ToString() + arr.Length.ToString(); }
+    public void AppendLiteral(string s) => _s += s;
+    public void AppendFormatted(int i) => _s += i;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"710Literal2");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (int V_0, //i
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.7
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""object[] System.Array.Empty<object>()""
+  IL_000b:  call       ""CustomHandler..ctor(int, int, params object[])""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldstr      ""Literal""
+  IL_0017:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  ldloc.0
+  IL_001f:  call       ""void CustomHandler.AppendFormatted(int)""
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""void C.M(CustomHandler)""
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerConstructorWithParamsArgument_05()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = 2;
+C.M($""Literal{i}"");
+
+class C
+{
+    public static void M(CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+partial struct CustomHandler
+{
+    private string _s = null;
+    public CustomHandler(int literalLength, int formattedCount, out bool success, params object[] arr)
+    { 
+        _s = literalLength.ToString() + formattedCount.ToString() + arr.Length.ToString();
+        success = false;
+    }
+    public void AppendLiteral(string s) => _s += s;
+    public void AppendFormatted(int i) => _s += i;
+    public override string ToString() => _s;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedOutput: @"710");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  4
+  .locals init (int V_0, //i
+                CustomHandler V_1,
+                bool V_2)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldloca.s   V_2
+  IL_0006:  call       ""object[] System.Array.Empty<object>()""
+  IL_000b:  newobj     ""CustomHandler..ctor(int, int, out bool, params object[])""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.2
+  IL_0012:  brfalse.s  IL_002b
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldstr      ""Literal""
+  IL_001b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  call       ""void CustomHandler.AppendFormatted(int)""
+  IL_0028:  ldc.i4.1
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.0
+  IL_002c:  pop
+  IL_002d:  ldloc.1
+  IL_002e:  call       ""void C.M(CustomHandler)""
+  IL_0033:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_01()
+        {
+            var code = @"
+$""Test"".M();
+
+public static class StringExt
+{
+    public static void M(this CustomHandler handler) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (2,1): error CS1929: 'string' does not contain a definition for 'M' and the best extension method overload 'StringExt.M(CustomHandler)' requires a receiver of type 'CustomHandler'
+                // $"Test".M();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, @"$""Test""").WithArguments("string", "M", "StringExt.M(CustomHandler)", "CustomHandler").WithLocation(2, 1)
+            );
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_02()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(this S1 s, [InterpolatedStringHandlerArgument("""")] CustomHandler c) => throw null;
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S1 s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // s.M($"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
+                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+            );
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: "s.Field:1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoStandaloneConstructor()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+CustomHandler c = $"""";
+
+[InterpolatedStringHandler]
+struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, string s) {}
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute });
+            comp.VerifyDiagnostics(
+                // (4,19): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
+                // CustomHandler c = $"";
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("s", "CustomHandler.CustomHandler(int, int, string)").WithLocation(4, 19),
+                // (4,19): error CS1615: Argument 3 may not be passed with the 'out' keyword
+                // CustomHandler c = $"";
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(4, 19)
+            );
         }
     }
 }
