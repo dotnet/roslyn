@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 var newSolution = await ConfigureSeverityAsync(context.UserCancellationToken).ConfigureAwait(false);
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
+                using var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
                 await _editHandlerService.ApplyAsync(
                     _workspace,
                     fromDocument: null,
