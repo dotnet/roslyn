@@ -247,8 +247,6 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
                 }.Concat(additionalReferences),
                 options: s_dllWithMaxWarningLevel);
 
-            analyzerDependencyCompilation.VerifyDiagnostics();
-
             var tempFile = directory.CreateFile($"{assemblyName}.dll");
             tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
             return tempFile;
