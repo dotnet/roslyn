@@ -147,6 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, LanguageNames.CSharp);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

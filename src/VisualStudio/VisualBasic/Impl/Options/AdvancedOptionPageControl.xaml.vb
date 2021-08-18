@@ -150,6 +150,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
                              Return True
                          End Function)
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

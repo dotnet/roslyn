@@ -222,6 +222,11 @@
         <target state="translated">Normal ifadeleri renklendir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="new">Combine inheritance margin with indicator margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Açıklamalar</target>
