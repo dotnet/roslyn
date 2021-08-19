@@ -461,8 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
-                output = convertedInput;
+                output = input = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
                 if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
                 {
                     // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
@@ -471,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
+                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input)));
                 }
                 return Tests.AndSequence.Create(tests);
             }
