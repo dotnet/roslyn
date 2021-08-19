@@ -17,6 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSquigglesNetCore : CSharpSquigglesCommon
     {
+        protected override bool SupportsGlobalUsings => true;
+
         public CSharpSquigglesNetCore(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
