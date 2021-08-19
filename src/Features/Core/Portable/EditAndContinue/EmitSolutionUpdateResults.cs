@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetHotReloadDiagnosticsAsync(
-            Solution solution,
+            Solution? solution,
             ImmutableArray<DiagnosticData> diagnosticData, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
             CancellationToken cancellationToken)
         {
@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Report all rude edits.
+
+            Contract.ThrowIfFalse(rudeEdits.Length > 0 && solution != null);
 
             foreach (var (documentId, diagnostics) in rudeEdits)
             {

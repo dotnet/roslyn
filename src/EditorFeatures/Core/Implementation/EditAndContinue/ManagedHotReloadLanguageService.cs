@@ -7,14 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -65,12 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         {
-            var (solution, moduleUpdates, diagnosticData, rudeEdits) = await _encService.GetUpdatesAsync(trackActiveStatements: false, cancellationToken).ConfigureAwait(false);
-            if (solution == null)
-            {
-                // TODO: internal error
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
-            }
+            var (moduleUpdates, diagnosticData, rudeEdits, solution) = await _encService.GetUpdatesAsync(trackActiveStatements: false, cancellationToken).ConfigureAwait(false);
 
             var updates = moduleUpdates.Updates.SelectAsArray(
                 update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
@@ -86,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
             => _encService.DiscardUpdatesAsync(cancellationToken);
 
-        public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
+        public ValueTask EndSessionAsync(CancellationToken cancellationToken)
             => _encService.EndSessionAsync(cancellationToken);
     }
 }
