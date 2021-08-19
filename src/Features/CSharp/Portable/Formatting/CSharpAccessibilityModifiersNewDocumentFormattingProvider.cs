@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var modifiers = syntaxFacts.GetModifiers(declaration);
                 syntaxFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
                 if (declarationModifiers.IsPartial)
-                {
                     continue;
-                }
 
                 var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
                 if (type == null)
