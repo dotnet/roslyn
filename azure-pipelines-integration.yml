@@ -17,10 +17,7 @@ pr:
 jobs:
 - job: VS_Integration
   pool:
-    ${{ if eq(variables.poolName, '') }}:
-      name: 'NetCorePublic-Pool'
-    ${{ if ne(variables.poolName, '') }}:
-      name: $(poolName)
+    name: $(poolName)
     queue: $(queueName)
   strategy:
     maxParallel: 4
