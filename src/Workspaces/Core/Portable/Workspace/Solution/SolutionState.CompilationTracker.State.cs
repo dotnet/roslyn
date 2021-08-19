@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     UnrootedSymbolSet unrootedSymbolSet,
                     // <Caravela>
-                    ImmutableArray<Diagnostic> transformerDiagnostics = default
+                    ImmutableArray<Diagnostic> transformerDiagnostics
                     // </Caravela>
                     )
                     : base(compilationWithoutGeneratedFilesSource,
@@ -269,7 +269,11 @@ namespace Microsoft.CodeAnalysis
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     Compilation finalCompilation,
                     ProjectId projectId,
-                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
+                    // <Caravela>
+                    ImmutableArray<Diagnostic> transformerDiagnostics = default
+                    // </Caravela>
+                    )
                 {
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
@@ -282,7 +286,11 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
-                        generatedDocuments, unrootedSymbolSet);
+                        generatedDocuments, unrootedSymbolSet,
+                        // <Caravela>
+                        transformerDiagnostics
+                        // </Caravela>
+                        );
                 }
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)

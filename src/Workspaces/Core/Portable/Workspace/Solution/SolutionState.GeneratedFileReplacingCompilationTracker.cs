@@ -212,6 +212,14 @@ namespace Microsoft.CodeAnalysis
                     return _underlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
                 }
             }
+
+            // <Caravela>
+            public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                // Implement if needed
+                throw new NotImplementedException();
+            }
+            // </Caravela>
         }
     }
 }

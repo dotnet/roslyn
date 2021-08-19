@@ -3271,6 +3271,7 @@ public class Program
                 );
         }
 
+        // <Caravela>
         [WorkItem(47278, "https://github.com/dotnet/roslyn/issues/47278")]
         [Fact]
         public void NormalizeWhitespace()
@@ -3303,15 +3304,16 @@ public class Program
 
             var comp = CreateCompilation(tree);
 
-            var diags = new DiagnosticBag();
+            var diags = DiagnosticBag.GetInstance();
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(comp, null, null, diags, default);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(comp, null, null, new BindingDiagnosticBag(diags), default);
 
             diags.Verify();
 
             string getDocumentationCommentString() =>
                 tree.GetRoot().DescendantTrivia().Single(n => n.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).ToFullString();
         }
+        // </Caravela>
 
         #region Xml Test helpers
 

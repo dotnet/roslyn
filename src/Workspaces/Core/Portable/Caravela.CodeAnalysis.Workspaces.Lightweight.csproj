@@ -34,6 +34,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="InternalUtilities\Range.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections*.cs" Link="InternalUtilities\%(FileName)%(Extension)" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Collections\TemporaryArrayExtensions.cs" Link="Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\INamedTypeSymbolExtensions.cs" Link="Extensions\INamedTypeSymbolExtensions.cs" />
     <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ITypeSymbolExtensions.cs" Link="Extensions\ITypeSymbolExtensions.cs" />
@@ -70,7 +72,7 @@
     <Compile Include="Simplification\Simplifier.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight" />

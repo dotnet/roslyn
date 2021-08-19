@@ -734,7 +734,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             
-TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritativeGeneratedDocuments?
             /// <summary>
             /// Add all appropriate references to the compilation and set it as our final compilation
             /// state.
@@ -827,6 +826,12 @@ TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritative
                     // https://github.com/dotnet/roslyn/issues/46418
                     Compilation compilationWithGenerators;
 
+                    // <Caravela>
+                    // Caravela TODO: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
+                    authoritativeGeneratedDocuments = null;
+                    var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                    // </Caravela>
+
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments;
                     if (authoritativeGeneratedDocuments.HasValue)
                     {
@@ -841,7 +846,7 @@ TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritative
                         if (ProjectState.SourceGenerators.Any())
                         {
                             var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray<AdditionalText>(state => new AdditionalTextWithState(state));
-                            var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                            // <Caravela /> The compilationFactory used to be retrieved here.
 
                             var generatorDriver = compilationFactory.CreateGeneratorDriver(
                                     this.ProjectState.ParseOptions!,
@@ -932,7 +937,7 @@ TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritative
                     // <Caravela>
                     ImmutableArray<Diagnostic> transformerDiagnostics = default;
 
-                    if (!compilation.GetParseDiagnostics().HasAnyErrors())
+                    if (!compilationWithGenerators.GetParseDiagnostics(cancellationToken).HasAnyErrors())
                     {
                         var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
                         var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
@@ -941,7 +946,7 @@ TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritative
 
                         var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
                         if (runTransformers != null)
-                            (compilation, transformerDiagnostics) = runTransformers(compilation);
+                            (compilationWithGenerators, transformerDiagnostics) = runTransformers(compilationWithGenerators);
                     }
                     // </Caravela>
 
@@ -956,7 +961,8 @@ TODO: Do we want to use the authoritativeGeneratedDocuments and nonAuthoritative
                         metadataReferenceToProjectId,
                         // <Caravela>
                         transformerDiagnostics
-                        // </Caravela>);
+                        // </Caravela>
+                        );
 
                     this.WriteState(finalState, solution.Services);
 

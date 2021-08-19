@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,6 +69,10 @@ namespace Microsoft.CodeAnalysis
             Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken);
             bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
             SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId);
+
+            // <Caravela>
+            Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken);
+            // </Caravela>
         }
     }
 }
