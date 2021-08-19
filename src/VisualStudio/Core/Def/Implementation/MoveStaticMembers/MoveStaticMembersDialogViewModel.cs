@@ -23,15 +23,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
-            ImmutableArray<string> existingNames,
+            ImmutableArray<TypeNameItem> availableTypes,
             ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
-            _destinationName = defaultType;
-            _existingNames = existingNames;
+            _searchText = defaultType;
+            AvailableTypes = availableTypes;
+            _destinationName = new TypeNameItem(defaultType);
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
+            // Set message and icon + shownTypes
             OnDestinationUpdated();
         }
 
@@ -42,26 +44,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 case nameof(DestinationName):
                     OnDestinationUpdated();
                     break;
+                case nameof(SearchText):
+                    OnSearchTextUpdated();
+                    break;
             }
+        }
+
+        public void OnSearchTextUpdated()
+        {
+            DestinationName = new TypeNameItem(SearchText);
         }
 
         public void OnDestinationUpdated()
         {
-            // TODO change once we allow movement to existing types
-            var isNewType = !_existingNames.Contains(DestinationName);
-            _isValidName = isNewType && IsValidType(DestinationName);
+            // if they deselect an element, the destination will be set to null
+            // But it will be set again from searchText update
+            if (DestinationName is null)
+            {
+                return;
+            }
+            var isNewType = DestinationName.IsNew;
+            _isValidName = !isNewType || IsValidType(DestinationName!.TypeName);
 
             if (_isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
                 Message = ServicesVSResources.A_new_type_will_be_created;
                 ShowMessage = true;
+                ShownTypes = AvailableTypes
+                    .Insert(0, DestinationName!)
+                    .Where(t => t.TypeName.Contains(SearchText))
+                    .ToImmutableArray();
             }
             else
             {
                 Icon = KnownMonikers.StatusInvalid;
                 Message = ServicesVSResources.Invalid_type_name;
                 ShowMessage = true;
+                ShownTypes = ImmutableArray.Create<TypeNameItem>();
+            }
+            else
+            {
+                ShowMessage = false;
+                ShownTypes = AvailableTypes
+                    .Where(t => t.TypeName.Contains(DestinationName!.TypeName))
+                    .ToImmutableArray();
             }
         }
 
@@ -85,12 +112,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             return true;
         }
 
-        private string _destinationName;
-        public string DestinationName
+        private TypeNameItem _destinationName;
+        public TypeNameItem DestinationName
         {
             get => _destinationName;
             set => SetProperty(ref _destinationName, value);
         }
+
+        private string _searchText;
+        public string SearchText
+        {
+            get => _searchText;
+            set => SetProperty(ref _searchText, value);
+        }
+
+        private ImmutableArray<TypeNameItem> _shownTypes;
+        public ImmutableArray<TypeNameItem> ShownTypes
+        {
+            get => _shownTypes;
+            private set
+            {
+                SetProperty(ref _shownTypes, value);
+            }
+        }
+
+        public ImmutableArray<TypeNameItem> AvailableTypes { get; }
 
         private ImageMoniker _icon;
         public ImageMoniker Icon

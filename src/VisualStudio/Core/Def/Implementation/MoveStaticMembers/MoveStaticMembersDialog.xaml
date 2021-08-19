@@ -40,18 +40,60 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="0">
-            <Label 
-                x:Uid="DestinationLabel" 
-                x:Name="DestinationLabel"
-                Margin="{StaticResource verticalLabelMargin}"
-                Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
-                Target="{Binding ElementName=DestinationTextBox}" />
-            <TextBox 
+            <Label x:Uid="DestinationLabel" 
+                       x:Name="DestinationLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
+                       Target="{Binding ElementName=DestinationTextBox}" />
+            <ComboBox 
                 x:Uid="DestinationBox"
                 Name="DestinationBox"
-                AutomationProperties.Name="DestinationName"
-                Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
-                Margin="0 0 20 0"/>
+                IsEditable="True"
+                IsReadOnly="False"
+                AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
+                SelectedItem="{Binding DestinationName, Mode=TwoWay}"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                ItemsSource="{Binding ShownTypes, Mode=OneWay}"
+                BorderThickness="0" 
+                Margin="0 0 20 0"
+                MaxDropDownHeight="150"
+                HorizontalContentAlignment="Stretch">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <imaging:CrispImage
+                                Grid.Column="0"
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+                            <imaging:CrispImage
+                                Grid.Column="1"
+                                Visibility="{Binding IsNew, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Margin="0 0 5 0"
+                                Moniker="{x:Static imagecatalog:KnownMonikers.Add}"/>
+                            <TextBlock
+                                Grid.Column="3"
+                                HorizontalAlignment="Stretch"
+                                Text="{Binding TypeName}"/>
+                            <TextBlock
+                                Grid.Column="4"
+                                HorizontalAlignment="Right"
+                                Text="{Binding DeclarationFile}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
         </StackPanel>
 

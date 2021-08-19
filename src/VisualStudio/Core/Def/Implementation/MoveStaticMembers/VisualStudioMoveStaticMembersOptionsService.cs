@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -25,6 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
     {
         private readonly IGlyphService _glyphService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
+        private const int HistorySize = 3;
+
+        public readonly LinkedList<(string, string)> History = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,7 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).SelectAsArray(t => t.Name);
+            var existingTypeNames = MakeTypeNameItems(
+                selectedType.ContainingNamespace,
+                selectedType,
+                document,
+                cancellationTokenSource.Token);
+
             var candidateName = selectedType.Name + "Helpers";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(name));
 
@@ -86,6 +97,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             }
 
             return MoveStaticMembersOptions.Cancelled;
+        }
+
+        private static string GetFile(Location loc) => PathUtilities.GetFileName(loc.SourceTree!.FilePath);
+
+        /// <summary>
+        /// Construct all the type names declared in the project, 
+        /// </summary>
+        private ImmutableArray<TypeNameItem> MakeTypeNameItems(
+            INamespaceSymbol currentNamespace,
+            INamedTypeSymbol currentType,
+            Document currentDocument,
+            CancellationToken cancellationToken)
+        {
+            // find the top-level namespace
+            while (!currentNamespace.IsGlobalNamespace)
+            {
+                currentNamespace = currentNamespace.ContainingNamespace;
+            }
+
+            return currentNamespace.GetAllTypes(cancellationToken).SelectMany(t =>
+            {
+                var fullName = GetFullyQualifiedNamespace(t);
+
+                // for partially declared classes, we may want multiple entries for a single type.
+                // filter to those actually in a real file, and that is not our current location.
+                return t.Locations
+                    .Where(l => l.IsInSource &&
+                        (currentType.Name != t.Name || GetFile(l) != currentDocument.Name))
+                    .Select(l => new TypeNameItem(
+                        History.Contains((fullName, currentDocument.Name)),
+                        GetFile(l),
+                        fullName));
+            })
+            .ToImmutableArrayOrEmpty()
+            .Sort(comparison: TypeNameItem.CompareTo);
+        }
+
+        private static string GetFullyQualifiedNamespace(INamedTypeSymbol type)
+        {
+            // construct fully qualified type name
+            var displayName = type.Name;
+            var containingNamespace = type.ContainingNamespace;
+            while (!containingNamespace.IsGlobalNamespace)
+            {
+                displayName = containingNamespace.Name + "." + displayName;
+                containingNamespace = containingNamespace.ContainingNamespace;
+            }
+            return displayName;
         }
     }
 }
