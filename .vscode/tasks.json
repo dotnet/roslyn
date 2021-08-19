@@ -43,7 +43,7 @@
     },
     {
         "label": "build csc",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "msbuild",
@@ -57,10 +57,10 @@
     {
         "label": "build current project",
         "type": "shell",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "args": [
           "pwsh",
-          "${workspaceRoot}/scripts/vscode-build.ps1",
+          "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
@@ -69,7 +69,7 @@
         "windows": {
           "command": "powershell",
           "args": [
-            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "${workspaceFolder}/scripts/vscode-build.ps1",
             "-filePath",
             "${file}",
             "-msbuildEngine",
@@ -86,7 +86,7 @@
         "windows": {
           "command": "powershell",
           "args": [
-            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "${workspaceFolder}/scripts/vscode-build.ps1",
             "-filePath",
             "${file}",
             "-msbuildEngine",
@@ -98,11 +98,11 @@
     },
     {
         "label": "generate compiler code",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
-          "${workspaceRoot}/eng/generate-compiler-code.ps1"
+          "${workspaceFolder}/eng/generate-compiler-code.ps1"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -122,11 +122,11 @@
     },
     {
         "label": "run tests in current file (netcoreapp3.1)",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
-          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
@@ -141,11 +141,11 @@
     },
     {
         "label": "run tests in current project (netcoreapp3.1)",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
-          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
@@ -158,11 +158,11 @@
     },
     {
         "label": "run tests in current file (all frameworks)",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
-          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
           "-filter",
@@ -173,11 +173,11 @@
     },
     {
         "label": "run tests in current project (all frameworks)",
-        "command": "${workspaceRoot}/.dotnet/dotnet",
+        "command": "${workspaceFolder}/.dotnet/dotnet",
         "type": "shell",
         "args": [
           "pwsh",
-          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}"
         ],
