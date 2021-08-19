@@ -41,7 +41,7 @@ namespace ConsoleApplication1
 }");
 
             VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;\\r\\nusing System.Collections.Generic;\\r\\nusing System.Text;'[0-68]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]");
         }
