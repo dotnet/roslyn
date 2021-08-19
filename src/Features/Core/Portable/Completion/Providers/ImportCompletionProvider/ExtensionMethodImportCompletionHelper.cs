@@ -24,6 +24,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new();
         private static Task s_indexingTask = Task.CompletedTask;
 
+        public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
+        {
+            var project = document.Project;
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService>(
+                    project,
+                    (service, solutionInfo, cancellationToken) => service.WarmUpCacheAsync(
+                        solutionInfo, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public static Task WarmUpCacheInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
+        {
+            var cacheService = GetCacheService(document.Project.Solution.Workspace);
+            return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document, cacheService, cancellationToken);
+        }
+
         public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
             Document document,
             int position,
@@ -117,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // index is being constrcuted, which might take some time.
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = symbolComputer.PopulateIndicesAsync(CancellationToken.None);
+                        s_indexingTask = symbolComputer.PopulateIndicesAsync(document, CancellationToken.None);
                     }
                 }
             }
@@ -125,7 +149,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var createItemsTicks = Environment.TickCount - ticks;
 
             return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTicks, createItemsTicks);
-
         }
 
         private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(

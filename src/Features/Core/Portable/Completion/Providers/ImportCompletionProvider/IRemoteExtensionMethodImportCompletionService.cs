@@ -20,5 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<string> targetTypesSymbolKeyData,
             bool forceIndexCreation,
             CancellationToken cancellationToken);
+
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
     }
 }

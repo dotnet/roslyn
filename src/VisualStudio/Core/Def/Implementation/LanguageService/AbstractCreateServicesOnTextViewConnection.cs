@@ -4,6 +4,7 @@
 
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -22,11 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
-        private readonly VisualStudioWorkspace _workspace;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IThreadingContext _threadingContext;
         private readonly string _languageName;
         private bool _initialized = false;
+
+        protected VisualStudioWorkspace Workspace { get; }
+
+        protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
+            => Task.CompletedTask;
 
         public AbstractCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
@@ -34,10 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             IThreadingContext threadingContext,
             string languageName)
         {
-            _workspace = workspace;
+            Workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _threadingContext = threadingContext;
             _languageName = languageName;
+
+            Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -55,11 +62,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
+        private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
+        {
+            var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentAsync));
+            InitializeServiceForOpenedDocumentAsync(e.Document).CompletesAsyncOperation(token);
+        }
+
         private async Task InitializeServicesAsync()
         {
             await TaskScheduler.Default;
 
-            var languageServices = _workspace.Services.GetExtendedLanguageServices(_languageName);
+            var languageServices = Workspace.Services.GetExtendedLanguageServices(_languageName);
 
             _ = languageServices.GetService<ISnippetInfoService>();
 
