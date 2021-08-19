@@ -578,14 +578,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         /// <summary>
         /// Given multiple possible chosen completion items, pick the one that has the
-        /// best MRU index.
+        /// best MRU index, or the one with highest MatchPriority if none in MRU.
         /// </summary>
         private static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
             ImmutableArray<RoslynCompletionItem> chosenItems, ImmutableArray<string> recentItems)
         {
+            Debug.Assert(chosenItems.Length > 0);
+
             // Try to find the chosen item has been most recently used.
-            var bestItem = chosenItems.First();
-            for (int i = 0, n = chosenItems.Length; i < n; i++)
+            var bestItem = chosenItems[0];
+            for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
                 var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);

@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 {
                     return result;
                 }
+
+                Debug.Assert(!onlyDifferInCaseSensitivity);
             }
             else if (match1 != null)
             {
