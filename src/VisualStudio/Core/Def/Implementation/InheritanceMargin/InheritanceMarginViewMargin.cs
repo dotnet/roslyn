@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly string _languageName;
         private bool _refreshAllGlyphs;
         private bool _disposed;
+        private readonly Grid _grid;
         private readonly Canvas _mainCanvas;
 
         // Same size as the Glyph Margin
@@ -54,6 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             _languageName = document.Project.Language;
             _mainCanvas = new Canvas();
+            _mainCanvas.ClipToBounds = true;
+            _grid = new Grid();
+            _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
                 textViewHost.TextView,
                 threadingContext,
@@ -198,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         #region IWpfTextViewMargin
-        public FrameworkElement VisualElement => _mainCanvas;
+        public FrameworkElement VisualElement => _grid;
 
         public double MarginSize => _mainCanvas.Width;
 
