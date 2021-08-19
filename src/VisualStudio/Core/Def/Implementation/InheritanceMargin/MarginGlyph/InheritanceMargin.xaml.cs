@@ -86,17 +86,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 allowCancellation: true,
                 showProgress: false);
 
-            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(context.UserCancellationToken).ConfigureAwait(false);
+            var cancellationToken = context.UserCancellationToken;
+            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
             if (rehydrated == null)
                 return;
 
-            GoToDefinitionHelpers.TryGoToDefinition(
-                ImmutableArray.Create<DefinitionItem>(rehydrated),
+            await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
+                _threadingContext,
                 _workspace,
                 string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
-                _threadingContext,
-                _streamingFindUsagesPresenter,
-                context.UserCancellationToken);
+                ImmutableArray.Create<DefinitionItem>(rehydrated),
+                cancellationToken).ConfigureAwait(false);
         }
 
         private void ChangeBorderToHoveringColor()
