@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -26,8 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
+            IGlobalOptionService optionService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
+            : base(threadingContext, glyphService, serviceProvider, workspace, optionService, listenerProvider)
         {
         }
     }

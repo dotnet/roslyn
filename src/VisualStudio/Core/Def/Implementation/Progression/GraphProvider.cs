@@ -10,6 +10,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
@@ -28,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _optionService;
         private readonly GraphQueryManager _graphQueryManager;
 
         private bool _initialized = false;
@@ -37,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             Workspace workspace,
+            IGlobalOptionService optionService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
@@ -44,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _serviceProvider = serviceProvider;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
+            _optionService = optionService;
             _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
         }
 
@@ -62,7 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         internal static List<IGraphQuery> GetGraphQueries(
             IGraphContext context,
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            bool useNavigateToEngine)
         {
             var graphQueries = new List<IGraphQuery>();
 
@@ -140,18 +146,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     // is a COM type. Therefore, it's probably best to grab the values we want now
                     // rather than get surprised by COM marshalling later.
                     graphQueries.Add(new SearchGraphQuery(
-                        searchParameters.SearchQuery.SearchString, threadingContext, asyncListener));
+                        searchParameters.SearchQuery.SearchString, threadingContext, asyncListener, useNavigateToEngine));
                 }
             }
 
             return graphQueries;
         }
 
+        private bool UseNavigateToEngine()
+        {
+            var experimentationService = _workspace.Services.GetService<IExperimentationService>();
+            var forceLegacySearch = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ProgressionForceLegacySearch) == true;
+
+            return !forceLegacySearch && _optionService.GetOption(ProgressionOptions.SearchUsingNavigateToEngine);
+        }
+
         public void BeginGetGraphData(IGraphContext context)
         {
             EnsureInitialized();
 
-            var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
+            var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener, UseNavigateToEngine());
 
             if (graphQueries.Count > 0)
             {
