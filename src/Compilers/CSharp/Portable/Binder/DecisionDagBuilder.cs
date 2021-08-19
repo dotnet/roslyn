@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagIndexerEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}[{e.Index}])";
                         case BoundDagAssignmentEvaluation e:
-                            return $"{e.Kind}({tempName(e.Input)}, {tempName(e.Target)})";
+                            return $"{e.Kind}({tempName(e.Target)}={tempName(e.Input)})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
