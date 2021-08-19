@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal partial class InheritanceMarginViewMargin : UserControl, IWpfTextViewMargin
+    internal partial class InheritanceMarginViewMargin : IWpfTextViewMargin
     {
         private readonly IWpfTextViewHost _textViewHost;
         private readonly IWpfTextView _textView;
@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly string _languageName;
         private bool _refreshAllGlyphs;
         private bool _disposed;
+        private readonly Canvas _mainCanvas;
 
         // Same size as the Glyph Margin
         private const double HeightAndWidthOfMargin = 17;
@@ -47,12 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ITagAggregator<InheritanceMarginTag> tagAggregator,
             Document document)
         {
-            InitializeComponent();
             _textViewHost = textViewHost;
             _textView = textViewHost.TextView;
             _tagAggregator = tagAggregator;
             _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             _languageName = document.Project.Language;
+            _mainCanvas = new Canvas();
             _glyphManager = new InheritanceGlyphManager(
                 textViewHost.TextView,
                 threadingContext,
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 classificationFormatMap,
                 operationExecutor,
                 editorFormatMap,
-                MainCanvas);
+                _mainCanvas);
             _refreshAllGlyphs = true;
             _disposed = false;
 
@@ -71,17 +72,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
 
-            MainCanvas.Width = HeightAndWidthOfMargin;
+            _mainCanvas.Width = HeightAndWidthOfMargin;
 
-            MainCanvas.LayoutTransform = new ScaleTransform(
+            _mainCanvas.LayoutTransform = new ScaleTransform(
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
-            MainCanvas.LayoutTransform.Freeze();
+            _mainCanvas.LayoutTransform.Freeze();
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
-            MainCanvas.LayoutTransform = e.ZoomTransform;
+            _mainCanvas.LayoutTransform = e.ZoomTransform;
             _refreshAllGlyphs = true;
         }
 
@@ -123,11 +124,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var marginOffset = GetMarginOffset();
             if (marginOffset == 0)
             {
-                MainCanvas.Width = HeightAndWidthOfMargin;
+                _mainCanvas.Width = HeightAndWidthOfMargin;
             }
             else
             {
-                MainCanvas.Width = 0;
+                _mainCanvas.Width = 0;
             }
 
             foreach (var glyph in _glyphManager.AllGlyphs)
@@ -197,9 +198,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         #region IWpfTextViewMargin
-        public FrameworkElement VisualElement => this;
+        public FrameworkElement VisualElement => _mainCanvas;
 
-        public double MarginSize => MainCanvas.Width;
+        public double MarginSize => _mainCanvas.Width;
 
         public bool Enabled => true;
 
