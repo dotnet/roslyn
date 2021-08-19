@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 "System.Xml.XPath.XDocument");
 
         private readonly object _guard = new object();
-        private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>();
+        private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
