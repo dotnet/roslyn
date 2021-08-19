@@ -207,13 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
-        public BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)
+        private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)
         {
             if (node.MemberSymbol is null)
             {
                 return (BoundExpression)base.VisitObjectInitializerMember(node)!;
             }
 
+            var originalReceiver = rewrittenReceiver;
             var rewrittenArguments = VisitArguments(node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, ref rewrittenReceiver, out ArrayBuilder<LocalSymbol>? constructionTemps);
 
             if (constructionTemps != null)
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (rewrittenReceiver is BoundSequence sequence)
+            if (originalReceiver != rewrittenReceiver && rewrittenReceiver is BoundSequence sequence)
             {
                 Debug.Assert(temps != null);
                 temps.AddRange(sequence.Locals);
