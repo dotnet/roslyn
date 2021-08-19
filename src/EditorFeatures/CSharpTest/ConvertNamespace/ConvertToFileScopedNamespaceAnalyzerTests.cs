@@ -81,6 +81,27 @@ namespace $$N;
         }
 
         [Fact]
+        public async Task TestConvertToFileScopedInCSharp10WithBlockScopedPreference_NotSilent()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+namespace [|N|]
+{
+}
+",
+                FixedCode = @"
+namespace $$N;
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Suggestion }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNoConvertWithMultipleNamespaces()
         {
             var code = @"

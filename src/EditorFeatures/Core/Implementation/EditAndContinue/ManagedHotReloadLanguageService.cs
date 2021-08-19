@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
-            private readonly IManagedHotReloadService _hotReloadService;
+            private readonly Lazy<IManagedHotReloadService> _hotReloadService;
 
-            public DebuggerService(IManagedHotReloadService hotReloadService)
+            public DebuggerService(Lazy<IManagedHotReloadService> hotReloadService)
             {
                 _hotReloadService = hotReloadService;
             }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => _hotReloadService.GetCapabilitiesAsync(cancellationToken).AsTask();
+                => _hotReloadService.Value.GetCapabilitiesAsync(cancellationToken).AsTask();
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -56,11 +56,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private RemoteDebuggingSessionProxy? _debuggingSession;
         private bool _disabled;
 
+        /// <summary>
+        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedHotReloadService"/> lazily so that the host does not need to implement them
+        /// unless it implements debugger components.
+        /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedHotReloadLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            IManagedHotReloadService hotReloadService,
+            Lazy<IManagedHotReloadService> hotReloadService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {

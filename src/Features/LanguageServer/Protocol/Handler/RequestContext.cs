@@ -4,15 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
-using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -31,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
+            ImmutableArray<string> supportedLanguages,
             out Workspace workspace)
         {
             // Go through each registered workspace, find the solution that contains the document that
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 workspace = workspaceSolution.Workspace;
-                return new RequestContext(solution: null, _logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker);
+                return new RequestContext(solution: null, _logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, supportedLanguages);
             }
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             workspace = lspSolution.Workspace;
-            return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, supportedLanguages);
         }
 
         private static Document? FindDocument(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
             {
                 workspaceKinds.Add(workspace.Kind);
-                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName, logger);
 
                 if (!documents.IsEmpty)
                 {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var searchedWorkspaceKinds = string.Join(";", workspaceKinds.ToImmutableAndClear());
-            logger.TraceWarning($"No document found after looking in {searchedWorkspaceKinds} workspaces, but request did contain a document uri");
+            logger.TraceWarning($"No document found for '{textDocument.Uri}' after looking in {searchedWorkspaceKinds} workspaces, with client name '{clientName}'.");
 
             telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly Document? Document;
 
         /// <summary>
+        /// The languages supported by the server making the request.
+        /// </summary>
+        public readonly ImmutableArray<string> SupportedLanguages;
+
+        /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
         private readonly Action<string> _traceInformation;
@@ -201,12 +206,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             string? clientName,
             Document? document,
-            IDocumentChangeTracker documentChangeTracker)
+            IDocumentChangeTracker documentChangeTracker,
+            ImmutableArray<string> supportedLanguages)
         {
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
+            SupportedLanguages = supportedLanguages;
             _documentChangeTracker = documentChangeTracker;
             _traceInformation = traceInformation;
         }

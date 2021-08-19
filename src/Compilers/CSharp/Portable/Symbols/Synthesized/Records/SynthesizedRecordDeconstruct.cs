@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> positionalMembers,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.DeconstructMethodName, hasBody: true, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.DeconstructMethodName, isReadOnly: IsReadOnly(containingType, positionalMembers), hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(positionalMembers.All(p => p is PropertySymbol { GetMethod: not null } or FieldSymbol));
             _ctor = ctor;
@@ -102,6 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             statementsBuilder.Add(F.Return());
             F.CloseMethod(F.Block(statementsBuilder.ToImmutableAndFree()));
+        }
+
+        private static bool IsReadOnly(SourceMemberContainerTypeSymbol containingType, ImmutableArray<Symbol> positionalMembers)
+        {
+            return containingType.IsReadOnly || (containingType.IsRecordStruct && !positionalMembers.Any(m => hasNonReadOnlyGetter(m)));
+
+            static bool hasNonReadOnlyGetter(Symbol m)
+            {
+                if (m.Kind is SymbolKind.Property)
+                {
+                    var property = (PropertySymbol)m;
+                    var getterMethod = property.GetMethod;
+                    return property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly;
+                }
+
+                return false;
+            }
         }
     }
 }

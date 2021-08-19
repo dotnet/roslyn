@@ -481,7 +481,7 @@ class K
                 "Error: Field name value__ is reserved for Enums only.");
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferTrue()
         {
@@ -492,15 +492,16 @@ unsafe struct S
     private fixed byte goo[10];
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.True(goo.IsFixedSizeBuffer);
+            Assert.Equal(10, goo.FixedSize);
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferFalse()
         {
@@ -511,12 +512,13 @@ unsafe struct S
     private byte goo;
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.False(goo.IsFixedSizeBuffer);
+            Assert.Equal(0, goo.FixedSize);
         }
 
         [Fact]

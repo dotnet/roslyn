@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var diagnostic = diagnostics.First();
 
-            var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.Location.FindNode(cancellationToken);
+            var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
             var converted = Convert(namespaceDecl);
 
             editor.ReplaceNode(namespaceDecl, converted);

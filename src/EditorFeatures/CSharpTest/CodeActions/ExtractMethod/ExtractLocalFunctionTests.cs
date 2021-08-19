@@ -4759,7 +4759,7 @@ static string NewMethod()
     return ""string"";
 }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4782,7 +4782,7 @@ static string NewMethod()
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4802,7 +4802,17 @@ System.Console.WriteLine([|""string""|]);
     }
 }";
 
-            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunctionInNamespace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace C
+{
+    private bool TestMethod() => [|false|];
+}", codeActionIndex: 1);
         }
 
         [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]

@@ -8,8 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
+        private abstract partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
 
-            public SuggestedActionsSource(
+            protected SuggestedActionsSource(
                 IThreadingContext threadingContext,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
@@ -64,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 _state.Dispose();
             }
+
+            protected ReferenceCountedDisposable<State> SourceState => _state;
 
             public bool TryGetTelemetryId(out Guid telemetryId)
             {
@@ -169,16 +173,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
-                    var fixes = GetCodeFixes(
-                        state, supportsFeatureService, requestedActionCategories, workspace,
-                        document, range, addOperationScope, cancellationToken);
-                    var refactorings = GetRefactorings(
-                        state, supportsFeatureService, requestedActionCategories, workspace,
-                        document, selection, addOperationScope, cancellationToken);
+                    var fixes = GetCodeFixesAsync(
+                        state, supportsFeatureService, requestedActionCategories, workspace, document, range,
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var refactorings = GetRefactoringsAsync(
+                        state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                    return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                    return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
                 }
+            }
+
+            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            {
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
+                return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
             }
 
             [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
@@ -235,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     };
             }
 
-            private ImmutableArray<UnifiedSuggestedActionSet> GetCodeFixes(
+            protected static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -243,20 +252,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
+                CodeActionRequestPriority priority,
+                bool isBlocking,
                 CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
-
                 if (state.Target.Owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
                     !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    isBlocking: true, addOperationScope, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                    priority, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -274,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<UnifiedSuggestedActionSet> GetRefactorings(
+            protected static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -282,22 +291,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
+                CodeActionRequestPriority priority,
+                bool isBlocking,
                 CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
-
                 if (!selection.HasValue)
                 {
                     // this is here to fail test and see why it is failed.
                     Trace.WriteLine("given range is not current");
-                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
                 {
-                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
@@ -305,8 +314,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, isBlocking: true,
-                    addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
+                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, priority, isBlocking,
+                    addOperationScope, filterOutsideSelection, cancellationToken);
             }
 
             public Task<bool> HasSuggestedActionsAsync(
@@ -336,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
 
                 // Next, before we do any async work, acquire the user's selection, directly grabbing
-                // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
+                // it from the UI thread if that's what we're on. That way we don't have any reentrancy
                 // blocking concerns if VS wants to block on this call (for example, if the user
                 // explicitly invokes the 'show smart tag' command).
                 //
@@ -346,18 +355,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Note: we may be called in one of two VS scenarios:
                 //      1) User has moved caret to a new line.  In this case VS will call into us in the
                 //         bg to see if we have any suggested actions for this line.  In order to figure
-                //         this out, we need to see what selectoin the user has (for refactorings), which
+                //         this out, we need to see what selection the user has (for refactorings), which
                 //         necessitates going back to the fg.
                 //
                 //      2) User moves to a line and immediately hits ctrl-dot.  In this case, on the UI
                 //         thread VS will kick us off and then immediately block to get the results so
-                //         that they can expand the lightbulb.  In this case we cannot do BG work first,
+                //         that they can expand the light-bulb.  In this case we cannot do BG work first,
                 //         then call back into the UI thread to try to get the user selection.  This will
                 //         deadlock as the UI thread is blocked on us.
                 //
                 // There are two solution to '2'.  Either introduce reentrancy (which we really don't
                 // like to do), or just ensure that we acquire and get the users selection up front.
-                // This means that when we're called from the UI therad, we never try to go back to the
+                // This means that when we're called from the UI thread, we never try to go back to the
                 // UI thread.
                 TextSpan? selection = null;
                 if (IsForeground())
@@ -439,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
+            protected TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
             {
                 this.AssertIsForeground();
 
@@ -532,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return;
                 }
 
-                // ask editor to refresh lightbulb when workspace solution status is changed
+                // ask editor to refresh light-bulb when workspace solution status is changed
                 this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
             }
 

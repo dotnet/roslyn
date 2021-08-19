@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _tokensCache = tokensCache;
         }
 
-        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName;
+        public string Method => LSP.Methods.TextDocumentSemanticTokensRangeName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

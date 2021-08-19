@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -42,6 +43,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
+        protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
-            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;
@@ -78,5 +81,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
             return capabilities;
         }
+
+        /// <summary>
+        /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

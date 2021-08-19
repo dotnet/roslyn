@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundMustBeLast = 401,
         WRN_MainCantBeGeneric = 402,
         ERR_TypeVarCantBeNull = 403,
-        ERR_AttributeCantBeGeneric = 404,
+        // ERR_AttributeCantBeGeneric = 404,
         ERR_DuplicateBound = 405,
         ERR_ClassBoundNotFirst = 406,
         ERR_BadRetType = 407,
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TypeParameterSameAsOuterTypeParameter = 693,
         ERR_TypeVariableSameAsParent = 694,
         ERR_UnifyingInterfaceInstantiations = 695,
-        ERR_GenericDerivingFromAttribute = 698,
+        // ERR_GenericDerivingFromAttribute = 698,
         ERR_TyVarNotFoundInConstraint = 699,
         ERR_BadBoundType = 701,
         ERR_SpecialTypeAsBound = 702,
@@ -1991,6 +1991,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
         ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        ERR_AttrTypeArgCannotBeTypeVar = 8968,
+        WRN_AttrDependentTypeNotAllowed = 8969,
+        ERR_AttrDependentTypeNotAllowed = 8970,
 
         #endregion
 

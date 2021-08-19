@@ -8,10 +8,18 @@
     <License>EULA.rtf</License>
   </Metadata>
   <Installation Experimental="true">
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.Pro" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VWDExpress" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinExpress" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinDesktopExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VWDExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
@@ -19,6 +27,6 @@
   <Assets>
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,18.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>
