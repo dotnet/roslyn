@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="whenTrueValues">The possible values of test.Input when <paramref name="test"/> has succeeded.</param>
         /// <param name="whenFalseValues">The possible values of test.Input when <paramref name="test"/> has failed.</param>
         /// <param name="precondition">The pre-condition that the implied status of the <paramref name="other"/> test is dependent upon.</param>
-        /// <param name="sideeffect">An assignment node which will correspound two non-identical but related test inputs.</param>
+        /// <param name="sideeffect">An assignment node which will correspond two non-identical but related test inputs.</param>
         /// <param name="trueTestPermitsTrueOther">set if <paramref name="test"/> being true would permit <paramref name="other"/> to succeed</param>
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
