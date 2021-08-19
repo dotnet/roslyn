@@ -287,5 +287,99 @@ class C
                 //         var v = await """ """;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await """""" """"""").WithArguments("string", "GetAwaiter").WithLocation(8, 17));
         }
+
+        [Fact]
+        public void TestInIsConstant()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    void M(object o)
+    {
+        if (o is """""" """""")
+        {
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInIsTuple()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    void M((string s, int i) o)
+    {
+        if (o is ("""""" """""", 1))
+        {
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInSubpattern()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    string x = """";
+    void M(C c)
+    {
+        if (c is { x: """""" """""" })
+        {
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInConditionalExpression()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    void M(bool b)
+    {
+        var x = b ? """""" """""" : "" "";
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInExpressionStatement()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    void M(bool b)
+    {
+        """""" """""";
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         """ """;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @""""""" """"""").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void TestInAnonymousObject()
+        {
+            CreateCompilation(
+@"
+class C
+{
+    void M()
+    {
+        var v = new { P = """""" """""" };
+    }
+}").VerifyDiagnostics();
+        }
     }
 }
