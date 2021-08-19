@@ -17,19 +17,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Export(typeof(EditAndContinueLanguageService)), Shared]
-    internal sealed class EditAndContinueLanguageService
+    [Shared]
+    [Export(typeof(EditAndContinueLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
+    internal sealed class EditAndContinueLanguageService : IEditAndContinueSolutionProvider
     {
         private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-
-        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
+        private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
         private bool _disabled;
         private RemoteDebuggingSessionProxy? _debuggingSession;
+        private Solution? _pendingUpdatedSolution;
+
+        public Solution? CommittedSolution { get; private set; }
 
         /// <summary>
         /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
@@ -42,14 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
-            WorkspaceProvider = workspaceProvider;
+            _workspaceProvider = workspaceProvider;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
         private Solution GetCurrentCompileTimeSolution()
         {
-            var workspace = WorkspaceProvider.Value.Workspace;
+            var workspace = _workspaceProvider.Value.Workspace;
             return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
         }
 
@@ -60,8 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             return debuggingSession;
         }
 
+        public HostWorkspaceServices WorkspaceServices
+            => _workspaceProvider.Value.Workspace.Services;
+
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
-            => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+            => WorkspaceServices.GetRequiredService<IActiveStatementTrackingService>();
 
         internal void Disable()
             => _disabled = true;
@@ -78,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                var workspace = WorkspaceProvider.Value.Workspace;
+                var workspace = _workspaceProvider.Value.Workspace;
                 var solution = GetCurrentCompileTimeSolution();
                 var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
                 var proxy = new RemoteEditAndContinueServiceProxy(workspace);
@@ -137,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             try
             {
                 Contract.ThrowIfTrue(_disabled);
+
+                CommittedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -150,6 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 return;
             }
+
+            _pendingUpdatedSolution = null;
 
             try
             {
@@ -222,6 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var solution = GetCurrentCompileTimeSolution();
             var activeStatementSpanProvider = trackActiveStatements ? GetActiveStatementSpanProvider(solution) : s_noActiveStatementSpanProvider;
             var (updates, diagnostics, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+            _pendingUpdatedSolution = solution;
             return (updates, diagnostics, rudeEdits, solution);
         }
 

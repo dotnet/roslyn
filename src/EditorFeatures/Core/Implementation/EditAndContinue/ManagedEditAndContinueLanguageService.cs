@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         private IDebuggingWorkspaceService GetDebuggingService()
-            => _encService.WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+            => _encService.WorkspaceServices.GetRequiredService<IDebuggingWorkspaceService>();
 
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
