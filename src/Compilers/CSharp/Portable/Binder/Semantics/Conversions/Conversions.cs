@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
-            if (!(destination.IsDelegateType() || destination.SpecialType == SpecialType.System_Delegate))
+            if (!(destination.IsDelegateType() || (destination.SpecialType == SpecialType.System_Delegate && IsFeatureInferredDelegateTypeEnabled(source))))
             {
                 return Conversion.NoConversion;
             }
@@ -82,15 +82,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        protected override Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (destination is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
             {
                 return Conversion.InterpolatedStringHandler;
             }
 
+            if (source is BoundBinaryOperator)
+            {
+                return Conversion.NoConversion;
+            }
+
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
+            Debug.Assert(source is BoundUnconvertedInterpolatedString);
             return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything) ||
                     TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
@@ -132,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (signature, true, new CallingConventionInfo(signature.CallingConvention, signature.GetCallingConventionModifiers()));
             }
 
-            var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
+            var delegateType = (type.SpecialType == SpecialType.System_Delegate) && methodGroup.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) ?
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
                 type.GetDelegateType();

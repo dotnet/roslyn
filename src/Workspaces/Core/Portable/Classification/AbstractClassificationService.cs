@@ -46,8 +46,10 @@ namespace Microsoft.CodeAnalysis.Classification
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
+                // Call the project overload.  Semantic classification only needs the current project's information
+                // to classify properly.
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
-                   document.Project.Solution,
+                   document.Project,
                    (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, cancellationToken),
                    cancellationToken).ConfigureAwait(false);
 

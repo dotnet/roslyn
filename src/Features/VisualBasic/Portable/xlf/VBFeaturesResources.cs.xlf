@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Název se dá zjednodušit.</target>
+        <target state="translated">Název může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
@@ -330,21 +330,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection</source>
         <target state="translated">Neplatný výběr</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">Výběr nemůže obsahovat žádný platný token.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Žádný platný výběr k provedení extrakce</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">Žádný společný kořenový uzel pro extrakci</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -965,11 +950,6 @@ Iterator Function(&lt;seznam_parametrů&gt;) As IEnumerable(Of &lt;T&gt;)</targe
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">Určuje pořadí řazení pro klauzuli Order By v dotazu. Jako první se objeví nejmenší element.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Asynchronně čeká na dokončení úlohy.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">

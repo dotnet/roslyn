@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             switch (diagnosticId)
             {
                 case CS7036:
+                case CS0308:
                 case CS0428:
                 case CS1061:
                     if (node.IsKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax conditionalAccess))

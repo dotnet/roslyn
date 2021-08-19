@@ -7597,5 +7597,36 @@ struct B
 }",
                 MainDescription("struct B"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNormalFuncSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                TypeParameterMap($@"
+T {FeaturesResources.is_} int
+TResult {FeaturesResources.is_} string"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate string <anonymous delegate>(ref int)"));
+        }
     }
 }

@@ -4024,6 +4024,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref LocalState shortCircuitState)
+        {
+            var result = base.VisitInterpolatedStringHandlerParts(node, usesBoolReturns, firstPartIsConditional, ref shortCircuitState);
+            SetNotNullResult(node);
+            return result;
+        }
+
+        protected override BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
+        {
+            var result = base.PushBinaryOperatorInterpolatedStringChildren(node, stack);
+            SetNotNullResult(node);
+            return result;
+        }
+
         /// <summary>
         /// If we learn that the operand is non-null, we can infer that certain
         /// sub-expressions were also non-null.
@@ -9769,14 +9783,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-        {
-            // https://github.com/dotnet/roslyn/issues/54583
-            // Better handle the constructor propogation
-            var result = base.VisitInterpolatedString(node);
-            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return result;
-        }
+        // https://github.com/dotnet/roslyn/issues/54583
+        // Better handle the constructor propagation
+        //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+        //{
+        //}
 
         public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
