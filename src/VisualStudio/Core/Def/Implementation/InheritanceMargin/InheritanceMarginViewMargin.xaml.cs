@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,14 +13,12 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -30,21 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IWpfTextViewHost _textViewHost;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IClassificationFormatMap _classificationFormatMap;
-        private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IOptionService _optionService;
-        private readonly IEditorFormatMap _editorFormatMap;
+        private readonly InheritanceGlyphManager _glyphManager;
         private readonly string _languageName;
-        private Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin> _snapshotSpanToMargin;
+        private bool _refreshAllGlyphs;
+        private bool _disposed;
 
         // Same size as the Glyph Margin
-        private const double HeightAndWidthOfMargin = 18;
-
-        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin
-        private const string GlyphMarginName = "Indicator Margin";
+        private const double HeightAndWidthOfMargin = 17;
 
         public InheritanceMarginViewMargin(
             IWpfTextViewHost textViewHost,
@@ -59,26 +49,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             InitializeComponent();
             _textViewHost = textViewHost;
-            _threadingContext = threadingContext;
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _classificationFormatMap = classificationFormatMap;
-            _classificationTypeMap = classificationTypeMap;
-            _operationExecutor = operationExecutor;
             _textView = textViewHost.TextView;
-            _editorFormatMap = editorFormatMap;
             _tagAggregator = tagAggregator;
-            _snapshotSpanToMargin = new Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin>();
             _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             _languageName = document.Project.Language;
+            _glyphManager = new InheritanceGlyphManager(
+                textViewHost.TextView,
+                threadingContext,
+                streamingFindUsagesPresenter,
+                classificationTypeMap,
+                classificationFormatMap,
+                operationExecutor,
+                editorFormatMap,
+                MainCanvas);
+            _refreshAllGlyphs = true;
+            _disposed = false;
 
             _tagAggregator.BatchedTagsChanged += OnTagsChanged;
             _textView.LayoutChanged += OnLayoutChanged;
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
-            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
-            MainCanvas.Width = MarginSize;
+            MainCanvas.Width = HeightAndWidthOfMargin;
 
             MainCanvas.LayoutTransform = new ScaleTransform(
                 scaleX: _textView.ZoomLevel / 100,
@@ -86,33 +79,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             MainCanvas.LayoutTransform.Freeze();
         }
 
-        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
-            var resourceDictionary = _editorFormatMap.GetProperties(GlyphMarginName);
-            if (resourceDictionary.Contains(EditorFormatDefinition.BackgroundColorId))
-            {
-                var backgroundColor = (Color)resourceDictionary[EditorFormatDefinition.BackgroundColorId];
-                // Set background color for all the glyphs
-                ImageThemingUtilities.SetImageBackgroundColor(this.MainCanvas, backgroundColor);
-            }
-        }
-
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
-            // Set ZoomTransform for Canvas.
-            // Don't need to update the ZoomLevel for glpyhs here, when zoom level changes, OnLayoutChanged will be
-            // fired all the margin will be recreated.
             MainCanvas.LayoutTransform = e.ZoomTransform;
+            _refreshAllGlyphs = true;
         }
 
         private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-            SetSnapshotAndUpdate(e.NewOrReformattedLines);
-            foreach (var line in e.NewOrReformattedLines)
+            _glyphManager.SetSnapshotAndUpdate(
+                _textView.TextSnapshot,
+                e.NewOrReformattedLines,
+                e.VerticalTranslation ? _textView.TextViewLines : e.TranslatedLines);
+
+            IList<ITextViewLine> lines = _refreshAllGlyphs ? _textView.TextViewLines : e.NewOrReformattedLines;
+            foreach (var line in lines)
             {
-                RemoveGlyphByVisualSpan(line.Extent);
+                _glyphManager.RemoveGlyph(line.Extent);
                 RefreshGlyphsOver(line);
             }
+
+            _refreshAllGlyphs = false;
         }
 
         private void OnTextViewOptionChanged(object sender, EditorOptionChangedEventArgs e)
@@ -143,9 +130,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 MainCanvas.Width = 0;
             }
 
-            foreach (var (_, margin) in _snapshotSpanToMargin)
+            foreach (var glyph in _glyphManager.AllGlyphs)
             {
-                Canvas.SetLeft(margin, marginOffset);
+                Canvas.SetLeft(glyph, marginOffset);
             }
         }
 
@@ -166,36 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        private void SetSnapshotAndUpdate(IReadOnlyCollection<ITextViewLine> newOrReformattedLines)
-        {
-            var newSnapPointToMarginMap = new Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin>(_snapshotSpanToMargin.Count);
-            foreach (var (span, margin) in _snapshotSpanToMargin)
-            {
-                var translatedSpan = span.TranslateTo(_textView.TextSnapshot, SpanTrackingMode.EdgeInclusive);
-                var containingLine = _textView.TextViewLines.GetTextViewLineContainingBufferPosition(translatedSpan.Start);
-
-                // Remove the glyph from Canvas if
-                // 1. If the line is no longer in the _textView
-                // 2. If the glyph enters in the newOrReformattedLines.
-                // (e.g. If a region in the editor is collapsed, and there is a margin in the region, we should remove it)
-                if (containingLine == null)
-                {
-                    MainCanvas.Children.Remove(margin);
-                }
-                else if (newOrReformattedLines.Any(line => line.IntersectsBufferSpan(translatedSpan)))
-                {
-                    MainCanvas.Children.Remove(margin);
-                }
-                else
-                {
-                    newSnapPointToMarginMap[translatedSpan] = margin;
-                    Canvas.SetTop(margin, containingLine.TextTop - _textView.ViewportTop);
-                }
-            }
-
-            _snapshotSpanToMargin = newSnapPointToMarginMap;
-        }
-
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
             if (_textView.IsClosed)
@@ -212,8 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var startOfChangedSpan = changedSnapshotSpans.Min(span => span.Start);
             var endOfChangedSpan = changedSnapshotSpans.Max(span => span.End);
             var changedSpan = new SnapshotSpan(startOfChangedSpan, endOfChangedSpan);
-
-            RemoveGlyphByVisualSpan(changedSpan);
+            _glyphManager.RemoveGlyph(changedSpan);
             foreach (var line in _textView.TextViewLines.GetTextViewLinesIntersectingSpan(changedSpan))
             {
                 if (line.IsValid)
@@ -234,63 +190,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     var tagSpans = mappingTagSpan.Span.GetSpans(_textView.TextSnapshot);
                     if (tagSpans.Count > 0)
                     {
-                        AddGlyph(textViewLine, mappingTagSpan.Tag, tagSpans[0]);
+                        _glyphManager.AddGlyph(mappingTagSpan.Tag, tagSpans[0], GetMarginOffset());
                     }
-                }
-            }
-        }
-
-        private void AddGlyph(ITextViewLine textViewLine, InheritanceMarginTag tag, SnapshotSpan span)
-        {
-            if (!_textView.TextViewLines.IntersectsBufferSpan(span))
-            {
-                return;
-            }
-
-            if (this.Visibility == Visibility.Collapsed)
-            {
-                var inheritanceMarginEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
-                if (inheritanceMarginEnabled == true)
-                {
-                    this.Visibility = Visibility.Visible;
-                }
-            }
-
-            var margin = new MarginGlyph.InheritanceMargin(
-                _threadingContext,
-                _streamingFindUsagesPresenter,
-                _classificationTypeMap,
-                _classificationFormatMap,
-                _operationExecutor,
-                tag,
-                _textView);
-
-            margin.Height = HeightAndWidthOfMargin;
-            margin.Width = HeightAndWidthOfMargin;
-            _snapshotSpanToMargin[span] = margin;
-            Canvas.SetTop(margin, textViewLine.TextTop - _textView.ViewportTop);
-            Canvas.SetLeft(margin, GetMarginOffset());
-            MainCanvas.Children.Add(margin);
-
-        }
-
-        private void RemoveGlyphByVisualSpan(SnapshotSpan snapshotSpan)
-        {
-            var mariginsToRemove = _snapshotSpanToMargin
-                .Where(kvp => snapshotSpan.IntersectsWith(kvp.Key))
-                .ToImmutableArray();
-            foreach (var (span, margin) in mariginsToRemove)
-            {
-                MainCanvas.Children.Remove(margin);
-                _snapshotSpanToMargin.Remove(span);
-            }
-
-            if (MainCanvas.Children.Count == 0)
-            {
-                var inheritanceMarginEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
-                if (inheritanceMarginEnabled == false)
-                {
-                    this.Visibility = Visibility.Collapsed;
                 }
             }
         }
@@ -307,13 +208,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public void Dispose()
         {
-            _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
-            _textView.LayoutChanged -= OnLayoutChanged;
-            _textView.ZoomLevelChanged -= OnZoomLevelChanged;
-            _textView.Options.OptionChanged -= OnTextViewOptionChanged;
-            _optionService.OptionChanged -= OnRoslynOptionChanged;
-            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
-            _tagAggregator.Dispose();
+            if (!_disposed)
+            {
+                _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
+                _textView.LayoutChanged -= OnLayoutChanged;
+                _textView.ZoomLevelChanged -= OnZoomLevelChanged;
+                _textView.Options.OptionChanged -= OnTextViewOptionChanged;
+                _optionService.OptionChanged -= OnRoslynOptionChanged;
+                _tagAggregator.Dispose();
+                _disposed = true;
+            }
         }
         #endregion
     }
