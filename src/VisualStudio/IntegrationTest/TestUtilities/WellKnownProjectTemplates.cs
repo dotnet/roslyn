@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string CSharpNetCoreClassLibraryClassFileName = "Class1.cs";
 
         /// <summary>
-        /// The .cs file created by the <see cref="VisualBasicNetCoreClassLibrary"/> template.
+        /// The .vb file created by the <see cref="VisualBasicNetCoreClassLibrary"/> template.
         /// </summary>
         public const string VisualBasicNetCoreClassLibraryClassFileName = "Class1.vb";
     }
