@@ -268,5 +268,24 @@ class C
     }
 }").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestAwaitRawStringLiteral()
+        {
+            CreateCompilation(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M()
+    {
+        var v = await """""" """""";
+    }
+}").VerifyDiagnostics(
+                // (8,17): error CS1061: 'string' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var v = await """ """;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await """""" """"""").WithArguments("string", "GetAwaiter").WithLocation(8, 17));
+        }
     }
 }
