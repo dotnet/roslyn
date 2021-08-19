@@ -17,9 +17,9 @@ pr:
 jobs:
 - job: VS_Integration
   pool:
-    ${{ if eq(variables['poolName'], '') }}:
+    ${{ if eq(variables.poolName, '') }}:
       name: 'NetCorePublic-Pool'
-    ${{ if ne(variables['poolName'], '') }}:
+    ${{ if ne(variables.poolName, '') }}:
       name: $(poolName)
     queue: $(queueName)
   strategy:
