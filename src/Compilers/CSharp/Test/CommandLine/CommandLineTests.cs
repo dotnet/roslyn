@@ -5831,7 +5831,7 @@ class A                                                               \
                 assemblyName.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
         public void CsiScript_WithSourceCodeRedirectedViaStandardInput_ExecutesNonInteractively()
         {
             string tempDir = Temp.CreateDirectory().Path;
