@@ -9683,6 +9683,72 @@ partial class C
                 });
         }
 
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void Constructor_DeleteParameterless(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+
+    public C() { b = 3; }
+}
+";
+            var src2 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [public C() { b = 3; }]@66", "Delete [()]@74");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
+        }
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void Constructor_InsertParameterless(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+}
+";
+            var src2 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+
+    public C() { b = 3; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [public C() { b = 3; }]@66", "Insert [()]@74");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
+        }
+
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Constructor_BlockBodyToExpressionBody()
         {
