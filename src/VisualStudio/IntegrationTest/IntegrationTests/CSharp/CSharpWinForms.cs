@@ -116,7 +116,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "SomeButtonHandler");
             // Rename the control
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Name", propertyValue: "SomeNewButton");
-            Thread.Sleep(TimeSpan.FromSeconds(20));
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             // Verify that the rename propagated in designer code
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
