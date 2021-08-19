@@ -6851,7 +6851,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives" xml:space="preserve">
     <value>Raw string literals are not allowed in preprocessor directives</value>
   </data>
-  <data name="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line" xml:space="preserve">
+  <data name="ERR_Raw_string_literal_delimiter_must_be_on_its_own_line" xml:space="preserve">
     <value>Raw string literal delimiter must be on its own line</value>
   </data>
   <data name="ERR_Too_many_closing_quotes_for_raw_string_literal" xml:space="preserve">

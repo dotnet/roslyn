@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     continue;
                 }
 
-                var beforeEndDelimeter = TextWindow.Position;
+                var beforeEndDelimiter = TextWindow.Position;
                 var currentQuoteCount = ConsumeQuoteSequence();
 
                 // A raw string literal starting with some number of quotes can contain a quote sequence with less quotes.
@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // We have enough quotes to finish this string at this point.
-                var afterStartDelimeter = TextWindow.LexemeStartPosition + startingQuoteCount;
-                var valueLength = beforeEndDelimeter - afterStartDelimeter;
+                var afterStartDelimiter = TextWindow.LexemeStartPosition + startingQuoteCount;
+                var valueLength = beforeEndDelimiter - afterStartDelimiter;
 
                 info.StringValue = TextWindow.GetText(
-                    position: afterStartDelimeter,
+                    position: afterStartDelimiter,
                     length: valueLength,
                     intern: true);
                 return;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Do the first pass, finding the end of the raw string, and determining the 'indentation whitespace'
                 // that must be complimentary with all content lines of the raw string literal.
-                var afterStartDelimeter = TextWindow.Position;
+                var afterStartDelimiter = TextWindow.Position;
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 var contentLineCount = 0;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Reset us to right after the starting delimiter.  Note: if we fail to generate a constant value we'll
                 // ensure that we reset back to the original end we scanned to above.
                 var tokenEnd = TextWindow.Position;
-                TextWindow.Reset(afterStartDelimeter);
+                TextWindow.Reset(afterStartDelimiter);
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 for (var currentLine = 0; currentLine < contentLineCount; currentLine++)

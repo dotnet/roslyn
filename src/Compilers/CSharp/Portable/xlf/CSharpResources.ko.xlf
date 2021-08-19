@@ -1017,7 +1017,7 @@
         <target state="translated">속성 하위 패턴은 일치시킬 속성 또는 필드에 대한 참조가 필요합니다(예: '{{ Name: {0} }}')</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line">
+      <trans-unit id="ERR_Raw_string_literal_delimiter_must_be_on_its_own_line">
         <source>Raw string literal delimiter must be on its own line</source>
         <target state="new">Raw string literal delimiter must be on its own line</target>
         <note />

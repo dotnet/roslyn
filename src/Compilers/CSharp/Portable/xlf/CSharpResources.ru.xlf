@@ -1017,7 +1017,7 @@
         <target state="translated">Для вложенного шаблона свойств требуется ссылка на свойство или поле для сопоставления, например, "{{ Name: {0} }}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line">
+      <trans-unit id="ERR_Raw_string_literal_delimiter_must_be_on_its_own_line">
         <source>Raw string literal delimiter must be on its own line</source>
         <target state="new">Raw string literal delimiter must be on its own line</target>
         <note />
