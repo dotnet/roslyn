@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
-                        if (doubleClickToInsertHint is false)
+                        if (!doubleClickToInsertHint)
                         {
                             result.Add(new InlineHint(
                                 new TextSpan(position, 0),
