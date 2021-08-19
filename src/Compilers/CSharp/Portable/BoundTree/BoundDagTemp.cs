@@ -30,11 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Index == other.Index;
         }
 
-        public bool IsEquivalentTo(BoundDagTemp other, bool ignoreSource = false)
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the source.
+        /// </summary>
+        public bool IsEquivalentTo(BoundDagTemp other)
         {
             return
                 this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
-                (ignoreSource || (this.Source, other.Source) is ({ } s1, { } s2) && s1.IsEquivalentTo(s2)) &&
                 this.Index == other.Index;
         }
 

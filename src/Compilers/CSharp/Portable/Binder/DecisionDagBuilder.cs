@@ -466,6 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
                 {
                     // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
+                    Debug.Assert(input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true });
                     tests.Add(Tests.False.Instance);
                 }
                 else
@@ -836,16 +837,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Select the next test to do at this state, and compute successor states
                     switch (state.SelectedTest = state.ComputeSelectedTest())
                     {
-                        case BoundDagAssignmentEvaluation e
-                            when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues) |
-                                 state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues):
-                            IValueSet commonValues = (currentValues, targetValues) is (IValueSet v1, IValueSet v2)
-                                ? v1.Intersect(v2) : currentValues ?? targetValues ?? throw ExceptionUtilities.Unreachable;
-                            var builder = ArrayBuilder<KeyValuePair<BoundDagTemp, IValueSet>>.GetInstance(2);
-                            builder.Add(new KeyValuePair<BoundDagTemp, IValueSet>(e.Input, commonValues));
-                            builder.Add(new KeyValuePair<BoundDagTemp, IValueSet>(e.Target, commonValues));
-                            state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItems(builder));
-                            builder.Free();
+                        case BoundDagAssignmentEvaluation e when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues):
+                            Debug.Assert(e.Input.IsEquivalentTo(e.Target));
+                            // Update the target temp entry with current values. Note that even though we have determined that the two are the same,
+                            // we don't need to update values for the current input. We will emit another assignment node with this temp as the target
+                            // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
+                            if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
+                                currentValues = currentValues.Intersect(targetValues);
+                            state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
                             break;
                         case BoundDagEvaluation e:
                             state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues);
@@ -1142,6 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="whenTrueValues">The possible values of test.Input when <paramref name="test"/> has succeeded.</param>
         /// <param name="whenFalseValues">The possible values of test.Input when <paramref name="test"/> has failed.</param>
         /// <param name="precondition">The pre-condition that the implied status of the <paramref name="other"/> test is dependent upon.</param>
+        /// <param name="sideeffect">An assignment node which will correspound two non-identical but related test inputs.</param>
         /// <param name="trueTestPermitsTrueOther">set if <paramref name="test"/> being true would permit <paramref name="other"/> to succeed</param>
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
@@ -1190,13 +1190,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
                             Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
                             // Ignore input source as it will be matched in the subsequent iterations.
-                            if (s1Input.IsEquivalentTo(s2Input, ignoreSource: true) &&
+                            if (s1Input.IsEquivalentTo(s2Input) &&
                                 // We don't want to pair two indices within the same pattern.
                                 s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                             {
-                                Debug.Assert(s1Input.Equals(s2Input)
-                                    ? s1LengthTemp.Equals(s2LengthTemp)
-                                    : s1LengthTemp.IsEquivalentTo(s2LengthTemp));
+                                Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
+                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp) == s1Input.Equals(s2Input));
                                 if (s1Index == s2Index)
                                 {
                                     continue;
@@ -1229,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
                         // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
                         // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
-                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1Input.IsEquivalentTo(s2Input):
+                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && s1Input.IsEquivalentTo(s2Input):
                             s1Input = s1.Input;
                             s2Input = s2.Input;
                             continue;
@@ -1243,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 precondition = Tests.AndSequence.Create(preconditions);
                 // At this point, we have determined that two non-identical inputs refer to the same element.
-                // We represent this correspoundance with an assignment node in order to merge the remaining values.
+                // We represent this correspondence with an assignment node in order to merge the remaining values.
                 sideeffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
             }
 
@@ -1627,6 +1626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Property.Name})";
                         case BoundDagIndexerEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}[{e.Index}])";
+                        case BoundDagAssignmentEvaluation e:
+                            return $"{e.Kind}({tempName(e.Input)}, {tempName(e.Target)})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
@@ -1928,6 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
+                    Debug.Assert(sideeffect is True or One(BoundDagAssignmentEvaluation));
                     // Given T0 as a test that has already occurred, T1 as a subsequent test, P as a pre-condition, and S as a side-effect (expected to always evaluate to True), we proceed as follow:
                     //  - If T0=True implies T1, we rewrite T1 as (P ? S : T1) because we have determined that given T0=True, T1 would always succeed if P evaluates to True.
                     //    Note: If there is no pre-condition, i.e. P is True, the above will be further simplified as True which means T1 is insignificant.
