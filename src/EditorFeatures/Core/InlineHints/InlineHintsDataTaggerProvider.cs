@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForIndexerParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DoubleClickToInsertHint),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes),

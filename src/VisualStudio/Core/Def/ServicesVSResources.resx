@@ -1809,4 +1809,7 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Double_click_to_insert_hint" xml:space="preserve">
+    <value>Double click to insert hint</value>
+  </data>
 </root>

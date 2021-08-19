@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
+            var doubleClickToInsertHint = options.GetOption(InlineHintsOptions.DoubleClickToInsertHint);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -90,10 +91,21 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
-                        result.Add(new InlineHint(
-                            new TextSpan(position, 0),
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
+                        if (doubleClickToInsertHint is false)
+                        {
+                            result.Add(new InlineHint(
+                                new TextSpan(position, 0),
+                                ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                                InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
+                        }
+                        else
+                        {
+                            result.Add(new InlineHint(
+                                new TextSpan(position, 0),
+                                ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                                InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken)),
+                                InlineHintHelpers.GetReplacementTextFunction(parameter.Name)));
+                        }
                     }
                 }
             }

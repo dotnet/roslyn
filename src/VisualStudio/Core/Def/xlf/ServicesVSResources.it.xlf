@@ -292,6 +292,11 @@
         <target state="translated">Visualizza suggerimenti di tipo inline</target>
         <note />
       </trans-unit>
+      <trans-unit id="Double_click_to_insert_hint">
+        <source>Double click to insert hint</source>
+        <target state="new">Double click to insert hint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Modifica</target>

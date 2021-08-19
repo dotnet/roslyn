@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +14,13 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -65,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // information in the Border_ToolTipOpening event handler
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
+
+            adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
         }
 
         /// <summary>
@@ -253,6 +259,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+        }
+
+        private void Adornment_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                e.Handled = true;
+                var replacementText = _hint.GetReplacementText();
+                if (replacementText != null)
+                {
+                    _ = _textView.TextBuffer.Replace(_span, replacementText);
+                }
+            }
         }
     }
 }

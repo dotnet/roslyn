@@ -60,5 +60,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             return default;
         }
+
+        public static Func<string>? GetReplacementTextFunction(string parameterName)
+            => () => GetReplacementText(parameterName);
+
+        private static string GetReplacementText(string parameterName)
+        {
+            return $"{parameterName}: ";
+        }
     }
 }
