@@ -1243,6 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // At this point, we have determined that two non-identical inputs refer to the same element.
                 // We represent this correspondence with an assignment node in order to merge the remaining values.
                 sideeffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
+                // PROTOTYPE(list-patterns): Do we still need to add this node if there's no preconditions?
             }
 
             switch (test)
@@ -1945,6 +1946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return decisionImpliesTrueOther
                             ? OrSequence.Create(AndSequence.Create(precondition, sideeffect), other)
                             : decisionPermitsTrueOther
+                                // PROTOTYPE(list-patterns): Do we really need to preserve the sideeffect in this path?
                                 ? AndSequence.Create(OrSequence.Create(Not.Create(precondition), sideeffect), other)
                                 : AndSequence.Create(Not.Create(AndSequence.Create(precondition, sideeffect)), other);
                     }
