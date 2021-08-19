@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         #region RS1007 (UseLocalizableStringsInDescriptorRuleId) and RS1015 (ProvideHelpUriInDescriptorRuleId)
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_VerifyDiagnostic()
+        public async Task RS1007_RS1015_CSharp_VerifyDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -53,7 +53,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic()
+        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnosticAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -82,7 +82,7 @@ End Class
         }
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCases()
+        public async Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCasesAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -120,7 +120,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCases()
+        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCasesAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -153,7 +153,7 @@ End Class
         }
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_NoDiagnosticCases()
+        public async Task RS1007_RS1015_CSharp_NoDiagnosticCasesAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -194,7 +194,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_NoDiagnosticCases()
+        public async Task RS1007_RS1015_VisualBasic_NoDiagnosticCasesAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -231,7 +231,7 @@ End Class
         #region RS1017 (DiagnosticIdMustBeAConstantRuleId) and RS1019 (UseUniqueDiagnosticIdRuleId)
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_VerifyDiagnostic()
+        public async Task RS1017_RS1019_CSharp_VerifyDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -293,7 +293,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelper()
+        public async Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelperAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -352,7 +352,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic()
+        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnosticAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -402,7 +402,7 @@ End Class
         }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelper()
+        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -449,7 +449,7 @@ End Class
         }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_NoDiagnosticCases()
+        public async Task RS1017_RS1019_CSharp_NoDiagnosticCasesAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -492,7 +492,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelper()
+        public async Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelperAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -532,7 +532,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases()
+        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCasesAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -566,7 +566,7 @@ End Class
         }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelper()
+        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
         {
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -601,7 +601,7 @@ End Class
         #region RS1018 (DiagnosticIdMustBeInSpecifiedFormatRuleId) and RS1020 (UseCategoriesFromSpecifiedRangeRuleId)
 
         [Fact]
-        public async Task RS1018_RS1020_CSharp_VerifyDiagnostic()
+        public async Task RS1018_RS1020_CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -683,7 +683,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_CSharp_VerifyDiagnostic_CreateHelper()
+        public async Task RS1018_RS1020_CSharp_VerifyDiagnostic_CreateHelperAsync()
         {
             var source = @"
 using System;
@@ -759,7 +759,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_VisualBasic_VerifyDiagnostic()
+        public async Task RS1018_RS1020_VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -827,7 +827,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_VisualBasic_VerifyDiagnostic_CreateHelper()
+        public async Task RS1018_RS1020_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
         {
             var source = @"
 Imports System
@@ -890,7 +890,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_CSharp_NoDiagnosticCases()
+        public async Task RS1018_RS1020_CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -973,7 +973,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_CSharp_NoDiagnosticCases_CreateHelper()
+        public async Task RS1018_RS1020_CSharp_NoDiagnosticCases_CreateHelperAsync()
         {
             var source = @"
 using System;
@@ -1045,7 +1045,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCases()
+        public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System
@@ -1111,7 +1111,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         }
 
         [Fact]
-        public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCases_CreateHelper()
+        public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
         {
             var source = @"
 Imports System
@@ -1171,7 +1171,7 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
         #region RS1021 (AnalyzerCategoryAndIdRangeFileInvalidRuleId)
 
         [Fact]
-        public async Task RS1021_VerifyDiagnostic()
+        public async Task RS1021_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -1278,7 +1278,7 @@ DuplicateCategory2: Prefix100-Prefix199
 
         #region RS1028 (ProvideCustomTagsInDescriptorRuleId)
         [Fact]
-        public async Task ReportOnMissingCustomTags()
+        public async Task ReportOnMissingCustomTagsAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
@@ -1315,7 +1315,7 @@ End Class",
         }
 
         [Fact]
-        public async Task DoNotReportOnNamedCustomTags()
+        public async Task DoNotReportOnNamedCustomTagsAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
@@ -1337,7 +1337,7 @@ public class MyAnalyzer
         }
 
         [Fact]
-        public async Task DoNotReportOnCustomTags()
+        public async Task DoNotReportOnCustomTagsAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
@@ -1380,7 +1380,7 @@ End Class",
         #region RS1029 (DoNotUseReservedDiagnosticIdRuleId)
 
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
-        public async Task RS1029_AlreadyUsedId_Diagnostic()
+        public async Task RS1029_AlreadyUsedId_DiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -1466,7 +1466,7 @@ End Class",
         }
 
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
-        public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnostic()
+        public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -1540,7 +1540,7 @@ End Class");
         }
 
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
-        public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnostic()
+        public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -1618,7 +1618,7 @@ End Class");
         [InlineData("Text.Analyzers")]
         [InlineData("Text.CSharp.Analyzers")]
         [InlineData("Text.VisualBasic.Analyzers")]
-        public async Task RS1029_CADiagnosticIdOnRoslynAnalyzers_NoDiagnostic(string assemblyName)
+        public async Task RS1029_CADiagnosticIdOnRoslynAnalyzers_NoDiagnosticAsync(string assemblyName)
         {
             await new VerifyCS.Test
             {
@@ -1692,7 +1692,7 @@ End Class",
         #region RS1031 (DefineDiagnosticTitleCorrectlyRule)
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringEndsWithPeriod_Diagnostic()
+        public async Task RS1031_TitleStringEndsWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -1820,7 +1820,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringEndsWithPeriod_ResxFile_Diagnostic()
+        public async Task RS1031_TitleStringEndsWithPeriod_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -1975,7 +1975,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_Diagnostic()
+        public async Task RS1031_TitleIsMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -2093,7 +2093,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_ResxFile_Diagnostic()
+        public async Task RS1031_TitleIsMultiSentence_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -2248,7 +2248,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_Diagnostic()
+        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -2363,7 +2363,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_ResxFile_Diagnostic()
+        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -2508,7 +2508,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringContainsLineReturn_Diagnostic()
+        public async Task RS1031_TitleStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -2614,7 +2614,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringContainsLineReturn_ResxFile_Diagnostic()
+        public async Task RS1031_TitleStringContainsLineReturn_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -2771,7 +2771,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_ValidTitleString_NoDiagnostic()
+        public async Task RS1031_ValidTitleString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -2839,7 +2839,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1031_LeadingOrTailingWhitespace_Diagnostic()
+        public async Task RS1031_LeadingOrTailingWhitespace_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -3028,7 +3028,7 @@ End Class
         #region RS1032 (DefineDiagnosticMessageCorrectlyRule)
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
-        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_Diagnostic()
+        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -3146,7 +3146,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_ResxFile_Diagnostic()
+        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -3301,7 +3301,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
-        public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_Diagnostic()
+        public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -3401,7 +3401,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
-        public async Task RS1032_MessageStringContainsLineReturn_Diagnostic()
+        public async Task RS1032_MessageStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -3507,7 +3507,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1032_MessageStringContainsLineReturn_ResxFile_Diagnostic()
+        public async Task RS1032_MessageStringContainsLineReturn_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -3664,7 +3664,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
-        public async Task RS1032_ValidMessageString_NoDiagnostic()
+        public async Task RS1032_ValidMessageString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -3739,7 +3739,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1032_LeadingOrTrailingWhitespaces_Diagnostic()
+        public async Task RS1032_LeadingOrTrailingWhitespaces_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -3930,7 +3930,7 @@ End Class
         #region RS1033 (DefineDiagnosticDescriptionCorrectlyRule)
 
         [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
-        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_Diagnostic()
+        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync(@"
 using System;
@@ -4044,7 +4044,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_ResxFile_Diagnostic()
+        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_ResxFile_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"
@@ -4199,7 +4199,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
-        public async Task RS1033_DescriptionEndsWithPunctuation_NoDiagnostic()
+        public async Task RS1033_DescriptionEndsWithPunctuation_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -4274,7 +4274,7 @@ End Class
         }
 
         [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1033_LeadingOrTrailingWhitespaces_Diagnostic()
+        public async Task RS1033_LeadingOrTrailingWhitespaces_DiagnosticAsync()
         {
             var additionalFileName = "Resources.resx";
             var additionalFileText = @"

@@ -18,7 +18,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
         [Fact]
-        public async Task CSharp_VerifySameAssembly()
+        public async Task CSharp_VerifySameAssemblyAsync()
         {
             string source = AttributeStringCSharp + @"
 
@@ -37,7 +37,7 @@ class SomeClass : IMyInterface { }
         }
 
         [Fact]
-        public async Task CSharp_VerifyDifferentAssembly()
+        public async Task CSharp_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringCSharp + @"
 
@@ -79,7 +79,7 @@ class SomeOtherClass : IMyOtherInterface { }";
         }
 
         [Fact]
-        public async Task CSharp_VerifyDifferentFriendAssembly()
+        public async Task CSharp_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")]
@@ -116,7 +116,7 @@ class SomeOtherClass : IMyOtherInterface { }";
         }
 
         [Fact]
-        public async Task CSharp_VerifyISymbol()
+        public async Task CSharp_VerifyISymbolAsync()
         {
             var source = @"
 // Causes many compile errors, because not all members are implemented.
@@ -296,7 +296,7 @@ class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
         }
 
         [Fact]
-        public async Task CSharp_VerifyIOperation()
+        public async Task CSharp_VerifyIOperationAsync()
         {
             var source = @"
 // Causes many compile errors, because not all members are implemented.
@@ -382,7 +382,7 @@ End Namespace
 ";
 
         [Fact]
-        public async Task Basic_VerifySameAssembly()
+        public async Task Basic_VerifySameAssemblyAsync()
         {
             string source = AttributeStringBasic + @"
 
@@ -404,7 +404,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyDifferentAssembly()
+        public async Task Basic_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringBasic + @"
 
@@ -454,7 +454,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyDifferentFriendAssembly()
+        public async Task Basic_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")>
@@ -499,7 +499,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyISymbol()
+        public async Task Basic_VerifyISymbolAsync()
         {
             var source = @"
 ' Causes many compile errors, because not all members are implemented.
@@ -675,7 +675,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyIOperation()
+        public async Task Basic_VerifyIOperationAsync()
         {
             var source = @"
 ' Causes many compile errors, because not all members are implemented.

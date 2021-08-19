@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         #region CSharp tests
 
         [Fact]
-        public async Task CSharp_VerifyFix_NonSealedType()
+        public async Task CSharp_VerifyFix_NonSealedTypeAsync()
         {
             var source = @"
 using System;
@@ -76,7 +76,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_VerifyFix_SealedType()
+        public async Task CSharp_VerifyFix_SealedTypeAsync()
         {
             var source = @"
 using System;
@@ -136,7 +136,7 @@ sealed class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnostic()
+        public async Task CSharp_NoDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -193,7 +193,7 @@ class C2 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_VerifyFixAll()
+        public async Task CSharp_VerifyFixAllAsync()
         {
             var source = @"
 using System;
@@ -296,7 +296,7 @@ sealed class C2 : CodeFixProvider
         #region VisualBasic tests
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23410")]
-        public async Task VisualBasic_VerifyFix_NonSealedType()
+        public async Task VisualBasic_VerifyFix_NonSealedTypeAsync()
         {
             var source = @"
 Imports System
@@ -354,7 +354,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyFix_SealedType()
+        public async Task VisualBasic_VerifyFix_SealedTypeAsync()
         {
             var source = @"
 Imports System
@@ -412,7 +412,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnostic()
+        public async Task VisualBasic_NoDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -463,7 +463,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyFixAll()
+        public async Task VisualBasic_VerifyFixAllAsync()
         {
             var source = @"
 Imports System

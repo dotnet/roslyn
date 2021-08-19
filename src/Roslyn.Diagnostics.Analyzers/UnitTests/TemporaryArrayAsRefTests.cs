@@ -48,7 +48,7 @@ End Namespace
 ";
 
         [Fact]
-        public async Task TestUsingVariable_CSharp()
+        public async Task TestUsingVariable_CSharpAsync()
         {
             var code = @"
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -75,7 +75,7 @@ class C
         }
 
         [Fact]
-        public async Task TestUsingVariable_VisualBasic()
+        public async Task TestUsingVariable_VisualBasicAsync()
         {
             var code = @"
 Imports Microsoft.CodeAnalysis.Shared.Collections
@@ -99,7 +99,7 @@ End Class
         }
 
         [Fact]
-        public async Task TestUsingDeclarationVariable_CSharp()
+        public async Task TestUsingDeclarationVariable_CSharpAsync()
         {
             var code = @"
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -124,7 +124,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNonUsingVariable_CSharp()
+        public async Task TestNonUsingVariable_CSharpAsync()
         {
             var code = @"
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -149,7 +149,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNonUsingVariable_VisualBasic()
+        public async Task TestNonUsingVariable_VisualBasicAsync()
         {
             var code = @"
 Imports Microsoft.CodeAnalysis.Shared.Collections

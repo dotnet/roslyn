@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class ReleaseTrackingAnalyzerTests
     {
         [Fact]
-        public async Task TestNoDeclaredAnalyzers()
+        public async Task TestNoDeclaredAnalyzersAsync()
         {
             var source = @"";
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData(@"""Id1""", null, "")]
         [InlineData(@"{|RS2000:""Id1""|}", "", "")]
         [Theory]
-        public async Task TestMissingReleasesFiles(string id, string shippedText, string unshippedText)
+        public async Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
         {
             var source = $@"
 using System;
@@ -57,7 +57,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestCodeFixToEnableAnalyzerReleaseTracking()
+        public async Task TestCodeFixToEnableAnalyzerReleaseTrackingAsync()
         {
             var source = @"
 using System;
@@ -122,7 +122,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "Id3 | Category2 | Warning | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "Id2 | Category1 | Warning |",
                     DefaultRemovedUnshippedHeader + "Id3 | Category2 | Warning |")]
         [Theory]
-        public async Task TestReleasesFileAlreadyHasEntry(string shippedText, string unshippedText)
+        public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -145,7 +145,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestRemoveUnshippedDeletedDiagnosticIdRule()
+        public async Task TestRemoveUnshippedDeletedDiagnosticIdRuleAsync()
         {
             var source = @"
 using System;
@@ -167,7 +167,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestRemoveShippedDeletedDiagnosticIdRule()
+        public async Task TestRemoveShippedDeletedDiagnosticIdRuleAsync()
         {
             var source = @"
 using System;
@@ -189,7 +189,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestCodeFixToAddUnshippedEntries()
+        public async Task TestCodeFixToAddUnshippedEntriesAsync()
         {
             var source = @"
 using System;
@@ -231,7 +231,7 @@ Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)";
         }
 
         [Fact]
-        public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelper()
+        public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelperAsync()
         {
             var source = @"
 using System;
@@ -285,7 +285,7 @@ Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)";
         [InlineData(DefaultUnshippedHeader + BlankLine + @"; Comments are preserved" + BlankLine,
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + @"; Comments are preserved" + BlankLine)]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreserved(string unshippedText, string fixedUnshippedText)
+        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
         {
             var source = @"
 using System;
@@ -322,7 +322,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                            DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader + @"Id3 | Category | Warning | MyAnalyzer",
                            DefaultShippedHeader + @"Id2 | DifferentCategory | Warning | MyAnalyzer" + BlankLine + @"Id3 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntries(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
             var source = $@"
 using System;
@@ -355,7 +355,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id0 | Category0 | Warning | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | DifferentCategory | Warning | Category | Warning | MyAnalyzer",
                     DefaultShippedHeader + @"Id0 | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntriesToMultipleTables(string unshippedText, string fixedUnshippedText, string shippedText = "")
+        public async Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
             var source = @"
 using System;
@@ -395,7 +395,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer",
                     "RS2000")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntry(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
         {
             var source = $@"
 using System;
@@ -419,7 +419,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestCodeFixToUpdateMultipleUnshippedEntries()
+        public async Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
         {
             var source = @"
 using System;
@@ -462,7 +462,7 @@ Id3 | Category3 | Warning | MyAnalyzer";
         }
 
         [Fact]
-        public async Task TestCodeFixToAddUnshippedEntries_UndetectedFields()
+        public async Task TestCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
             var source = @"
 using System;
@@ -504,7 +504,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFields()
+        public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
             var source = @"
 using System;
@@ -566,7 +566,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Mismatch Table title and TableHeaderLine2 in unshipped
         [InlineData("", ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 3)]
         [Theory]
-        public async Task TestInvalidHeaderDiagnostic(string shippedText, string unshippedText, int line = 1)
+        public async Task TestInvalidHeaderDiagnosticAsync(string shippedText, string unshippedText, int line = 1)
         {
             var source = @"
 using System;
@@ -611,7 +611,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Extra fields
         [InlineData("Id1 | Category1 | Warning | Notes | InvalidField", false)]
         [Theory]
-        public async Task TestInvalidEntryDiagnostic(string entry, bool hasUndetectedField)
+        public async Task TestInvalidEntryDiagnosticAsync(string entry, bool hasUndetectedField)
         {
             var source = @"
 using System;
@@ -672,7 +672,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Extra fields
         [InlineData("Id1 | Category1 | Warning | Category2 | Warning | Notes | InvalidField", false)]
         [Theory]
-        public async Task TestInvalidEntryDiagnostic_ChangedRules(string entry, bool hasUndetectedField)
+        public async Task TestInvalidEntryDiagnostic_ChangedRulesAsync(string entry, bool hasUndetectedField)
         {
             var source = @"
 using System;
@@ -719,7 +719,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Duplicate entries with in shipped with second removed entry.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         [Theory]
-        public async Task TestDuplicateEntryInReleaseDiagnostic(string shippedText, string unshippedText)
+        public async Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -754,7 +754,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Duplicate changed entries across consecutive shipped releases.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category1 | Info |" + BlankLine + DefaultChangedShippedHeader3 + "{|RS2006:Id1 | Category1 | Warning | Category1 | Info ||}", "")]
         [Theory]
-        public async Task TestDuplicateEntryBetweenReleasesDiagnostic(string shippedText, string unshippedText)
+        public async Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -781,7 +781,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "", "RS2000")]
         [Theory]
-        public async Task TestRemoveEntryInReleaseFile_DiagnosticCases(string shippedText, string unshippedText, string expectedDiagnosticId)
+        public async Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
         {
             var source = $@"
 using System;
@@ -806,7 +806,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Invalid remove entry without prior shipped entry in unshipped.
         [InlineData("", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |")]
         [Theory]
-        public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile(string shippedText, string unshippedText)
+        public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFileAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -836,7 +836,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Invalid changed entry without prior shipped entry in unshipped.
         [InlineData("", DefaultChangedUnshippedHeader + "Id1 | Category1 | Hidden | Category1 | Warning |")]
         [Theory]
-        public async Task TestInvalidChangedWithoutShippedEntryInReleaseFile(string shippedText, string unshippedText)
+        public async Task TestInvalidChangedWithoutShippedEntryInReleaseFileAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -869,7 +869,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Invalid remove entry without prior shipped entry in shipped, followed by an unshipped entry.
         [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
         [Theory]
-        public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile_02(string shippedText, string unshippedText)
+        public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile_02Async(string shippedText, string unshippedText)
         {
             var source = @"
 using System;
@@ -903,7 +903,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "")]
         [Theory]
-        public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCases(string shippedText, string unshippedText)
+        public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
         {
             var source = @"
 using System;

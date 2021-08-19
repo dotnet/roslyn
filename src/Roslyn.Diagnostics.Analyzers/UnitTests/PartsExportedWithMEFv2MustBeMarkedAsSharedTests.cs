@@ -45,7 +45,7 @@ End Namespace
         #region No Diagnostic Tests
 
         [Fact]
-        public async Task NoDiagnosticCases_ResolvedTypes()
+        public async Task NoDiagnosticCases_ResolvedTypesAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -68,7 +68,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypesAsync()
         {
             await new VerifyCS.Test
             {
@@ -115,7 +115,7 @@ End Class
         #region Diagnostic Tests
 
         [Fact]
-        public async Task DiagnosticCases_NoSharedAttribute()
+        public async Task DiagnosticCases_NoSharedAttributeAsync()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
 using System;
@@ -155,7 +155,7 @@ End Class
         }
 
         [Fact]
-        public async Task DiagnosticCases_DifferentSharedAttribute()
+        public async Task DiagnosticCases_DifferentSharedAttributeAsync()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
 using System;

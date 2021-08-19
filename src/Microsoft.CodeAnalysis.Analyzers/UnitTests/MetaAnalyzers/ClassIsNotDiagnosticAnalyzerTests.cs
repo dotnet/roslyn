@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class ClassIsNotDiagnosticAnalyzerTests
     {
         [Fact]
-        public async Task ClassNotDiagnosticAnalyzer_Diagnostic()
+        public async Task ClassNotDiagnosticAnalyzer_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace RoslynSandbox
@@ -46,7 +46,7 @@ End Namespace",
         }
 
         [Fact]
-        public async Task StaticClassNotDiagnosticAnalyzer_Diagnostic()
+        public async Task StaticClassNotDiagnosticAnalyzer_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace RoslynSandbox
@@ -75,7 +75,7 @@ End Namespace");
         }
 
         [Fact]
-        public async Task ClassDiagnosticAnalyzer_NoDiagnostic()
+        public async Task ClassDiagnosticAnalyzer_NoDiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace RoslynSandbox
@@ -117,7 +117,7 @@ End Namespace");
         }
 
         [Fact]
-        public async Task ClassInheritsClassDiagnosticAnalyzer_NoDiagnostic()
+        public async Task ClassInheritsClassDiagnosticAnalyzer_NoDiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace RoslynSandbox
