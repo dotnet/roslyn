@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IEditorFormatMapService _editorFormatMapService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,7 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IUIThreadOperationExecutor operationExecutor,
-            IViewTagAggregatorFactoryService tagAggregatorFactoryService)
+            IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+            IEditorFormatMapService editorFormatMapService)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -48,11 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationFormatMapService = classificationFormatMapService;
             _operationExecutor = operationExecutor;
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
+            _editorFormatMapService = editorFormatMapService;
         }
 
         public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
         {
             var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(wpfTextViewHost.TextView);
+            var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(wpfTextViewHost.TextView);
             var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
@@ -63,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     _operationExecutor,
                     _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
                     _classificationTypeMap,
+                    editorFormatMap,
                     tagAggregator,
                     document);
             }

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,10 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IOptionService _optionService;
+        private readonly IEditorFormatMap _editorFormatMap;
         private readonly string _languageName;
         private Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin> _snapshotSpanToMargin;
-        // Same size as the glyph margin
+
+        // Same size as the Glyph Margin
         private const double HeightAndWidthOfMargin = 18;
+
+        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin
+        private const string GlyphMarginName = "Indicator Margin";
 
         public InheritanceMarginViewMargin(
             IWpfTextViewHost textViewHost,
@@ -47,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IUIThreadOperationExecutor operationExecutor,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap,
+            IEditorFormatMap editorFormatMap,
             ITagAggregator<InheritanceMarginTag> tagAggregator,
             Document document)
         {
@@ -58,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationTypeMap = classificationTypeMap;
             _operationExecutor = operationExecutor;
             _textView = textViewHost.TextView;
+            _editorFormatMap = editorFormatMap;
             _tagAggregator = tagAggregator;
             _snapshotSpanToMargin = new Dictionary<SnapshotSpan, MarginGlyph.InheritanceMargin>();
             _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
@@ -68,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
+            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             MainCanvas.Width = MarginSize;
 
@@ -75,6 +84,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
             MainCanvas.LayoutTransform.Freeze();
+        }
+
+        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
+        {
+            var resourceDictionary = _editorFormatMap.GetProperties(GlyphMarginName);
+            if (resourceDictionary.Contains(EditorFormatDefinition.BackgroundColorId))
+            {
+                var backgroundColor = (Color)resourceDictionary[EditorFormatDefinition.BackgroundColorId];
+                // Set background color for all the glyphs
+                ImageThemingUtilities.SetImageBackgroundColor(this.MainCanvas, backgroundColor);
+            }
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
@@ -292,6 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged -= OnZoomLevelChanged;
             _textView.Options.OptionChanged -= OnTextViewOptionChanged;
             _optionService.OptionChanged -= OnRoslynOptionChanged;
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
             _tagAggregator.Dispose();
         }
         #endregion
