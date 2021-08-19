@@ -64,8 +64,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentAsync));
-            InitializeServiceForOpenedDocumentAsync(e.Document).CompletesAsyncOperation(token);
+            if (e.Document.Project.Language != _languageName)
+            {
+                return;
+            }
+
+            var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentOnBackgroundAsync));
+            InitializeServiceForOpenedDocumentOnBackgroundAsync(e.Document).CompletesAsyncOperation(token);
+
+            async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
+            {
+                await TaskScheduler.Default;
+                await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
+            }
         }
 
         private async Task InitializeServicesAsync()

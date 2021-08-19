@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Editor;
@@ -41,6 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override Task InitializeServiceForOpenedDocumentAsync(Document document)
         {
+            // Only pre-populate cache if import completion is enabled
+            if (this.Workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
+                return Task.CompletedTask;
+
             var documentId = document.Id;
             lock (_object)
             {
