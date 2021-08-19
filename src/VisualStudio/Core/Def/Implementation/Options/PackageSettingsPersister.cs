@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Asynchronously load dependent package prior to calling synchronous APIs on IVsTextManager4
             _lazyRoslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(true);
             Assumes.Present(_lazyRoslynPackage);
 
@@ -56,8 +55,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
-            // This option is refreshed via the constructor to avoid UI dependencies when retrieving option values
-            Contract.ThrowIfTrue(Equals(optionKey.Option, SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption));
+            // This option is refreshed via the constructor to avoid UI dependencies when retrieving option values. If
+            // we happen to reach this point before the value is available, try to obtain it without blocking, and
+            // otherwise fall back to the default.
+            if (optionKey.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption)
+            {
+                if (_lazyRoslynPackage is not null)
+                {
+                    value = _lazyRoslynPackage.AnalysisScope;
+                    return true;
+                }
+                else
+                {
+                    value = SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption.DefaultValue;
+                    return true;
+                }
+            }
 
             value = null;
             return false;
