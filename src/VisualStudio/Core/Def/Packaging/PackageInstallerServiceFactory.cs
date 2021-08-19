@@ -334,9 +334,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             Contract.ThrowIfFalse(IsEnabled);
 
-            // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-            await TaskScheduler.Default;
-
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
             progressTracker.Description = description;
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
@@ -345,7 +342,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                    await TaskScheduler.Default;
+
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
                     if (installedPackagesMap.ContainsKey(packageName))
                         return false;
 
@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                             source, dteProject, packageName, version, ignoreDependencies: false);
                     }
 
-                    installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
                     var installedVersion = installedPackagesMap.TryGetValue(packageName, out var result) ? result : null;
 
                     await UpdateStatusBarAsync(
@@ -406,9 +406,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             Contract.ThrowIfFalse(IsEnabled);
 
-            // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-            await TaskScheduler.Default;
-
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
             progressTracker.Description = description;
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
@@ -417,7 +414,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(true);
+                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                    await TaskScheduler.Default;
+
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
                     if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
                         return false;
 
