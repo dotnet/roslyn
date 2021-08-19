@@ -426,6 +426,9 @@ dotnet_diagnostic.IDE0160.severity = %value%
 # IDE0161
 dotnet_diagnostic.IDE0161.severity = %value%
 
+# IDE0170
+dotnet_diagnostic.IDE0170.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -1006,6 +1009,9 @@ csharp_style_namespace_declarations = block_scoped
 
 # IDE0161, NamespaceDeclarations
 csharp_style_namespace_declarations = block_scoped
+
+# IDE0170, PreferSimplePropertyPattern
+csharp_prefer_simple_property_pattern = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
