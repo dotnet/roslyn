@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var beforeEndDelimiter = TextWindow.Position;
                 var currentQuoteCount = ConsumeQuoteSequence();
 
-                // A raw string literal starting with some number of quotes can contain a quote sequence with less quotes.
+                // A raw string literal starting with some number of quotes can contain a quote sequence with fewer quotes.
                 if (currentQuoteCount < startingQuoteCount)
                     continue;
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.AddError(
                             position: TextWindow.Position - currentQuoteCount,
                             width: currentQuoteCount,
-                            ErrorCode.ERR_Raw_string_literal_delimeter_must_be_on_its_own_line);
+                            ErrorCode.ERR_Raw_string_literal_delimiter_must_be_on_its_own_line);
                         return false;
                     }
                 }
