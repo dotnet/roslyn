@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -62,14 +61,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             UpdateBackgroundColor();
         }
 
-        public void AddGlyph(InheritanceMarginTag tag, SnapshotSpan span, double leftOffset)
+        public void AddGlyph(InheritanceMarginTag tag, SnapshotSpan span)
         {
             var lines = _textView.TextViewLines;
             if (GetStartingLine(lines, span) is IWpfTextViewLine line)
             {
                 var glyph = CreateNewGlyph(tag);
-                glyph.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                Canvas.SetLeft(glyph, leftOffset);
+                glyph.Height = 17;
+                glyph.Width = 17;
                 SetTop(line, glyph);
                 _glyphToTaggedSpan[glyph] = span;
                 _canvas.Children.Add(glyph);
@@ -118,8 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _glyphToTaggedSpan = glyphToTaggedSpanBuilder;
             }
         }
-
-        public ImmutableArray<InheritanceMarginGlyph> AllGlyphs => _glyphToTaggedSpan.Keys.ToImmutableArray();
 
         private void SetTop(ITextViewLine line, InheritanceMarginGlyph glyph)
         {

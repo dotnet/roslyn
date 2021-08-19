@@ -78,15 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             _mainCanvas.Width = HeightAndWidthOfMargin;
 
-            _mainCanvas.LayoutTransform = new ScaleTransform(
+            _grid.LayoutTransform = new ScaleTransform(
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
-            _mainCanvas.LayoutTransform.Freeze();
+            _grid.LayoutTransform.Freeze();
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
-            _mainCanvas.LayoutTransform = e.ZoomTransform;
+            _grid.LayoutTransform = e.ZoomTransform;
             _refreshAllGlyphs = true;
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             if (e.OptionId == DefaultTextViewHostOptions.GlyphMarginName)
             {
-                UpdateCombinedMarginPositions();
+                UpdateMarginPosition();
             }
         }
 
@@ -119,42 +119,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             if (e.Option == FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
             {
-                UpdateCombinedMarginPositions();
+                UpdateMarginPosition();
             }
         }
 
-        private void UpdateCombinedMarginPositions()
+        private void UpdateMarginPosition()
         {
-            var marginOffset = GetMarginOffset();
-            if (marginOffset == 0)
-            {
-                _mainCanvas.Width = HeightAndWidthOfMargin;
-            }
-            else
-            {
-                _mainCanvas.Width = 0;
-            }
-
-            foreach (var glyph in _glyphManager.AllGlyphs)
-            {
-                Canvas.SetLeft(glyph, marginOffset);
-            }
-        }
-
-        private double GetMarginOffset()
-        {
-            var inheritanceMarginCombinedWithIndicatorMargin = _optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName)
+            var inheritanceMarginCombinedWithIndicatorMargin =
+                _optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName)
                 && _textView.Options.GetOptionValue(DefaultTextViewHostOptions.GlyphMarginId);
 
-            if (inheritanceMarginCombinedWithIndicatorMargin
-                /*&& _textViewHost.GetTextViewMargin(DefaultTextViewHostOptions.GlyphMarginName) is { Enabled: true, VisualElement: UIElement glyphMargin }*/)
+            var glyphTextViewMargin = _textViewHost.GetTextViewMargin(PredefinedMarginNames.Glyph);
+            if (glyphTextViewMargin is not null && glyphTextViewMargin.VisualElement is Grid grid)
             {
-                return -HeightAndWidthOfMargin;
-                //return glyphMargin.TranslatePoint(new Point(0, 0), this).X;
-            }
-            else
-            {
-                return 0;
+                if (inheritanceMarginCombinedWithIndicatorMargin)
+                {
+                    _grid.Children.Remove(_mainCanvas);
+                    grid.Children.Add(_mainCanvas);
+                    return;
+                }
+                else
+                {
+                    if (_grid.Children.Count == 0)
+                    {
+                        grid.Children.Remove(_mainCanvas);
+                        _grid.Children.Add(_mainCanvas);
+                    }
+                }
             }
         }
 
@@ -195,13 +186,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     var tagSpans = mappingTagSpan.Span.GetSpans(_textView.TextSnapshot);
                     if (tagSpans.Count > 0)
                     {
-                        _glyphManager.AddGlyph(mappingTagSpan.Tag, tagSpans[0], GetMarginOffset());
+                        _glyphManager.AddGlyph(mappingTagSpan.Tag, tagSpans[0]);
                     }
                 }
             }
         }
 
         #region IWpfTextViewMargin
+
         public FrameworkElement VisualElement => _grid;
 
         public double MarginSize => _mainCanvas.Width;
