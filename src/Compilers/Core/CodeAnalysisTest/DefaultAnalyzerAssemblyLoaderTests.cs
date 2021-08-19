@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -133,6 +134,8 @@ Delta: Gamma: Beta: Test B
         {
             StringBuilder sb = new StringBuilder();
             var loader = new DefaultAnalyzerAssemblyLoader();
+            // We don't pass Alpha's path to AddDependencyLocation here, and therefore expect
+            // calling Beta.B.Write to fail.
             loader.AddDependencyLocation(_testFixture.Gamma.Path);
             loader.AddDependencyLocation(_testFixture.Beta.Path);
             Assembly beta = loader.LoadFromPath(_testFixture.Beta.Path);
@@ -258,52 +261,71 @@ Delta: Epsilon: Test E
             Assert.Equal(ExecutionConditionUtil.IsCoreClr ? "1" : "42", sb.ToString());
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AssemblyLoading_NativeDependency()
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.AnalyzerWithNativeDependency.Path);
+
+            // TODO: we get error code FileNotFound for this.
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerWithNativeDependency.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Class1")!;
+            var result = analyzer.GetType().GetMethod("GetFileAttributes")!.Invoke(analyzer, new[] { _testFixture.AnalyzerWithNativeDependency.Path });
+            Assert.Equal(0, Marshal.GetLastWin32Error());
+            Assert.Equal(0x80, result);
+        }
+
 #if NETCOREAPP
         [Fact]
         public void VerifyCompilerAssemblySimpleNames()
         {
             var caAssembly = typeof(Microsoft.CodeAnalysis.SyntaxNode).Assembly;
             var caReferences = caAssembly.GetReferencedAssemblies();
-            var builder = ArrayBuilder<string>.GetInstance();
-            builder.Add(caAssembly.GetName().Name ?? throw new InvalidOperationException());
+            var allReferenceSimpleNames = ArrayBuilder<string>.GetInstance();
+            allReferenceSimpleNames.Add(caAssembly.GetName().Name ?? throw new InvalidOperationException());
             foreach (var reference in caReferences)
             {
-                builder.Add(reference.Name ?? throw new InvalidOperationException());
+                allReferenceSimpleNames.Add(reference.Name ?? throw new InvalidOperationException());
             }
 
             var csAssembly = typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode).Assembly;
-            builder.Add(csAssembly.GetName().Name ?? throw new InvalidOperationException());
+            allReferenceSimpleNames.Add(csAssembly.GetName().Name ?? throw new InvalidOperationException());
             var csReferences = csAssembly.GetReferencedAssemblies();
             foreach (var reference in csReferences)
             {
                 var name = reference.Name ?? throw new InvalidOperationException();
-                if (!builder.Contains(name, StringComparer.OrdinalIgnoreCase))
+                if (!allReferenceSimpleNames.Contains(name, StringComparer.OrdinalIgnoreCase))
                 {
-                    builder.Add(name);
+                    allReferenceSimpleNames.Add(name);
                 }
             }
 
             var vbAssembly = typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly;
             var vbReferences = vbAssembly.GetReferencedAssemblies();
-            builder.Add(vbAssembly.GetName().Name ?? throw new InvalidOperationException());
+            allReferenceSimpleNames.Add(vbAssembly.GetName().Name ?? throw new InvalidOperationException());
             foreach (var reference in vbReferences)
             {
                 var name = reference.Name ?? throw new InvalidOperationException();
-                if (!builder.Contains(name, StringComparer.OrdinalIgnoreCase))
+                if (!allReferenceSimpleNames.Contains(name, StringComparer.OrdinalIgnoreCase))
                 {
-                    builder.Add(name);
+                    allReferenceSimpleNames.Add(name);
                 }
             }
 
-            builder.Sort();
-            var allReferenceSimpleNames = builder.ToImmutableAndFree();
-            if (!Enumerable.SequenceEqual(allReferenceSimpleNames, DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames))
+            if (!DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames.SetEquals(allReferenceSimpleNames))
             {
+                allReferenceSimpleNames.Sort();
                 var allNames = string.Join(",\r\n                ", allReferenceSimpleNames.Select(name => $@"""{name}"""));
-                _output.WriteLine("        internal static readonly ImmutableArray<string> CompilerAssemblySimpleNames =");
-                _output.WriteLine("            ImmutableArray.Create(");
+                _output.WriteLine("        internal static readonly ImmutableHashSet<string> CompilerAssemblySimpleNames =");
+                _output.WriteLine("            ImmutableHashSet.Create(");
+                _output.WriteLine("                StringComparer.OrdinalIgnoreCase,");
                 _output.WriteLine($"                {allNames});");
+                allReferenceSimpleNames.Free();
                 Assert.True(false, $"{nameof(DefaultAnalyzerAssemblyLoader)}.{nameof(DefaultAnalyzerAssemblyLoader.CompilerAssemblySimpleNames)} is not up to date. Paste in the standard output of this test to update it.");
+            }
+            else
+            {
+                allReferenceSimpleNames.Free();
             }
         }
 #endif

@@ -16,45 +16,57 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
-        internal static readonly ImmutableArray<string> CompilerAssemblySimpleNames =
-            ImmutableArray.Create(
-                "Microsoft.CodeAnalysis",
-                "Microsoft.CodeAnalysis.CSharp",
-                "Microsoft.CodeAnalysis.VisualBasic",
-                "System.Collections",
-                "System.Collections.Concurrent",
-                "System.Collections.Immutable",
-                "System.Console",
-                "System.Diagnostics.Debug",
-                "System.Diagnostics.StackTrace",
-                "System.IO.Compression",
-                "System.IO.FileSystem",
-                "System.Linq",
-                "System.Linq.Expressions",
-                "System.Memory",
-                "System.Reflection.Metadata",
-                "System.Reflection.Primitives",
-                "System.Resources.ResourceManager",
-                "System.Runtime",
-                "System.Runtime.CompilerServices.Unsafe",
-                "System.Runtime.Extensions",
-                "System.Runtime.InteropServices",
-                "System.Runtime.Loader",
-                "System.Runtime.Numerics",
-                "System.Runtime.Serialization.Primitives",
-                "System.Security.Cryptography.Algorithms",
-                "System.Security.Cryptography.Primitives",
-                "System.Text.Encoding.CodePages",
-                "System.Text.Encoding.Extensions",
-                "System.Text.RegularExpressions",
-                "System.Threading",
-                "System.Threading.Tasks",
-                "System.Threading.Tasks.Parallel",
-                "System.Threading.Thread",
-                "System.Threading.ThreadPool",
-                "System.Xml.ReaderWriter",
-                "System.Xml.XDocument",
-                "System.Xml.XPath.XDocument");
+        /// <summary>
+        /// <p>Typically a user analyzer has a reference to the compiler and some of the compiler's
+        /// dependencies such as System.Collections.Immutable. For the analyzer to correctly
+        /// interoperate with the compiler that created it, we need to ensure that we always use the
+        /// compiler's version of a given assembly over the analyzer's version.</p>
+        ///
+        /// <p>If we neglect to do this, then in the case where the user ships the compiler or its
+        /// dependencies in the analyzer's bin directory, we could end up loading a separate
+        /// instance of those assemblies in the process of loading the analyzer, which will surface
+        /// as a failure to load the analyzer.</p>
+        /// </summary>
+        internal static readonly ImmutableHashSet<string> CompilerAssemblySimpleNames =
+           ImmutableHashSet.Create(
+               StringComparer.OrdinalIgnoreCase,
+               "Microsoft.CodeAnalysis",
+               "Microsoft.CodeAnalysis.CSharp",
+               "Microsoft.CodeAnalysis.VisualBasic",
+               "System.Collections",
+               "System.Collections.Concurrent",
+               "System.Collections.Immutable",
+               "System.Console",
+               "System.Diagnostics.Debug",
+               "System.Diagnostics.StackTrace",
+               "System.IO.Compression",
+               "System.IO.FileSystem",
+               "System.Linq",
+               "System.Linq.Expressions",
+               "System.Memory",
+               "System.Reflection.Metadata",
+               "System.Reflection.Primitives",
+               "System.Resources.ResourceManager",
+               "System.Runtime",
+               "System.Runtime.CompilerServices.Unsafe",
+               "System.Runtime.Extensions",
+               "System.Runtime.InteropServices",
+               "System.Runtime.Loader",
+               "System.Runtime.Numerics",
+               "System.Runtime.Serialization.Primitives",
+               "System.Security.Cryptography.Algorithms",
+               "System.Security.Cryptography.Primitives",
+               "System.Text.Encoding.CodePages",
+               "System.Text.Encoding.Extensions",
+               "System.Text.RegularExpressions",
+               "System.Threading",
+               "System.Threading.Tasks",
+               "System.Threading.Tasks.Parallel",
+               "System.Threading.Thread",
+               "System.Threading.ThreadPool",
+               "System.Xml.ReaderWriter",
+               "System.Xml.XDocument",
+               "System.Xml.XPath.XDocument");
 
         private readonly object _guard = new object();
         private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
@@ -77,19 +89,6 @@ namespace Microsoft.CodeAnalysis
             return loadContext.LoadFromAssemblyName(name);
         }
 
-        private bool ShouldLoadInAnalyzerContext(string? assemblySimpleName, string fullPath)
-        {
-            foreach (var compilerAssemblySimpleName in CompilerAssemblySimpleNames)
-            {
-                if (string.Equals(compilerAssemblySimpleName, assemblySimpleName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
-
-            return IsKnownDependencyLocation(fullPath);
-        }
-
         private sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             private readonly string _directory;
@@ -103,35 +102,38 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                var simpleName = assemblyName.Name;
-                var assemblyPath = Path.Combine(_directory, simpleName + ".dll");
-                if (!_loader.ShouldLoadInAnalyzerContext(simpleName, assemblyPath))
+                var simpleName = assemblyName.Name!;
+                if (CompilerAssemblySimpleNames.Contains(simpleName))
                 {
+                    // Delegate to the compiler's load context to load the compiler or anything
+                    // referenced by the compiler
+                    return null;
+                }
+
+                var assemblyPath = Path.Combine(_directory, simpleName + ".dll");
+                if (!_loader.IsKnownDependencyLocation(assemblyPath))
+                {
+                    // The analyzer didn't explicitly register this dependency. Most likely the
+                    // assembly we're trying to load here is netstandard or a similar framework
+                    // assembly. We assume that if that is not the case, then the parent ALC will
+                    // fail to load this.
                     return null;
                 }
 
                 var pathToLoad = _loader.GetPathToLoad(assemblyPath);
-                try
-                {
-                    return LoadFromAssemblyPath(pathToLoad);
-                }
-                catch (FileNotFoundException)
-                {
-                    return null;
-                }
+                return LoadFromAssemblyPath(pathToLoad);
             }
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             {
                 var assemblyPath = Path.Combine(_directory, unmanagedDllName + ".dll");
-                try
-                {
-                    return LoadUnmanagedDllFromPath(assemblyPath);
-                }
-                catch (DllNotFoundException)
+                if (!_loader.IsKnownDependencyLocation(assemblyPath))
                 {
                     return IntPtr.Zero;
                 }
+
+                var pathToLoad = _loader.GetPathToLoad(assemblyPath);
+                return LoadUnmanagedDllFromPath(pathToLoad);
             }
         }
     }

@@ -27,13 +27,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile Epsilon { get; }
 
         public TempFile UserSystemCollectionsImmutable { get; }
+
+        /// <summary>
+        /// An analyzer which uses members in its referenced version of System.Collections.Immutable
+        /// that are not present in the compiler's version of System.Collections.Immutable.
+        /// </summary>
         public TempFile AnalyzerReferencesSystemCollectionsImmutable1 { get; }
+
+        /// <summary>
+        /// An analyzer which uses members in its referenced version of System.Collections.Immutable
+        /// which have different behavior than the same members in compiler's version of System.Collections.Immutable.
+        /// </summary>
         public TempFile AnalyzerReferencesSystemCollectionsImmutable2 { get; }
 
         public TempFile FaultyAnalyzer { get; }
 
         public TempFile AnalyzerWithDependency { get; }
         public TempFile AnalyzerDependency { get; }
+
+        public TempFile AnalyzerWithNativeDependency { get; }
 
         public AssemblyLoadTestFixture()
         {
@@ -232,6 +244,23 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
 {
     private static string SomeString2 = AbstractTestAnalyzer.SomeString;
 }", realSciReference, compilerReference, MetadataReference.CreateFromFile(AnalyzerDependency.Path));
+
+            AnalyzerWithNativeDependency = GenerateDll("AnalyzerWithNativeDependency", _directory, @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Class1
+{
+    [DllImport(""kernel32.dll"", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int GetFileAttributesA(string lpFileName);
+
+    public int GetFileAttributes(string path)
+    {
+        return GetFileAttributesA(path);
+    }
+}
+
+");
         }
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
