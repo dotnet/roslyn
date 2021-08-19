@@ -2541,6 +2541,46 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_ImplementSynthesized_ParameterlessConstructor()
+        {
+            var src1 = "record C { }";
+            var src2 = @"
+record C
+{
+    public C()
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void RecordStruct_ImplementSynthesized_ParameterlessConstructor()
+        {
+            var src1 = "record struct C { }";
+            var src2 = @"
+record struct C
+{
+    public C()
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Record_ImplementSynthesized_PrintMembers()
         {
             var src1 = "record C { }";
@@ -2666,6 +2706,46 @@ record C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "int Y", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Record_UnimplementSynthesized_ParameterlessConstructor()
+        {
+            var src1 = @"
+record C
+{
+    public C()
+    {
+    }
+}";
+            var src2 = "record C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void RecordStruct_UnimplementSynthesized_ParameterlessConstructor()
+        {
+            var src1 = @"
+record struct C
+{
+    public C()
+    {
+    }
+}";
+            var src2 = "record struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
+
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
