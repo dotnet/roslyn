@@ -26,6 +26,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
+            // The CSharpNetCoreClassLibrary template does not open a file automatically.
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), WellKnownProjectTemplates.CSharpNetCoreClassLibraryClassFileName);
             base.OpenCSharpThenVBSolution();
         }
 
