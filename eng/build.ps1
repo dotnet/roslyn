@@ -395,7 +395,7 @@ function TestUsingRunTests() {
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --include '\.UnitTests'"
+      $args += " --include '\.UnitTests' --exclude '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
