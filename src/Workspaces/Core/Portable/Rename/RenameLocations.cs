@@ -132,9 +132,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
                 using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
 
-                mergedLocations.AddRange(strings.NullToEmpty());
-                mergedLocations.AddRange(comments.NullToEmpty());
-
                 var renameMethodGroupReferences = optionSet.RenameOverloads || !GetOverloadedSymbols(symbol).Any();
                 foreach (var result in overloadsResult.Concat(originalSymbolResult))
                 {
@@ -145,6 +142,9 @@ namespace Microsoft.CodeAnalysis.Rename
                     mergedImplicitLocations.AddRange(result.ImplicitLocations);
                     mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
                 }
+
+                mergedLocations.AddRange(strings.NullToEmpty());
+                mergedLocations.AddRange(comments.NullToEmpty());
 
                 return new RenameLocations(
                     symbol, solution, optionSet,
