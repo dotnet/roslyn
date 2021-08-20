@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -54,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregator = tagAggregator;
             _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             _languageName = document.Project.Language;
-            _mainCanvas = new Canvas();
-            _mainCanvas.ClipToBounds = true;
+            _mainCanvas = new Canvas { ClipToBounds = true };
             _grid = new Grid();
             _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
@@ -75,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
+            ((FrameworkElement)_textViewHost).Loaded += OnTextViewHostLoaded;
 
             _mainCanvas.Width = HeightAndWidthOfMargin;
 
@@ -83,6 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleY: _textView.ZoomLevel / 100);
             _grid.LayoutTransform.Freeze();
         }
+
+        private void OnTextViewHostLoaded(object sender, RoutedEventArgs e)
+            => UpdateMarginPosition();
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
@@ -121,31 +126,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 UpdateMarginPosition();
             }
+
+            if (e.Option == FeatureOnOffOptions.ShowInheritanceMargin)
+            {
+                UpdateVisibilityOfMargin();
+            }
         }
 
         private void UpdateMarginPosition()
         {
-            var inheritanceMarginCombinedWithIndicatorMargin =
-                _optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName)
-                && _textView.Options.GetOptionValue(DefaultTextViewHostOptions.GlyphMarginId);
+            var isGlyphMarginOpen = _textView.Options.GetOptionValue(DefaultTextViewHostOptions.GlyphMarginId);
+
+            // Make sure the GlyphMargin is avaliable before we try to get it. If it is disposed/closed then don't do anything
+            if (!isGlyphMarginOpen)
+            {
+                return;
+            }
 
             var glyphTextViewMargin = _textViewHost.GetTextViewMargin(PredefinedMarginNames.Glyph);
-            if (glyphTextViewMargin is not null && glyphTextViewMargin.VisualElement is Grid grid)
+            if (glyphTextViewMargin is null || glyphTextViewMargin.VisualElement is not Grid indicatorMarginGrid)
             {
-                if (inheritanceMarginCombinedWithIndicatorMargin)
-                {
-                    _grid.Children.Remove(_mainCanvas);
-                    grid.Children.Add(_mainCanvas);
-                    return;
-                }
-                else
-                {
-                    if (_grid.Children.Count == 0)
-                    {
-                        grid.Children.Remove(_mainCanvas);
-                        _grid.Children.Add(_mainCanvas);
-                    }
-                }
+                return;
+            }
+
+            var shouldCombinedWithIndicatorMargin = _optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName);
+            var isCanvasCombined = indicatorMarginGrid.Children.Contains(_mainCanvas);
+            if (shouldCombinedWithIndicatorMargin && !isCanvasCombined)
+            {
+                RoslynDebug.Assert(_grid.Children.Contains(_mainCanvas));
+                _grid.Children.Remove(_mainCanvas);
+                indicatorMarginGrid.Children.Add(_mainCanvas);
+                return;
+            }
+
+            if (!shouldCombinedWithIndicatorMargin && isCanvasCombined)
+            {
+                RoslynDebug.Assert(_grid.Children.Count == 0);
+                indicatorMarginGrid.Children.Remove(_mainCanvas);
+                _grid.Children.Add(_mainCanvas);
+                return;
+            }
+        }
+
+        private void UpdateVisibilityOfMargin()
+        {
+            var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
+            if (featureEnabled == false)
+            {
+                _mainCanvas.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _mainCanvas.Visibility = Visibility.Visible;
             }
         }
 
@@ -194,14 +226,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         #region IWpfTextViewMargin
 
-        public FrameworkElement VisualElement => _grid;
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(InheritanceMarginViewMargin));
+            }
+        }
 
-        public double MarginSize => _mainCanvas.Width;
+        public FrameworkElement VisualElement
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _grid;
+            }
+        }
 
-        public bool Enabled => true;
+        public double MarginSize
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _grid.ActualWidth;
+            }
+        }
 
-        public ITextViewMargin? GetTextViewMargin(string marginName)
-            => marginName == nameof(InheritanceMarginViewMargin) ? this : null;
+        public bool Enabled
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return true;
+            }
+        }
+
+        public ITextViewMargin? GetTextViewMargin(string marginName) =>
+            marginName == nameof(InheritanceMarginViewMargin) ? this : null;
 
         public void Dispose()
         {
@@ -212,6 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
                 _textView.Options.OptionChanged -= OnTextViewOptionChanged;
                 _optionService.OptionChanged -= OnRoslynOptionChanged;
+                ((FrameworkElement)_textViewHost).Loaded -= OnTextViewHostLoaded;
                 _tagAggregator.Dispose();
                 _disposed = true;
             }

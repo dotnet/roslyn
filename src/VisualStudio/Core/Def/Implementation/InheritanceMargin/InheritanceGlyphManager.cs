@@ -21,6 +21,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
+    /// <summary>
+    /// Manager controls all the glyph of Inheritance Margin
+    /// </summary>
     internal class InheritanceGlyphManager
     {
         private readonly IWpfTextView _textView;
@@ -30,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IEditorFormatMap _editorFormatMap;
-        private readonly Canvas _canvas;
         private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
+        private readonly Canvas _glyphsContainer;
 
         // We want to our glyphs to have the same background color as the glyphs in GlyphMargin
         private const string GlyphMarginName = "Indicator Margin";
@@ -53,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationFormatMap = classificationFormatMap;
             _operationExecutor = operationExecutor;
             _editorFormatMap = editorFormatMap;
-            _canvas = canvas;
+            _glyphsContainer = canvas;
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
@@ -71,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 glyph.Width = 17;
                 SetTop(line, glyph);
                 _glyphToTaggedSpan[glyph] = span;
-                _canvas.Children.Add(glyph);
+                _glyphsContainer.Children.Add(glyph);
             }
         }
 
@@ -82,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 .ToImmutableArray();
             foreach (var (margin, span) in marginsToRemove)
             {
-                _canvas.Children.Remove(margin);
+                _glyphsContainer.Children.Remove(margin);
                 _glyphToTaggedSpan.Remove(margin);
             }
         }
@@ -101,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     {
                         //Either visual is no longer visible or it crosses a line
                         //that was reformatted.
-                        _canvas.Children.Remove(glyph);
+                        _glyphsContainer.Children.Remove(glyph);
                     }
                     else
                     {
@@ -176,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var backgroundColor = (Color)resourceDictionary[EditorFormatDefinition.BackgroundColorId];
                 // Set background color for all the glyphs
-                ImageThemingUtilities.SetImageBackgroundColor(_canvas, backgroundColor);
+                ImageThemingUtilities.SetImageBackgroundColor(_glyphsContainer, backgroundColor);
             }
         }
     }
