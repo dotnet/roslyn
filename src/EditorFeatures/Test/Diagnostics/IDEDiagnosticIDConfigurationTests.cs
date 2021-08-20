@@ -843,7 +843,7 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
 
 # IDE0039, PreferLocalOverAnonymousFunction
-csharp_style_pattern_local_over_anonymous_function = true
+csharp_style_prefer_local_over_anonymous_function = true
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
