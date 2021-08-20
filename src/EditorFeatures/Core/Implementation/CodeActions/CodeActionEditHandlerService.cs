@@ -159,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 {
                     try
                     {
-                        var operation = operations.Single();
                         this.AssertIsForeground();
 
                         applied = await operations.Single().TryApplyAsync(
