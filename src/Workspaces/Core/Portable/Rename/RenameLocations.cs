@@ -143,6 +143,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
                 }
 
+                // Add string and comment locations to the merged hashset 
+                // after adding in reference symbols. This allows any references
+                // in comments to be resolved as proper references rather than
+                // comment resolutions. See https://github.com/dotnet/roslyn/issues/54294
                 mergedLocations.AddRange(strings.NullToEmpty());
                 mergedLocations.AddRange(comments.NullToEmpty());
 
