@@ -166,14 +166,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        protected async Task InvokeCoreAsync(
+        protected Task InvokeCoreAsync(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var extensionManager = Workspace.Services.GetService<IExtensionManager>();
-            await extensionManager.PerformActionAsync(Provider, async () =>
-            {
-                await InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            return Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+                Provider, () => InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken));
         }
 
         private async Task InvokeWorkerAsync(
