@@ -376,5 +376,60 @@ class C
     }
 }").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestSingleLineOutput1()
+        {
+            CompileAndVerify(
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(""""""abc""def"""""");
+    }
+}", expectedOutput: @"abc""def");
+        }
+
+        [Fact]
+        public void TestMultiLineOutput1()
+        {
+            CompileAndVerify(
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(""""""
+                          abc""
+                          def
+                          """""");
+    }
+}".Replace("\r\n", "\n"), expectedOutput: "abc\"\ndef");
+        }
+
+        [Fact]
+        public void TestMultiLineOutput2()
+        {
+            CompileAndVerify(
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(
+            """"""
+            abc""
+            def
+        """""");
+    }
+}".Replace("\r\n", "\n"), expectedOutput: "    abc\"\n    def");
+        }
     }
 }
