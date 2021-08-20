@@ -22,7 +22,6 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Emit" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Symbols" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Syntax" />
-    <Import Include="System.Xml.Linq" />
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>

@@ -17,7 +17,7 @@ pr:
 jobs:
 - job: VS_Integration
   pool:
-    name: $(poolName)
+    name: NetCorePublic-Pool
     queue: $(queueName)
   strategy:
     maxParallel: 4

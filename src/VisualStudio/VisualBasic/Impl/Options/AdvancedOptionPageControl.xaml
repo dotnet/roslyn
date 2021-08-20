@@ -241,10 +241,6 @@
                                   x:Name="ShowHintsForEverythingElse"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
 
-                        <CheckBox x:Uid="ShowHintsForIndexers"
-                                  x:Name="ShowHintsForIndexers"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_indexers}" />
-                        
                         <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
