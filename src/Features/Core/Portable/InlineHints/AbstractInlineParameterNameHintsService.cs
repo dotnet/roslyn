@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
-            var doubleClickToInsertHint = options.GetOption(InlineHintsOptions.DoubleClickToInsertHint);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
