@@ -11,3 +11,7 @@ The Caravela compiler is a fork of [Roslyn](https://github.com/dotnet/roslyn) (t
 * [Component diagram](src/Caravela/doc/Component%20diagram.md)
 * [Properties](src/Caravela/doc/Properties.md)
 * [Modifications and additions](src/Caravela/doc/Modifications.md)
+
+### Notes
+
+Caravela TODO: .NET SDK rollforward disabled in global.json because DisableImplicitNamespaceImports is set to true in various projects in .NET 6 Preview 7 which breaks most VB projects.
