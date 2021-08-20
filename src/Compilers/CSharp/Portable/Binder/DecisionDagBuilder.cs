@@ -1946,7 +1946,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return decisionImpliesTrueOther
                             ? OrSequence.Create(AndSequence.Create(precondition, sideeffect), other)
                             : decisionPermitsTrueOther
-                                // PROTOTYPE(list-patterns): Do we really need to preserve the sideeffect in this path?
                                 ? AndSequence.Create(OrSequence.Create(Not.Create(precondition), sideeffect), other)
                                 : AndSequence.Create(Not.Create(AndSequence.Create(precondition, sideeffect)), other);
                     }
