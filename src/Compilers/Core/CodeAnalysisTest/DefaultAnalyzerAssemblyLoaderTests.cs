@@ -204,6 +204,64 @@ Delta: Epsilon: Test E
         }
 
         [Fact]
+        public void AssemblyLoading_MultipleVersions_MultipleLoaders()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader1 = new DefaultAnalyzerAssemblyLoader();
+            loader1.AddDependencyLocation(_testFixture.Gamma.Path);
+            loader1.AddDependencyLocation(_testFixture.Delta1.Path);
+
+            var loader2 = new DefaultAnalyzerAssemblyLoader();
+            loader2.AddDependencyLocation(_testFixture.Epsilon.Path);
+            loader2.AddDependencyLocation(_testFixture.Delta2.Path);
+
+            Assembly gamma = loader1.LoadFromPath(_testFixture.Gamma.Path);
+            var g = gamma.CreateInstance("Gamma.G")!;
+            g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+
+            Assembly epsilon = loader2.LoadFromPath(_testFixture.Epsilon.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+#if NETCOREAPP
+            var alcs1 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader1);
+            Assert.Equal(1, alcs1.Length);
+
+            Assert.Equal(new[] {
+                ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
+            }, alcs1[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+
+            var alcs2 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader2);
+            Assert.Equal(1, alcs2.Length);
+
+            Assert.Equal(new[] {
+                ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
+            }, alcs2[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+#endif
+
+            var actual = sb.ToString();
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                Assert.Equal(
+@"Delta: Gamma: Test G
+Delta.2: Epsilon: Test E
+",
+                    actual);
+            }
+            else
+            {
+                Assert.Equal(
+@"Delta: Gamma: Test G
+Delta: Epsilon: Test E
+",
+                    actual);
+            }
+        }
+
+        [Fact]
         public void AssemblyLoading_MultipleVersions_MissingVersion()
         {
             StringBuilder sb = new StringBuilder();
