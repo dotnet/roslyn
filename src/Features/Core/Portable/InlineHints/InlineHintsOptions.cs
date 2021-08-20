@@ -75,12 +75,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
 
-        public static readonly PerLanguageOption2<bool> DoubleClickToInsertHint =
-            new(nameof(InlineHintsOptions),
-                nameof(DoubleClickToInsertHint),
-                defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.DoubleClickToInsertHint"));
-
         public static readonly PerLanguageOption2<bool> EnabledForTypes =
             new(nameof(InlineHintsOptions),
                 nameof(EnabledForTypes),
@@ -123,7 +117,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             InlineHintsOptions.ForIndexerParameters,
             InlineHintsOptions.ForObjectCreationParameters,
             InlineHintsOptions.ForOtherParameters,
-            InlineHintsOptions.DoubleClickToInsertHint,
             InlineHintsOptions.EnabledForTypes,
             InlineHintsOptions.ForImplicitVariableTypes,
             InlineHintsOptions.ForLambdaParameterTypes,
