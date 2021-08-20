@@ -57,11 +57,6 @@
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_Suggested_Action">
-        <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">가져오지 않은 네임스페이스의 항목</target>

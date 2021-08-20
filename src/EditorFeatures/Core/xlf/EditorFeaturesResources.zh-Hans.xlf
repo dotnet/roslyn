@@ -57,11 +57,6 @@
         <target state="translated">是否仍要继续? 这可能会导致代码损坏。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_Suggested_Action">
-        <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">未导入命名空间中的项</target>

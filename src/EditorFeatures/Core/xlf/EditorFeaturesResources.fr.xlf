@@ -57,11 +57,6 @@
         <target state="translated">Voulez-vous continuer ? Le code sera interrompu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_Suggested_Action">
-        <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">éléments provenant d'espaces de noms non importés</target>
