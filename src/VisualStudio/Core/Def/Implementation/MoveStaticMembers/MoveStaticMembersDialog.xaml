@@ -5,7 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" 
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
     d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
     vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
@@ -45,19 +46,18 @@
                        Margin="{StaticResource verticalLabelMargin}"
                        Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
                        Target="{Binding ElementName=DestinationTextBox}" />
-            <ComboBox 
+            <ComboBox
                 x:Uid="DestinationBox"
                 Name="DestinationBox"
                 IsEditable="True"
                 IsReadOnly="False"
                 AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
-                SelectedItem="{Binding DestinationName, Mode=TwoWay}"
                 Text="{Binding SearchText, Mode=TwoWay}"
+                SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                 ItemsSource="{Binding ShownTypes, Mode=OneWay}"
                 BorderThickness="0" 
                 Margin="0 0 20 0"
-                MaxDropDownHeight="150"
-                HorizontalContentAlignment="Stretch">
+                MaxDropDownHeight="150">
                 <ComboBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ComboBoxItem}">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -67,10 +67,10 @@
                     <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20"/>
-                                <ColumnDefinition Width="20"/>
-                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <imaging:CrispImage
                                 Grid.Column="0"
@@ -84,7 +84,8 @@
                                 Moniker="{x:Static imagecatalog:KnownMonikers.Add}"/>
                             <TextBlock
                                 Grid.Column="3"
-                                HorizontalAlignment="Stretch"
+                                HorizontalAlignment="Left"
+                                TextTrimming="CharacterEllipsis"
                                 Text="{Binding TypeName}"/>
                             <TextBlock
                                 Grid.Column="4"

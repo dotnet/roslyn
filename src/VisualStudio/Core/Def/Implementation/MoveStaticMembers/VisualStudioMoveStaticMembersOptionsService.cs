@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 cancellationTokenSource.Token);
 
             var candidateName = selectedType.Name + "Helpers";
-            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(name));
+            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(tName => tName.TypeName == name));
 
             var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -81,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             var viewModel = new MoveStaticMembersDialogViewModel(selectMembersViewModel,
                 defaultTypeName,
                 existingTypeNames,
+                selectedType.Name,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
 
             var dialog = new MoveStaticMembersDialog(viewModel);
@@ -110,41 +112,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             Document currentDocument,
             CancellationToken cancellationToken)
         {
-            // find the top-level namespace
-            while (!currentNamespace.IsGlobalNamespace)
-            {
-                currentNamespace = currentNamespace.ContainingNamespace;
-            }
-
             return currentNamespace.GetAllTypes(cancellationToken).SelectMany(t =>
             {
-                var fullName = GetFullyQualifiedNamespace(t);
-
                 // for partially declared classes, we may want multiple entries for a single type.
                 // filter to those actually in a real file, and that is not our current location.
                 return t.Locations
                     .Where(l => l.IsInSource &&
                         (currentType.Name != t.Name || GetFile(l) != currentDocument.Name))
                     .Select(l => new TypeNameItem(
-                        History.Contains((fullName, currentDocument.Name)),
+                        History.Contains((t.Name, currentDocument.Name)),
                         GetFile(l),
-                        fullName));
+                        t));
             })
             .ToImmutableArrayOrEmpty()
             .Sort(comparison: TypeNameItem.CompareTo);
-        }
-
-        private static string GetFullyQualifiedNamespace(INamedTypeSymbol type)
-        {
-            // construct fully qualified type name
-            var displayName = type.Name;
-            var containingNamespace = type.ContainingNamespace;
-            while (!containingNamespace.IsGlobalNamespace)
-            {
-                displayName = containingNamespace.Name + "." + displayName;
-                containingNamespace = containingNamespace.ContainingNamespace;
-            }
-            return displayName;
         }
     }
 }

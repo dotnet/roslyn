@@ -5,20 +5,22 @@
 using System;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
     internal class TypeNameItem
     {
         public string TypeName { get; }
+        public INamedTypeSymbol? NamedType { get; }
         public string DeclarationFile { get; }
         public bool IsFromHistory { get; }
         public bool IsNew { get; }
 
-        public TypeNameItem(bool isFromHistory, string declarationFile, string @typeName)
+        public TypeNameItem(bool isFromHistory, string declarationFile, INamedTypeSymbol type)
         {
             IsFromHistory = isFromHistory;
             IsNew = false;
-            TypeName = @typeName;
+            NamedType = type;
+            TypeName = type.ToDisplayString();
             DeclarationFile = declarationFile;
         }
 
@@ -27,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToTy
             IsFromHistory = false;
             IsNew = true;
             TypeName = @typeName;
-            DeclarationFile = "[WIP] Auto-Generated File";
+            NamedType = null;
+            DeclarationFile = ServicesVSResources.Create_new_file;
         }
 
         public override string ToString() => TypeName;
