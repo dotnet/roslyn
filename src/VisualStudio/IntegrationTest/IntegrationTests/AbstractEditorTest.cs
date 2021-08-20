@@ -55,7 +55,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 // so these editor tasks will not work if that is the project template being used.
                 if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
                     _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary &&
+                    _projectTemplate != WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
                 {
                     VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();

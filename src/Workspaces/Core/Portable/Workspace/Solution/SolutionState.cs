@@ -53,6 +53,14 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
+        /// <summary>
+        /// Mapping from project-id to the options and checksums needed to synchronize it (and the projects it depends on) over 
+        /// to an OOP host.  Options are stored as well so that when we are attempting to match a request for a particular project-subset
+        /// we can return the options specific to that project-subset (which may be different from the <see cref="Options"/> defined
+        /// for the entire solution).  Lock this specific field before reading/writing to it.
+        /// </summary>
+        private readonly Dictionary<ProjectId, (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums)> _lazyProjectChecksums = new();
+
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
@@ -98,7 +106,8 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
+                c => ComputeChecksumsAsync(projectsToInclude: null, Options, c), cacheResult: true);
 
             CheckInvariants();
 

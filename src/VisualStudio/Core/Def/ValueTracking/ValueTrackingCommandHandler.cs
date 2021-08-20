@@ -21,7 +21,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -42,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IGlyphService _glyphService;
         private readonly IEditorFormatMapService _formatMapService;
-        private RoslynPackage? _roslynPackage;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -202,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private async Task ShowToolWindowAsync(CancellationToken cancellationToken)
         {
-            var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
+            var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(roslynPackage);
 
             await roslynPackage.ShowToolWindowAsync(
@@ -214,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private async Task<ValueTrackingToolWindow?> GetOrCreateToolWindowAsync(ITextView textView, CancellationToken cancellationToken)
         {
-            var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
+            var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
             if (roslynPackage is null)
             {
                 return null;
@@ -247,25 +245,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             return ValueTrackingToolWindow.Instance;
-        }
-
-        private async ValueTask<RoslynPackage?> TryGetRoslynPackageAsync(CancellationToken cancellationToken)
-        {
-            if (_roslynPackage is null)
-            {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                var shell = (IVsShell7?)await _serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-                Assumes.Present(shell);
-                await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
-
-                if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
-                {
-                    _roslynPackage = (RoslynPackage)package;
-                }
-            }
-
-            return _roslynPackage;
         }
     }
 }
