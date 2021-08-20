@@ -3279,6 +3279,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
