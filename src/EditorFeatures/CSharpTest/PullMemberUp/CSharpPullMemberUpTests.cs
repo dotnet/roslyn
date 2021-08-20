@@ -18,6 +18,9 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -3889,6 +3892,99 @@ namespace N
                 testText,
                 expected,
                 options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+        public Goo Ge[||]tGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using N2;
+using System;
+
+namespace N1
+{
+    public class Base
+    {
+        public Goo GetGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(
+                testText,
+                expected,
+                options: new(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, false },
+                });
         }
 
         #endregion Quick Action
