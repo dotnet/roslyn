@@ -630,6 +630,139 @@ internal class MyBase
         }
 
         [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace()
+        {
+            var input = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program
+    {
+        static void [|Main|](string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            var expected1 = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program : MyBase
+    {
+    }
+}";
+
+            var expected2 = @"// this is my real document header
+
+namespace ConsoleApp185;
+using System;
+using System.Collections.Generic;
+
+internal class MyBase
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error },
+                    { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_FileScopedNamespace()
+        {
+            var input = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program
+    {
+        static void [|Main|](string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            var expected1 = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program : MyBase
+    {
+    }
+}";
+
+            var expected2 = @"// this is my real document header
+
+namespace ConsoleApp185
+{
+    using System;
+    using System.Collections.Generic;
+
+    internal class MyBase
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestWithInterface()
         {
             var input = @"
