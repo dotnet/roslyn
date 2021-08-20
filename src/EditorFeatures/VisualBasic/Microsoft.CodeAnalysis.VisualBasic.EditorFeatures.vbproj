@@ -34,6 +34,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Roslyn.Utilities.Contract" />
+    <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
