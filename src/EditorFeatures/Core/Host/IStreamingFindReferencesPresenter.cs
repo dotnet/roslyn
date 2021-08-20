@@ -66,11 +66,13 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
         {
-            // Ignore any definitions that we can't navigate to.
+            if (items.IsDefaultOrEmpty)
+                return false;
 
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
             foreach (var item in items)
             {
+                // Ignore any definitions that we can't navigate to.
                 if (await item.CanNavigateToAsync(solution, cancellationToken).ConfigureAwait(false))
                     definitionsBuilder.Add(item);
             }

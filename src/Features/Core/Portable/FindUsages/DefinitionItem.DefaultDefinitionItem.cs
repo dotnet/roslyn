@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         // internal for testing purposes.
         internal sealed class DefaultDefinitionItem : DefinitionItem
         {
-            internal override bool IsExternal => false;
+            internal sealed override bool IsExternal => false;
 
             public DefaultDefinitionItem(
                 ImmutableArray<string> tags,
@@ -38,15 +37,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            [Obsolete]
-            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
-
-            [Obsolete]
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
-
-            public override async Task<bool> CanNavigateToAsync(Solution solution, CancellationToken cancellationToken)
+            public sealed override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
@@ -60,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public override async Task<bool> TryNavigateToAsync(Solution solution, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public sealed override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
@@ -74,12 +65,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
             }
 
+            public DetachedDefinitionItem Detach()
+                => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
+
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
                 => TryNavigateToMetadataSymbol(workspace, symbolKey, action: (symbol, project, service) => true);
 
             private bool TryNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
             {
-                return TryNavigateToMetadataSymbol(workspace, symbolKey,
+                return TryNavigateToMetadataSymbol(
+                    workspace, symbolKey,
                     action: (symbol, project, service) =>
                     {
                         return service.TryNavigateToSymbol(
@@ -104,27 +99,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
                 }
 
-                var navigationService = workspace.Services.GetService<ISymbolNavigationService>();
+                var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
                 return action(symbol, project, navigationService);
             }
 
-            private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
-                Workspace workspace, string symbolKey)
+            private (Project? project, ISymbol? symbol) TryResolveSymbolInCurrentSolution(Workspace workspace, string symbolKey)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
                     !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
                 {
-                    return (null, null);
+                    return default;
                 }
 
                 var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
-
                 if (project == null)
-                {
-                    return (null, null);
-                }
+                    return default;
 
-                var compilation = project.GetCompilationAsync(CancellationToken.None)
+                var compilation = project.GetRequiredCompilationAsync(CancellationToken.None)
                                          .WaitAndGetResult(CancellationToken.None);
 
                 var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;

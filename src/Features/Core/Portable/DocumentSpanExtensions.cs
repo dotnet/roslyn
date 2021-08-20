@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis
         public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
         {
             var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
+
+            // We're starting with one doc snapshot, but we're navigating to the current version of the doc.  As such,
+            // the span we're trying to navigate to may no longer be there.  Allow for that and don't crash in that case.
+            return service.TryNavigateToSpan(
+                workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, allowInvalidSpan: true, cancellationToken);
         }
 
         public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)

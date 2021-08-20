@@ -129,9 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken)
         {
-            if (definitions.IsDefaultOrEmpty)
-                return false;
-
             return threadingContext.JoinableTaskFactory.Run(() =>
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     threadingContext, solution, title, definitions, cancellationToken));
