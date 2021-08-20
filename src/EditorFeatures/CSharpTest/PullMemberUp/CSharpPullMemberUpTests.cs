@@ -5508,7 +5508,7 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public Task TestRefactoringMultipleFields()
+        public Task TestRefactoringMultipleFieldsOnModifier()
         {
             var testText = @"
 class Base
@@ -5518,6 +5518,21 @@ class Base
 class Derived : Base
 {
     pub[||]lic int I, J;
+}";
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMultipleFieldsOnType()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public i[||]nt I, J;
 }";
             return TestQuickActionNotProvidedAsync(testText);
         }
@@ -5604,7 +5619,7 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public Task TestRefactoringMutipleEvents()
+        public Task TestRefactoringMutipleEventsOnEventHandler()
         {
             var testText = @"
 using System;
@@ -5615,6 +5630,40 @@ class Base
 class Derived : Base
 {
     public event Eve[||]ntHandler e, e1;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMutipleEventsOnModifier()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    pu[||]blic event EventHandler e, e1;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMutipleEventsOnEventKeyword()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    public e[||]vent EventHandler e, e1;
 }";
 
             return TestQuickActionNotProvidedAsync(testText);
