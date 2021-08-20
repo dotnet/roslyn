@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
-            ((FrameworkElement)_textViewHost).Loaded += OnTextViewHostLoaded;
+            _textViewHost.HostControl.Loaded += OnTextViewHostLoaded;
 
             _mainCanvas.Width = HeightAndWidthOfMargin;
 
@@ -273,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
                 _textView.Options.OptionChanged -= OnTextViewOptionChanged;
                 _optionService.OptionChanged -= OnRoslynOptionChanged;
-                ((FrameworkElement)_textViewHost).Loaded -= OnTextViewHostLoaded;
+                _textViewHost.HostControl.Loaded -= OnTextViewHostLoaded;
                 _tagAggregator.Dispose();
                 _disposed = true;
             }

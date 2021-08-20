@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// ViewModels for the context menu items.
         /// </summary>
-        public ImmutableArray<InheritanceMenuItemViewModel> MenuItemViewModels { get; }
+        public ImmutableArray<MenuItemViewModel> MenuItemViewModels { get; }
 
         /// <summary>
         /// Scale factor for the margin.
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             TextBlock toolTipTextBlock,
             string automationName,
             double scaleFactor,
-            ImmutableArray<InheritanceMenuItemViewModel> menuItemViewModels)
+            ImmutableArray<MenuItemViewModel> menuItemViewModels)
         {
             ImageMoniker = imageMoniker;
             ToolTipTextBlock = toolTipTextBlock;
