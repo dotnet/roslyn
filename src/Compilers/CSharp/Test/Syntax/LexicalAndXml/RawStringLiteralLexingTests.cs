@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\r\n  abc\r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\ndef")]
         [InlineData("\"\"\"\r\n  \"\"\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"")]
         [InlineData("\"\"\"\r\n     \"abc\"\r\n     \"\"def\"\"\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "   \"abc\"\r\n   \"\"def\"\"")]
+        [InlineData("\"\"\"\r\n{|CS9103: |}abc\r\n\r\n{|CS9103: |}def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
