@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
-using VSExperimentation = Microsoft.VisualStudio.Experimentation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
@@ -19,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
     internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
     {
-        private readonly object? _experimentationServiceOpt;
-        private readonly MethodInfo? _isCachedFlightEnabledInfo;
-        private readonly IVsFeatureFlags? _featureFlags;
+        private readonly object _experimentationServiceOpt;
+        private readonly MethodInfo _isCachedFlightEnabledInfo;
+        private readonly IVsFeatureFlags _featureFlags;
 
         /// <summary>
         /// Cache of values we've queried from the underlying VS service.  These values are expected to last for the
@@ -35,15 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
-            object? experimentationServiceOpt = null;
-            MethodInfo? isCachedFlightEnabledInfo = null;
-            IVsFeatureFlags? featureFlags = null;
+            object experimentationServiceOpt = null;
+            MethodInfo isCachedFlightEnabledInfo = null;
+            IVsFeatureFlags featureFlags = null;
 
             threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 try
                 {
-                    featureFlags = (IVsFeatureFlags?)await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
+                    featureFlags = (IVsFeatureFlags)await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
                     experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
                     if (experimentationServiceOpt != null)
                     {
@@ -70,8 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     _experimentEnabledMap.Remove(experimentName);
             }
 
-            var featureFlags2 = (IVsFeatureFlags2?)_featureFlags;
-            featureFlags2?.EnableFeatureFlag(experimentName, value);
+            var featureFlags2 = (IVsFeatureFlags2)_featureFlags;
+            featureFlags2.EnableFeatureFlag(experimentName, value);
         }
 
         public bool IsExperimentEnabled(string experimentName)
@@ -100,49 +101,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private bool IsExperimentEnabledWorker(string experimentName)
         {
             ThisCanBeCalledOnAnyThread();
-
-            // First check feature flags.
-            try
+            if (_isCachedFlightEnabledInfo != null)
             {
-                // check whether "." exist in the experimentName since it is requirement for featureflag service.
-                // we do this since RPS complains about resource file being loaded for invalid name exception
-                // we are not testing all rules but just simple "." check
-                if (experimentName.IndexOf(".") > 0 && _featureFlags != null && _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false))
-                    return true;
-            }
-            catch
-            {
-                // featureFlags can throw if given name is in incorrect format which can happen for us
-                // since we use this for experimentation service as well
-            }
-
-            // Then the legacy 'targetted notification system'.
-            try
-            {
-                if (_isCachedFlightEnabledInfo != null && (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName }))
-                    return true;
-            }
-            catch
-            {
-            }
-
-            // Finally, the modern 'treatment variable' system.
-            try
-            {
-                if (VSExperimentation.ExperimentationService.Default is VSExperimentation.IExperimentationService3 experimentationService)
+                try
                 {
-                    // Get from the well known 'VisualStudio' set of treatment variables.
-                    var treatmentVariables = experimentationService.GetCachedTreatmentVariables("VisualStudio");
-                    if (treatmentVariables != null &&
-                        treatmentVariables.TryGetValue(experimentName, out var value) &&
-                        value is true)
+                    // check whether "." exist in the experimentName since it is requirement for featureflag service.
+                    // we do this since RPS complains about resource file being loaded for invalid name exception
+                    // we are not testing all rules but just simple "." check
+                    if (experimentName.IndexOf(".") > 0)
                     {
-                        return true;
+                        var enabled = _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false);
+                        if (enabled)
+                        {
+                            return enabled;
+                        }
                     }
                 }
-            }
-            catch
-            {
+                catch
+                {
+                    // featureFlags can throw if given name is in incorrect format which can happen for us
+                    // since we use this for experimentation service as well
+                }
+
+                try
+                {
+                    return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName });
+                }
+                catch
+                {
+
+                }
             }
 
             return false;
