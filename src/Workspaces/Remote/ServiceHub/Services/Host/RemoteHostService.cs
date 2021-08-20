@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
 
+            // Make encodings that is by default present in desktop framework but not in corefx available to runtime.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
 #if DEBUG
             // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI
             Trace.Listeners.Clear();
