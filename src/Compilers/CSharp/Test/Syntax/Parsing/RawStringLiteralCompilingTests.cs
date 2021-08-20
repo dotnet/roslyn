@@ -4,16 +4,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-    public class RawStringLiteralParsingTests : ParsingTests
+    public class RawStringLiteralCompilingTests : CompilingTestBase
     {
-        public RawStringLiteralParsingTests(ITestOutputHelper output) : base(output)
-        {
-        }
-
         [Fact]
         public void TestDownlevel()
         {
