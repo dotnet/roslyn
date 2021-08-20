@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
                     if (IsValidType(type))
                     {
-                        return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), null, leadingSpace: true);
+                        var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
+                        return new(type, span, span, leadingSpace: true);
                     }
                 }
             }
