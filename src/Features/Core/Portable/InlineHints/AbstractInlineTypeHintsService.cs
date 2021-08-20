@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var displayString = GetDisplayStringFromParts(taggedText);
 
                 result.Add(new InlineHint(
-                    span, taggedText,
+                    span, taggedText, displayString,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
             }
 
@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             {
                 var first = taggedTexts.First();
                 var trimStart = first.Text.TrimStart();
+                displayString += trimStart;
 
                 for (var i = 1; i < taggedTexts.Length - 1; i++)
                 {
