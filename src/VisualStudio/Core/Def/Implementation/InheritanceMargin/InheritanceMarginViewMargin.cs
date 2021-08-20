@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -74,9 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregator.BatchedTagsChanged += OnTagsChanged;
             _textView.LayoutChanged += OnLayoutChanged;
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
-            _textView.Options.OptionChanged += OnTextViewOptionChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
-            _textViewHost.HostControl.Loaded += OnTextViewHostLoaded;
 
             _mainCanvas.Width = HeightAndWidthOfMargin;
 
@@ -85,9 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleY: _textView.ZoomLevel / 100);
             _grid.LayoutTransform.Freeze();
         }
-
-        private void OnTextViewHostLoaded(object sender, RoutedEventArgs e)
-            => UpdateMarginPosition();
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
@@ -112,72 +106,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _refreshAllGlyphs = false;
         }
 
-        private void OnTextViewOptionChanged(object sender, EditorOptionChangedEventArgs e)
-        {
-            if (e.OptionId == DefaultTextViewHostOptions.GlyphMarginName)
-            {
-                UpdateMarginPosition();
-            }
-        }
-
         private void OnRoslynOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
+            if (e.Option == FeatureOnOffOptions.ShowInheritanceMargin || e.Option == FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
             {
-                UpdateMarginPosition();
-            }
-
-            if (e.Option == FeatureOnOffOptions.ShowInheritanceMargin)
-            {
-                UpdateVisibilityOfMargin();
+                UpdateMarginVisibility();
             }
         }
 
-        private void UpdateMarginPosition()
+        private void UpdateMarginVisibility()
         {
-            var isGlyphMarginOpen = _textView.Options.GetOptionValue(DefaultTextViewHostOptions.GlyphMarginId);
-
-            // Make sure the GlyphMargin is avaliable before we try to get it. If it is disposed/closed then don't do anything
-            if (!isGlyphMarginOpen)
+            var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) != false;
+            var showMargin = !_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName);
+            if (showMargin && featureEnabled)
             {
-                return;
-            }
-
-            var glyphTextViewMargin = _textViewHost.GetTextViewMargin(PredefinedMarginNames.Glyph);
-            if (glyphTextViewMargin is null || glyphTextViewMargin.VisualElement is not Grid indicatorMarginGrid)
-            {
-                return;
-            }
-
-            var shouldCombinedWithIndicatorMargin = _optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName);
-            var isCanvasCombined = indicatorMarginGrid.Children.Contains(_mainCanvas);
-            if (shouldCombinedWithIndicatorMargin && !isCanvasCombined)
-            {
-                RoslynDebug.Assert(_grid.Children.Contains(_mainCanvas));
-                _grid.Children.Remove(_mainCanvas);
-                indicatorMarginGrid.Children.Add(_mainCanvas);
-                return;
-            }
-
-            if (!shouldCombinedWithIndicatorMargin && isCanvasCombined)
-            {
-                RoslynDebug.Assert(_grid.Children.Count == 0);
-                indicatorMarginGrid.Children.Remove(_mainCanvas);
-                _grid.Children.Add(_mainCanvas);
-                return;
-            }
-        }
-
-        private void UpdateVisibilityOfMargin()
-        {
-            var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName);
-            if (featureEnabled == false)
-            {
-                _mainCanvas.Visibility = Visibility.Collapsed;
+                _mainCanvas.Visibility = Visibility.Visible;
             }
             else
             {
-                _mainCanvas.Visibility = Visibility.Visible;
+                _mainCanvas.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -197,7 +144,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var startOfChangedSpan = changedSnapshotSpans.Min(span => span.Start);
             var endOfChangedSpan = changedSnapshotSpans.Max(span => span.End);
             var changedSpan = new SnapshotSpan(startOfChangedSpan, endOfChangedSpan);
+
             _glyphManager.RemoveGlyph(changedSpan);
+
             foreach (var line in _textView.TextViewLines.GetTextViewLinesIntersectingSpan(changedSpan))
             {
                 if (line.IsValid)
@@ -209,16 +158,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
+            if (!_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName))
             {
-                // Only take tag spans with a visible start point and that map to something
-                // in the edit buffer and *start* on this line
-                if (mappingTagSpan.Span.Start.GetPoint(_textView.VisualSnapshot.TextBuffer, PositionAffinity.Predecessor) != null)
+                foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
                 {
-                    var tagSpans = mappingTagSpan.Span.GetSpans(_textView.TextSnapshot);
-                    if (tagSpans.Count > 0)
+                    // Only take tag spans with a visible start point and that map to something
+                    // in the edit buffer and *start* on this line
+                    if (mappingTagSpan.Span.Start.GetPoint(_textView.VisualSnapshot.TextBuffer, PositionAffinity.Predecessor) != null)
                     {
-                        _glyphManager.AddGlyph(mappingTagSpan.Tag, tagSpans[0]);
+                        var tagSpans = mappingTagSpan.Span.GetSpans(_textView.TextSnapshot);
+                        if (tagSpans.Count > 0)
+                        {
+                            _glyphManager.AddGlyph(mappingTagSpan.Tag, tagSpans[0]);
+                        }
                     }
                 }
             }
@@ -271,9 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
                 _textView.LayoutChanged -= OnLayoutChanged;
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
-                _textView.Options.OptionChanged -= OnTextViewOptionChanged;
                 _optionService.OptionChanged -= OnRoslynOptionChanged;
-                _textViewHost.HostControl.Loaded -= OnTextViewHostLoaded;
                 _tagAggregator.Dispose();
                 _disposed = true;
             }
