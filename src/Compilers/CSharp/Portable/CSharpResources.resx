@@ -1269,9 +1269,6 @@
   <data name="ERR_TypeVarCantBeNull" xml:space="preserve">
     <value>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</value>
   </data>
-  <data name="ERR_AttributeCantBeGeneric" xml:space="preserve">
-    <value>Cannot apply attribute class '{0}' because it is generic</value>
-  </data>
   <data name="ERR_DuplicateBound" xml:space="preserve">
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
   </data>
@@ -1307,6 +1304,18 @@
   </data>
   <data name="ERR_AttrArgWithTypeVars" xml:space="preserve">
     <value>'{0}': an attribute argument cannot use type parameters</value>
+  </data>
+  <data name="ERR_AttrTypeArgCannotBeTypeVar" xml:space="preserve">
+    <value>'{0}': an attribute type argument cannot use type parameters</value>
+  </data>
+  <data name="WRN_AttrDependentTypeNotAllowed" xml:space="preserve">
+    <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
+  </data>
+  <data name="WRN_AttrDependentTypeNotAllowed_Title" xml:space="preserve">
+    <value>Type cannot be used in this context because it cannot be represented in metadata.</value>
+  </data>
+  <data name="ERR_AttrDependentTypeNotAllowed" xml:space="preserve">
+    <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
   </data>
   <data name="ERR_NewTyvarWithArgs" xml:space="preserve">
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
@@ -2029,9 +2038,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_UnifyingInterfaceInstantiations" xml:space="preserve">
     <value>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</value>
-  </data>
-  <data name="ERR_GenericDerivingFromAttribute" xml:space="preserve">
-    <value>A generic type cannot derive from '{0}' because it is an attribute class</value>
   </data>
   <data name="ERR_TyVarNotFoundInConstraint" xml:space="preserve">
     <value>'{1}' does not define type parameter '{0}'</value>
@@ -2834,7 +2840,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The managed coclass wrapper class '{0}' for interface '{1}' cannot be found (are you missing an assembly reference?)</value>
   </data>
   <data name="ERR_AmbiguousAttribute" xml:space="preserve">
-    <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
+    <value>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
     <value>Argument {0} may not be passed with the '{1}' keyword</value>
@@ -6689,7 +6695,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
   </data>
   <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression" xml:space="preserve">
-    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</value>
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</value>
   </data>
   <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</value>
@@ -6841,5 +6847,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
     <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
+  </data>
+  <data name="IDS_FeatureGenericAttributes" xml:space="preserve">
+    <value>generic attributes</value>
   </data>
 </root>

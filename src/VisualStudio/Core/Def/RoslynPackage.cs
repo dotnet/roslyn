@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -32,6 +33,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -60,11 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
         private const byte BackgroundAnalysisScopeOptionVersion = 1;
 
+        private static RoslynPackage? _lazyInstance;
+
         private VisualStudioWorkspace? _workspace;
         private IComponentModel? _componentModel;
         private RuleSetEventHandler? _ruleSetEventHandler;
         private ColorSchemeApplier? _colorSchemeApplier;
         private IDisposable? _solutionEventMonitor;
+
+        private BackgroundAnalysisScope? _analysisScope;
 
         public RoslynPackage()
         {
@@ -72,7 +78,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
 
-        public BackgroundAnalysisScope? AnalysisScope { get; set; }
+        public BackgroundAnalysisScope? AnalysisScope
+        {
+            get
+            {
+                return _analysisScope;
+            }
+
+            set
+            {
+                if (_analysisScope == value)
+                    return;
+
+                _analysisScope = value;
+                AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public event EventHandler? AnalysisScopeChanged;
+
+        internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            if (_lazyInstance is null)
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                var shell = (IVsShell7?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                Assumes.Present(shell);
+                await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
+
+                if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
+                {
+                    _lazyInstance = (RoslynPackage)package;
+                }
+            }
+
+            return _lazyInstance;
+        }
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
@@ -115,10 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            foreach (var provider in await GetOptionPersistersAsync(_componentModel, cancellationToken).ConfigureAwait(true))
-            {
-                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
-            }
+            LoadOptionPersistersAsync(_componentModel, cancellationToken).Forget();
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
@@ -144,14 +183,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
+        }
 
-            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+        private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+        {
+            var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
+            using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(LoadOptionPersistersAsync));
+
+            // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
+            // InitializeAsync.
+            await TaskScheduler.Default;
+
+            var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+
+            foreach (var provider in persisterProviders)
             {
-                // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
-                // InitializeAsync.
-                await TaskScheduler.Default;
-
-                return componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -192,12 +239,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // the appropriate task scheduler to report events on.
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-            // Load and initialize the services detecting and adding new analyzer config documents as solution item.
-            this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
+            // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
             this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
 
             this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
             this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().Initialize(this);
+            this.ComponentModel.GetService<SyncNamespacesCommandHandler>().Initialize(this);
 
             LoadAnalyzerNodeComponents();
 

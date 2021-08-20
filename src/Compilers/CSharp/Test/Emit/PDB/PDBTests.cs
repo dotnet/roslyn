@@ -7584,7 +7584,7 @@ public class C
         [Fact]
         public void HiddenMethods()
         {
-            var src = @"
+            var src = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -7614,7 +7614,7 @@ class C
             Console.WriteLine(x);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
@@ -7637,6 +7637,15 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <namespace name=""System"" />
       </scope>
+    </method>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""61"" />
+          <slot kind=""0"" offset=""64"" />
+          <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
     </method>
   </methods>
 </symbols>");
@@ -7740,6 +7749,13 @@ class C
           <slot kind=""0"" offset=""61"" />
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
     </method>

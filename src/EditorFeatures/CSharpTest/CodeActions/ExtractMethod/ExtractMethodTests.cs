@@ -4317,5 +4317,37 @@ record struct Program
     }
 }");
         }
+
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMethodInNamespace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace TestNamespace
+{
+    private bool TestMethod() => [|false|];
+}");
+        }
+
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMethodInInterface()
+        {
+            await TestInRegularAndScript1Async(@"
+interface TestInterface
+{
+    bool TestMethod() => [|false|];
+}",
+@"
+interface TestInterface
+{
+    bool TestMethod() => {|Rename:NewMethod|}();
+
+    bool NewMethod()
+    {
+        return false;
+    }
+}");
+        }
     }
 }
