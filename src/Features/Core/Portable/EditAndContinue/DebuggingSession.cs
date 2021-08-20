@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -63,41 +62,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly ReaderWriterLockSlim _baselineAccessLock = new();
         private bool _isDisposed;
 
-        // Maps active statement instructions reported by the debugger to their latest spans that might not yet have been applied
-        // (remapping not triggered yet). Consumed by the next edit session and updated when changes are committed at the end of the edit session.
-        //
-        // Consider a function F containing a call to function G. While G is being executed, F is updated a couple of times (in two edit sessions)
-        // before the thread returns from G and is remapped to the latest version of F. At the start of the second edit session,
-        // the active instruction reported by the debugger is still at the original location since function F has not been remapped yet (G has not returned yet).
-        //
-        // '>' indicates an active statement instruction for non-leaf frame reported by the debugger.
-        // v1 - before first edit, G executing
-        // v2 - after first edit, G still executing
-        // v3 - after second edit and G returned
-        //
-        // F v1:        F v2:       F v3:
-        // 0: nop       0: nop      0: nop
-        // 1> G()       1> nop      1: nop
-        // 2: nop       2: G()      2: nop
-        // 3: nop       3: nop      3> G()
-        //
-        // When entering a break state we query the debugger for current active statements.
-        // The returned statements reflect the current state of the threads in the runtime.
-        // When a change is successfully applied we remember changes in active statement spans.
-        // These changes are passed to the next edit session.
-        // We use them to map the spans for active statements returned by the debugger.
-        //
-        // In the above case the sequence of events is
-        // 1st break: get active statements returns (F, v=1, il=1, span1) the active statement is up-to-date
-        // 1st apply: detected span change for active statement (F, v=1, il=1): span1->span2
-        // 2nd break: previously updated statements contains (F, v=1, il=1)->span2
-        //            get active statements returns (F, v=1, il=1, span1) which is mapped to (F, v=1, il=1, span2) using previously updated statements
-        // 2nd apply: detected span change for active statement (F, v=1, il=1): span2->span3
-        // 3rd break: previously updated statements contains (F, v=1, il=1)->span3
-        //            get active statements returns (F, v=3, il=3, span3) the active statement is up-to-date
-        //
-        internal ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
-
         internal EditSession EditSession { get; private set; }
 
         private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
@@ -113,11 +77,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly CommittedSolution LastCommittedSolution;
 
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
-
-        /// <summary>
-        /// Gets the capabilities of the runtime with respect to applying code changes.
-        /// </summary>
-        internal readonly EditAndContinueCapabilities Capabilities;
 
         /// <summary>
         /// True if the diagnostics produced by the session should be reported to the diagnotic analyzer.
@@ -142,7 +101,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSessionId id,
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
-            EditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             bool reportDiagnostics)
@@ -151,11 +109,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _reportTelemetry = ReportTelemetry;
 
             Id = id;
-            Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
-            NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
-            EditSession = new EditSession(this, _editSessionTelemetry, inBreakState: false);
+            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, inBreakState: false);
             ReportDiagnostics = reportDiagnostics;
         }
 
@@ -227,14 +183,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
-            => RestartEditSession(inBreakState: true, out documentsToReanalyze);
+            => RestartEditSession(nonRemappableRegions: null, inBreakState: true, out documentsToReanalyze);
 
-        internal void RestartEditSession(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             ThrowIfDisposed();
 
             EndEditSession(out documentsToReanalyze);
-            EditSession = new EditSession(this, EditSession.Telemetry, inBreakState);
+            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, inBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()
@@ -254,33 +210,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return _modulesPreparedForUpdate.Add(mvid);
             }
-        }
-
-        private void CommitSolutionUpdate(PendingSolutionUpdate update)
-        {
-            // Save new non-remappable regions for the next edit session.
-            // If no edits were made the pending list will be empty and we need to keep the previous regions.
-
-            var nonRemappableRegions = GroupToImmutableDictionary(
-                from moduleRegions in update.NonRemappableRegions
-                from region in moduleRegions.Regions
-                group region.Region by new ManagedMethodId(moduleRegions.ModuleId, region.Method));
-
-            if (nonRemappableRegions.Count > 0)
-            {
-                NonRemappableRegions = nonRemappableRegions;
-            }
-
-            // update baselines:
-            lock (_projectEmitBaselinesGuard)
-            {
-                foreach (var (projectId, baseline) in update.EmitBaselines)
-                {
-                    _projectEmitBaselines[projectId] = baseline;
-                }
-            }
-
-            LastCommittedSolution.CommitSolution(update.Solution);
         }
 
         /// <summary>
@@ -509,7 +438,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, Capabilities, cancellationToken).ConfigureAwait(false);
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 if (analysis.HasChanges)
                 {
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -607,10 +536,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ThrowIfDisposed();
 
             var pendingUpdate = RetrievePendingUpdate();
-            CommitSolutionUpdate(pendingUpdate);
 
-            // restart edit session with no active statements (switching to run mode):
-            RestartEditSession(inBreakState: false, out documentsToReanalyze);
+            // Save new non-remappable regions for the next edit session.
+            // If no edits were made the pending list will be empty and we need to keep the previous regions.
+
+            var newNonRemappableRegions = GroupToImmutableDictionary(
+                from moduleRegions in pendingUpdate.NonRemappableRegions
+                from region in moduleRegions.Regions
+                group region.Region by new ManagedMethodId(moduleRegions.ModuleId, region.Method));
+
+            if (newNonRemappableRegions.IsEmpty)
+                newNonRemappableRegions = null;
+
+            // update baselines:
+            lock (_projectEmitBaselinesGuard)
+            {
+                foreach (var (projectId, baseline) in pendingUpdate.EmitBaselines)
+                {
+                    _projectEmitBaselines[projectId] = baseline;
+                }
+            }
+
+            LastCommittedSolution.CommitSolution(pendingUpdate.Solution);
+
+            // Restart edit session with no active statements (switching to run mode).
+            RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);
         }
 
         public void DiscardSolutionUpdate()
@@ -678,10 +628,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var analysis = await analyzer.AnalyzeDocumentAsync(
                             LastCommittedSolution.GetRequiredProject(documentId.ProjectId),
-                            baseActiveStatements,
+                            EditSession.BaseActiveStatements,
                             newDocument,
                             newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
-                            Capabilities,
+                            EditSession.Capabilities,
                             cancellationToken).ConfigureAwait(false);
 
                         // Document content did not change or unable to determine active statement spans in a document with syntax errors:
@@ -802,7 +752,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, Capabilities, cancellationToken).ConfigureAwait(false);
+                    var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                     // Document content did not change or unable to determine active statement spans in a document with syntax errors:
                     if (!analysis.ActiveStatements.IsDefault)
@@ -866,7 +816,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, newDocument, activeStatementSpanProvider, Capabilities, cancellationToken).ConfigureAwait(false);
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, newDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 if (!analysis.HasChanges)
                 {
                     // Document content did not change:
@@ -1114,9 +1064,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public TestAccessor(DebuggingSession instance)
                 => _instance = instance;
-
-            public void SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-                => _instance.NonRemappableRegions = nonRemappableRegions;
 
             public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
             {

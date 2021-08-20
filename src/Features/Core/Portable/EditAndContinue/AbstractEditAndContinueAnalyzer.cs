@@ -490,10 +490,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
             Project oldProject,
-            ActiveStatementsMap oldActiveStatementMap,
+            AsyncLazy<ActiveStatementsMap> lazyOldActiveStatementMap,
             Document newDocument,
             ImmutableArray<LinePositionSpan> newActiveStatementSpans,
-            EditAndContinueCapabilities capabilities,
+            AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
@@ -565,13 +565,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return DocumentAnalysisResults.Unchanged(newDocument.Id);
                 }
 
-                // If the document has changed at all, lets make sure Edit and Continue is supported
-                if (!capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
-                {
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
-                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), hasChanges);
-                }
-
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))
@@ -580,6 +573,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), hasChanges);
+                }
+
+                var capabilities = await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var oldActiveStatementMap = await lazyOldActiveStatementMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                // If the document has changed at all, lets make sure Edit and Continue is supported
+                if (!capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
+                {
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), hasChanges);
                 }
 
                 // We are in break state when there are no active statements.
