@@ -442,5 +442,15 @@ class C
     }
 }".Replace("\r\n", "\n"), expectedOutput: "    abc\"\n    def");
         }
+
+        [Fact]
+        public void TestInParameterDefault()
+        {
+            CreateCompilation(
+@"class C
+{
+    public void M(string s = """""" """""") { }
+}").VerifyDiagnostics();
+        }
     }
 }
