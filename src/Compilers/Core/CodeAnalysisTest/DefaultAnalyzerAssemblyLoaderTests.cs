@@ -276,7 +276,7 @@ Delta: Epsilon: Test E
             Assert.Equal(ExecutionConditionUtil.IsCoreClr ? "1" : "42", sb.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOnly), typeof(CoreClrOnly))]
         public void AssemblyLoading_NativeDependency()
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
