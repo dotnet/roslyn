@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -3820,6 +3821,74 @@ public class TestClass : VBInterface
     </Project>
 </Workspace>";
             await TestQuickActionNotProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+        public Uri En[||]dpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(
+                testText,
+                expected,
+                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
         }
 
         #endregion Quick Action
