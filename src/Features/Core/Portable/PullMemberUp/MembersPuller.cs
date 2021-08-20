@@ -337,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
+                options.Options,
                 options.PlaceSystemNamespaceFirst,
                 destinationEditor.OriginalDocument.CanAddImportsInHiddenRegions(),
                 cancellationToken));

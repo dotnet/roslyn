@@ -406,8 +406,11 @@ End Class</Test>
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim options = Await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(false)
                 Dim updatedDocument = expansionClient.AddImports(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    document,
+                    options,
                     If(position, 0),
                     snippetNode,
                     placeSystemNamespaceFirst,

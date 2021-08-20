@@ -8,6 +8,12 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.AddImports
 {
     internal interface IAddImportsService : ILanguageService
@@ -23,11 +29,11 @@ namespace Microsoft.CodeAnalysis.AddImports
         /// Given a context location in a provided syntax tree, returns the appropriate container
         /// that <paramref name="import"/> should be added to.
         /// </summary>
-        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import);
+        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, OptionSet options);
 
         SyntaxNode AddImports(
             Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
-            IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator,
+            IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator, OptionSet options,
             bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
     }
 
@@ -35,11 +41,11 @@ namespace Microsoft.CodeAnalysis.AddImports
     {
         public static SyntaxNode AddImport(
             this IAddImportsService service, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator,
+            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, OptionSet options,
             bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             return service.AddImports(compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), generator,
+                SpecializedCollections.SingletonEnumerable(newImport), generator, options,
                 placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
         }
     }

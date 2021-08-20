@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Editing
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             if (strategy == Strategy.AddImportsFromSymbolAnnotations)
-                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, options, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
             if (strategy == Strategy.AddImportsFromSyntaxes)
-                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSyntaxesAsync(document, options, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
             throw ExceptionUtilities.UnexpectedValue(strategy);
         }
@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private async Task<Document> AddImportDirectivesFromSyntaxesAsync(
             Document document,
+            OptionSet options,
             IEnumerable<SyntaxNode> syntaxNodes,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var context = first.GetCommonRoot(last);
 
             root = addImportsService.AddImports(
-                model.Compilation, root, context, importsToAdd, generator,
+                model.Compilation, root, context, importsToAdd, generator, options,
                 placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
 
             return document.WithSyntaxRoot(root);
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private async Task<Document> AddImportDirectivesFromSymbolAnnotationsAsync(
             Document document,
+            OptionSet options,
             IEnumerable<SyntaxNode> syntaxNodes,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var context = first.GetCommonRoot(last);
 
             // Find the namespace/compilation-unit we'll be adding all these imports to.
-            var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value);
+            var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value, options);
 
             // Now remove any imports we think can cause conflicts in that container.
             var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), importContainer, model, cancellationToken);
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return document;
 
             root = addImportsService.AddImports(
-                model.Compilation, root, context, importsToAdd, generator,
+                model.Compilation, root, context, importsToAdd, generator, options,
                 placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
             return document.WithSyntaxRoot(root);
         }

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -80,8 +81,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var (description, hasExistingImport) = GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -126,11 +128,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
-                Document document, SyntaxNode node,
+                Document document, OptionSet options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return provider.GetDescription(
-                    document, SymbolResult.Symbol, semanticModel, node, cancellationToken);
+                    document, options, SymbolResult.Symbol, semanticModel, node, cancellationToken);
             }
         }
     }

@@ -732,8 +732,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     }
                 }
 
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 // Use a dummy import node to figure out which container the new import will be added to.
-                var container = addImportService.GetImportContainer(root, refNode, dummyImport);
+                var container = addImportService.GetImportContainer(root, refNode, dummyImport, options);
                 containers.Add(container);
             }
 
@@ -822,6 +823,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
             }
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var imports = CreateImports(document, names, withFormatterAnnotation: true);
             foreach (var container in containers)
             {
@@ -835,7 +838,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, options, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 
