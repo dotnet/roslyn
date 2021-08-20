@@ -178,10 +178,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // getting analyzer can be slow for the very first time since it is lazily initialized
                 _eventProcessingQueue.ScheduleTask(nameof(ReanalyzeOnOptionChange), () =>
                 {
+                    // Force analyze all analyzers if background analysis scope has changed.
+                    var forceAnalyze = e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption;
+
                     // let each analyzer decide what they want on option change
                     foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                     {
-                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                        if (forceAnalyze || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
                             var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                             Reanalyze(analyzer, scope);

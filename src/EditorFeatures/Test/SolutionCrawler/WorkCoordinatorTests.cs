@@ -1714,11 +1714,7 @@ class C
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption
-                    || e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption
-                    || e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption;
-            }
+                => e.Option == TestOption;
 
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
