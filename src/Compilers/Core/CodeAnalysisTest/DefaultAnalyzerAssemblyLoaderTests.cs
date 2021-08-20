@@ -172,8 +172,16 @@ Delta: Gamma: Beta: Test B
 #if NETCOREAPP
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(2, alcs.Length);
-            Assert.Equal(new[] { "Delta", "Gamma" }, alcs[0].Assemblies.Select(a => a.GetName().Name!).Order());
-            Assert.Equal(new[] { "Delta", "Epsilon" }, alcs[1].Assemblies.Select(a => a.GetName().Name!).Order());
+
+            Assert.Equal(new[] {
+                ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
+            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+
+            Assert.Equal(new[] {
+                ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
+            }, alcs[1].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
 #endif
 
             var actual = sb.ToString();
