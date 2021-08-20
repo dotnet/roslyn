@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                Contract.ThrowIfTrue(_disabled);
                 await session.BreakStateChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
-
                 GetActiveStatementTrackingService().EndTracking();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
