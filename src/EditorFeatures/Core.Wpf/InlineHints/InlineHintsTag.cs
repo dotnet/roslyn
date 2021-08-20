@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             adornment.ToolTipOpening += Border_ToolTipOpening;
 
             adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
+            //adornment.MouseLeftButtonDown -= Adornment_MouseLeftButtonDown;
         }
 
         /// <summary>

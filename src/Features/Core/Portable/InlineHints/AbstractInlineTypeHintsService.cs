@@ -76,13 +76,44 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     continue;
 
                 finalParts.AddRange(suffix);
+                var taggedText = finalParts.ToTaggedText();
+                var displayString = GetDisplayStringFromParts(taggedText);
 
                 result.Add(new InlineHint(
-                    span, finalParts.ToTaggedText(),
+                    span, taggedText,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
             }
 
             return result.ToImmutable();
+        }
+
+        private static string? GetDisplayStringFromParts(ImmutableArray<TaggedText> taggedTexts)
+        {
+            var displayString = "";
+            if (taggedTexts.Length == 1)
+            {
+                var first = taggedTexts.First();
+
+                var trimStart = first.Text.TrimStart();
+                var trimBoth = trimStart.TrimEnd();
+                displayString += trimBoth;
+            }
+            else if (taggedTexts.Length >= 2)
+            {
+                var first = taggedTexts.First();
+                var trimStart = first.Text.TrimStart();
+
+                for (var i = 1; i < taggedTexts.Length - 1; i++)
+                {
+                    displayString += taggedTexts[i].Text;
+                }
+
+                var last = taggedTexts.Last();
+                var trimEnd = last.Text.TrimEnd();
+                displayString += trimEnd;
+            }
+
+            return displayString;
         }
 
         private void AddParts(
