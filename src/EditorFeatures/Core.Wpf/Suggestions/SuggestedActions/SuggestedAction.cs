@@ -135,11 +135,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Even though we're async, we should still be on the UI thread at this point.
             AssertIsForeground();
 
-            var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                await InvokeCoreAsync(getFromDocument, progressTracker, cancellationToken).ConfigureAwait(false);
+                // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
+                await InvokeCoreAsync(
+                    () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges(),
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }
 
