@@ -150,11 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                await InvokeCoreAsync(getFromDocument, progressTracker, cancellationToken).ConfigureAwait(false);
+                // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
+                await InvokeCoreAsync(
+                    () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges(),
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }
 
