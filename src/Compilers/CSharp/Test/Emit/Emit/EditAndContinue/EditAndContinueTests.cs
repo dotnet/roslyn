@@ -4517,6 +4517,75 @@ class C
 }");
         }
 
+        [Fact]
+        public void Struct_ImplementSynthesizedConstructor()
+        {
+            var source0 =
+@"
+struct S
+{
+    int a = 1;
+    int b;
+}
+";
+            var source1 =
+@"
+struct S
+{
+    int a = 1;
+    int b;
+
+    public S()
+    {
+        b = 2;
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var ctor0 = compilation0.GetMember<MethodSymbol>("S..ctor");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("S..ctor");
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            // Verify full metadata contains expected rows.
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "S");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(6, TableIndex.TypeRef),
+                Handle(1, TableIndex.MethodDef),
+                Handle(2, TableIndex.AssemblyRef));
+        }
+
         /// <summary>
         /// Types should be retained in deleted locals
         /// for correct alignment of remaining locals.
