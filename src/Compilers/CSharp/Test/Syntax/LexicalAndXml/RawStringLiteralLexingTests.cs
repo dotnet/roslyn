@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
 {
-    public class RawStringLiteralLexingTests : CSharpTestBase
+    public class RawStringLiteralLexingTests : CompilingTestBase
     {
         [Theory]
         #region Single Line Cases
@@ -156,20 +156,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\r\n{|CS9103: |}abc\r\n\r\n def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
+            => TestSingleTokenWorker(markup, expectedKind, expectedValue, testOutput: true);
+
+        private void TestSingleTokenWorker(string markup, SyntaxKind expectedKind, string expectedValue, bool testOutput)
         {
-            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: false);
-            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false);
+            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: false, testOutput);
+            TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false, testOutput);
 
             // If we don't have an unterminated raw string, then also try with some trailing trivia attached.
             if (!markup.Contains("CS" + (int)ErrorCode.ERR_Unterminated_raw_string_literal))
             {
-                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true);
-                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true);
+                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true, testOutput);
+                TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true, testOutput);
             }
         }
 
-        private static void TestSingleTokenWorker(
-            string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia, bool trailingTrivia)
+        private void TestSingleTokenWorker(
+            string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia, bool trailingTrivia, bool testOutput)
         {
             if (leadingTrivia)
                 markup = " /*leading*/ " + markup;
@@ -196,6 +199,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             if (spans.Count == 0)
             {
                 Assert.Empty(token.GetDiagnostics());
+
+                if (testOutput)
+                {
+
+                    var programText = @$"
+System.Console.WriteLine(
+{input}
+);
+";
+
+                    this.CompileAndVerify(programText, expectedOutput: expectedValue);
+                }
             }
             else
             {
@@ -234,7 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
                 if (charValue == '"' || SyntaxFacts.IsNewLine(charValue))
                     continue;
 
-                TestSingleToken("\"\"\"" + charValue + "\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, charValue.ToString());
+                TestSingleTokenWorker(
+                    "\"\"\"" + charValue + "\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, charValue.ToString(), testOutput: false);
 
                 if (charValue == char.MaxValue)
                     break;
@@ -246,7 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         {
             for (var charValue = '\0'; ; charValue++)
             {
-                TestSingleToken("\"\"\"\r\n" + charValue + "\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, charValue.ToString());
+                TestSingleTokenWorker(
+                    "\"\"\"\r\n" + charValue + "\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, charValue.ToString(), testOutput: false);
 
                 if (charValue == char.MaxValue)
                     break;
