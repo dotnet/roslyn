@@ -105,7 +105,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55703"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
