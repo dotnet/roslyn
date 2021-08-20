@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             Assert.Equal(input.Length, token.FullWidth);
             Assert.Equal(input, token.ToFullString());
             Assert.NotNull(token.Value);
+            Assert.IsType<string>(token.Value);
             Assert.NotNull(token.ValueText);
             Assert.Equal(expectedValue, token.ValueText);
 
