@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (hintOpt == null)
                     continue;
 
-                var (type, span, prefix, suffix) = hintOpt.Value;
+                var (type, span, insertSpan, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 finalParts.AddRange(prefix);
@@ -79,42 +79,48 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var taggedText = finalParts.ToTaggedText();
                 var displayString = GetDisplayStringFromParts(taggedText);
 
+                TextChange? textChange = null;
+                if (insertSpan is not null)
+                {
+                    textChange = new TextChange(insertSpan.Value, displayString);
+                }
+
                 result.Add(new InlineHint(
-                    span, taggedText, displayString,
+                    span, taggedText, textChange,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
             }
 
             return result.ToImmutable();
         }
 
-        private static string? GetDisplayStringFromParts(ImmutableArray<TaggedText> taggedTexts)
+        private static string GetDisplayStringFromParts(ImmutableArray<TaggedText> taggedTexts)
         {
-            var displayString = "";
+            var displayString = PooledStringBuilder.GetInstance();
             if (taggedTexts.Length == 1)
             {
                 var first = taggedTexts.First();
 
                 var trimStart = first.Text.TrimStart();
                 var trimBoth = trimStart.TrimEnd();
-                displayString += trimBoth;
+                return trimBoth;
             }
             else if (taggedTexts.Length >= 2)
             {
                 var first = taggedTexts.First();
                 var trimStart = first.Text.TrimStart();
-                displayString += trimStart;
+                displayString.Builder.Append(trimStart);
 
                 for (var i = 1; i < taggedTexts.Length - 1; i++)
                 {
-                    displayString += taggedTexts[i].Text;
+                    displayString.Builder.Append(taggedTexts[i].Text);
                 }
 
                 var last = taggedTexts.Last();
                 var trimEnd = last.Text.TrimEnd();
-                displayString += trimEnd;
+                displayString.Builder.Append(trimEnd);
             }
 
-            return displayString;
+            return displayString.ToStringAndFree();
         }
 
         private void AddParts(

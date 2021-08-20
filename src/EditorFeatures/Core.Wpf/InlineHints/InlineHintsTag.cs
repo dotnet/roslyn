@@ -266,7 +266,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var replacementText = _hint.ReplacementText;
                 if (replacementText != null)
                 {
-                    _ = _textView.TextBuffer.Replace(_span, replacementText);
+                    var replacementValue = replacementText.Value;
+                    _ = _textView.TextBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
                 }
             }
         }

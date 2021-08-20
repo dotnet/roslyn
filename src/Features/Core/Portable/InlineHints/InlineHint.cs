@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
     {
         public readonly TextSpan Span;
         public readonly ImmutableArray<TaggedText> DisplayParts;
-        public readonly string? ReplacementText;
+        public readonly TextChange? ReplacementText;
         private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
 
         public InlineHint(
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
-            string? replacementText,
+            TextChange? replacementText,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
             if (displayParts.Length == 0)

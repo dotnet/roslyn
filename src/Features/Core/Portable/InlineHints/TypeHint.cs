@@ -14,13 +14,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         public ITypeSymbol Type { get; }
         public TextSpan Span { get; }
+        public TextSpan? InsertSpan { get; }
         public ImmutableArray<SymbolDisplayPart> Prefix { get; }
         public ImmutableArray<SymbolDisplayPart> Suffix { get; }
 
-        public TypeHint(ITypeSymbol type, TextSpan span, bool leadingSpace = false, bool trailingSpace = false)
+        public TypeHint(ITypeSymbol type, TextSpan span, TextSpan? insertSpan, bool leadingSpace = false, bool trailingSpace = false)
         {
             Type = type;
             Span = span;
+            InsertSpan = insertSpan;
             Prefix = CreateSpaceSymbolPartArray(leadingSpace);
             Suffix = CreateSpaceSymbolPartArray(trailingSpace);
         }
@@ -28,10 +30,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
         private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
             => hasSpace ? s_spaceArray : ImmutableArray<SymbolDisplayPart>.Empty;
 
-        public void Deconstruct(out ITypeSymbol type, out TextSpan span, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
+        public void Deconstruct(out ITypeSymbol type, out TextSpan span, out TextSpan? insertSpan, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {
             type = Type;
             span = Span;
+            insertSpan = InsertSpan;
             prefix = Prefix;
             suffix = Suffix;
         }

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         return node.Parent is VarPatternSyntax varPattern
                             ? CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, varPattern.VarKeyword, variableDesignation.Identifier)
-                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), trailingSpace: true);
+                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), null, trailingSpace: true);
                     }
                 }
                 else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), trailingSpace: true);
+                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), null, trailingSpace: true);
                     }
                 }
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
                     if (IsValidType(type))
                     {
-                        return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), leadingSpace: true);
+                        return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), null, leadingSpace: true);
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
             // a space after it to make things feel less cramped.
             var trailingSpace = span.Length == 0;
-            return new TypeHint(type, span, trailingSpace: trailingSpace);
+            return new TypeHint(type, span, displayAllSpan.Span, trailingSpace: trailingSpace);
         }
 
         private static TextSpan GetSpan(

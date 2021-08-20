@@ -91,10 +91,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
                         var inlineHintText = parameter.Name + ": ";
+                        var textSpan = new TextSpan(position, 0);
                         result.Add(new InlineHint(
-                            new TextSpan(position, 0),
+                            textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, inlineHintText)),
-                            inlineHintText,
+                            new TextChange(textSpan, inlineHintText),
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
                     }
                 }
