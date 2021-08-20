@@ -91,15 +91,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
-                        var replacementTextFunction = doubleClickToInsertHint
-                            ? InlineHintHelpers.GetReplacementTextFunction(parameter.Name)
-                            : null;
-
+                        var inlineHintText = parameter.Name + ": ";
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken)),
-                            replacementTextFunction));
+                            ImmutableArray.Create(new TaggedText(TextTags.Text, inlineHintText)),
+                            inlineHintText,
+                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
                     }
                 }
             }

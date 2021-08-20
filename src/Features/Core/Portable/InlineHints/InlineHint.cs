@@ -15,14 +15,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
     {
         public readonly TextSpan Span;
         public readonly ImmutableArray<TaggedText> DisplayParts;
+        public readonly string? ReplacementText;
         private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
-        private readonly Func<string>? _getReplacementText;
 
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
-            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null,
-            Func<string>? getReplacementText = null)
+            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
             if (displayParts.Length == 0)
                 throw new ArgumentException($"{nameof(displayParts)} must be non-empty");
@@ -30,7 +29,22 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Span = span;
             DisplayParts = displayParts;
             _getDescriptionAsync = getDescriptionAsync;
-            _getReplacementText = getReplacementText;
+            ReplacementText = null;
+        }
+
+        public InlineHint(
+            TextSpan span,
+            ImmutableArray<TaggedText> displayParts,
+            string replacementText,
+            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
+        {
+            if (displayParts.Length == 0)
+                throw new ArgumentException($"{nameof(displayParts)} must be non-empty");
+
+            Span = span;
+            DisplayParts = displayParts;
+            _getDescriptionAsync = getDescriptionAsync;
+            ReplacementText = replacementText;
         }
 
         /// <summary>
@@ -39,8 +53,5 @@ namespace Microsoft.CodeAnalysis.InlineHints
         /// </summary>
         public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
             => _getDescriptionAsync?.Invoke(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TaggedText>();
-
-        public string? GetReplacementText()
-            => _getReplacementText?.Invoke() ?? null;
     }
 }

@@ -67,9 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Suppress_hints_when_parameter_names_differ_only_by_suffix
             => ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix;
 
-        public static string Option_Double_click_to_insert_hint
-            => ServicesVSResources.Double_click_to_insert_hint;
-
         public static string Option_Display_inline_type_hints
             => ServicesVSResources.Display_inline_type_hints;
 

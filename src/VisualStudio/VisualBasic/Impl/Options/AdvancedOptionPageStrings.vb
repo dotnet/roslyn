@@ -66,9 +66,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
             ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
 
-        Public ReadOnly Property Option_Double_click_to_insert_hint As String =
-            ServicesVSResources.Double_click_to_insert_hint
-
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
 

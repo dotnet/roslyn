@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (e.ClickCount == 2)
             {
                 e.Handled = true;
-                var replacementText = _hint.GetReplacementText();
+                var replacementText = _hint.ReplacementText;
                 if (replacementText != null)
                 {
                     _ = _textView.TextBuffer.Replace(_span, replacementText);

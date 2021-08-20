@@ -145,7 +145,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
-            BindToOption(DoubleClickToInsertHint, InlineHintsOptions.DoubleClickToInsertHint, LanguageNames.VisualBasic)
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
@@ -177,7 +176,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ShowHintsForIndexers.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters
-            DoubleClickToInsertHint.IsEnabled = enabledForParameters
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Checked()
