@@ -96,8 +96,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
+            // Fire and forget.  The called method will set up async operation tracking synchronously on 
+            // this thread.
+            _ = InvokeWithOperationTrackingAsync(cancellationToken);
+        }
+
+        private Task InvokeWithOperationTrackingAsync(CancellationToken cancellationToken)
+        {
             var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-            InvokeAsync(cancellationToken).CompletesAsyncOperation(token);
+            return InvokeAsync(cancellationToken).CompletesAsyncOperation(token);
         }
 
         private async Task InvokeAsync(CancellationToken cancellationToken)
@@ -361,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 => _suggestedAction = suggestedAction;
 
             public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync(CancellationToken.None);
+                => _suggestedAction.InvokeWithOperationTrackingAsync(CancellationToken.None);
         }
     }
 }
