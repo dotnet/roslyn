@@ -21,8 +21,14 @@
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*"/>
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
-      <!-- we want to use Microsoft.Win32.Registry provided by runtime, not the netstandard2.0 version from the NuGet package -->
+
+      <!-- For binaries below, we want to use the version provided by the runtime, not the ones from the NuGet packages -->
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Win32.Registry.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'System.Diagnostics.DiagnosticSource.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'System.Runtime.CompilerServices.Unsafe.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'System.Security.AccessControl.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'System.Security.Principal.Windows.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'System.Threading.Tasks.Dataflow.dll'" />
 
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
