@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract bool PlaceImportsInsideNamespaces(OptionSet options);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -165,8 +166,17 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             // The node we'll add to if we can't find a specific namespace with imports of 
             // the type we're trying to add.  This will be the closest namespace with any
-            // imports in it, or the root if there are no such namespaces.
-            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports) ?? root;
+            // imports in it
+            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports);
+
+            // If there aren't any existing imports then make sure we honour the inside namespace preference
+            // for using directings if it's set
+            if (fallbackNode is null && PlaceImportsInsideNamespaces(options))
+                fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
+
+            // If all else fails use the root
+            if (fallbackNode is null)
+                fallbackNode = root;
 
             // The specific container to add each type of import to.  We look for a container
             // that already has an import of the same type as the node we want to add to.
