@@ -1215,5 +1215,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loweredReceiver = VisitExpression(node.Receiver);
             return _dynamicFactory.MakeDynamicGetMember(loweredReceiver, node.Name, node.Indexed).ToExpression();
         }
+
+        // <Caravela>
+        // Caravela TODO: This has gone in Roslyn 3.11:
+        // private static SourceLocation? GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
+        // ...
+        // syntax = TreeTracker.GetPreTransformationSyntax(syntax)!;
+        // ...
+        // </Caravela>
     }
 }
