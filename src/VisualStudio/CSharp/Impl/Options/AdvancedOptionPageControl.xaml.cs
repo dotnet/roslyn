@@ -137,6 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.CSharp);
+            BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.CSharp);
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.CSharp);
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.CSharp);
 
@@ -238,6 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForLiterals.IsEnabled = enabledForParameters;
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters;
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters;
+            ShowHintsForIndexers.IsEnabled = enabledForParameters;
             SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters;
             SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters;
 

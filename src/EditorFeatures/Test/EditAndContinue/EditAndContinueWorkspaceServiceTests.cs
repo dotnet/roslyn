@@ -363,6 +363,75 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
+        private static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
+            => new(MetadataTokens.Handle(table, rowNumber), operation);
+
+        private static unsafe void VerifyEncLogMetadata(ImmutableArray<byte> delta, params EditAndContinueLogEntry[] expectedRows)
+        {
+            fixed (byte* ptr = delta.ToArray())
+            {
+                var reader = new MetadataReader(ptr, delta.Length);
+                AssertEx.Equal(expectedRows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
+            }
+
+            static string EncLogRowToString(EditAndContinueLogEntry row)
+            {
+                TableIndex tableIndex;
+                MetadataTokens.TryGetTableIndex(row.Handle.Kind, out tableIndex);
+
+                return string.Format(
+                    "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
+                    MetadataTokens.GetRowNumber(row.Handle),
+                    tableIndex,
+                    row.Operation);
+            }
+        }
+
+        private static void GenerateSource(GeneratorExecutionContext context)
+        {
+            foreach (var syntaxTree in context.Compilation.SyntaxTrees)
+            {
+                var fileName = PathUtilities.GetFileName(syntaxTree.FilePath);
+
+                Generate(syntaxTree.GetText().ToString(), fileName);
+
+                if (context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("enc_generator_output", out var optionValue))
+                {
+                    context.AddSource("GeneratedFromOptions_" + fileName, $"class G {{ int X => {optionValue}; }}");
+                }
+            }
+
+            foreach (var additionalFile in context.AdditionalFiles)
+            {
+                Generate(additionalFile.GetText()!.ToString(), PathUtilities.GetFileName(additionalFile.Path));
+            }
+
+            void Generate(string source, string fileName)
+            {
+                var generatedSource = GetGeneratedCodeFromMarkedSource(source);
+                if (generatedSource != null)
+                {
+                    context.AddSource($"Generated_{fileName}", generatedSource);
+                }
+            }
+        }
+
+        private static string GetGeneratedCodeFromMarkedSource(string markedSource)
+        {
+            const string OpeningMarker = "/* GENERATE:";
+            const string ClosingMarker = "*/";
+
+            var index = markedSource.IndexOf(OpeningMarker);
+            if (index > 0)
+            {
+                index += OpeningMarker.Length;
+                var closing = markedSource.IndexOf(ClosingMarker, index);
+                return markedSource[index..closing].Trim();
+            }
+
+            return null;
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
@@ -485,64 +554,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task RunMode_ProjectThatDoesNotSupportEnC()
-        {
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
-            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
-            var document = project.AddDocument("test", SourceText.From("dummy1"));
-            solution = document.Project.Solution;
-
-            await StartDebuggingSessionAsync(service, solution);
-
-            // no changes:
-            var document1 = solution.Projects.Single().Documents.Single();
-            var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, s_noActiveSpans, CancellationToken.None);
-            Assert.Empty(diagnostics);
-
-            // change the source:
-            solution = solution.WithDocumentText(document1.Id, SourceText.From("dummy2"));
-            var document2 = solution.GetDocument(document1.Id);
-
-            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-            Assert.Empty(diagnostics);
-        }
-
-        [Fact]
-        public async Task RunMode_DesignTimeOnlyDocument()
-        {
-            var moduleFile = Temp.CreateFile().WriteAllBytes(TestResources.Basic.Members);
-
-            using var _ = CreateWorkspace(out var solution, out var service);
-            (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
-
-            var documentInfo = CreateDesignTimeOnlyDocument(document1.Project.Id);
-            solution = solution.WithProjectOutputFilePath(document1.Project.Id, moduleFile.Path).AddDocument(documentInfo);
-
-            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
-
-            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
-
-            // update a design-time-only source file:
-            solution = solution.WithDocumentText(documentInfo.Id, SourceText.From("class UpdatedC2 {}"));
-            var document2 = solution.GetDocument(documentInfo.Id);
-
-            // no updates:
-            var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-            Assert.Empty(diagnostics);
-
-            // validate solution update status and emit - changes made in design-time-only documents are ignored:
-            Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
-
-            EndDebuggingSession(debuggingSession);
-
-            AssertEx.Equal(new[]
-            {
-                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
-            }, _telemetryLog);
-        }
-
-        [Fact]
-        public async Task RunMode_ProjectNotBuilt()
+        public async Task ProjectNotBuilt()
         {
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
@@ -564,7 +576,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task RunMode_DifferentDocumentWithSameContent()
+        public async Task DifferentDocumentWithSameContent()
         {
             var source = "class C1 { void M1() { System.Console.WriteLine(1); } }";
             var moduleFile = Temp.CreateFile().WriteAllBytes(TestResources.Basic.Members);
@@ -599,8 +611,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, _telemetryLog);
         }
 
-        [Fact]
-        public async Task BreakMode_ProjectThatDoesNotSupportEnC()
+        [Theory]
+        [CombinatorialData]
+        public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
         {
             using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
             var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
@@ -608,12 +621,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             solution = document.Project.Solution;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
-            EnterBreakState(debuggingSession);
+            if (breakMode)
+            {
+                EnterBreakState(debuggingSession);
+            }
+
+            // no changes:
+            var document1 = solution.Projects.Single().Documents.Single();
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, s_noActiveSpans, CancellationToken.None);
+            Assert.Empty(diagnostics);
 
             // change the source:
-            var document1 = solution.Projects.Single().Documents.Single();
             solution = solution.WithDocumentText(document1.Id, SourceText.From("dummy2"));
-            var document2 = solution.GetDocument(document1.Id);
 
             // validate solution update status and emit:
             Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
@@ -622,10 +641,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
+
+            var document2 = solution.GetDocument(document1.Id);
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            Assert.Empty(diagnostics);
         }
 
         [Fact]
-        public async Task BreakMode_DesignTimeOnlyDocument_Dynamic()
+        public async Task DesignTimeOnlyDocument()
+        {
+            var moduleFile = Temp.CreateFile().WriteAllBytes(TestResources.Basic.Members);
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
+
+            var documentInfo = CreateDesignTimeOnlyDocument(document1.Project.Id);
+            solution = solution.WithProjectOutputFilePath(document1.Project.Id, moduleFile.Path).AddDocument(documentInfo);
+
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // update a design-time-only source file:
+            solution = solution.WithDocumentText(documentInfo.Id, SourceText.From("class UpdatedC2 {}"));
+            var document2 = solution.GetDocument(documentInfo.Id);
+
+            // no updates:
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            Assert.Empty(diagnostics);
+
+            // validate solution update status and emit - changes made in design-time-only documents are ignored:
+            Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
+
+            EndDebuggingSession(debuggingSession);
+
+            AssertEx.Equal(new[]
+            {
+                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
+            }, _telemetryLog);
+        }
+
+        [Fact]
+        public async Task DesignTimeOnlyDocument_Dynamic()
         {
             using var _ = CreateWorkspace(out var solution, out var service);
 
@@ -663,7 +720,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task BreakMode_DesignTimeOnlyDocument_Wpf(bool delayLoad)
+        public async Task DesignTimeOnlyDocument_Wpf(bool delayLoad)
         {
             var sourceA = "class A { public void M() { } }";
             var sourceB = "class B { public void M() { } }";
@@ -807,7 +864,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task BreakMode_ErrorReadingPdbFile()
+        public async Task ErrorReadingPdbFile()
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -862,7 +919,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task BreakMode_ErrorReadingSourceFile()
+        public async Task ErrorReadingSourceFile()
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -990,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public async Task BreakMode_ModuleDisallowsEditAndContinue()
+        public async Task ModuleDisallowsEditAndContinue()
         {
             var moduleId = Guid.NewGuid();
 
@@ -1057,7 +1114,7 @@ class C1
         }
 
         [Fact]
-        public async Task BreakMode_Encodings()
+        public async Task Encodings()
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(\"ã\"); } }";
 
@@ -1164,7 +1221,7 @@ class C1
         }
 
         [Fact]
-        public async Task BreakMode_RudeEdits_SourceGenerators()
+        public async Task RudeEdits_SourceGenerators()
         {
             var sourceV1 = @"
 /* GENERATE: class G { int X1 => 1; } */
@@ -1305,7 +1362,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_RudeEdits_DocumentWithoutSequencePoints()
+        public async Task RudeEdits_DocumentWithoutSequencePoints()
         {
             var source1 = "abstract class C { public abstract void M(); }";
             var dir = Temp.CreateDirectory();
@@ -1351,7 +1408,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_RudeEdits_DelayLoadedModule()
+        public async Task RudeEdits_DelayLoadedModule()
         {
             var source1 = "class C { public void M() { } }";
             var dir = Temp.CreateDirectory();
@@ -1412,7 +1469,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_SyntaxError()
+        public async Task SyntaxError()
         {
             var moduleId = Guid.NewGuid();
 
@@ -1454,7 +1511,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_SemanticError()
+        public async Task SemanticError()
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -1502,7 +1559,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_FileStatus_CompilationError()
+        public async Task FileStatus_CompilationError()
         {
             using var _ = CreateWorkspace(out var solution, out var service);
 
@@ -1537,7 +1594,63 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_EmitError()
+        public async Task Capabilities()
+        {
+            var source1 = "class C { void M() { } }";
+            var source2 = "[System.Obsolete]class C { void M() { } }";
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            solution = AddDefaultTestProject(solution, new[] { source1 });
+            var documentId = solution.Projects.Single().Documents.Single().Id;
+
+            EmitAndLoadLibraryToDebuggee(source1);
+
+            // attached to processes that allow updating custom attributes:
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+
+            // F5
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // update document:
+            solution = solution.WithDocumentText(documentId, SourceText.From(source2, Encoding.UTF8));
+
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            EnterBreakState(debuggingSession);
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            // attach to additional processes - at least one process that does not allow updating custom attributes:
+            ExitBreakState();
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+            EnterBreakState(debuggingSession);
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+               diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            ExitBreakState();
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+               diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            // detach from processes that do not allow updating custom attributes:
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+
+            EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            ExitBreakState();
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
+        public async Task ValidSignificantChange_EmitError()
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -1574,7 +1687,7 @@ class C { int Y => 2; }
             Assert.Throws<InvalidOperationException>(() => debuggingSession.DiscardSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // solution update status after discarding an update (still has update ready):
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
@@ -1592,7 +1705,7 @@ class C { int Y => 2; }
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task BreakMode_ValidSignificantChange_ApplyBeforeFileWatcherEvent(bool saveDocument)
+        public async Task ValidSignificantChange_ApplyBeforeFileWatcherEvent(bool saveDocument)
         {
             // Scenarios tested:
             //
@@ -1677,7 +1790,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_FileUpdateNotObservedBeforeDebuggingSessionStart()
+        public async Task ValidSignificantChange_FileUpdateNotObservedBeforeDebuggingSessionStart()
         {
             // workspace:     --V0--------------V2-------|--------V3------------------V1--------------|
             // file system:   --V0---------V1-----V2-----|------------------------------V1------------|
@@ -1751,7 +1864,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_AddedFileNotObservedBeforeDebuggingSessionStart()
+        public async Task ValidSignificantChange_AddedFileNotObservedBeforeDebuggingSessionStart()
         {
             // workspace:     ------|----V0---------------|----------
             // file system:   --V0--|---------------------|----------
@@ -1820,7 +1933,7 @@ class C { int Y => 2; }
 
         [Theory]
         [CombinatorialData]
-        public async Task BreakMode_ValidSignificantChange_DocumentOutOfSync(bool delayLoad)
+        public async Task ValidSignificantChange_DocumentOutOfSync(bool delayLoad)
         {
             var sourceOnDisk = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -1944,7 +2057,7 @@ class C { int Y => 2; }
                 Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
-                Assert.Empty(debuggingSession.NonRemappableRegions);
+                Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 var baselineReaders = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
                 Assert.Equal(2, baselineReaders.Length);
@@ -2009,7 +2122,7 @@ class C { int Y => 2; }
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task BreakMode_ValidSignificantChange_EmitSuccessful_UpdateDeferred(bool commitUpdate)
+        public async Task ValidSignificantChange_EmitSuccessful_UpdateDeferred(bool commitUpdate)
         {
             var dir = Temp.CreateDirectory();
 
@@ -2080,7 +2193,7 @@ class C { int Y => 2; }
                 Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
-                Assert.Empty(debuggingSession.NonRemappableRegions);
+                Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 // verify that baseline is added:
                 Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
@@ -2117,7 +2230,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_PartialTypes()
+        public async Task ValidSignificantChange_PartialTypes()
         {
             var sourceA1 = @"
 partial class C { int X = 1; void F() { X = 1; } }
@@ -2178,77 +2291,8 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
             EndDebuggingSession(debuggingSession);
         }
 
-        private static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
-            => new(MetadataTokens.Handle(table, rowNumber), operation);
-
-        private static unsafe void VerifyEncLogMetadata(ImmutableArray<byte> delta, params EditAndContinueLogEntry[] expectedRows)
-        {
-            fixed (byte* ptr = delta.ToArray())
-            {
-                var reader = new MetadataReader(ptr, delta.Length);
-                AssertEx.Equal(expectedRows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
-            }
-
-            static string EncLogRowToString(EditAndContinueLogEntry row)
-            {
-                TableIndex tableIndex;
-                MetadataTokens.TryGetTableIndex(row.Handle.Kind, out tableIndex);
-
-                return string.Format(
-                    "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                    MetadataTokens.GetRowNumber(row.Handle),
-                    tableIndex,
-                    row.Operation);
-            }
-        }
-
-        private static void GenerateSource(GeneratorExecutionContext context)
-        {
-            foreach (var syntaxTree in context.Compilation.SyntaxTrees)
-            {
-                var fileName = PathUtilities.GetFileName(syntaxTree.FilePath);
-
-                Generate(syntaxTree.GetText().ToString(), fileName);
-
-                if (context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("enc_generator_output", out var optionValue))
-                {
-                    context.AddSource("GeneratedFromOptions_" + fileName, $"class G {{ int X => {optionValue}; }}");
-                }
-            }
-
-            foreach (var additionalFile in context.AdditionalFiles)
-            {
-                Generate(additionalFile.GetText()!.ToString(), PathUtilities.GetFileName(additionalFile.Path));
-            }
-
-            void Generate(string source, string fileName)
-            {
-                var generatedSource = GetGeneratedCodeFromMarkedSource(source);
-                if (generatedSource != null)
-                {
-                    context.AddSource($"Generated_{fileName}", generatedSource);
-                }
-            }
-        }
-
-        private static string GetGeneratedCodeFromMarkedSource(string markedSource)
-        {
-            const string OpeningMarker = "/* GENERATE:";
-            const string ClosingMarker = "*/";
-
-            var index = markedSource.IndexOf(OpeningMarker);
-            if (index > 0)
-            {
-                index += OpeningMarker.Length;
-                var closing = markedSource.IndexOf(ClosingMarker, index);
-                return markedSource[index..closing].Trim();
-            }
-
-            return null;
-        }
-
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate()
+        public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate()
         {
             var sourceV1 = @"
 /* GENERATE: class G { int X => 1; } */
@@ -2294,7 +2338,7 @@ class C { int Y => 2; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
+        public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
         {
             var sourceV1 = @"
 /* GENERATE:
@@ -2356,7 +2400,7 @@ class G
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
+        public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
         {
             var sourceV1 = @"
 partial class C { int X = 1; }
@@ -2400,7 +2444,7 @@ partial class C { int X = 1; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_AdditionalDocumentUpdate()
+        public async Task ValidSignificantChange_SourceGenerators_AdditionalDocumentUpdate()
         {
             var source = @"
 class C { int Y => 1; }
@@ -2447,7 +2491,7 @@ class C { int Y => 1; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_AnalyzerConfigUpdate()
+        public async Task ValidSignificantChange_SourceGenerators_AnalyzerConfigUpdate()
         {
             var source = @"
 class C { int Y => 1; }
@@ -2490,7 +2534,7 @@ class C { int Y => 1; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentRemove()
+        public async Task ValidSignificantChange_SourceGenerators_DocumentRemove()
         {
             var source1 = "";
 
@@ -2612,7 +2656,7 @@ class C { int Y => 1; }
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // verify that baseline is added for both modules:
             Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
@@ -2662,7 +2706,7 @@ class C { int Y => 1; }
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(debuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // module readers tracked:
             baselineReaders = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
@@ -2683,7 +2727,7 @@ class C { int Y => 1; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_BaselineCreationFailed_NoStream()
+        public async Task ValidSignificantChange_BaselineCreationFailed_NoStream()
         {
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document1) = AddDefaultTestProject(solution, "class C1 { void M() { System.Console.WriteLine(1); } }");
@@ -2708,7 +2752,7 @@ class C { int Y => 1; }
         }
 
         [Fact]
-        public async Task BreakMode_ValidSignificantChange_BaselineCreationFailed_AssemblyReadError()
+        public async Task ValidSignificantChange_BaselineCreationFailed_AssemblyReadError()
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
             var compilationV1 = CSharpTestBase.CreateCompilationWithMscorlib40(sourceV1, options: TestOptions.DebugDll, assemblyName: "lib");
@@ -3292,7 +3336,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
 
@@ -3311,7 +3355,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             // EnC update F v3 -> v4
 
@@ -3341,7 +3385,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=5"
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
         }
@@ -3466,7 +3510,7 @@ class C
             AssertEx.Equal(new[]
             {
                 $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
-            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+            }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState();
         }
@@ -3748,63 +3792,6 @@ class C
             Assert.Empty(result.updates);
 
             hotReload.EndSession();
-        }
-
-        [Fact]
-        public void ParseCapabilities()
-        {
-            var capabilities = ImmutableArray.Create("Baseline");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.False(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_CaseSensitive()
-        {
-            var capabilities = ImmutableArray.Create("BaseLine");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.False(service.HasFlag(EditAndContinueCapabilities.Baseline));
-        }
-
-        [Fact]
-        public void ParseCapabilities_IgnoreInvalid()
-        {
-            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "NewTypeDefinition");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_IgnoreInvalidNumeric()
-        {
-            var capabilities = ImmutableArray.Create("Baseline", "90", "NewTypeDefinition");
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
-            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
-        }
-
-        [Fact]
-        public void ParseCapabilities_AllCapabilitiesParsed()
-        {
-            foreach (var name in Enum.GetNames(typeof(EditAndContinueCapabilities)))
-            {
-                var capabilities = ImmutableArray.Create(name);
-
-                var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-                var flag = (EditAndContinueCapabilities)Enum.Parse(typeof(EditAndContinueCapabilities), name);
-                Assert.True(service.HasFlag(flag), $"Capability '{name}' was not parsed correctly, so it's impossible for a runtime to enable it!");
-            }
         }
     }
 }

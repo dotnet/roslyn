@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
@@ -169,6 +169,49 @@ namespace Goo
             {
                 (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
             });
+        }
+
+        [Fact]
+        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        public async Task TestAccessibilityModifiers_IgnoresPartial()
+        {
+            await TestAsync(
+                testCode: @"using System;
+
+namespace Goo
+{
+    class E
+    {
+    }
+
+    partial class C
+    {
+    }
+
+    class D
+    {
+    }
+}",
+                expected: @"using System;
+
+namespace Goo
+{
+    internal class E
+    {
+    }
+
+    partial class C
+    {
+    }
+
+    internal class D
+    {
+    }
+}",
+                options: new[]
+                {
+                    (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+                });
         }
 
         [Fact]
