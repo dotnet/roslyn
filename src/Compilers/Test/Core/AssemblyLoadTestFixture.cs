@@ -252,11 +252,11 @@ using System.Runtime.InteropServices;
 public class Class1
 {
     [DllImport(""kernel32.dll"", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern int GetFileAttributesA(string lpFileName);
+    private static extern int GetFileAttributesW(string lpFileName);
 
     public int GetFileAttributes(string path)
     {
-        return GetFileAttributesA(path);
+        return GetFileAttributesW(path);
     }
 }
 

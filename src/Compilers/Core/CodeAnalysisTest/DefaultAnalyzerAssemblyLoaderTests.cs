@@ -267,12 +267,11 @@ Delta: Epsilon: Test E
             var loader = new DefaultAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(_testFixture.AnalyzerWithNativeDependency.Path);
 
-            // TODO: we get error code FileNotFound for this.
             Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerWithNativeDependency.Path);
             var analyzer = analyzerAssembly.CreateInstance("Class1")!;
             var result = analyzer.GetType().GetMethod("GetFileAttributes")!.Invoke(analyzer, new[] { _testFixture.AnalyzerWithNativeDependency.Path });
             Assert.Equal(0, Marshal.GetLastWin32Error());
-            Assert.Equal(0x80, result);
+            Assert.Equal(FileAttributes.Archive, (FileAttributes)result!);
         }
 
 #if NETCOREAPP
