@@ -394,6 +394,17 @@ class C
         }
 
         [Fact]
+        public void TestSingleLineOutput2()
+        {
+            CompileAndVerify(
+@"
+using System;
+
+Console.WriteLine(""""""abc""def"""""");
+", expectedOutput: @"abc""def");
+        }
+
+        [Fact]
         public void TestMultiLineOutput1()
         {
             CompileAndVerify(
