@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             // It's very common for people to type expecting completion to fix up their casing,
-            // so if only lowercase characters were typed so far, we'd loosen our standard on comparing items
+            // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
             // in case-sensitive manner and take into consideration the MatchPriority as well.
             // i.e. when everything else is equal, then if item1 is a better case-sensitive match but item2 has higher 
             // MatchPriority, we consider them equally good match, so the controller will later have a chance to
@@ -257,17 +257,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 if (comparison == 0)
                 {
-                    // This item is as good as the items we've been collecting.  We'll return 
-                    // it and let the controller decide what to do.  (For example, it will
-                    // pick the one that has the best MRU index).
+                    // This item is as good as the items we've been collecting.  We'll return it and let the controller
+                    // decide what to do.  (For example, it will pick the one that has the best MRU index).
+                    // Also there's no need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority
+                    // list, we will only add ones with higher value at the end.
                     bestItems.Add(pair);
-
-                    if (highestMatchPriorityInBest < pair.item.Rules.MatchPriority)
-                    {
-                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                        // No need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority list,
-                        // we will only add ones with higher value at the end.
-                    }
+                    highestMatchPriorityInBest = Math.Max(highestMatchPriorityInBest, pair.item.Rules.MatchPriority);
                 }
                 else if (comparison < 0)
                 {

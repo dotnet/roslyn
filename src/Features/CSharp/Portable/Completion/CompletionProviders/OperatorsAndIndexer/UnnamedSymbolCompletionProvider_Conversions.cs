@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class UnnamedSymbolCompletionProvider
     {
         // Place conversions before operators.
-        private readonly int _conversionSortingGroupIndex = 1;
+        private const int ConversionSortingGroupIndex = 1;
 
         /// <summary>
         /// Tag to let us know we need to rehydrate the conversion from the parameter and return type.
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
         private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1);
 
-        private void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
+        private static void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
             var (symbols, properties) = GetConversionSymbolsAndProperties(context, conversion);
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 displayText: targetTypeName,
                 displayTextSuffix: ")",
                 filterText: targetTypeName,
-                sortText: SortText(_conversionSortingGroupIndex, targetTypeName),
+                sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
                 glyph: Glyph.Operator,
                 symbols: symbols,
                 rules: s_conversionRules,
