@@ -196,5 +196,19 @@ void goo()
         {
             Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
         }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsLiteral(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsLiteral(kind));
+        }
     }
 }
