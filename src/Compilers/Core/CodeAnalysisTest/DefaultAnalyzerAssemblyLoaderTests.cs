@@ -169,6 +169,13 @@ Delta: Gamma: Beta: Test B
             var e = epsilon.CreateInstance("Epsilon.E")!;
             e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(2, alcs.Length);
+            Assert.Equal(new[] { "Delta", "Gamma" }, alcs[0].Assemblies.Select(a => a.GetName().Name!).Order());
+            Assert.Equal(new[] { "Delta", "Epsilon" }, alcs[1].Assemblies.Select(a => a.GetName().Name!).Order());
+#endif
+
             var actual = sb.ToString();
             if (ExecutionConditionUtil.IsCoreClr)
             {

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -69,11 +70,11 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XPath.XDocument");
 
         private readonly object _guard = new object();
-        private readonly Dictionary<string, AssemblyLoadContext> _loadContextByDirectory = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
+        private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
-            AssemblyLoadContext? loadContext;
+            DirectoryLoadContext? loadContext;
 
             var fullDirectoryPath = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException(message: null, paramName: nameof(fullPath));
             lock (_guard)
@@ -89,14 +90,22 @@ namespace Microsoft.CodeAnalysis
             return loadContext.LoadFromAssemblyName(name);
         }
 
+        internal static class TestAccessor
+        {
+            public static AssemblyLoadContext[] GetOrderedLoadContexts(DefaultAnalyzerAssemblyLoader loader)
+            {
+                return loader._loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
+            }
+        }
+
         private sealed class DirectoryLoadContext : AssemblyLoadContext
         {
-            private readonly string _directory;
+            internal string Directory { get; }
             private readonly DefaultAnalyzerAssemblyLoader _loader;
 
             public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader)
             {
-                _directory = directory;
+                Directory = directory;
                 _loader = loader;
             }
 
@@ -110,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                var assemblyPath = Path.Combine(_directory, simpleName + ".dll");
+                var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (!_loader.IsKnownDependencyLocation(assemblyPath))
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
@@ -126,7 +135,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             {
-                var assemblyPath = Path.Combine(_directory, unmanagedDllName + ".dll");
+                var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
                 if (!_loader.IsKnownDependencyLocation(assemblyPath))
                 {
                     return IntPtr.Zero;
