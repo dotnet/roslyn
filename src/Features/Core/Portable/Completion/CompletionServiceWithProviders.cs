@@ -255,6 +255,23 @@ namespace Microsoft.CodeAnalysis.Completion
             return completionList;
         }
 
+        /// <summary>
+        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+        /// Getting full semantic could be costly in certains scenarios and would cause significant delay in completion. 
+        /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
+        /// we get into this transient state.
+        /// </summary>
+        private async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var usePartialSemantic = _workspace.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
+            if (usePartialSemantic)
+            {
+                (document, _) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
+        }
+
         private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
@@ -263,6 +280,8 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
+            document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
@@ -568,6 +587,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var provider = GetProvider(item);
             if (provider != null)
             {
+                document = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
                 return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
             else

@@ -31,15 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool HideAdvancedMembers { get; set; }
 
-        private bool UsePartialSemantic { get; set; } = false;
-
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
-            return options
+            return base.WithChangedOptions(options)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
         protected override TestComposition GetComposition()

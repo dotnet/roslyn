@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
             // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
-            var usePartialSemantic = completionContext.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion);
-            var syntaxContext = await CreateContextAsync(document, completionContext.Position, usePartialSemantic, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
                 return;
