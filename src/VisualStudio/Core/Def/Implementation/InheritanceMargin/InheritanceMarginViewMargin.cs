@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal partial class InheritanceMarginViewMargin : IWpfTextViewMargin
+    internal class InheritanceMarginViewMargin : IWpfTextViewMargin
     {
         private readonly IWpfTextViewHost _textViewHost;
         private readonly IWpfTextView _textView;
