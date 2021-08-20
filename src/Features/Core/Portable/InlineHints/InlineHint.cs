@@ -22,20 +22,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
+            : this(span, displayParts, replacementText: null, getDescriptionAsync)
         {
-            if (displayParts.Length == 0)
-                throw new ArgumentException($"{nameof(displayParts)} must be non-empty");
-
-            Span = span;
-            DisplayParts = displayParts;
-            _getDescriptionAsync = getDescriptionAsync;
-            ReplacementText = null;
         }
 
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
-            string replacementText,
+            string? replacementText,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
             if (displayParts.Length == 0)
