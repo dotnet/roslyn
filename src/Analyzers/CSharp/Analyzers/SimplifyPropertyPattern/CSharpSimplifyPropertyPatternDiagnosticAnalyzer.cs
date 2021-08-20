@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
         public CSharpSimplifyPropertyPatternDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId,
                    EnforceOnBuildValues.SimplifyPropertyPattern,
-                   CSharpCodeStyleOptions.PreferSimplePropertyPattern,
+                   CSharpCodeStyleOptions.PreferExtendedPropertyPattern,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Property_pattern_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_property_pattern), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             var cancellationToken = syntaxContext.CancellationToken;
 
             // Bail immediately if the user has disabled this feature.
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSimplePropertyPattern, syntaxTree, cancellationToken);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
 
