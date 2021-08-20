@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
         {
+            if (items.IsDefaultOrEmpty)
+                return false;
+
             // Can only navigate or present items on UI thread.
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
