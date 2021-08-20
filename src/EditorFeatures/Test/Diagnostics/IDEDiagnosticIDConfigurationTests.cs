@@ -1010,8 +1010,8 @@ csharp_style_namespace_declarations = block_scoped
 # IDE0161, NamespaceDeclarations
 csharp_style_namespace_declarations = block_scoped
 
-# IDE0170, PreferSimplePropertyPattern
-csharp_prefer_simple_property_pattern = true
+# IDE0170, PreferExtendedPropertyPattern
+csharp_style_prefer_extended_property_pattern = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
