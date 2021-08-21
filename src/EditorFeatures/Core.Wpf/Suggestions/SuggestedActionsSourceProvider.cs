@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
-        public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
         public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
@@ -65,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService optionService,
-            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
-            [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
@@ -74,7 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             _optionService = optionService;
-            ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             UIThreadOperationExecutor = uiThreadOperationExecutor;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);

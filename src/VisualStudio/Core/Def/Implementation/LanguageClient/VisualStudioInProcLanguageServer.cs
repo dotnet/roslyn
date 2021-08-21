@@ -377,9 +377,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
-        internal TestAccessor GetTestAccessor() => new(this);
+        internal new TestAccessor GetTestAccessor() => new(this);
 
-        internal readonly struct TestAccessor
+        internal new readonly struct TestAccessor
         {
             private readonly VisualStudioInProcLanguageServer _server;
 
