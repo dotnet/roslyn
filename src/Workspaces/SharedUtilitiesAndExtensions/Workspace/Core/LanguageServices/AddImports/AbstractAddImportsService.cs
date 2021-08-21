@@ -128,11 +128,12 @@ namespace Microsoft.CodeAnalysis.AddImports
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
             OptionSet options,
-            bool placeSystemNamespaceFirst,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
+
+            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, compilation.Language);
 
             var globalImports = GetGlobalImports(compilation, generator);
             var containers = GetAllContainers(root, contextLocation);
