@@ -2119,6 +2119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (t1 is True) return t2;
                     if (t1 is False) return t1;
+                    Debug.Assert(t2 is not (True or False));
                     var builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(t1);
                     builder.Add(t2);
@@ -2198,6 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (t1 is True) return t1;
                     if (t1 is False) return t2;
+                    Debug.Assert(t2 is not (True or False));
                     var builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(t1);
                     builder.Add(t2);
