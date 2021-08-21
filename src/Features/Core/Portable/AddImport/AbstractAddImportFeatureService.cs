@@ -494,8 +494,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             // Normally we don't allow generation into a hidden region in the file.  However, if we have a
             // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
             // our edit to their domain appropriate.
@@ -550,7 +548,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
