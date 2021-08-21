@@ -2761,110 +2761,6 @@ value:2");
 ");
         }
 
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
-        [InlineData(@"$""base{hole}""")]
-        [InlineData(@"$""base"" + $""{hole}""")]
-        public void DynamicInHoles_UsesFormat(string expression)
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-dynamic hole = 1;
-Console.WriteLine(" + expression + @");
-";
-
-            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
-
-            var verifier = CompileAndVerifyWithCSharp(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", expression.Contains('+')
-? @"
-{
-  // Code size       34 (0x22)
-  .maxstack  3
-  .locals init (object V_0) //hole
-  IL_0000:  ldc.i4.1
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.0
-  IL_0007:  ldstr      ""base""
-  IL_000c:  ldstr      ""{0}""
-  IL_0011:  ldloc.0
-  IL_0012:  call       ""string string.Format(string, object)""
-  IL_0017:  call       ""string string.Concat(string, string)""
-  IL_001c:  call       ""void System.Console.WriteLine(string)""
-  IL_0021:  ret
-}
-"
-: @"
-{
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (object V_0) //hole
-  IL_0000:  ldc.i4.1
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.0
-  IL_0007:  ldstr      ""base{0}""
-  IL_000c:  ldloc.0
-  IL_000d:  call       ""string string.Format(string, object)""
-  IL_0012:  call       ""void System.Console.WriteLine(string)""
-  IL_0017:  ret
-}
-");
-        }
-
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
-        [InlineData(@"$""{hole}base""")]
-        [InlineData(@"$""{hole}"" + $""base""")]
-        public void DynamicInHoles_UsesFormat2(string expression)
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-dynamic hole = 1;
-Console.WriteLine(" + expression + @");
-";
-
-            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
-
-            var verifier = CompileAndVerifyWithCSharp(new[] { source, interpolatedStringBuilder }, expectedOutput: @"1base");
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", expression.Contains('+')
-? @"
-{
-  // Code size       34 (0x22)
-  .maxstack  2
-  .locals init (object V_0) //hole
-  IL_0000:  ldc.i4.1
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.0
-  IL_0007:  ldstr      ""{0}""
-  IL_000c:  ldloc.0
-  IL_000d:  call       ""string string.Format(string, object)""
-  IL_0012:  ldstr      ""base""
-  IL_0017:  call       ""string string.Concat(string, string)""
-  IL_001c:  call       ""void System.Console.WriteLine(string)""
-  IL_0021:  ret
-}
-"
-: @"
-{
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (object V_0) //hole
-  IL_0000:  ldc.i4.1
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.0
-  IL_0007:  ldstr      ""{0}base""
-  IL_000c:  ldloc.0
-  IL_000d:  call       ""string string.Format(string, object)""
-  IL_0012:  call       ""void System.Console.WriteLine(string)""
-  IL_0017:  ret
-}
-");
-        }
-
         [Fact]
         public void MissingCreate_01()
         {
@@ -12667,26 +12563,6 @@ format:
   IL_0067:  ret
 }
 ");
-        }
-
-
-        [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
-        [InlineData(@"$""{h1}{h2}""")]
-        [InlineData(@"$""{h1}"" + $""{h2}""")]
-        public void RefStructHandler_DynamicInHole(string expression)
-        {
-            var code = @"
-dynamic h1 = 1;
-dynamic h2 = 2;
-CustomHandler c = " + expression + ";";
-
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "ref struct", useBoolReturns: false);
-
-            var comp = CreateCompilationWithCSharp(new[] { code, handler });
-
-            // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-            // error here. This will crash at runtime because of this.
-            comp.VerifyEmitDiagnostics();
         }
     }
 }

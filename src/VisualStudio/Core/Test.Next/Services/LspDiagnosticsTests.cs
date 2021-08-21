@@ -479,7 +479,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.DefaultSeverity,
                     diagnostic.Descriptor.IsEnabledByDefault,
                     diagnostic.WarningLevel,
-                    diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                    diagnostic.Descriptor.ImmutableCustomTags(),
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),

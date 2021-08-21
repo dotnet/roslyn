@@ -47,6 +47,23 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (!service.ShouldUpdateAccessibilityModifier(syntaxFacts, declaration, accessibilityPreferences.Value, out _))
                     continue;
 
+                // Since we format each document as they are added to a project we can't assume we know about all
+                // of the files that are coming, so we have to opt out of changing partial classes. This especially
+                // manifests when creating new projects as we format before we have a project at all, so we could get a
+                // situation like this:
+                //
+                // File1.cs:
+                //    partial class C { }
+                // File2.cs:
+                //    public partial class C { }
+                //
+                // When we see File1, we don't know about File2, so would add an internal modifier, which would result in a compile
+                // error.
+                var modifiers = syntaxFacts.GetModifiers(declaration);
+                syntaxFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
+                if (declarationModifiers.IsPartial)
+                    continue;
+
                 var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
                 if (type == null)
                     continue;
