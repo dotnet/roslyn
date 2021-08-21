@@ -91,5 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         {
             return node is BracketedArgumentListSyntax;
         }
+
+        protected override string GetReplacementText(string parameterName)
+        {
+            return parameterName + ": ";
+        }
     }
 }
