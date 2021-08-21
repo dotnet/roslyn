@@ -762,6 +762,127 @@ namespace ConsoleApp185
             }.RunAsync();
         }
 
+ [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_NoNamespace()
+        {
+            var input = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void [|Main|](string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            var expected1 = @"
+using System;
+using System.Collections.Generic;
+
+class Program : MyBase
+{
+}";
+
+            var expected2 = @"using System;
+using System.Collections.Generic;
+
+internal class MyBase
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_MultipleNamespaces()
+        {
+            var input = @"
+using System;
+using System.Collections.Generic;
+
+namespace N1
+{
+    namespace N2
+    {
+        class Program
+        {
+            static void [|Main|](string[] args)
+            {
+                Console.WriteLine(new List<int>());
+            }
+        }
+    }
+}";
+
+            var expected1 = @"
+using System;
+using System.Collections.Generic;
+
+namespace N1
+{
+    namespace N2
+    {
+        class Program : MyBase
+        {
+        }
+    }
+}";
+
+            var expected2 = @"namespace N1.N2
+{
+    using System;
+    using System.Collections.Generic;
+
+    internal class MyBase
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task TestWithInterface()
         {
