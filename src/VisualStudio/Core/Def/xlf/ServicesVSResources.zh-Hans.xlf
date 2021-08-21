@@ -1147,6 +1147,11 @@
         <target state="translated">当参数名称只有后缀不同时禁止显示提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_match_argument_names">
+        <source>Suppress hints when parameter names match argument names</source>
+        <target state="new">Suppress hints when parameter names match argument names</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
         <target state="translated">不带引用的符号</target>

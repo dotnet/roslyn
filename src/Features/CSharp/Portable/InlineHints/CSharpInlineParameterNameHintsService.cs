@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override void AddAllParameterNameHintLocations(
              SemanticModel semanticModel,
              SyntaxNode node,
-             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+             ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
              CancellationToken cancellationToken)
         {
             if (node is BaseArgumentListSyntax argumentList)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
         private static void AddArguments(
             SemanticModel semanticModel,
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
             AttributeArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
@@ -55,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+                buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)));
             }
         }
 
         private static void AddArguments(
             SemanticModel semanticModel,
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
             BaseArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+                buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)));
             }
         }
 

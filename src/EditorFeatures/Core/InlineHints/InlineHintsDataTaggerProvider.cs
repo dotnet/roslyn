@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchArgumentName),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes),

@@ -1147,6 +1147,11 @@
         <target state="translated">매개 변수 이름이 접미사만 다른 경우 힌트 표시 안 함</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_match_argument_names">
+        <source>Suppress hints when parameter names match argument names</source>
+        <target state="new">Suppress hints when parameter names match argument names</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
         <target state="translated">참조 없는 기호</target>

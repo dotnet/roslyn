@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract void AddAllParameterNameHintLocations(
             SemanticModel semanticModel,
             SyntaxNode node,
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
@@ -49,12 +50,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
+            var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchArgumentName);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
-            using var _2 = ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
+            using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
             foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
             {
@@ -72,16 +74,22 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             void AddHintsIfAppropriate(SyntaxNode node)
             {
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
 
-                foreach (var (position, parameter, kind) in buffer)
+                foreach (var (position, argument, parameter, kind) in buffer)
                 {
                     if (string.IsNullOrEmpty(parameter?.Name))
                         continue;
 
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
+
+                    if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(argument, parameter))
+                    {
+                        continue;
+                    }
 
                     if (!indexerParameters && IsIndexer(node, parameter))
                     {
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         private static bool ParametersDifferOnlyBySuffix(
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
         {
             // Only relevant if we have two or more parameters.
             if (parameterHints.Count <= 1)
@@ -110,7 +118,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                    ParametersDifferOnlyByNumericSuffix(parameterHints);
 
             static bool ParametersDifferOnlyByAlphaSuffix(
-                ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+                ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
             {
                 if (!HasAlphaSuffix(parameterHints[0].parameter, out var firstPrefix))
                     return false;
@@ -128,7 +136,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             }
 
             static bool ParametersDifferOnlyByNumericSuffix(
-                ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+                ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
             {
                 if (!HasNumericSuffix(parameterHints[0].parameter, out var firstPrefix))
                     return false;
@@ -252,6 +260,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return char.ToLower(suffix.Span[0]) == parameterName[0] &&
                        suffix.Span[1..].Equals(parameterName.AsSpan()[1..], StringComparison.Ordinal);
             }
+        }
+
+        private static bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol? parameter)
+        {
+            var argumentName = argument.ToString();
+            return argumentName.Equals(parameter?.Name);
         }
     }
 }

@@ -252,6 +252,10 @@
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+                        
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  x:Name="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_match_argument_names}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

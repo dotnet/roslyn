@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
                 node As SyntaxNode,
-                buffer As ArrayBuilder(Of (position As Integer, parameter As IParameterSymbol, kind As HintKind)),
+                buffer As ArrayBuilder(Of (position As Integer, argument As SyntaxNode, parameter As IParameterSymbol, kind As HintKind)),
                 cancellationToken As CancellationToken)
 
             Dim argumentList = TryCast(node, ArgumentListSyntax)
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                     Continue For
                 End If
 
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)))
+                buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)))
             Next
         End Sub
 

@@ -1809,4 +1809,7 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Suppress_hints_when_parameter_names_match_argument_names" xml:space="preserve">
+    <value>Suppress hints when parameter names match argument names</value>
+  </data>
 </root>
