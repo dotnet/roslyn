@@ -4774,6 +4774,60 @@ class C
             Assert.Equal("this", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestNameOfInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => nameof(ClosureCreated)/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestNameOfWithAssignmentInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => nameof(this = null)/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestUnreachableThisInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => false ? this.ToString() : string.Empty/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
         [Fact]
         public void TestReturnFromLambda()
         {
