@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -103,7 +104,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 options As OptionSet,
                 position As Integer,
                 snippetNode As XElement,
-                placeSystemNamespaceFirst As Boolean,
                 allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
@@ -126,6 +126,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End If
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+
+            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
 
             Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)

@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         internal override Document AddImports(
             Document document, OptionSet options, int position, XElement snippetNode,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions,
+            bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, options, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, options, allowInHiddenRegions, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 

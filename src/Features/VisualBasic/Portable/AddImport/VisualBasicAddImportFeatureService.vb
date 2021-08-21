@@ -280,20 +280,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
-                placeSystemNamespaceFirst As Boolean,
                 allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim importsStatement = GetImportsStatement(symbol)
 
             Return Await AddImportAsync(
-                contextNode, document, placeSystemNamespaceFirst, allowInHiddenRegions,
+                contextNode, document, allowInHiddenRegions,
                 importsStatement, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Overloads Shared Async Function AddImportAsync(
                 contextNode As SyntaxNode, document As Document,
-                placeSystemNamespaceFirst As Boolean, allowInHiddenRegions As Boolean,
+                allowInHiddenRegions As Boolean,
                 importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
@@ -302,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, options, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, options, allowInHiddenRegions, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -313,7 +312,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 contextNode As SyntaxNode,
                 nameSpaceParts As IReadOnlyList(Of String),
                 document As Document,
-                placeSystemNamespaceFirst As Boolean,
                 allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
@@ -321,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
             Return AddImportAsync(
                 contextNode, document,
-                placeSystemNamespaceFirst, allowInHiddenRegions,
+                allowInHiddenRegions,
                 importsStatement, cancellationToken)
         End Function
 

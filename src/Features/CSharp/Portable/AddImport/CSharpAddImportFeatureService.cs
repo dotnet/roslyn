@@ -340,18 +340,17 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             Document document,
-            bool placeSystemNamespaceFirst,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
-            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode, INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+            bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -382,13 +381,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = addImportService.AddImports(
-                semanticModel.Compilation, root, contextNode, newImports, generator, options, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                semanticModel.Compilation, root, contextNode, newImports, generator, options, allowInHiddenRegions, cancellationToken);
             return (CompilationUnitSyntax)newRoot;
         }
 
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode, IReadOnlyList<string> namespaceParts,
-            Document document, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+            Document document, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
@@ -400,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var service = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, generator, options, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                compilation, root, contextNode, usingDirective, generator, options, allowInHiddenRegions, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
