@@ -55,7 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal? appendShouldProceedLocal = null;
             if (data.HasTrailingHandlerValidityParameter)
             {
-                Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
+#if DEBUG
+                for (int i = construction.ArgumentRefKindsOpt.Length - 1; i >= 0; i--)
+                {
+                    if (construction.ArgumentRefKindsOpt[i] == RefKind.Out)
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(construction.ArgumentRefKindsOpt[i] == RefKind.None);
+                    Debug.Assert(construction.DefaultArguments[i]);
+                }
+#endif
 
                 BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
                 TypeSymbol localType = trailingParameter.Type;
