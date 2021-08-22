@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -607,23 +605,6 @@ class B
     }
 }");
         }
-
-//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-//        public async Task TestFixCount1()
-//        {
-//            await TestActionCountAsync(
-//@"class C : [||]B
-//{
-//}
-
-//class B
-//{
-//    public B(int x)
-//    {
-//    }
-//}",
-//count: 1);
-//        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]

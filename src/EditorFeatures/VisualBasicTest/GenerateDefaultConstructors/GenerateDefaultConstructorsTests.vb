@@ -2,21 +2,61 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.GenerateDefaultConstructors
+Imports VerifyCodeFix = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+        Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+        Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors.VisualBasicGenerateDefaultConstructorsCodeFixProvider)
+
+Imports VerifyRefactoring = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+        Microsoft.CodeAnalysis.GenerateDefaultConstructors.GenerateDefaultConstructorsCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultConstructors
     Public Class GenerateDefaultConstructorsTests
-        Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New GenerateDefaultConstructorsCodeRefactoringProvider()
+        Private Shared Async Function TestRefactoringAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
+            Await TestRefactoringOnlyAsync(source, fixedSource, index)
+            await TestCodeFixMissingAsync(source)
+        End Function
+
+        Private Shared Async Function TestRefactoringOnlyAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
+            Await New VerifyRefactoring.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                .CodeActionIndex = index
+            }.RunAsync()
+        End Function
+
+        Private Shared Async Function TestCodeFixAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
+            Await New VerifyCodeFix.Test With
+            {
+                .TestCode = source.Replace("[||]", ""),
+                .FixedCode = fixedSource,
+                .CodeActionIndex = index
+            }.RunAsync()
+
+            Await TestRefactoringMissingAsync(source)
+        End Function
+
+        Private Shared Async Function TestRefactoringMissingAsync(source As String) As Task
+            Await New VerifyRefactoring.Test With
+            {
+                .TestCode = source,
+                .FixedCode = source
+            }.RunAsync()
+        End Function
+
+        Private Shared Async Function TestCodeFixMissingAsync(source As String) As Task
+            source = source.Replace("[||]", "")
+            Await New VerifyCodeFix.Test With
+            {
+                .TestCode = source,
+                .FixedCode = source
+            }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException0() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -41,7 +81,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -68,7 +108,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -95,7 +135,7 @@ index:=2)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException3() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -124,7 +164,7 @@ index:=3)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException4() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -165,7 +205,7 @@ index:=4)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(539676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539676")>
         Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestRefactoringAsync(
 "Class Base
 End Class
 Class Derived
@@ -183,7 +223,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedOnUnresolvedBaseClassName() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestRefactoringMissingAsync(
 "Class Derived
     Inherits [||]Base
 End Class")
@@ -191,7 +231,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedOnInheritsStatementForStructures() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestRefactoringMissingAsync(
 "Structure Derived
     Inherits [||]Base
 End Structure")
@@ -199,13 +239,13 @@ End Structure")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestRefactoringMissingAsync(
 "Inherits [||]Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -246,7 +286,7 @@ index:=3)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructorMissing1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -289,7 +329,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructorMissing2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -332,7 +372,7 @@ index:=2)
         <WorkItem(540712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540712")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestEndOfToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -357,7 +397,7 @@ End Class")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFormattingInGenerateDefaultConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -388,7 +428,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestDefaultConstructorGeneration() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Class C
     Inherits B[||]
     Public Sub New(y As Integer)
@@ -417,7 +457,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFixAll() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>
 Class C
     Inherits [||]B
@@ -480,7 +520,7 @@ index:=2)
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFixAll_WithTuples() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>
 Class C
     Inherits [||]B
@@ -542,7 +582,7 @@ index:=2)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -573,7 +613,7 @@ End Class")
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInDerivedType1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "
 Public Class Base
     Public Sub New(a As String)
@@ -604,7 +644,7 @@ End Class")
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInDerivedType2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -635,7 +675,7 @@ End Class")
         <WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNotOnEnum() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestRefactoringMissingAsync(
 "
 Public Enum [||]E
 End Enum")
@@ -644,7 +684,7 @@ End Enum")
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromFriendConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Class C
     Inherits B[||]
 End Class
@@ -670,7 +710,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromFriendConstructor2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>MustInherit Class C
     Inherits B[||]
 End Class
@@ -696,7 +736,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Class C
     Inherits B[||]
 End Class
@@ -722,7 +762,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedConstructor2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>MustInherit Class C
     Inherits B[||]
 End Class
@@ -748,7 +788,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Class C
     Inherits B[||]
 End Class
@@ -774,7 +814,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>MustInherit Class C
     Inherits B[||]
 End Class
@@ -800,7 +840,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromPublicConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>Class C
     Inherits B[||]
 End Class
@@ -827,7 +867,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorInAbstractClassFromPublicConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestRefactoringAsync(
 <Text>MustInherit Class C
     Inherits B[||]
 End Class
