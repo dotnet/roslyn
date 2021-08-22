@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 {
                     var baseNoArgConstructor = baseType.Constructors.FirstOrDefault(c => c.Parameters.Length == 0);
                     if (baseNoArgConstructor == null ||
-                        !baseNoArgConstructor.IsAccessibleWithin(classType.ContainingAssembly))
+                        !baseNoArgConstructor.IsAccessibleWithin(classType))
                     {
                         // this code is in error, but we're the refactoring codepath.  Offer nothing
                         // and let the code fix provider handle it instead.

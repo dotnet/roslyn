@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
                 TestCode = source,
                 FixedCode = fixedSource,
                 CodeActionIndex = index,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
 
             await TestCodeFixMissingAsync(source);
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
                 TestCode = source.Replace("[||]", ""),
                 FixedCode = fixedSource,
                 CodeActionIndex = index,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
 
             await TestRefactoringMissingAsync(source);
@@ -165,8 +168,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefOutParams()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -174,6 +177,7 @@ class B
 {
     internal B(ref int x, out string s, params bool[] b)
     {
+        s = null;
     }
 }",
 @"class C : B
@@ -187,6 +191,7 @@ class B
 {
     internal B(ref int x, out string s, params bool[] b)
     {
+        s = null;
     }
 }");
         }
@@ -795,8 +800,8 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task Tuple()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -824,8 +829,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -854,7 +859,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass()
         {
-            await TestRefactoringAsync(
+            await TestCodeFixAsync(
 @"class Base
 {
     public Base(string value)
@@ -862,7 +867,7 @@ class B
     }
 }
 
-class [||]Derived : Base
+class [||]{|CS7036:Derived|} : Base
 {
 }",
 @"class Base
@@ -884,7 +889,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass2()
         {
-            await TestRefactoringAsync(
+            await TestCodeFixAsync(
 @"class Base
 {
     public Base(int a, string value = null)
@@ -892,7 +897,7 @@ class Derived : Base
     }
 }
 
-class [||]Derived : Base
+class [||]{|CS7036:Derived|} : Base
 {
 }",
 @"class Base
@@ -1265,14 +1270,14 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
 abstract class B
 {
-    private protected internal B(int x)
+    private protected internal {|CS0107:B|}(int x)
     {
     }
 }",
@@ -1285,7 +1290,7 @@ abstract class B
 
 abstract class B
 {
-    private protected internal B(int x)
+    private protected internal {|CS0107:B|}(int x)
     {
     }
 }");
@@ -1384,8 +1389,8 @@ sealed class Program : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRecord()
         {
-            await TestRefactoringAsync(
-@"record C : [||]B
+            await TestCodeFixAsync(
+@"record {|CS1729:C|} : [||]B
 {
 }
 
