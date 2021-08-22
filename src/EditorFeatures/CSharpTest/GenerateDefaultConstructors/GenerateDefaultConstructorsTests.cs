@@ -53,13 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
 
         private static async Task TestRefactoringMissingAsync(string source)
         {
-            await VerifyRefactoring.VerifyRefactoringAsync(source, source);
+            await new VerifyRefactoring.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
 
         private static async Task TestCodeFixMissingAsync(string source)
         {
             source = source.Replace("[||]", "");
-            await VerifyCodeFix.VerifyCodeFixAsync(source, source);
+            await new VerifyCodeFix.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]

@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 // See if the user didn't supply a constructor, and thus the compiler automatically generated
                 // one for them.   If so, also see if there's an accessible no-arg contructor in the base.
                 // If not, then the compiler will error and we want the code-fix to take over solving this problem.
-                if (classType.Constructors.Length == 1 &&
-                    classType.Constructors[0].IsImplicitlyDeclared)
+                if (classType.Constructors.Any(c => c.Parameters.Length == 0 && c.IsImplicitlyDeclared))
                 {
                     var baseNoArgConstructor = baseType.Constructors.FirstOrDefault(c => c.Parameters.Length == 0);
                     if (baseNoArgConstructor == null ||
