@@ -17,9 +17,15 @@
              MinWidth="510"
              HasDialogFrame="True"
              ShowInTaskbar="False"
-             ResizeMode="CanResizeWithGrip">
+             ResizeMode="CanResizeWithGrip"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <Window.Resources>
-        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        </ResourceDictionary>
     </Window.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
@@ -39,7 +45,6 @@
         </GroupBox>
 
         <StackPanel Grid.Row="2" 
-                    HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
