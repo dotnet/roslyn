@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestProtectedBase()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -91,8 +91,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPublicBase()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -120,8 +120,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestInternalBase()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -150,7 +150,7 @@ class B
         public async Task TestPrivateBase()
         {
             await TestRefactoringMissingAsync(
-@"class C : [||]B
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -285,8 +285,8 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefactoring1()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -502,7 +502,7 @@ index: 2);
             await TestRefactoringMissingAsync(
 @"class C : [||]B
 {
-    public C(int x)
+    public {|CS7036:C|}(int x)
     {
     }
 }
@@ -1115,8 +1115,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromInternalConstructor()
         {
-            await TestRefactoringAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1145,8 +1145,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromInternalConstructor2()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1235,8 +1235,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
         {
-            await TestRefactoringAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
