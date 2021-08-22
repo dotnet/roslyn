@@ -225,7 +225,7 @@ End Class")
         Public Async Function TestNotOfferedOnUnresolvedBaseClassName() As Task
             Await TestRefactoringMissingAsync(
 "Class Derived
-    Inherits [||]Base
+    Inherits [||]{|BC30002:Base|}
 End Class")
         End Function
 
@@ -233,7 +233,7 @@ End Class")
         Public Async Function TestNotOfferedOnInheritsStatementForStructures() As Task
             Await TestRefactoringMissingAsync(
 "Structure Derived
-    Inherits [||]Base
+    {|BC30628:Inherits [||]Base|}
 End Structure")
         End Function
 
@@ -432,6 +432,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
 <Text>Class C
     Inherits B[||]
     Public Sub New(y As Integer)
+        mybase.new(y)
     End Sub
 End Class
 
@@ -442,9 +443,10 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Class C
     Inherits B
     Public Sub New(y As Integer)
+        mybase.new(y)
     End Sub
 
-    Friend Sub New(x As Integer)
+    Friend Sub {|BC30269:New|}(x As Integer)
         MyBase.New(x)
     End Sub
 End Class
@@ -613,7 +615,7 @@ End Class")
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInDerivedType1() As Task
-            Await TestRefactoringAsync(
+            Await TestCodeFixAsync(
 "
 Public Class Base
     Public Sub New(a As String)
@@ -621,7 +623,7 @@ Public Class Base
     End Sub
 End Class
 
-Public Class [||]Derived
+Public Class [||]{|BC30387:Derived|}
     Inherits Base
 
 End Class",
@@ -644,7 +646,7 @@ End Class")
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInDerivedType2() As Task
-            Await TestRefactoringAsync(
+            Await TestCodeFixAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -652,7 +654,7 @@ Public Class Base
     End Sub
 End Class
 
-Public Class [||]Derived
+Public Class [||]{|BC30387:Derived|}
     Inherits Base
 
 End Class",
@@ -678,6 +680,7 @@ End Class")
             Await TestRefactoringMissingAsync(
 "
 Public Enum [||]E
+    A
 End Enum")
         End Function
 
