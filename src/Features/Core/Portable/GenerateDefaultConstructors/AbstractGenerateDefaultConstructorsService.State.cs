@@ -28,10 +28,11 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 TService service,
                 SemanticDocument document,
                 TextSpan textSpan,
+                bool forRefactoring,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!state.TryInitialize(service, document, textSpan, cancellationToken))
+                if (!state.TryInitialize(service, document, textSpan, forRefactoring, cancellationToken))
                 {
                     return null;
                 }
@@ -43,12 +44,11 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 TService service,
                 SemanticDocument semanticDocument,
                 TextSpan textSpan,
+                bool forRefactoring,
                 CancellationToken cancellationToken)
             {
                 if (!service.TryInitializeState(semanticDocument, textSpan, cancellationToken, out var classType))
-                {
                     return false;
-                }
 
                 ClassType = classType;
 
@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 {
                     return false;
                 }
+
+                // if this is for the refactoring, then don't offer this if the compiler is reporting an
+                // error here.  We'll let the code fix take care of that.
+                var fixesError = FixesError(classType, baseType);
+                if (forRefactoring == fixesError)
+                    return false;
 
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
@@ -73,6 +79,27 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
                 return UnimplementedConstructors.Length > 0;
+            }
+
+            private static bool FixesError(INamedTypeSymbol classType, INamedTypeSymbol baseType)
+            {
+                // See if the user didn't supply a constructor, and thus the compiler automatically generated
+                // one for them.   If so, also see if there's an accessible no-arg contructor in the base.
+                // If not, then the compiler will error and we want the code-fix to take over solving this problem.
+                if (classType.Constructors.Length == 1 &&
+                    classType.Constructors[0].IsImplicitlyDeclared)
+                {
+                    var baseNoArgConstructor = baseType.Constructors.FirstOrDefault(c => c.Parameters.Length == 0);
+                    if (baseNoArgConstructor == null ||
+                        !baseNoArgConstructor.IsAccessibleWithin(classType.ContainingAssembly))
+                    {
+                        // this code is in error, but we're the refactoring codepath.  Offer nothing
+                        // and let the code fix provider handle it instead.
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private static bool IsMissing(

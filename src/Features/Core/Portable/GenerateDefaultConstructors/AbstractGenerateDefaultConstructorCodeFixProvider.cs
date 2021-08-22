@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
@@ -21,16 +22,16 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             if (diagnostic == null)
                 return;
 
-            var node = diagnostic.Location.FindNode(cancellationToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var typeDecl = node.AncestorsAndSelf().Where(n => syntaxFacts.IsTypeDeclaration(n)).FirstOrDefault();
-            if (typeDecl == null)
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!syntaxFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
                 return;
 
             var typeName = syntaxFacts.GetIdentifierOfTypeDeclaration(typeDecl);
             var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
-            var actions = await service.GenerateDefaultConstructorsAsync(document, typeName.Span, cancellationToken).ConfigureAwait(false);
+            var actions = await service.GenerateDefaultConstructorsAsync(
+                document, new TextSpan(typeName.Span.Start, 0), forRefactoring: false, cancellationToken).ConfigureAwait(false);
             context.RegisterFixes(actions, diagnostic);
         }
     }

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
             TextSpan textSpan,
+            bool forRefactoring,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateDefaultConstructors, cancellationToken))
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
                 if (textSpan.IsEmpty)
                 {
-                    var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
+                    var state = State.Generate((TService)this, semanticDocument, textSpan, forRefactoring, cancellationToken);
                     if (state != null)
                     {
                         foreach (var constructor in state.UnimplementedConstructors)

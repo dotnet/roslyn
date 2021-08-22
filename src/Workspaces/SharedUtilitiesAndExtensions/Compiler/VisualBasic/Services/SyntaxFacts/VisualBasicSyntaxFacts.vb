@@ -1488,12 +1488,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
             Select Case node.Kind()
-                Case SyntaxKind.EnumBlock,
-                     SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceBlock,
-                     SyntaxKind.ClassBlock,
-                     SyntaxKind.ModuleBlock
-                    Return DirectCast(node, TypeBlockSyntax).BlockStatement.Identifier
+                Case SyntaxKind.EnumStatement,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.ModuleStatement
+                    Return DirectCast(node, TypeStatementSyntax).Identifier
 
                 Case SyntaxKind.DelegateSubStatement,
                      SyntaxKind.DelegateFunctionStatement
