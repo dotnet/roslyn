@@ -762,7 +762,7 @@ namespace ConsoleApp185
             }.RunAsync();
         }
 
- [Fact]
+        [Fact]
         [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_NoNamespace()
         {

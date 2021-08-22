@@ -371,7 +371,7 @@ End Class</Test>
         Private Async Function TestSnippetAddImportsAsync(
                 markupCode As String,
                 namespacesToAdd As String(),
-                placeSystemNamespaceFirst As Boolean, 
+                placeSystemNamespaceFirst As Boolean,
                 expectedUpdatedCode As String) As Tasks.Task
 
             Dim originalCode As String = Nothing
