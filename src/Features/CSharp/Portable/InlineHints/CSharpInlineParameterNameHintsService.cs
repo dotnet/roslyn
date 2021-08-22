@@ -4,11 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
@@ -90,6 +92,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override bool IsIndexer(SyntaxNode node, IParameterSymbol parameter)
         {
             return node is BracketedArgumentListSyntax;
+        }
+
+        protected override string GetArgumentName(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
+        {
+            var identifierNameSyntax = argument.ChildNodes().First(node => syntaxFacts.IsIdentifierName(node));
+            if (identifierNameSyntax == null)
+            {
+                return string.Empty;
+            }
+
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax);
+            return identifier.Text;
         }
     }
 }

@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -90,6 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         Protected Overrides Function IsIndexer(node As SyntaxNode, parameter As IParameterSymbol) As Boolean
             Dim propertySymbol = TryCast(parameter.ContainingSymbol, IPropertySymbol)
             Return propertySymbol IsNot Nothing AndAlso propertySymbol.IsDefault
+        End Function
+
+        Protected Overrides Function GetArgumentName(argument As SyntaxNode, syntaxFacts As ISyntaxFactsService) As String
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

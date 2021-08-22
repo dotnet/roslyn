@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
+        protected abstract string GetArgumentName(SyntaxNode argument, ISyntaxFactsService syntaxFacts);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -86,15 +87,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(argument, parameter))
-                    {
+                    if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(argument, parameter, syntaxFacts))
                         continue;
-                    }
 
                     if (!indexerParameters && IsIndexer(node, parameter))
-                    {
                         continue;
-                    }
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
@@ -262,9 +259,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
             }
         }
 
-        private static bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol? parameter)
+        private bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol? parameter, ISyntaxFactsService syntaxFacts)
         {
-            var argumentName = argument.ToString();
+            var argumentName = GetArgumentName(argument, syntaxFacts);
             return argumentName.Equals(parameter?.Name);
         }
     }
