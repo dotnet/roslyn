@@ -194,8 +194,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix1()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -239,8 +239,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix2()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -331,8 +331,8 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll1()
         {
-            await TestRefactoringAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -388,7 +388,7 @@ index: 3);
             await TestRefactoringAsync(
 @"class C : [||]B
 {
-    public C(bool x)
+    public {|CS1729:C|}(bool x)
     {
     }
 }
@@ -409,7 +409,7 @@ class B
 }",
 @"class C : B
 {
-    public C(bool x)
+    public {|CS1729:C|}(bool x)
     {
     }
 
@@ -445,7 +445,7 @@ index: 2);
             await TestRefactoringAsync(
 @"class C : [||]B
 {
-    public C((bool, bool) x)
+    public {|CS1729:C|}((bool, bool) x)
     {
     }
 }
@@ -466,7 +466,7 @@ class B
 }",
 @"class C : B
 {
-    public C((bool, bool) x)
+    public {|CS1729:C|}((bool, bool) x)
     {
     }
 
@@ -610,7 +610,7 @@ class B
         [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
-            await TestCodeFixAsync(
+            await TestRefactoringAsync(
 @"using System;
 class Program : Excep[||]tion
 {
