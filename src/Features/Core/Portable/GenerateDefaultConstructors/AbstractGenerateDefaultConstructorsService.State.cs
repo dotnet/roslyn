@@ -62,15 +62,18 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 
                 // if this is for the refactoring, then don't offer this if the compiler is reporting an
                 // error here.  We'll let the code fix take care of that.
-                var fixesError = FixesError(classType, baseType);
-                if (forRefactoring == fixesError)
-                    return false;
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
+                {
+                    var fixesError = FixesError(classType, baseType);
+                    if (forRefactoring == fixesError)
+                        return false;
+                }
 
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
 
                 var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
-                var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =
