@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,7 +11,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService> : IGenerateDefaultConstructorsService
         where TService : AbstractGenerateDefaultConstructorsService<TService>
@@ -21,7 +20,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         {
         }
 
-        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classType);
+        protected abstract bool TryInitializeState(
+            SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken,
+            [NotNullWhen(true)] out INamedTypeSymbol? classType);
 
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,

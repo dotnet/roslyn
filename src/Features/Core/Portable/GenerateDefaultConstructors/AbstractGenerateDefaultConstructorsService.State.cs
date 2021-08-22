@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,13 +10,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
         private class State
         {
-            public INamedTypeSymbol ClassType { get; private set; }
+            public INamedTypeSymbol? ClassType { get; private set; }
 
             public ImmutableArray<IMethodSymbol> UnimplementedConstructors { get; private set; }
 
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             {
             }
 
-            public static State Generate(
+            public static State? Generate(
                 TService service,
                 SemanticDocument document,
                 TextSpan textSpan,
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var classConstructors = ClassType.InstanceConstructors;
 
                 var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
-                var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =
