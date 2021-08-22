@@ -822,7 +822,6 @@ namespace N
             Assert.Equal(expectedInterfaceCode, interfaceCode);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task ExtractInterface_CodeGen_TypeParameters1()
         {
