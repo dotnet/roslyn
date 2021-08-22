@@ -1245,6 +1245,76 @@ namespace N
     optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
         }
 
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public List<int> F;
+}", useSymbolAnnotations,
+    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace N1
+{
+    namespace N2
+    {
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}", useSymbolAnnotations,
+    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
         #endregion
     }
 }
