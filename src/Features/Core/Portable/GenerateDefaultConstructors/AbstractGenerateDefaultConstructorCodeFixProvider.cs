@@ -11,9 +11,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
-    internal abstract class AbstractGenerateDefaultConstructorCodeFixProvider
-        : CodeFixProvider
+    internal abstract class AbstractGenerateDefaultConstructorCodeFixProvider : CodeFixProvider
     {
+        public override FixAllProvider? GetFixAllProvider() => null;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
