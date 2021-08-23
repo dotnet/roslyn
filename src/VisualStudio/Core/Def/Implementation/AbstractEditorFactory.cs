@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -113,32 +112,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 case "Form":
 
-                    // We must create the WinForms designer here
-                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
-                    var designerService = (IVSMDDesignerService)Microsoft.VisualStudio.Shell.PackageUtilities.QueryService<SVSMDDesignerService>(_oleServiceProvider);
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
-                    if (designerLoader is null)
+                    if (WinFormsEditorFactory.Instance.CreateEditorInstance(
+                        vsHierarchy,
+                        itemid,
+                        _oleServiceProvider,
+                        textBuffer,
+                        readOnlyStatus,
+                        out ppunkDocView,
+                        out pbstrEditorCaption,
+                        out pguidCmdUI) == VSConstants.E_FAIL)
                     {
                         goto case "Code";
-                    }
-
-                    try
-                    {
-                        designerLoader.Initialize(_oleServiceProvider, vsHierarchy, (int)itemid, (IVsTextLines)textBuffer);
-                        pbstrEditorCaption = designerLoader.GetEditorCaption((int)readOnlyStatus);
-
-                        var designer = designerService.CreateDesigner(_oleServiceProvider, designerLoader);
-                        ppunkDocView = Marshal.GetIUnknownForObject(designer.View);
-                        pguidCmdUI = designer.CommandGuid;
-                    }
-                    catch
-                    {
-                        // Only dispose the designer loader on failure to create a designer.
-                        // The IVSMDDesignerService.CreateDesigner() method in VS passes it into the DesignSurface that gets created
-                        // and is used to perform the actual load (and reloads -- which happen during normal designer operation).
-                        // http://index/?leftProject=Microsoft.VisualStudio.Design&leftSymbol=n8p1tszkfyz7&file=DesignerActivationService.cs&line=629
-                        designerLoader.Dispose();
-                        throw;
                     }
 
                     break;
@@ -205,36 +189,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
         {
             return "Form".Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
-        {
-            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
-
-            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
-            // TODO: This check will eventually move into the WinForms designer itself.
-            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
-                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
-            {
-                return LoaderName;
-            }
-
-            try
-            {
-                var frameworkName = new FrameworkName(targetFrameworkMoniker);
-                if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
-                {
-                    return NewLoaderName;
-                }
-            }
-            catch
-            {
-                // Fall back to the old loader name if there are any failures
-                // while parsing the TFM.
-            }
-
-            return LoaderName;
         }
 
         public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
