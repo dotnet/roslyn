@@ -94,16 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             return node is BracketedArgumentListSyntax;
         }
 
-        protected override string GetArgumentName(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
+        protected override bool ShouldBeCaseSensitive()
         {
-            var identifierNameSyntax = argument.ChildNodes().First(node => syntaxFacts.IsIdentifierName(node));
-            if (identifierNameSyntax == null)
-            {
-                return string.Empty;
-            }
-
-            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax);
-            return identifier.Text;
+            return false;
         }
     }
 }

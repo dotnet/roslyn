@@ -93,14 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Return propertySymbol IsNot Nothing AndAlso propertySymbol.IsDefault
         End Function
 
-        Protected Overrides Function GetArgumentName(argument As SyntaxNode, syntaxFacts As ISyntaxFactsService) As String
-            Dim identifierNameSyntax = argument.ChildNodes().First(Function(node) syntaxFacts.IsIdentifierName(node))
-            If identifierNameSyntax Is Nothing Then
-                Return String.Empty
-            End If
-
-            Dim identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax)
-            Return identifier.Text
+        Protected Overrides Function ShouldBeCaseSensitive() As Boolean
+            Return True
         End Function
     End Class
 End Namespace

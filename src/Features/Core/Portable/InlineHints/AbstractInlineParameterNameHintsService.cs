@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
-        protected abstract string GetArgumentName(SyntaxNode argument, ISyntaxFactsService syntaxFacts);
+        protected abstract bool ShouldBeCaseSensitive();
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -261,8 +262,26 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         private bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol? parameter, ISyntaxFactsService syntaxFacts)
         {
-            var argumentName = GetArgumentName(argument, syntaxFacts);
+            var argumentName = GetIdentifierNameFromArgument(argument, syntaxFacts);
+
+            if (!ShouldBeCaseSensitive())
+            {
+                return argumentName.ToLower().Equals(parameter?.Name.ToLower());
+            }
+
             return argumentName.Equals(parameter?.Name);
+        }
+
+        private static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
+        {
+            var identifierNameSyntax = argument.ChildNodes().First(node => syntaxFacts.IsIdentifierName(node));
+            if (identifierNameSyntax == null)
+            {
+                return string.Empty;
+            }
+
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax);
+            return identifier.ValueText;
         }
     }
 }
