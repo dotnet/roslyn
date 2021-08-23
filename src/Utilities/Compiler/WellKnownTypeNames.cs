@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Analyzer.Utilities
 {
     // IMPORTANT: Keep this file sorted alphabetically.
     internal static class WellKnownTypeNames
     {
+        public const string BenchmarkDotNetAttributesBenchmarkAttribute = "BenchmarkDotNet.Attributes.BenchmarkAttribute";
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string MicrosoftAspNetCoreHttpHttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
@@ -101,6 +102,7 @@ namespace Analyzer.Utilities
         public const string SystemAttributeTargets = "System.AttributeTargets";
         public const string SystemAttributeUsageAttribute = "System.AttributeUsageAttribute";
         public const string SystemBoolean = "System.Boolean";
+        public const string SystemBuffer = "System.Buffer";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemByte = "System.Byte";
         public const string SystemChar = "System.Char";
@@ -281,6 +283,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesComVisibleAttribute = "System.Runtime.InteropServices.ComVisibleAttribute";
         public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
         public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
+        public const string SystemRuntimeInteropServicesDynamicInterfaceCastableImplementationAttribute = "System.Runtime.InteropServices.DynamicInterfaceCastableImplementationAttribute";
         public const string SystemRuntimeInteropServicesFieldOffsetAttribute = "System.Runtime.InteropServices.FieldOffsetAttribute";
         public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";

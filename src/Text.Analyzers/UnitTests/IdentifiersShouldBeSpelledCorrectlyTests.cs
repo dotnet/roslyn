@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,13 +59,13 @@ namespace Text.Analyzers.UnitTests
         [InlineData("class Program { void Member(string name) { } }")]
         [InlineData("class Program { delegate int GetNumber(string name); }")]
         [InlineData("class Program<TResource> { }")]
-        public async Task NoMisspellings_Verify_NoDiagnostics(string source)
+        public async Task NoMisspellings_Verify_NoDiagnosticsAsync(string source)
         {
             await VerifyCSharpAsync(source);
         }
 
         [Fact]
-        public async Task MisspellingAllowedByGlobalXmlDictionary_Verify_NoDiagnostics()
+        public async Task MisspellingAllowedByGlobalXmlDictionary_Verify_NoDiagnosticsAsync()
         {
             var source = "class Clazz { }";
             var dictionary = CreateXmlDictionary(new[] { "clazz" });
@@ -74,7 +74,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MisspellingAllowedByGlobalDicDictionary_Verify_NoDiagnostics()
+        public async Task MisspellingAllowedByGlobalDicDictionary_Verify_NoDiagnosticsAsync()
         {
             var source = "class Clazz { }";
             var dictionary = CreateDicDictionary(new[] { "clazz" });
@@ -83,7 +83,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MisspellingsAllowedByMultipleGlobalDictionaries_Verify_NoDiagnostics()
+        public async Task MisspellingsAllowedByMultipleGlobalDictionaries_Verify_NoDiagnosticsAsync()
         {
             var source = @"class Clazz { const string Naem = ""foo""; }";
             var xmlDictionary = CreateXmlDictionary(new[] { "clazz" });
@@ -93,7 +93,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task CorrectWordDisallowedByGlobalXmlDictionary_Verify_EmitsDiagnostic()
+        public async Task CorrectWordDisallowedByGlobalXmlDictionary_Verify_EmitsDiagnosticAsync()
         {
             var source = "class {|#0:Program|} { }";
             var dictionary = CreateXmlDictionary(null, new[] { "program" });
@@ -107,7 +107,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MisspellingAllowedByProjectDictionary_Verify_NoDiagnostics()
+        public async Task MisspellingAllowedByProjectDictionary_Verify_NoDiagnosticsAsync()
         {
             var source = "class Clazz {}";
             var dictionary = CreateDicDictionary(new[] { "clazz" });
@@ -116,7 +116,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnostic()
+        public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnosticAsync()
         {
             var source = "class {|#0:Clazz|} {}";
             var dictionary = CreateDicDictionary(new[] { "clazz" });
@@ -146,7 +146,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task AssemblyMisspelled_Verify_EmitsDiagnostic()
+        public async Task AssemblyMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = "{|#0:class Program {}|}";
             var test = new VerifyCS.Test
@@ -176,7 +176,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task AssemblyUnmeaningful_Verify_EmitsDiagnostic()
+        public async Task AssemblyUnmeaningful_Verify_EmitsDiagnosticAsync()
         {
             var source = "{|#0:class Program {}|}";
             var test = new VerifyCS.Test
@@ -206,7 +206,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task NamespaceMisspelled_Verify_EmitsDiagnostic()
+        public async Task NamespaceMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = "namespace Tests.{|#0:MyNarmspace|} {}";
 
@@ -218,7 +218,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task NamespaceUnmeaningful_Verify_EmitsDiagnostic()
+        public async Task NamespaceUnmeaningful_Verify_EmitsDiagnosticAsync()
         {
             var source = "namespace Tests.{|#0:A|} {}";
 
@@ -235,7 +235,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("namespace MyNamespace { enum {|#0:MyEnim|} {} }", "Enim", "MyNamespace.MyEnim")]
         [InlineData("namespace MyNamespace { interface {|#0:IMyFase|} {} }", "Fase", "MyNamespace.IMyFase")]
         [InlineData("namespace MyNamespace { delegate int {|#0:MyDelegete|}(); }", "Delegete", "MyNamespace.MyDelegete")]
-        public async Task TypeMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string typeName)
+        public async Task TypeMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string typeName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -250,7 +250,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("enum {|#0:C|} {}", "C")]
         [InlineData("interface {|#0:ID|} {}", "D")]
         [InlineData("delegate int {|#0:E|}();", "E")]
-        public async Task TypeUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName)
+        public async Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -261,7 +261,7 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
-        public async Task MemberMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string memberName)
+        public async Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -271,7 +271,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinition()
+        public async Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
         {
             var source = @"
         abstract class Parent
@@ -307,7 +307,7 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [MemberData(nameof(UnmeaningfulMembers))]
-        public async Task MemberUnmeaningful_Verify_EmitsDiagnostic(string source, string memberName)
+        public async Task MemberUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string memberName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -317,7 +317,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task VariableMisspelled_Verify_EmitsDiagnostic()
+        public async Task VariableMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = @"
         class Program
@@ -337,7 +337,7 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [MemberData(nameof(MisspelledMemberParameters))]
-        public async Task MemberParameterMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string parameterName, string memberName)
+        public async Task MemberParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string parameterName, string memberName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -347,7 +347,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MemberParameterUnmeaningful_Verify_EmitsDiagnostic()
+        public async Task MemberParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
         {
             var source = @"
         class Program
@@ -370,7 +370,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task DelegateParameterMisspelled_Verify_EmitsDiagnostic()
+        public async Task DelegateParameterMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = "delegate void MyDelegate(string {|#0:firstNaem|});";
 
@@ -382,7 +382,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task DelegateParameterUnmeaningful_Verify_EmitsDiagnostic()
+        public async Task DelegateParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
         {
             var source = "delegate void MyDelegate(string {|#0:a|});";
 
@@ -399,7 +399,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("interface IInterface<{|#0:TWroong|}> { }", "IInterface<TWroong>", "Wroong", "TWroong")]
         [InlineData("delegate int MyDelegate<{|#0:TWroong|}>();", "MyDelegate<TWroong>", "Wroong", "TWroong")]
 
-        public async Task TypeTypeParameterMisspelled_Verify_EmitsDiagnostic(string source, string typeName, string misspelling, string typeParameterName)
+        public async Task TypeTypeParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string typeName, string misspelling, string typeParameterName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -413,7 +413,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("struct MyStructure<{|#0:B|}> { }", "MyStructure<B>", "B")]
         [InlineData("interface IInterface<{|#0:C|}> { }", "IInterface<C>", "C")]
         [InlineData("delegate int MyDelegate<{|#0:D|}>();", "MyDelegate<D>", "D")]
-        public async Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName, string typeParameterName)
+        public async Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName, string typeParameterName)
         {
             await VerifyCSharpAsync(
                 source,
@@ -423,7 +423,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MethodTypeParameterMisspelled_Verify_EmitsDiagnostic()
+        public async Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = @"
         class Program
@@ -441,7 +441,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MethodTypeParameterUnmeaningful_Verify_EmitsDiagnostic()
+        public async Task MethodTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
         {
             var source = @"
         class Program
@@ -459,7 +459,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnostics()
+        public async Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnosticsAsync()
         {
             var source = "class FCCA { }";
 
@@ -469,7 +469,7 @@ namespace Text.Analyzers.UnitTests
         [Theory]
         [InlineData("0x0")]
         [InlineData("0xDEADBEEF")]
-        public async Task MisspellingStartsWithADigit_Verify_NoDiagnostics(string misspelling)
+        public async Task MisspellingStartsWithADigit_Verify_NoDiagnosticsAsync(string misspelling)
         {
             var source = $"enum Name {{ My{misspelling} }}";
 
@@ -477,7 +477,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task MalformedXmlDictionary_Verify_EmitsDiagnostic()
+        public async Task MalformedXmlDictionary_Verify_EmitsDiagnosticAsync()
         {
             var contents = @"<?xml version=""1.0"" encoding=""utf-8""?>
         <Dictionary>

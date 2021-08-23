@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41584")]
-        public async Task TestClassWithFact()
+        public async Task TestClassWithFactAsync()
         {
             var code = @"
 using System.Threading.Tasks;
@@ -53,7 +53,7 @@ public async Task [|TestMethod|]() { }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41584")]
-        public async Task TestClassWithTheory()
+        public async Task TestClassWithTheoryAsync()
         {
             var code = @"
 using Xunit;
@@ -80,7 +80,7 @@ public void TestMethod(int arg) { }
         }
 
         [Fact]
-        public async Task TestAlreadyHasAsyncSuffix()
+        public async Task TestAlreadyHasAsyncSuffixAsync()
         {
             var code = @"
 using System.Threading.Tasks;

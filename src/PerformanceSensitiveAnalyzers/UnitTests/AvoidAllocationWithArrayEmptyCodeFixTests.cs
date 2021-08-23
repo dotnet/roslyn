@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
         [InlineData("IEnumerable<int>")]
         [InlineData("IReadOnlyList<int>")]
         [InlineData("IReadOnlyCollection<int>")]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWithReturnType(string type)
+        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWithReturnTypeAsync(string type)
         {
             var initial = $@"
 using System;
@@ -54,7 +54,7 @@ namespace SampleNamespace
         }
 
         [Fact]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWhenReturnFromMethodArray()
+        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWhenReturnFromMethodArrayAsync()
         {
             var before = @"
 using System;
@@ -93,7 +93,7 @@ namespace SampleNamespace
         }
 
         [Fact]
-        public async Task ShouldReplaceEmptyLisCreationWithArrayEmptyForArrowExpression()
+        public async Task ShouldReplaceEmptyLisCreationWithArrayEmptyForArrowExpressionAsync()
         {
             var before = @"
 using System;
@@ -125,7 +125,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 48, 11, 63), after);
         }
         [Fact]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyForReadonlyProperty()
+        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyForReadonlyPropertyAsync()
         {
             var before = @"
 using System;
@@ -157,7 +157,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 59, 11, 74), after);
         }
         [Fact]
-        public async Task ShouldReplaceEmptyListWithCreationWithPredefinedSizeWithArrayEmpty()
+        public async Task ShouldReplaceEmptyListWithCreationWithPredefinedSizeWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -195,7 +195,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 37), after);
         }
         [Fact]
-        public async Task ShouldNotProposeCodeFixWhenNonEmptyListCreated()
+        public async Task ShouldNotProposeCodeFixWhenNonEmptyListCreatedAsync()
         {
             var code = @"
 using System;
@@ -217,7 +217,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 41), code);
         }
         [Fact]
-        public async Task ShouldNotProposeCodeFixWhenReturnTypeInheritFormEnumerable()
+        public async Task ShouldNotProposeCodeFixWhenReturnTypeInheritFormEnumerableAsync()
         {
             var code = @"
 using System;
@@ -239,7 +239,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 35), code);
         }
         [Fact]
-        public async Task ShouldNotProposeCodeFixWhenForCollectionCreationUsingCopyConstructor()
+        public async Task ShouldNotProposeCodeFixWhenForCollectionCreationUsingCopyConstructorAsync()
         {
             var code = @"
 using System;
@@ -268,7 +268,7 @@ namespace SampleNamespace
                 }, code);
         }
         [Fact]
-        public async Task ShouldReplacEmptyCollectionCreationWithArrayEmpty()
+        public async Task ShouldReplacEmptyCollectionCreationWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -308,7 +308,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 20, 14, 41), after);
         }
         [Fact]
-        public async Task ShouldReplaceEmptyArrayCreationWithArrayEmpty()
+        public async Task ShouldReplaceEmptyArrayCreationWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -346,7 +346,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 30), after);
         }
         [Fact]
-        public async Task ShouldNotProposeCodeFixWhenNonEmptyArrayCreation()
+        public async Task ShouldNotProposeCodeFixWhenNonEmptyArrayCreationAsync()
         {
             var code = @"
 using System;
@@ -368,7 +368,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 35), code);
         }
         [Fact]
-        public async Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmpty()
+        public async Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -406,7 +406,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 33), after);
         }
         [Fact]
-        public async Task ShouldReplaceListCreationAsMethodInvocationParameterWithArrayEmpty()
+        public async Task ShouldReplaceListCreationAsMethodInvocationParameterWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -454,7 +454,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 16, 13, 31), after);
         }
         [Fact]
-        public async Task ShouldReplaceArrayCreationAsMethodInvocationParameterWithArrayEmpty()
+        public async Task ShouldReplaceArrayCreationAsMethodInvocationParameterWithArrayEmptyAsync()
         {
             var before = @"
 using System;
@@ -502,7 +502,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 16, 13, 26), after);
         }
         [Fact]
-        public async Task ShouldReplaceArrayCreationAsDelegateInvocationParameterWithArrayEmpty()
+        public async Task ShouldReplaceArrayCreationAsDelegateInvocationParameterWithArrayEmptyAsync()
         {
             var before = @"
 using System;
