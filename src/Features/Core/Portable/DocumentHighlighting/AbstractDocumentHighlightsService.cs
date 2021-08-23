@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                // Call the project overload.  We don't need the full solution synchronized over to the OOP
-                // in order to highlight values in this document.
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
-                    document.Project,
+                    solution,
                     (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
