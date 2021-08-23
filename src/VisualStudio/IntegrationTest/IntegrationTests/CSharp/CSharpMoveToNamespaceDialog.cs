@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -144,6 +145,7 @@ namespace A
             MoveToNamespaceDialog.ClickOK();
             MoveToNamespaceDialog.VerifyClosed();
 
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
             VisualStudio.Editor.Verify.TextContains(
 @"namespace B
 {
