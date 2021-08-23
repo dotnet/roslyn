@@ -16,9 +16,11 @@
     <DotNetFinalVersionKind>caravela</DotNetFinalVersionKind>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
-      Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
+      ~~Keep the setting conditional.~~ The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
+      In Caravela, we have removed the condition. Caravela TODO: Why?
     -->
     <AssemblyVersion>$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
+    <RoslynVersionForCaravela>$(MajorVersion).$(MinorVersion).0</RoslynVersionForCaravela>
     <!-- </Caravela> -->
     <MajorVersion>
     </MajorVersion>
