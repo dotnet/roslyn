@@ -94,7 +94,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         End Function
 
         Protected Overrides Function GetArgumentName(argument As SyntaxNode, syntaxFacts As ISyntaxFactsService) As String
-            Throw New NotImplementedException()
+            Dim identifierNameSyntax = argument.ChildNodes().First(Function(node) syntaxFacts.IsIdentifierName(node))
+            If identifierNameSyntax Is Nothing Then
+                Return String.Empty
+            End If
+
+            Dim identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax)
+            Return identifier.Text
         End Function
     End Class
 End Namespace
