@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateDefaultConstructors), [Shared]>
     Friend Class VisualBasicGenerateDefaultConstructorsCodeFixProvider
         Inherits AbstractGenerateDefaultConstructorCodeFixProvider
 

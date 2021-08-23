@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateDefaultConstructors), Shared]
     internal class CSharpGenerateDefaultConstructorsCodeFixProvider : AbstractGenerateDefaultConstructorCodeFixProvider
     {
         private const string CS1729 = nameof(CS1729); // 'B' does not contain a constructor that takes 0 arguments CSharpConsoleApp3   C:\Users\cyrusn\source\repos\CSharpConsoleApp3\CSharpConsoleApp3\Program.cs	1	Active
