@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (GeneratedNames.TryParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount))
                 {
                     var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
-                    this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key.Name, refKinds, returnsVoid, parameterCount));
+                    this.SynthesizedDelegates.GetOrAdd(delegateKey, (k, args) => CreatePlaceholderSynthesizedDelegateValue(key.Name, args.refKinds, args.returnsVoid, args.parameterCount), (refKinds, returnsVoid, parameterCount));
                 }
             }
 
