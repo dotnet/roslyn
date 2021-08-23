@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.DocumentStates.States.Values,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
@@ -254,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.AdditionalDocumentStates.States.Values,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
@@ -266,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.AnalyzerConfigDocumentStates.States.Values,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
@@ -337,6 +340,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,
+                ProjectStateChecksums projectChecksums,
                 IEnumerable<TextDocumentState> existingTextDocumentStates,
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
@@ -355,6 +359,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
                 var newMap = await GetDocumentMapAsync(_assetProvider, news.Object).ConfigureAwait(false);
+
+                // If more than two documents changed during a single update, perform a bulk synchronization on the
+                // project to avoid large numbers of small synchronization calls during document updates.
+                // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
+                if (newMap.Count > 2)
+                {
+                    await _assetProvider.SynchronizeProjectAssetsAsync(new[] { projectChecksums.Checksum }, _cancellationToken).ConfigureAwait(false);
+                }
 
                 // added document
                 ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
