@@ -66,6 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             UpdateBackgroundColor();
         }
 
+        /// <summary>
+        /// Generate the glyph by the given <paramref name="tag"/>, and add it to the margin.
+        /// It should only be called by UI thread because UI element are manipulated by this method.
+        /// </summary>
         public void AddGlyph(InheritanceMarginTag tag, SnapshotSpan span)
         {
             AssertIsForeground();
@@ -81,6 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
+        /// <summary>
+        /// Remove the glyphs covered by <paramref name="snapshotSpan"/>.
+        /// It should only be called by UI thread because UI element are manipulated by this method.
+        /// </summary>
         public void RemoveGlyph(SnapshotSpan snapshotSpan)
         {
             AssertIsForeground();
@@ -94,6 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
+        /// <summary>
+        /// Remove the glyphs that are no long visible or covered by the <paramref name="newOrReformattedLines"/>.
+        /// Refresh all the other the existing glyphs with the <paramref name="snapshot"/>.
+        /// It should only be called by UI thread because UI element are manipulated by this method.
+        /// </summary>
         public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
         {
             AssertIsForeground();
