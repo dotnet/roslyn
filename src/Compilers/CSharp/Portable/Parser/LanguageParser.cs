@@ -3435,7 +3435,7 @@ parse_member_name:;
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                     }
                 }
 
@@ -6271,7 +6271,7 @@ tryAgain:
             }
         }
 
-        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator, bool reportAnErrorOnMisplacedColonColon = false)
+        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator)
         {
             // first parse the upcoming name portion.
 
@@ -6310,13 +6310,7 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
                 {
                     separator = this.EatToken();
-
-                    if (reportAnErrorOnMisplacedColonColon)
-                    {
-                        // The https://github.com/dotnet/roslyn/issues/53021 is tracking fixing this in general
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
-                    }
-
+                    separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
@@ -6403,7 +6397,7 @@ tryAgain:
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                     }
                 }
 
