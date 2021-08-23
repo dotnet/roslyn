@@ -112,6 +112,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsConcurrentConcurrentStack1 = "System.Collections.Concurrent.ConcurrentStack`1";
         public const string SystemCollectionsGenericDictionary2 = "System.Collections.Generic.Dictionary`2";
         public const string SystemCollectionsGenericHashSet1 = "System.Collections.Generic.HashSet`1";
+        public const string SystemCollectionsGenericIAsyncEnumerable1 = "System.Collections.Generic.IAsyncEnumerable`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
         public const string SystemCollectionsGenericIDictionary2 = "System.Collections.Generic.IDictionary`2";
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
@@ -257,6 +258,7 @@ namespace Analyzer.Utilities
         public const string SystemReflectionParameterInfo = "System.Reflection.ParameterInfo";
         public const string SystemResourcesNeutralResourcesLanguageAttribute = "System.Resources.NeutralResourcesLanguageAttribute";
         public const string SystemResourcesResourceManager = "System.Resources.ResourceManager";
+        public const string SystemRuntimeCompilerServicesAsyncMethodBuilderAttribute = "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute";
         public const string SystemRuntimeCompilerServicesCallerFilePathAttribute = "System.Runtime.CompilerServices.CallerFilePathAttribute";
         public const string SystemRuntimeCompilerServicesCallerLineNumberAttribute = "System.Runtime.CompilerServices.CallerLineNumberAttribute";
         public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
@@ -269,7 +271,9 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesModuleInitializerAttribute = "System.Runtime.CompilerServices.ModuleInitializerAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRuntimeFeature = "System.Runtime.CompilerServices.RuntimeFeature";
+        public const string SystemRuntimeCompilerServicesTaskAwaiter = "System.Runtime.CompilerServices.TaskAwaiter";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
+        public const string SystemRuntimeCompilerServicesValueTaskAwaiter = "System.Runtime.CompilerServices.ValueTaskAwaiter";
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
