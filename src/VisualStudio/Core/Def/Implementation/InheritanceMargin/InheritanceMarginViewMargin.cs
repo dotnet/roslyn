@@ -225,6 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
                 _optionService.OptionChanged -= OnRoslynOptionChanged;
                 _tagAggregator.Dispose();
+                _glyphManager.Dispose();
                 _disposed = true;
             }
         }

@@ -17,6 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
+    /// <summary>
+    /// GlyphFactory provides the InheritanceMargin shows in IndicatorMargin. (Margin shared with breakpoint)
+    /// </summary>
     internal sealed class InheritanceGlyphFactory : IGlyphFactory
     {
         private readonly IThreadingContext _threadingContext;
@@ -51,6 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
 
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            // The life cycle of the glyphs in Indicator Margin is controlled by the editor,
+            // so in order to get the glyphs removed when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is off,
+            // we need
+            // 1. Generate tags when this option changes.
+            // 2. Always return null here to force the editor to remove the glyphs.
             var combineWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, document.Project.Language);
             if (combineWithIndicatorMargin && tag is InheritanceMarginTag inheritanceMarginTag)
             {

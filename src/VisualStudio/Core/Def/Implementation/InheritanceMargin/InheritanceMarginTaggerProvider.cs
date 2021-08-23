@@ -50,6 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
+            // Note: Also generate tags when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
+            // because we want to refresh the glyphs in indicator margin.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 AsyncListener,

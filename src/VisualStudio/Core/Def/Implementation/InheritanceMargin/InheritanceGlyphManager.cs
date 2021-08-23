@@ -22,9 +22,9 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     /// <summary>
-    /// Manager controls all the glyph of Inheritance Margin
+    /// Manager controls all the glyphs of Inheritance Margin in <see cref="InheritanceMarginViewMargin"/>.
     /// </summary>
-    internal class InheritanceGlyphManager
+    internal class InheritanceGlyphManager : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly IWpfTextView _textView;
         private readonly IThreadingContext _threadingContext;
@@ -36,8 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
         private readonly Canvas _glyphsContainer;
 
-        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin
+        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
         private const string GlyphMarginName = "Indicator Margin";
+
+        // The same width and height as the margin of indicator margin.
+        private const double HeighAndWidthOfTheGlyph = 17;
 
         public InheritanceGlyphManager(
             IWpfTextView textView,
@@ -47,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
             IEditorFormatMap editorFormatMap,
-            Canvas canvas)
+            Canvas canvas) : base(threadingContext, assertIsForeground: true)
         {
             _textView = textView;
             _threadingContext = threadingContext;
@@ -60,18 +63,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
-            _textView.Closed += OnClosed;
             UpdateBackgroundColor();
         }
 
         public void AddGlyph(InheritanceMarginTag tag, SnapshotSpan span)
         {
+            AssertIsForeground();
             var lines = _textView.TextViewLines;
             if (GetStartingLine(lines, span) is IWpfTextViewLine line)
             {
                 var glyph = CreateNewGlyph(tag);
-                glyph.Height = 17;
-                glyph.Width = 17;
+                glyph.Height = HeighAndWidthOfTheGlyph;
+                glyph.Width = HeighAndWidthOfTheGlyph;
                 SetTop(line, glyph);
                 _glyphToTaggedSpan[glyph] = span;
                 _glyphsContainer.Children.Add(glyph);
@@ -80,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public void RemoveGlyph(SnapshotSpan snapshotSpan)
         {
+            AssertIsForeground();
             var marginsToRemove = _glyphToTaggedSpan
                 .Where(kvp => snapshotSpan.IntersectsWith(kvp.Value))
                 .ToImmutableArray();
@@ -92,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
         {
+            AssertIsForeground();
             if (_glyphToTaggedSpan.Count > 0)
             {
                 // Go through all the existing visuals and invalidate or transform as appropriate.
@@ -122,9 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         private void SetTop(ITextViewLine line, InheritanceMarginGlyph glyph)
-        {
-            Canvas.SetTop(glyph, line.TextTop - _textView.ViewportTop);
-        }
+            => Canvas.SetTop(glyph, line.TextTop - _textView.ViewportTop);
 
         private static ITextViewLine? GetStartingLine(IList<ITextViewLine> lines, Span span)
         {
@@ -169,11 +172,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
             => UpdateBackgroundColor();
 
-        private void OnClosed(object sender, EventArgs e)
-            => _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
-
         private void UpdateBackgroundColor()
         {
+            AssertIsForeground();
             var resourceDictionary = _editorFormatMap.GetProperties(GlyphMarginName);
             if (resourceDictionary.Contains(EditorFormatDefinition.BackgroundColorId))
             {
@@ -181,6 +182,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Set background color for all the glyphs
                 ImageThemingUtilities.SetImageBackgroundColor(_glyphsContainer, backgroundColor);
             }
+        }
+
+        public void Dispose()
+        {
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
         }
     }
 }
