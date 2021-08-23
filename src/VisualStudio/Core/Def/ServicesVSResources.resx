@@ -1765,6 +1765,9 @@ Additional information: {1}</value>
   <data name="Visual_Studio_Settings" xml:space="preserve">
     <value>Visual Studio Settings</value>
   </data>
+  <data name="Show_hints_for_indexers" xml:space="preserve">
+    <value>Show hints for indexers</value>
+  </data>
   <data name="Sync_Namespaces" xml:space="preserve">
     <value>Sync Namespaces</value>
     <comment>"Namespaces" is the programming language concept</comment>
@@ -1793,5 +1796,17 @@ Additional information: {1}</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="Default_Current_Document" xml:space="preserve">
+    <value>Default (Current Document)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Entire_Solution" xml:space="preserve">
+    <value>Default (Entire Solution)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Open_Documents" xml:space="preserve">
+    <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
   </data>
 </root>
