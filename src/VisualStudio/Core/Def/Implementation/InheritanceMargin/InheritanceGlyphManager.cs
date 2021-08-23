@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             AssertIsForeground();
             var lines = _textView.TextViewLines;
-            if (GetStartingLine(lines, span) is IWpfTextViewLine line)
+            if (lines.IntersectsBufferSpan(span) && GetStartingLine(lines, span) is IWpfTextViewLine line)
             {
                 var glyph = CreateNewGlyph(tag);
                 glyph.Height = HeighAndWidthOfTheGlyph;
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var marginsToRemove = _glyphToTaggedSpan
                 .Where(kvp => snapshotSpan.IntersectsWith(kvp.Value))
                 .ToImmutableArray();
-            foreach (var (margin, span) in marginsToRemove)
+            foreach (var (margin, _) in marginsToRemove)
             {
                 _glyphsContainer.Children.Remove(margin);
                 _glyphToTaggedSpan.Remove(margin);
