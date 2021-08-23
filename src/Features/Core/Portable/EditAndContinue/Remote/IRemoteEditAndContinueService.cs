@@ -40,13 +40,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
         /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DocumentId>> BreakStateChangedAsync(DebuggingSessionId sessionId, bool isBreakState, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
         /// </summary>
         ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
-
         ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken);
 

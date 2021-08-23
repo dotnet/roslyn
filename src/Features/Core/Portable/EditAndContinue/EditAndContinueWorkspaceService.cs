@@ -157,11 +157,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
         }
 
-        public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateChanged(DebuggingSessionId sessionId, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
-            debuggingSession.BreakStateEntered(out documentsToReanalyze);
+            debuggingSession.BreakStateChanged(inBreakState, out documentsToReanalyze);
         }
 
         public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
