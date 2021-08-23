@@ -191,12 +191,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
                 var workspaceVersion = ReadProperty<long>(reader);
                 var checksum = ReadProperty<Checksum>(reader, serializer);
-                var projectId = ReadProperty<ProjectId>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum, projectId);
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -214,9 +213,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("checksum");
                 serializer.Serialize(writer, scope.SolutionChecksum);
-
-                writer.WritePropertyName("projectId");
-                serializer.Serialize(writer, scope.ProjectId);
 
                 writer.WriteEndObject();
             }

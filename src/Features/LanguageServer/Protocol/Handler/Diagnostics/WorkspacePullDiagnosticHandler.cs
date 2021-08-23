@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
+                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
                     {
                         context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");

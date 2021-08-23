@@ -66,9 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 if (!isFullyLoaded)
                     return;
 
-                // Call the project overload.  We don't need to sync the full solution just to classify this document.
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
-                    document.Project,
+                    document.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }

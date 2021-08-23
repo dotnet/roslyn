@@ -66,7 +66,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             await UpdatePrimaryWorkspace(client, solution);
-            await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
+            await VerifyAssetStorageAsync(client, solution);
 
             var remoteWorkpace = client.GetRemoteWorkspace();
 
@@ -91,7 +91,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // sync base solution
             await UpdatePrimaryWorkspace(client, solution);
-            await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
+            await VerifyAssetStorageAsync(client, solution);
 
             // get basic info
             var oldDocument = solution.Projects.First().Documents.First();
@@ -185,7 +185,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
             map ??= new Dictionary<Checksum, object>();
-            await solution.AppendAssetMapAsync(includeProjectCones: true, map, CancellationToken.None);
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
@@ -259,7 +259,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteWorkspace = client.GetRemoteWorkspace();
 
             await UpdatePrimaryWorkspace(client, solution);
-            await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
+            await VerifyAssetStorageAsync(client, solution);
 
             // Only C# and VB projects are supported in Remote workspace.
             // See "RemoteSupportedLanguages.IsSupported"
@@ -292,7 +292,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // verify initial setup
             await UpdatePrimaryWorkspace(client, solution);
-            await VerifyAssetStorageAsync(client, solution, includeProjectCones: false);
+            await VerifyAssetStorageAsync(client, solution);
 
             solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkspace);
 
@@ -418,9 +418,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution, bool includeProjectCones)
+        private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution)
         {
-            var map = await solution.GetAssetMapAsync(includeProjectCones, CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
             var storage = client.TestData.WorkspaceManager.SolutionAssetCache;
 

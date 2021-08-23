@@ -139,7 +139,7 @@ class Test
 {
     void Method()
     {
-        var t1 = [||](a: 1, B: 2);
+        var t1 = [||](a: 1, b: 2);
     }
 }
 ";
@@ -148,20 +148,20 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, B: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
     }
 }
 
-internal record struct NewStruct(int a, int B)
+internal record struct NewStruct(int a, int b)
 {
-    public static implicit operator (int a, int B)(NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
-        return (value.a, value.B);
+        return (value.a, value.b);
     }
 
-    public static implicit operator NewStruct((int a, int B) value)
+    public static implicit operator NewStruct((int a, int b) value)
     {
-        return new NewStruct(value.a, value.B);
+        return new NewStruct(value.a, value.b);
     }
 }";
             await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
@@ -208,7 +208,7 @@ internal record struct NewStruct(int a, int b)
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
+        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
         {
             var text = @"
 class Test
@@ -224,12 +224,27 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(A: 1, B: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
     }
 }
 
-internal record struct NewStruct(int A, int B)
+internal record struct NewStruct
 {
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
     public static implicit operator (int A, int B)(NewStruct value)
     {
         return (value.A, value.B);

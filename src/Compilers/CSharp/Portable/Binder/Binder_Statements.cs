@@ -1878,15 +1878,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (reason == LambdaConversionResult.CannotInferDelegateType)
-            {
-                Debug.Assert(targetType.SpecialType == SpecialType.System_Delegate || targetType.IsNonGenericExpressionType());
-                Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
-                var lambda = anonymousFunction.BindForErrorRecovery();
-                diagnostics.AddRange(lambda.Diagnostics);
-                return;
-            }
-
             // At this point we know that we have either a delegate type or an expression type for the target.
 
             // The target type is a valid delegate or expression tree type. Is there something wrong with the

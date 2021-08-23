@@ -8,19 +8,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(
-            Checksum attributesChecksum,
-            Checksum optionsChecksum,
-            ChecksumCollection projectChecksums,
-            ChecksumCollection analyzerReferenceChecksums,
-            Checksum frozenSourceGeneratedDocumentIdentity,
-            Checksum frozenSourceGeneratedDocumentText)
+        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ChecksumCollection projectChecksums, ChecksumCollection analyzerReferenceChecksums, Checksum frozenSourceGeneratedDocumentIdentity, Checksum frozenSourceGeneratedDocumentText)
             : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
         {
         }
@@ -43,10 +38,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (searchingChecksumsLeft.Count == 0)
-                return;
 
             // verify input
+            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
+            Contract.ThrowIfFalse(this == stateChecksum);
+
             if (searchingChecksumsLeft.Remove(Checksum))
             {
                 result[Checksum] = this;
@@ -57,26 +53,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Attributes] = state.SolutionAttributes;
             }
 
-            // The Options field could be referring to the full solution-options, or it could be referring to a
-            // partially computed options for a project-subset.  Check for both cases.
             if (searchingChecksumsLeft.Remove(Options))
             {
-                if (state.TryGetStateChecksums(out var stateChecksums) && stateChecksums.Options == Options)
-                {
-                    result[Options] = state.Options;
-                }
-                else
-                {
-                    foreach (var projectId in state.ProjectIds)
-                    {
-                        if (state.TryGetStateChecksums(projectId, out var tuple) &&
-                            tuple.checksums.Options == Options)
-                        {
-                            result[Options] = tuple.options;
-                            break;
-                        }
-                    }
-                }
+                result[Options] = state.Options;
             }
 
             if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
@@ -103,13 +82,19 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             foreach (var (_, projectState) in state.ProjectStates)
             {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
+                // solution state checksum can't be created without project state checksums created first
+                // check unsupported projects
+                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
+                {
+                    Contract.ThrowIfTrue(RemoteSupportedLanguages.IsSupported(projectState.Language));
+                    continue;
+                }
 
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been
-                // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                if (searchingChecksumsLeft.Count == 0)
+                {
+                    break;
+                }
             }
 
             ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
@@ -168,9 +153,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
-
-            if (searchingChecksumsLeft.Count == 0)
-                return;
 
             if (searchingChecksumsLeft.Remove(Checksum))
             {
