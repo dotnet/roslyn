@@ -256,8 +256,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // either way, we want to change it to a member access expression for the type that is imported
                     root = root.ReplaceNode(
                         refNode,
-                        generator.MemberAccessExpression(generator.TypeExpression(newType), refNode)
-                            .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)));
+                        generator.MemberAccessExpression(
+                            generator.TypeExpression(newType)
+                                .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)),
+                            refNode));
                 }
             }
 
