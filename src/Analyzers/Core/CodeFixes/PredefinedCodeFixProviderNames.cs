@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string FixReturnType = nameof(FixReturnType);
         public const string GenerateConstructor = nameof(GenerateConstructor);
+        public const string GenerateDefaultConstructors = nameof(GenerateDefaultConstructors);
         public const string GenerateEndConstruct = nameof(GenerateEndConstruct);
         public const string GenerateEnumMember = nameof(GenerateEnumMember);
         public const string GenerateEvent = nameof(GenerateEvent);

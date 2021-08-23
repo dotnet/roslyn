@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -47,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap,
             IEditorFormatMap editorFormatMap,
+            IAsynchronousOperationListener listener,
             ITagAggregator<InheritanceMarginTag> tagAggregator,
             Document document)
         {
@@ -66,6 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 classificationFormatMap,
                 operationExecutor,
                 editorFormatMap,
+                listener,
                 _mainCanvas);
             _refreshAllGlyphs = true;
             _disposed = false;

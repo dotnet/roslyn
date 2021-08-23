@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IEditorFormatMapService _editorFormatMapService;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMapService classificationFormatMapService,
             IUIThreadOperationExecutor operationExecutor,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IEditorFormatMapService editorFormatMapService)
+            IEditorFormatMapService editorFormatMapService,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -51,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
             _editorFormatMapService = editorFormatMapService;
+            _listenerProvider = listenerProvider;
         }
 
         public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
@@ -58,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(wpfTextViewHost.TextView);
             var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(wpfTextViewHost.TextView);
             var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var listner = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
             if (document != null)
             {
                 return new InheritanceMarginViewMargin(
@@ -68,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
                     _classificationTypeMap,
                     editorFormatMap,
+                    listner,
                     tagAggregator,
                     document);
             }

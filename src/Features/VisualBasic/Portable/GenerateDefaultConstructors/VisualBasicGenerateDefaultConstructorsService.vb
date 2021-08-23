@@ -4,13 +4,13 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+Imports Microsoft.CodeAnalysis.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConstructors
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
     <ExportLanguageService(GetType(IGenerateDefaultConstructorsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateDefaultConstructorsService
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)

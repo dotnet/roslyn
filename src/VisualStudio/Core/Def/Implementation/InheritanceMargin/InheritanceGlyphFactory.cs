@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IWpfTextView _textView;
+        private readonly IAsynchronousOperationListener _listener;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
@@ -35,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
-            IWpfTextView textView)
+            IWpfTextView textView,
+            IAsynchronousOperationListener listener)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -43,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationFormatMap = classificationFormatMap;
             _operationExecutor = operationExecutor;
             _textView = textView;
+            _listener = listener;
         }
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
@@ -72,7 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     _classificationFormatMap,
                     _operationExecutor,
                     inheritanceMarginTag,
-                    _textView);
+                    _textView,
+                    _listener);
             }
 
             return null;

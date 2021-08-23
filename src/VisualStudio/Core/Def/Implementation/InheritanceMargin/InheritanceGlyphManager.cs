@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IAsynchronousOperationListener _listener;
         private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
         private readonly Canvas _glyphsContainer;
 
@@ -50,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
             IEditorFormatMap editorFormatMap,
+            IAsynchronousOperationListener listener,
             Canvas canvas) : base(threadingContext, assertIsForeground: true)
         {
             _textView = textView;
@@ -60,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _editorFormatMap = editorFormatMap;
             _glyphsContainer = canvas;
+            _listener = listener;
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
@@ -180,7 +184,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _classificationFormatMap,
                 _operationExecutor,
                 tag,
-                _textView);
+                _textView,
+                _listener);
 
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
             => UpdateBackgroundColor();

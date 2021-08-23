@@ -257,6 +257,21 @@
         <target state="translated">目前的參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="new">Default (Current Document)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="new">Default (Entire Solution)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="new">Default (Open Documents)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="new">Derived types</target>
@@ -1085,6 +1100,11 @@
       <trans-unit id="Show_hints_for_implicit_object_creation">
         <source>Show hints for implicit object creation</source>
         <target state="translated">顯示隱含物件建立的提示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
