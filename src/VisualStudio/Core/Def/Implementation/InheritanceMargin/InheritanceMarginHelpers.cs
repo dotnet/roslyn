@@ -17,25 +17,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     internal static class InheritanceMarginHelpers
     {
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.ImplementedInterface,
-                InheritanceRelationship.InheritedInterface,
-                InheritanceRelationship.ImplementedMember);
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.ImplementedInterface)
+            .Add(InheritanceRelationship.InheritedInterface)
+            .Add(InheritanceRelationship.ImplementedMember);
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Down_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.ImplementingType,
-                InheritanceRelationship.ImplementingMember);
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.ImplementingType)
+            .Add(InheritanceRelationship.ImplementingMember);
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Up_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.BaseType,
-                InheritanceRelationship.OverriddenMember);
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.BaseType)
+            .Add(InheritanceRelationship.OverriddenMember);
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Down_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.DerivedType,
-                InheritanceRelationship.OverridingMember);
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.DerivedType)
+            .Add(InheritanceRelationship.OverridingMember);
 
         /// <summary>
         /// Decide which moniker should be shown.
@@ -53,18 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 && s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
                 return KnownMonikers.ImplementingOverriding;
-            }
-
-            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_I_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
-            {
-                return KnownMonikers.ImplementingImplemented;
-            }
-
-            if (s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
-                && s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
-            {
-                return KnownMonikers.OverridingOverridden;
             }
 
             // Otherwise, show the image based on this preference
