@@ -5483,6 +5483,31 @@ class Derived : Base
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromInitializer()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public int TestInt = string.Emp$$ty.Length;
+}";
+
+            var expected = @"
+class Base
+{
+    public int TestInt = string.Emp$$ty.Length;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public Task TestRefactoringFieldFromType()
         {
             var testText = @"
