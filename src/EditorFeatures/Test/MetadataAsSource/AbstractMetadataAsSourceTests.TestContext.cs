@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -87,6 +88,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
                 Contract.ThrowIfNull(symbol);
 
+                if (allowDecompilation)
+                {
+                    foreach (var reference in compilation.References)
+                    {
+                        if (AssemblyResolver.TestAccessor.ContainsInMemoryImage(reference))
+                        {
+                            continue;
+                        }
+
+                        if (reference is PortableExecutableReference portableExecutable)
+                        {
+                            Assert.True(File.Exists(portableExecutable.FilePath), $"'{portableExecutable.FilePath}' does not exist for reference '{portableExecutable.Display}'");
+                            Assert.True(Path.IsPathRooted(portableExecutable.FilePath), $"'{portableExecutable.FilePath}' is not a fully-qualified file name");
+                        }
+                        else
+                        {
+                            Assert.True(File.Exists(reference.Display), $"'{reference.Display}' does not exist");
+                            Assert.True(Path.IsPathRooted(reference.Display), $"'{reference.Display}' is not a fully-qualified file name");
+                        }
+                    }
+                }
+
                 // Generate and hold onto the result so it can be disposed of with this context
                 var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
 
@@ -106,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool allowDecompilation = false)
             {
-                var result = await GenerateSourceAsync(symbolMetadataName, project);
+                var result = await GenerateSourceAsync(symbolMetadataName, project, allowDecompilation);
                 VerifyResult(result, expected);
             }
 
@@ -219,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true""", languageVersionAttribute);
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true"" ReferencesOnDisk=""true""", languageVersionAttribute);
 
                 xmlString += ">";
 

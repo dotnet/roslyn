@@ -10976,9 +10976,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -19208,9 +19208,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24285,9 +24285,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.AddMethod);
-            VaidateP01Accessor(p01.RemoveMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.AddMethod);
+            ValidateP01Accessor(p01.RemoveMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24527,9 +24527,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.ProtectedAndInternal, p14.DeclaredAccessibility);
 
-            VaidateP14Accessor(p14.AddMethod);
-            VaidateP14Accessor(p14.RemoveMethod);
-            void VaidateP14Accessor(MethodSymbol accessor)
+            ValidateP14Accessor(p14.AddMethod);
+            ValidateP14Accessor(p14.RemoveMethod);
+            void ValidateP14Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -45507,7 +45507,7 @@ public interface ITest33
 " + NoPiaAttributes;
 
             var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll);
-            var pia2Refernce = pia2Compilation.EmitToImageReference();
+            var pia2Reference = pia2Compilation.EmitToImageReference();
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
@@ -45515,7 +45515,7 @@ public interface ITest33
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
             }

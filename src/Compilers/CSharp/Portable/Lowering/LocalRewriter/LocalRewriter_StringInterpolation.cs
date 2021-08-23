@@ -43,12 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// local temp.
         /// </summary>
         /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
-        private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
+        private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
         {
-            Debug.Assert(node.InterpolationData is { Construction: not null });
-            Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundDynamicInvocation or BoundDynamicMemberAccess or BoundDynamicIndexerAccess));
-            var data = node.InterpolationData.Value;
-            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
+            Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
+            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
@@ -57,7 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal? appendShouldProceedLocal = null;
             if (data.HasTrailingHandlerValidityParameter)
             {
-                Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
+#if DEBUG
+                for (int i = construction.ArgumentRefKindsOpt.Length - 1; i >= 0; i--)
+                {
+                    if (construction.ArgumentRefKindsOpt[i] == RefKind.Out)
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(construction.ArgumentRefKindsOpt[i] == RefKind.None);
+                    Debug.Assert(construction.DefaultArguments[i]);
+                }
+#endif
 
                 BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
                 TypeSymbol localType = trailingParameter.Type;
@@ -72,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPlaceholderReplacement(data.ReceiverPlaceholder, builderTemp);
             bool usesBoolReturns = data.UsesBoolReturns;
-            var resultExpressions = ArrayBuilder<BoundExpression>.GetInstance(node.Parts.Length + 1);
+            var resultExpressions = ArrayBuilder<BoundExpression>.GetInstance(parts.Length + 1);
 
-            foreach (var part in node.Parts)
+            foreach (var part in parts)
             {
                 if (part is BoundCall call)
                 {
@@ -101,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (usesBoolReturns)
             {
                 // We assume non-bool returns if there was no parts to the string, and code below is predicated on that.
-                Debug.Assert(!node.Parts.IsEmpty);
+                Debug.Assert(!parts.IsEmpty);
                 // Start the sequence with appendProceedLocal, if appropriate
                 BoundExpression? currentExpression = appendShouldProceedLocal;
 
@@ -234,18 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? result;
 
-            if (node.InterpolationData is not null)
+            if (node.InterpolationData is InterpolatedStringHandlerData data)
             {
-                // If we can lower to the builder pattern, do so.
-                (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerTemp) = RewriteToInterpolatedStringHandlerPattern(node);
-
-                // resultTemp = builderTemp.ToStringAndClear();
-                var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: node.Syntax);
-                BoundExpression toStringAndClearCall = toStringAndClear is not null
-                    ? BoundCall.Synthesized(node.Syntax, handlerTemp, toStringAndClear)
-                    : new BoundBadExpression(node.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, node.Type);
-
-                return _factory.Sequence(ImmutableArray.Create(handlerTemp.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
+                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type);
             }
             else if (CanLowerToStringConcatenation(node))
             {
@@ -324,6 +324,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type)
+        {
+            // If we can lower to the builder pattern, do so.
+            (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerTemp) = RewriteToInterpolatedStringHandlerPattern(data, parts, syntax);
+
+            // resultTemp = builderTemp.ToStringAndClear();
+            var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
+            BoundExpression toStringAndClearCall = toStringAndClear is not null
+                ? BoundCall.Synthesized(syntax, handlerTemp, toStringAndClear)
+                : new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
+
+            return _factory.Sequence(ImmutableArray.Create(handlerTemp.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
+        }
+
         [Conditional("DEBUG")]
         private static void AssertNoImplicitInterpolatedStringHandlerConversions(ImmutableArray<BoundExpression> arguments, bool allowConversionsWithNoContext = false)
         {
@@ -331,9 +345,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var arg in arguments)
                 {
-                    if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: BoundInterpolatedString @string })
+                    if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: var operand })
                     {
-                        Debug.Assert(((BoundObjectCreationExpression)@string.InterpolationData!.Value.Construction).Arguments.All(
+                        var data = operand switch
+                        {
+                            BoundInterpolatedString { InterpolationData: { } d } => d,
+                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                            _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+                        };
+                        Debug.Assert(((BoundObjectCreationExpression)data.Construction).Arguments.All(
                             a => a is BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter }
                                       or not BoundInterpolatedStringArgumentPlaceholder));
                     }

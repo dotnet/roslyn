@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
                 methodsAdded: new Dictionary<Cci.IMethodDefinition, int>(),
+                firstParamRowMap: new Dictionary<MethodDefinitionHandle, int>(),
                 propertiesAdded: new Dictionary<Cci.IPropertyDefinition, int>(),
                 eventMapAdded: new Dictionary<int, int>(),
                 propertyMapAdded: new Dictionary<int, int>(),
@@ -265,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
         internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, int> FieldsAdded;
         internal readonly IReadOnlyDictionary<Cci.IMethodDefinition, int> MethodsAdded;
+        internal readonly IReadOnlyDictionary<MethodDefinitionHandle, int> FirstParamRowMap;
         internal readonly IReadOnlyDictionary<Cci.IPropertyDefinition, int> PropertiesAdded;
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
@@ -322,6 +324,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
@@ -384,6 +387,7 @@ namespace Microsoft.CodeAnalysis.Emit
             EventsAdded = eventsAdded;
             FieldsAdded = fieldsAdded;
             MethodsAdded = methodsAdded;
+            FirstParamRowMap = firstParamRowMap;
             PropertiesAdded = propertiesAdded;
             EventMapAdded = eventMapAdded;
             PropertyMapAdded = propertyMapAdded;
@@ -416,6 +420,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
@@ -449,6 +454,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap,
                 propertiesAdded,
                 eventMapAdded,
                 propertyMapAdded,

@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsDestructorTypeContext;
         public readonly bool IsLeftSideOfImportAliasDirective;
         public readonly bool IsFunctionPointerTypeArgumentContext;
+        public readonly bool IsLocalFunctionDeclarationContext;
 
         private CSharpSyntaxContext(
             Workspace? workspace,
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isRightSideOfNumericType,
             bool isInArgumentList,
             bool isFunctionPointerTypeArgumentContext,
+            bool isLocalFunctionDeclarationContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -148,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsDestructorTypeContext = isDestructorTypeContext;
             this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
             this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
+            this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -212,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
 
+            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
+
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -267,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
+                isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
                 cancellationToken: cancellationToken);
         }
 
@@ -413,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         /// <summary>
         /// Determines whether await should be suggested in a given position.
         /// </summary>
-        internal bool IsAwaitKeywordContext(int position)
+        internal override bool IsAwaitKeywordContext()
         {
             if (IsGlobalStatementContext)
             {
@@ -438,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&
-                            lockStatement.Statement.Span.Contains(position))
+                            lockStatement.Statement.Span.Contains(Position))
                         {
                             return false;
                         }

@@ -127,6 +127,11 @@
         <target state="translated">Detección de comentarios TODO</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Análisis de referencia inutilizado</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
         <target state="new">Value Tracking</target>

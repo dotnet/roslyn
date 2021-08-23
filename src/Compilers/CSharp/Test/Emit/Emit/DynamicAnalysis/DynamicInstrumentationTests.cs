@@ -3393,7 +3393,7 @@ static void Test()
                 .True("Test();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();")
                 .True(@"Console.WriteLine(""Test"");");
-            checker.Method(4, 1)
+            checker.Method(5, 1)
                 .True()
                 .False()
                 .True()
