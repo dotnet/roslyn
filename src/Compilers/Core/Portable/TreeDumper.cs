@@ -89,14 +89,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             _sb.AppendLine();
-            var children = node.Children.ToList();
+            var children = filter(node.Children).ToList();
             for (int i = 0; i < children.Count; ++i)
             {
                 var child = children[i];
-                if (child == null)
-                {
-                    continue;
-                }
 
                 _sb.Append(indent);
                 _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
@@ -105,6 +101,31 @@ namespace Microsoft.CodeAnalysis
                 // First precondition met; now work out the string needed to indent 
                 // the child node's children:
                 DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
+            }
+
+            static IEnumerable<TreeDumperNode> filter(IEnumerable<TreeDumperNode> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    if (node is null)
+                    {
+                        continue;
+                    }
+
+                    if (node.Text is "locals" or "localFunctions"
+                        && node.Value is IList { Count: 0 })
+                    {
+                        continue;
+                    }
+
+                    if (node.Text is "hasErrors" or "isSuppressed" or "isRef"
+                        && node.Value is false)
+                    {
+                        continue;
+                    }
+
+                    yield return node;
+                }
             }
         }
 

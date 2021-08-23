@@ -13,6 +13,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.SyntheticBoundNodeFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,6 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
             protected readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
+
+#nullable enable
+            // When different branches of the DAG share `when` expressions, the
+            // shared expression will be lowered as a shared section and the `when` nodes that need
+            // to will jump there. After the expression is evaluated, we need to jump to different
+            // labels depending on the `when` node we came from. To achieve that, each `when` node
+            // gets an identifier and sets a local before jumping into the shared `when` expression.
+            private int _nextWhenNodeIdentifier = 0;
+            internal LocalSymbol? _whenNodeIdentifierLocal;
+#nullable disable
 
             protected DecisionDagRewriter(
                 SyntaxNode node,
@@ -372,13 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Code for each when clause goes in the separate code section for its switch section.
-                foreach (BoundDecisionDagNode node in sortedNodes)
-                {
-                    if (node is BoundWhenDecisionDagNode w)
-                    {
-                        LowerWhenClause(w);
-                    }
-                }
+                LowerWhenClauses(sortedNodes);
 
                 ImmutableArray<BoundDecisionDagNode> nodesToLower = sortedNodes.WhereAsArray(n => n.Kind != BoundKind.WhenDecisionDagNode && n.Kind != BoundKind.LeafDecisionDagNode);
                 var loweredNodes = PooledHashSet<BoundDecisionDagNode>.GetInstance();
@@ -865,59 +870,237 @@ namespace Microsoft.CodeAnalysis.CSharp
                 privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
-            private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)
+#nullable enable
+            private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                // This node is used even when there is no when clause, to record bindings. In the case that there
-                // is no when clause, whenClause.WhenExpression and whenClause.WhenFalse are null, and the syntax for this
-                // node is the case clause.
+                // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
+                // share the same `WhenExpression` (same `BoundExpression` instance).
+                // So we can't just lower each `BoundWhenDecisionDagNode` separately, as that would result in duplicate blocks
+                // for the same `WhenExpression` and such expressions might contains labels which must be emitted once only.
 
-                // We need to assign the pattern variables in the code where they are in scope, so we produce a branch
-                // to the section where they are in scope and evaluate the when clause there.
-                var whenTrue = (BoundLeafDecisionDagNode)whenClause.WhenTrue;
-                LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
+                // For a simple `BoundWhenDecisionDagNode` (with a unique `WhenExpression`), we lower to something like:
+                //   labelToSectionScope;
+                //   if (... logic from WhenExpression ...)
+                //   {
+                //     jump to whenTrue label
+                //   }
+                //   jump to whenFalse label
 
-                ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClause.Syntax);
-                sectionBuilder.Add(_factory.Label(labelToSectionScope));
-                foreach (BoundPatternBinding binding in whenClause.Bindings)
+                // For a complex `BoundWhenDecisionDagNode` (where the `WhenExpression` is shared), we lower to something like:
+                //   labelToSectionScope;
+                //   whenNodeIdentifierLocal = whenNodeIdentifier;
+                //   goto labelToWhenExpression;
+                //
+                // and we'll also create a section for the shared `WhenExpression` logic:
+                //   labelToWhenExpression;
+                //   if (... logic from WhenExpression ...)
+                //   {
+                //     switch on whenNodeIdentifierLocal with dispatches to whenTrue labels
+                //   }
+                //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
+
+                // Prepared maps for `when` nodes and expressions
+                var whenExpressionMap = new Dictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, List<BoundWhenDecisionDagNode> WhenNodes)>();
+                var whenNodeMap = new Dictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>();
+                foreach (BoundDecisionDagNode node in sortedNodes)
                 {
-                    BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
-                    // Since a switch does not add variables to the enclosing scope, the pattern variables
-                    // are locals even in a script and rewriting them should have no effect.
-                    Debug.Assert(left.Kind == BoundKind.Local && left == binding.VariableAccess);
-                    BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
-                    if (left != right)
+                    if (node is BoundWhenDecisionDagNode whenNode)
                     {
-                        sectionBuilder.Add(_factory.Assignment(left, right));
+                        var whenExpression = whenNode.WhenExpression;
+                        if (whenExpression is not null && whenExpression.ConstantValue != ConstantValue.True)
+                        {
+                            LabelSymbol labelToWhenExpression;
+                            if (whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo))
+                            {
+                                labelToWhenExpression = whenExpressionInfo.LabelToWhenExpression;
+                                whenExpressionInfo.WhenNodes.Add(whenNode);
+                            }
+                            else
+                            {
+                                labelToWhenExpression = _factory.GenerateLabel("sharedWhenExpression");
+                                var list = new List<BoundWhenDecisionDagNode>();
+                                list.Add(whenNode);
+                                whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
+                            }
+
+                            if (!whenNodeMap.ContainsKey(whenNode))
+                            {
+                                whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
+                            }
+                        }
                     }
                 }
 
-                var whenFalse = whenClause.WhenFalse;
-                var trueLabel = GetDagNodeLabel(whenTrue);
-                if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                // Lower nodes
+                foreach (BoundDecisionDagNode node in sortedNodes)
                 {
-                    _factory.Syntax = whenClause.Syntax;
-                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
+                    if (node is BoundWhenDecisionDagNode whenNode)
+                    {
+                        if (!tryLowerAsJumpToSharedWhenExpression(whenNode))
+                        {
+                            lowerWhenClause(whenNode);
+                        }
+                    }
+                }
+
+                // Lower shared `when` expressions
+                foreach (var (whenExpression, (labelToWhenExpression, whenNodes)) in whenExpressionMap)
+                {
+                    lowerWhenExpressionIfShared(whenExpression, labelToWhenExpression, whenNodes);
+                }
+
+                return;
+
+                bool tryLowerAsJumpToSharedWhenExpression(BoundWhenDecisionDagNode whenNode)
+                {
+                    var whenExpression = whenNode.WhenExpression;
+                    if (whenExpression is null
+                        || !whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo)
+                        || whenExpressionInfo.WhenNodes.Count <= 1)
+                    {
+                        return false;
+                    }
+
+                    LabelSymbol labelToSectionScope = GetDagNodeLabel(whenNode);
+                    ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenNode.Syntax);
+                    sectionBuilder.Add(_factory.Label(labelToSectionScope));
+
+                    _whenNodeIdentifierLocal ??= _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Int32));
+                    var found = whenNodeMap.TryGetValue(whenNode, out var whenNodeInfo);
+                    Debug.Assert(found);
+
+                    // whenNodeIdentifierLocal = whenNodeIdentifier;
+                    sectionBuilder.Add(_factory.Assignment(_factory.Local(_whenNodeIdentifierLocal), _factory.Literal(whenNodeInfo.WhenNodeIdentifier)));
+
+                    // goto labelToWhenExpression;
+                    sectionBuilder.Add(_factory.Goto(whenNodeInfo.LabelToWhenExpression));
+
+                    return true;
+                }
+
+                void lowerWhenExpressionIfShared(BoundExpression whenExpression, LabelSymbol labelToWhenExpression, List<BoundWhenDecisionDagNode> whenNodes)
+                {
+                    if (whenExpression is null
+                        || !whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo)
+                        || whenExpressionInfo.WhenNodes.Count <= 1)
+                    {
+                        return;
+                    }
+
+                    var whenClauseSyntax = whenNodes[0].Syntax;
+                    Debug.Assert(whenNodes.All(n => n.Syntax == whenClauseSyntax));
+                    Debug.Assert(whenNodes.All(n => n.WhenExpression == whenExpression));
+                    Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
+
+                    ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClauseSyntax);
+                    sectionBuilder.Add(_factory.Label(labelToWhenExpression));
+                    lowerBindings(whenNodes[0].Bindings, sectionBuilder);
+
+                    var whenTrueSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
+                    var whenFalseSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
+                    foreach (var whenNode in whenNodes)
+                    {
+                        var (_, whenNodeIdentifier) = whenNodeMap[whenNode];
+                        whenTrueSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenTrue))));
+
+                        Debug.Assert(whenNode.WhenFalse != null);
+                        whenFalseSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenFalse))));
+                    }
+
+                    // if (loweredWhenExpression)
+                    // {
+                    //   switch (whenNodeIdentifierLocal)
+                    //   {
+                    //     case whenNodeIdentifier: goto trueLabelForWhenNode;
+                    //     ...
+                    //   }
+                    // }
+                    Debug.Assert(_whenNodeIdentifierLocal is not null);
+                    BoundStatement conditionalGotos =
+                        _factory.If(_localRewriter.VisitExpression(whenExpression),
+                            _factory.Switch(_factory.Local(_whenNodeIdentifierLocal), whenTrueSwitchSections.ToImmutableAndFree()));
+
+                    _factory.Syntax = whenClauseSyntax;
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (GenerateInstrumentation && !whenClause.WhenExpression.WasCompilerGenerated)
+                    if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
+                        conditionalGotos = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGotos);
                     }
 
-                    sectionBuilder.Add(conditionalGoto);
+                    sectionBuilder.Add(conditionalGotos);
 
-                    Debug.Assert(whenFalse != null);
+                    // switch (whenNodeIdentifierLocal)
+                    // {
+                    //   case whenNodeIdentifier: goto falseLabelForWhenNode;
+                    //   ...
+                    // }
+                    BoundStatement jumps = _factory.Switch(_factory.Local(_whenNodeIdentifierLocal), whenFalseSwitchSections.ToImmutableAndFree());
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
-                    BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                    sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jump) : jump);
+                    sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jumps) : jumps);
                 }
-                else
+
+                void lowerWhenClause(BoundWhenDecisionDagNode whenClause)
                 {
-                    Debug.Assert(whenFalse == null);
-                    sectionBuilder.Add(_factory.Goto(trueLabel));
+                    // This node is used even when there is no when clause, to record bindings. In the case that there
+                    // is no when clause, whenClause.WhenExpression and whenClause.WhenFalse are null, and the syntax for this
+                    // node is the case clause.
+
+                    // We need to assign the pattern variables in the code where they are in scope, so we produce a branch
+                    // to the section where they are in scope and evaluate the when clause there.
+                    var whenTrue = (BoundLeafDecisionDagNode)whenClause.WhenTrue;
+                    LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
+
+                    ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClause.Syntax);
+                    sectionBuilder.Add(_factory.Label(labelToSectionScope));
+                    lowerBindings(whenClause.Bindings, sectionBuilder);
+
+                    var whenFalse = whenClause.WhenFalse;
+                    var trueLabel = GetDagNodeLabel(whenTrue);
+                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                    {
+                        _factory.Syntax = whenClause.Syntax;
+                        BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
+
+                        // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                        if (GenerateInstrumentation && !whenClause.WhenExpression.WasCompilerGenerated)
+                        {
+                            conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
+                        }
+
+                        sectionBuilder.Add(conditionalGoto);
+
+                        Debug.Assert(whenFalse != null);
+
+                        // We hide the jump back into the decision dag, as it is not logically part of the when clause
+                        BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
+                        sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jump) : jump);
+                    }
+                    else
+                    {
+                        Debug.Assert(whenFalse == null);
+                        sectionBuilder.Add(_factory.Goto(trueLabel));
+                    }
+                }
+
+                void lowerBindings(ImmutableArray<BoundPatternBinding> bindings, ArrayBuilder<BoundStatement> sectionBuilder)
+                {
+                    foreach (BoundPatternBinding binding in bindings)
+                    {
+                        BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
+                        // Since a switch does not add variables to the enclosing scope, the pattern variables
+                        // are locals even in a script and rewriting them should have no effect.
+                        Debug.Assert(left.Kind == BoundKind.Local && left == binding.VariableAccess);
+                        BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                        if (left != right)
+                        {
+                            sectionBuilder.Add(_factory.Assignment(left, right));
+                        }
+                    }
                 }
             }
+#nullable disable
 
             /// <summary>
             /// Translate the decision dag for node, given that it will be followed by the translation for nextNode.

@@ -3018,5 +3018,524 @@ class C
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(7, 24)
                 );
         }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SwitchExpression()
+        {
+            var source = @"
+M(Position.Last, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new One() });
+M(Position.Last, new Wrap { Sub = new Two() });
+M(Position.First, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new object() });
+
+static void M(Position position, Wrap wrap)
+{
+    var text = position switch
+    {
+        not Position.First when wrap.Sub is Zero => ""Not First and Zero"",
+        _ when wrap is { Sub: One or Two } => ""One or Two"",
+        Position.First => ""First"",
+        _ => ""Other""
+    };
+
+    System.Console.WriteLine((position, wrap.Sub, text));
+}
+
+enum Position
+{
+    First,
+    Last,
+}
+
+class Zero { }
+class One { }
+class Two { }
+
+class Wrap
+{
+    public object Sub;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+(Last, Zero, Not First and Zero)
+(Last, One, One or Two)
+(Last, Two, One or Two)
+(First, Zero, First)
+(Last, System.Object, Other)");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SwitchStatement()
+        {
+            var source = @"
+M(Position.Last, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new One() });
+M(Position.Last, new Wrap { Sub = new Two() });
+M(Position.First, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new object() });
+
+static void M(Position position, Wrap wrap)
+{
+    string text;
+    switch (position)
+    {
+        case not Position.First when wrap.Sub is Zero: text = ""Not First and Zero""; break;
+        case var _ when wrap is { Sub: One or Two }: text = ""One or Two""; break;
+        case Position.First: text = ""First""; break;
+        default: text = ""Other""; break;
+    }
+
+    System.Console.WriteLine((position, wrap.Sub, text));
+}
+
+enum Position
+{
+    First,
+    Last,
+}
+
+class Zero { }
+class One { }
+class Two { }
+
+class Wrap
+{
+    public object Sub;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+(Last, Zero, Not First and Zero)
+(Last, One, One or Two)
+(Last, Two, One or Two)
+(First, Zero, First)
+(Last, System.Object, Other)");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SequencePoints()
+        {
+            var source = @"
+C.M(0, false, false);
+C.M(0, true, false);
+C.M(0, false, true);
+C.M(1, false, false);
+C.M(1, false, true);
+C.M(2, false, false);
+
+public class C
+{
+    public static void M(int i, bool b1, bool b2)
+    {
+        string text;
+        switch (i)
+        {
+            case not 1 when b1:
+                text = ""b1"";
+                break;
+            case var _ when b2:
+                text = ""b2"";
+                break;
+            case 1:
+                text = ""1"";
+                break;
+            default:
+                text = ""default"";
+                break;
+        }
+
+        System.Console.WriteLine((i, b1, b2, text));
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+(0, False, False, default)
+(0, True, False, b1)
+(0, False, True, b2)
+(1, False, False, 1)
+(1, False, True, b2)
+(2, False, False, default)
+");
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (string V_0, //text
+                int V_1)
+  // sequence point: switch (i)
+  IL_0000:  ldarg.0
+  // sequence point: <hidden>
+  IL_0001:  ldc.i4.1
+  IL_0002:  beq.s      IL_000f
+  // sequence point: when b1
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0013
+  // sequence point: text = ""b1"";
+  IL_0007:  ldstr      ""b1""
+  IL_000c:  stloc.0
+  // sequence point: break;
+  IL_000d:  br.s       IL_003c
+  // sequence point: <hidden>
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.1
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.2
+  IL_0014:  stloc.1
+  // sequence point: when b2
+  IL_0015:  ldarg.2
+  IL_0016:  brfalse.s  IL_001f
+  IL_0018:  ldloc.1
+  IL_0019:  brfalse.s  IL_0026
+  IL_001b:  ldloc.1
+  IL_001c:  ldc.i4.2
+  IL_001d:  beq.s      IL_0026
+  // sequence point: <hidden>
+  IL_001f:  ldloc.1
+  IL_0020:  brfalse.s  IL_002e
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4.2
+  IL_0024:  beq.s      IL_0036
+  // sequence point: text = ""b2"";
+  IL_0026:  ldstr      ""b2""
+  IL_002b:  stloc.0
+  // sequence point: break;
+  IL_002c:  br.s       IL_003c
+  // sequence point: text = ""1"";
+  IL_002e:  ldstr      ""1""
+  IL_0033:  stloc.0
+  // sequence point: break;
+  IL_0034:  br.s       IL_003c
+  // sequence point: text = ""default"";
+  IL_0036:  ldstr      ""default""
+  IL_003b:  stloc.0
+  // sequence point: System.Console.WriteLine((i, b1, b2, text));
+  IL_003c:  ldarg.0
+  IL_003d:  ldarg.1
+  IL_003e:  ldarg.2
+  IL_003f:  ldloc.0
+  IL_0040:  newobj     ""System.ValueTuple<int, bool, bool, string>..ctor(int, bool, bool, string)""
+  IL_0045:  box        ""System.ValueTuple<int, bool, bool, string>""
+  IL_004a:  call       ""void System.Console.WriteLine(object)""
+  // sequence point: }
+  IL_004f:  ret
+}
+", source: source, sequencePoints: "C.M");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_MissingInt32Type()
+        {
+            var source = @"
+class C
+{
+    static void M(string s, bool b1, bool b2)
+    {
+        switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         switch (s)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }").WithArguments("System.Int32").WithLocation(6, 9),
+                // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         switch (s)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }").WithArguments("System.Int32").WithLocation(6, 9),
+                // (8,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //             case not "one" when b1:
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"case not ""one"" when b1:").WithArguments("System.Int32").WithLocation(8, 13)
+                );
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_WithBindings()
+        {
+            var source = @"
+C.M(""Alice"", false, true);
+C.M(""Bob"", false, true);
+
+public class C
+{
+    public static void M(string s, bool b1, bool b2)
+    {
+        switch (s)
+        {
+            case not ""x"" when b1:
+                throw null;
+            case { Length: var j and > 2 } when b2:
+                System.Console.WriteLine((s, b1, b2, j.ToString()));
+                break;
+            case ""x"":
+                throw null;
+            default:
+                throw null;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+(Alice, False, True, 5)
+(Bob, False, True, 3)
+");
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size      102 (0x66)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1, //j
+                string V_2)
+  // sequence point: switch (s)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  // sequence point: <hidden>
+  IL_0002:  ldloc.2
+  IL_0003:  ldstr      ""x""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brfalse.s  IL_002c
+  IL_000f:  ldloc.2
+  IL_0010:  callvirt   ""int string.Length.get""
+  IL_0015:  stloc.1
+  // sequence point: <hidden>
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.2
+  IL_0018:  bgt.s      IL_0031
+  IL_001a:  br.s       IL_0062
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_0064
+  IL_001f:  ldloc.2
+  IL_0020:  callvirt   ""int string.Length.get""
+  IL_0025:  stloc.1
+  // sequence point: <hidden>
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  bgt.s      IL_0035
+  IL_002a:  br.s       IL_0064
+  // sequence point: when b1
+  IL_002c:  ldarg.1
+  IL_002d:  brfalse.s  IL_001c
+  // sequence point: throw null;
+  IL_002f:  ldnull
+  IL_0030:  throw
+  // sequence point: <hidden>
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.2
+  IL_0036:  stloc.0
+  // sequence point: when b2
+  IL_0037:  ldarg.2
+  IL_0038:  brfalse.s  IL_0041
+  IL_003a:  ldloc.0
+  IL_003b:  brfalse.s  IL_0048
+  IL_003d:  ldloc.0
+  IL_003e:  ldc.i4.2
+  IL_003f:  beq.s      IL_0048
+  // sequence point: <hidden>
+  IL_0041:  ldloc.0
+  IL_0042:  brfalse.s  IL_0062
+  IL_0044:  ldloc.0
+  IL_0045:  ldc.i4.2
+  IL_0046:  beq.s      IL_0064
+  // sequence point: System.Console.WriteLine((s, b1, b2, j.ToString()));
+  IL_0048:  ldarg.0
+  IL_0049:  ldarg.1
+  IL_004a:  ldarg.2
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  call       ""string int.ToString()""
+  IL_0052:  newobj     ""System.ValueTuple<string, bool, bool, string>..ctor(string, bool, bool, string)""
+  IL_0057:  box        ""System.ValueTuple<string, bool, bool, string>""
+  IL_005c:  call       ""void System.Console.WriteLine(object)""
+  // sequence point: break;
+  IL_0061:  ret
+  // sequence point: throw null;
+  IL_0062:  ldnull
+  IL_0063:  throw
+  // sequence point: throw null;
+  IL_0064:  ldnull
+  IL_0065:  throw
+}
+", source: source, sequencePoints: "C.M");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_Multiples()
+        {
+            // The `b3` condition ends up in the `when` clause on four leaves in the DAG
+            // and `b1` ends up in two leaves
+            var source = @"
+int count = 0;
+
+foreach (int i1 in new[] { 0, 1 })
+    foreach (int i2 in new[] { 0, 1 })
+        foreach (int i3 in new[] { 0, 1 })
+            foreach (bool b0 in new[] { false, true })
+                foreach (bool b1 in new[] { false, true })
+                    foreach (bool b2 in new[] { false, true })
+                        foreach (bool b3 in new[] { false, true })
+                        {
+                            count++;
+                            if (M(i1, i2, i3, b0, b1, b2, b3) != M2(i1, i2, i3, b0, b1, b2, b3))
+                                throw null;
+                        }
+
+System.Console.Write(count);
+
+static string M(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    object o = null;
+    switch (i1, i2, i3)
+    {
+        case (var x, var y, var z) when f(x, y, z):
+            throw null;
+        case (not 0, 0, _) when b0:
+            return ""b0"";
+        case (_, not 0, 0) when b1:
+            return ""b1"";
+        case (0, _, not 0) when b2:
+            return ""b2"";
+        case (_, _, _) when b3:
+            return ""b3"";
+        case (0, _, _):
+            return ""first"";
+        case (_, 0, _):
+            return ""second"";
+        case (_, _, 0):
+            return ""third"";
+    }
+    return ""last"";
+}
+
+static string M2(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    if (i1 is not 0 && i2 is 0 && b0)
+        return ""b0"";
+    if (i2 is not 0 && i3 is 0 && b1)
+        return ""b1"";
+    if (i3 is not 0 && i1 is 0 && b2)
+        return ""b2"";
+    if (b3)
+        return ""b3"";
+    if (i1 is 0)
+        return ""first"";
+    if (i2 is 0)
+        return ""second"";
+    if (i3 is 0)
+        return ""third"";
+    return ""last"";
+}
+
+static bool f(int i1, int i2, int i3) => false;
+";
+
+            CompileAndVerify(source, expectedOutput: "128");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_Multiples_LabelInSharedWhenExpression()
+        {
+            var source = @"
+int count = 0;
+var wrap = new Wrap { value = null };
+
+foreach (int i1 in new[] { 0, 1 })
+    foreach (int i2 in new[] { 0, 1 })
+        foreach (int i3 in new[] { 0, 1 })
+            foreach (bool b0 in new[] { false, true })
+                foreach (bool b1 in new[] { false, true })
+                    foreach (bool b2 in new[] { false, true })
+                        foreach (bool b3 in new[] { false, true })
+                        {
+                            count++;
+                            if (M(i1, i2, i3, b0, b1, b2, b3) != M2(i1, i2, i3, b0, b1, b2, b3))
+                                throw null;
+                        }
+
+System.Console.Write(count);
+
+string M(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    switch (i1, i2, i3)
+    {
+        case (var x, var y, var z) when f(x, y, z):
+            throw null;
+        case (not 0, 0, _) when b0 && wrap is { value: string or string[] }:
+            throw null;
+        case (_, not 0, 0) when b1 && wrap is { value: string or string[] }:
+            throw null;
+        case (0, _, not 0) when b2 && wrap is { value: string or string[] }:
+            throw null;
+        case (_, _, _) when b3:
+            return ""b3"";
+        case (0, _, _):
+            return ""first"";
+        case (_, 0, _):
+            return ""second"";
+        case (_, _, 0):
+            return ""third"";
+    }
+    return ""last"";
+}
+
+static string M2(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    if (b3)
+        return ""b3"";
+    if (i1 is 0)
+        return ""first"";
+    if (i2 is 0)
+        return ""second"";
+    if (i3 is 0)
+        return ""third"";
+    return ""last"";
+}
+
+static bool f(int i1, int i2, int i3) => false;
+
+public class Wrap
+{
+    public object value;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "128");
+        }
     }
 }
