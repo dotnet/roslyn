@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.Completion
             // i.e. when everything else is equal, then if item1 is a better case-sensitive match but item2 has higher 
             // MatchPriority, we consider them equally good match, so the controller will later have a chance to
             // decide which is the best one to select.
-            var filterTextContainsNoUpperLetters = false;
+            var filterTextContainsNoUpperLetters = true;
             for (var i = 0; i < filterText.Length; ++i)
             {
                 if (char.IsUpper(filterText[i]))
                 {
-                    filterTextContainsNoUpperLetters = true;
+                    filterTextContainsNoUpperLetters = false;
                     break;
                 }
             }
