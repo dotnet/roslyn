@@ -104,13 +104,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        public static RefKindVector Parse(string refKindString, int capacity)
+        public static bool TryParse(string refKindString, int capacity, out RefKindVector result)
         {
             ulong? firstWord = null;
             List<ulong>? otherWords = null;
             foreach (var word in refKindString.Split(','))
             {
-                var value = Convert.ToUInt64(word, 16);
+                ulong value;
+                try
+                {
+                    value = Convert.ToUInt64(word, 16);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+                {
+                    result = default;
+                    return false;
+                }
+
                 if (firstWord is null)
                 {
                     firstWord = value;
@@ -125,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(firstWord is not null);
 
             var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArray() ?? s_emptyBits, capacity * 2);
-            return new RefKindVector(bitVector);
+            result = new RefKindVector(bitVector);
+            return true;
         }
     }
 }

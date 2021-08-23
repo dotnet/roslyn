@@ -331,9 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // types are available for subsequent edit and continue generations.
             foreach (var key in moduleBeingBuilt.GetPreviousSynthesizedDelegates())
             {
-                GeneratedNames.ParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount);
-                var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
-                this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key.Name, refKinds, returnsVoid, parameterCount));
+                if (GeneratedNames.TryParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount))
+                {
+                    var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
+                    this.SynthesizedDelegates.GetOrAdd(delegateKey, k => CreatePlaceholderSynthesizedDelegateValue(key.Name, refKinds, returnsVoid, parameterCount));
+                }
             }
 
             var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();

@@ -374,11 +374,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static void ParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
+        internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
             name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
 
             returnsVoid = name.StartsWith(ActionDelegateNamePrefix);
+            generation = 0;
+
             Debug.Assert(returnsVoid || name.StartsWith(FuncDelegateNamePrefix));
             Debug.Assert(name[3] == '{');
 
@@ -389,18 +391,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The prefix is 3 characters long, plus one for the open brace, so ref kinds start at 4
             var startIndex = (ActionDelegateNamePrefix + "{").Length;
             var refKindString = name[startIndex..lastBraceIndex];
-            byRefs = RefKindVector.Parse(refKindString, arity);
+
+            if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+            {
+                return false;
+            }
 
             // If there is a generation index it will be directly after the brace, otherwise the brace
             // is the last character
-            generation = 0;
             if (lastBraceIndex < name.Length - 1)
             {
                 Debug.Assert(name[lastBraceIndex + 1] == '#');
-                generation = int.Parse(name[(lastBraceIndex + 2)..]);
+                if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
+                {
+                    return false;
+                }
             }
 
             Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
+            return true;
         }
 
         internal static string AsyncBuilderFieldName()
