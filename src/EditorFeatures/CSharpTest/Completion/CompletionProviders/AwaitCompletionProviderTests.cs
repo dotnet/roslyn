@@ -279,5 +279,83 @@ class C
         {
             await VerifyKeywordAsync("lock($$", LanguageVersion.CSharp9);
         }
+
+        [Fact]
+        public async Task TestDotAwaitSuggestAfterDotOnTask()
+        {
+            await VerifyKeywordAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F(Task someTask)
+  {
+    someTask.$$
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitDontSuggestAfterDotOnTaskIfAlreadyAwaited()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F(Task someTask)
+  {
+    await someTask.$$
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitDontSuggestAfterConditionalAccessOfTaskMembers()
+        {
+            // The conditional access suggests, that someTask can be null.
+            // await on null throws at runtime, so the user should do
+            // if (someTask is not null) await someTask;
+            // or
+            // await (someTask ?? Task.CompletedTask)
+            // Completion should not offer await, because the patterns above would change to much code.
+            // This decision should be revised after https://github.com/dotnet/csharplang/issues/35 
+            // is implemented.
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F(Task someTask)
+  {
+    someTask?.$$
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitNotAfterDotInConditionalAccessChain()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+public class C
+{
+    public Task SomeTask => Task.CompletedTask;
+    
+    public C M() => this;
+}
+
+static class Program
+{
+    public static async Task Main()
+    {
+        new C().M()?.M().M()?.M().SomeTask.$$;
+    }
+}
+", LanguageVersion.CSharp9);
+        }
     }
 }

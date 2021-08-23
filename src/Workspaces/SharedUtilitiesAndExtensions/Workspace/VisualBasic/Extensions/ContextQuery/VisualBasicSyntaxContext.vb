@@ -187,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return False
         End Function
 
+        Friend Overrides Function IsDotAwaitKeywordContext(cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)

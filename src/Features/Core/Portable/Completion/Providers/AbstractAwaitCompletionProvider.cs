@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
+            var (document, position, cancellationToken) = (context.Document, context.Position, context.CancellationToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
             {
                 return;
@@ -43,7 +41,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var workspace = document.Project.Solution.Workspace;
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(workspace, semanticModel, position, cancellationToken);
-            if (!syntaxContext.IsAwaitKeywordContext())
+            
+            var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext();
+            var isDotAwaitContext = syntaxContext.IsDotAwaitKeywordContext(cancellationToken);
+            if (!isAwaitKeywordContext && !isDotAwaitContext)
             {
                 return;
             }
