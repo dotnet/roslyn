@@ -35,7 +35,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        Public Sub TestGoodCallerArgumentExpressionAttribute_OldVersionWithFeatureFlag()
+        Public Sub TestGoodCallerArgumentExpressionAttribute_OldVersion()
             Dim source As String = "
 Imports System
 Imports System.Runtime.CompilerServices
@@ -51,7 +51,7 @@ Module Program
 End Module
 "
 
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16.WithFeature("CallerArgumentExpression"))
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16)
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
@@ -256,27 +256,6 @@ End Module
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest.WithFeature("CallerArgumentExpression"))
             CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
-        End Sub
-
-        <ConditionalFact(GetType(CoreClrOnly))>
-        Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9_WithoutFeatureFlag()
-            Dim source As String = "
-Imports System
-Imports System.Runtime.CompilerServices
-Module Program
-    Sub Main()
-        Log(123)
-    End Sub
-
-    Private Const p As String = NameOf(p)
-    Sub Log(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
-        Console.WriteLine(arg)
-    End Sub
-End Module
-"
-
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
