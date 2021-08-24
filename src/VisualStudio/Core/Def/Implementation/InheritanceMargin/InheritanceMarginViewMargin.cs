@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
             _grid.LayoutTransform.Freeze();
+            UpdateMarginVisibility();
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
