@@ -365,6 +365,42 @@ static class Program
         }
 
         [Fact]
+        public async Task TestDotAwaitSuggestAfterDotBeforeType()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+using System.Threading.Tasks;
+
+static class Program
+{
+    static async Task Main(Task someTask)
+    {
+        someTask.$$
+        Int32 i = 0;
+    }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitSuggestAfterDotBeforeAnotherAwait()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+using System.Threading.Tasks;
+
+static class Program
+{
+    static async Task Main(Task someTask)
+    {
+        someTask.$$
+        await Test();
+    }
+
+    async Task Test() { }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
             await VerifyAbsenceAsync(@"

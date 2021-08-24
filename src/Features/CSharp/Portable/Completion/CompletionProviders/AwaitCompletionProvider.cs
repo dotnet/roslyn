@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -52,7 +53,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
-            => token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+        {
+            var declaration = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            // In a case like
+            //   someTask.$$
+            //   await Test();
+            // someTask.await Test() is parsed as a local function statement.
+            // We skip this and look further up in the hierarchy.
+            if (declaration is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType.ChildTokens().Contains(token))
+            {
+                return localFunction.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+            }
+
+            return declaration;
+        }
 
         private protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -62,7 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
                 // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
                 { Parent: MemberAccessExpressionSyntax memberAccess } when memberAccess.GetParentConditionalAccessExpression() is null => memberAccess,
+                // someTask.$$.
                 { Parent: RangeExpressionSyntax range } => range.LeftOperand,
+                // special cases, where parsing is misleading. Such cases are handled in GetTypeSymbolOfExpression.
+                { Parent: QualifiedNameSyntax qualifiedName } => qualifiedName.Left,
                 _ => null,
             };
         }
@@ -88,8 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = syntaxContext.Position;
             var syntaxTree = syntaxContext.SyntaxTree;
             var potentialAwaitableExpression = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
-            // TODO: someTask.$$. Middle of DotDotToken // see UnnamedSymbolCompletionProvider.GetDotAndExpressionStart
-            // TODO: Support corner cases like: someTask.$$ int i = 0; // see CSharpRecommendationServiceRunner.ShouldBeTreatedAsTypeInsteadOfExpression
             if (potentialAwaitableExpression is not null)
             {
                 var semanticModel = syntaxContext.SemanticModel;
@@ -113,13 +128,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             static ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
             {
-                return potentialAwaitableExpression switch
+                if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
+                    return semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol?.GetSymbolType();
+
+                if (potentialAwaitableExpression is ExpressionSyntax expression)
                 {
-                    MemberAccessExpressionSyntax memberAccess => semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol?.GetSymbolType(),
-                    _ => semanticModel.GetSymbolInfo(potentialAwaitableExpression, cancellationToken).Symbol?.GetSymbolType(),
-                };
+                    if (expression.ShouldBeTreatedAsTypeInsteadOfExpression(semanticModel, out _, out var container))
+                        return container;
+                }
+
+                return semanticModel.GetSymbolInfo(potentialAwaitableExpression, cancellationToken).Symbol?.GetSymbolType();
             }
         }
-
     }
 }
