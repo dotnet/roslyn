@@ -952,17 +952,16 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveFunctionFromGenericClassAndRefactorUsage() As Task
-            Dim initialMarkup = "Imports System
-
+            Dim initialMarkup = "
 Namespace TestNs
-    Public Class Class1(Of T)
-        Public Shared Function Test[||]Func() As Type
-            Return GetType(T)
+    Public Class Class1(Of T As New)
+        Public Shared Function Test[||]Func() As T
+            Return New T()
         End Function
     End Class
 
     Public Class Class2
-        Public Shared Function TestFunc2 As Type
+        Public Shared Function TestFunc2 As Integer
             Return Class1(Of Integer).TestFunc()
         End Function
     End Class
@@ -970,24 +969,78 @@ End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
             Dim selection = ImmutableArray.Create("TestFunc")
-            Dim expectedText1 = "Imports System
-
+            Dim expectedText1 = "
 Namespace TestNs
-    Public Class Class1(Of T)
+    Public Class Class1(Of T As New)
     End Class
 
     Public Class Class2
-        Public Shared Function TestFunc2 As Type
+        Public Shared Function TestFunc2 As Integer
             Return Class1Helpers(Of Integer).TestFunc()
         End Function
     End Class
 End Namespace"
-            Dim expectedText2 = "Imports System
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers(Of T As New)
+        Public Shared Function TestFunc() As T
+            Return New T()
+        End Function
+    End Class
+End Namespace
+"
 
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionFromGenericClassAndRefactorPartialTypeArgUsage() As Task
+            Dim initialMarkup = "
 Namespace TestNs
-    Class Class1Helpers(Of T)
-        Public Shared Function TestFunc() As Type
-            Return GetType(T)
+    Public Class Class1(Of T1 As New, T2, T3)
+        Public Shared Function Test[||]Func() As T1
+            Return New T1()
+        End Function
+
+        Public Shared Function Foo(item As T2) As T2
+            Return item
+        End Function
+
+        Public Shared Function Bar(item As T3) As T3
+            Return item
+        End Function
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2 As Integer
+            Return Class1(Of Integer, String, Double).TestFunc()
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1(Of T1 As New, T2, T3)
+        Public Shared Function Foo(item As T2) As T2
+            Return item
+        End Function
+
+        Public Shared Function Bar(item As T3) As T3
+            Return item
+        End Function
+    End Class
+
+    Public Class Class2
+        Public Shared Function TestFunc2 As Integer
+            Return Class1Helpers(Of Integer).TestFunc()
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers(Of T1 As New)
+        Public Shared Function TestFunc() As T1
+            Return New T1()
         End Function
     End Class
 End Namespace

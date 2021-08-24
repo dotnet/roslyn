@@ -1088,21 +1088,22 @@ namespace TestNs1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestMoveMethodFromGenericClassAndRefactorUsage()
         {
-            var initialMarkup = @"using System;
-
+            var initialMarkup = @"
 namespace TestNs1
 {
     public class Class1<T>
     {
-        public static Type Test[||]Method()
+        public static T TestGeneric { get; set; }    
+
+        public static T Test[||]Method()
         {
-            return typeof(T);
+            return TestGeneric;
         }
     }
 
     public class Class2
     {
-        public static Type TestMethod2()
+        public static int TestMethod2()
         {
             return Class1<int>.TestMethod();
         }
@@ -1110,9 +1111,8 @@ namespace TestNs1
 }";
             var selectedDestinationName = "Class1Helpers";
             var newFileName = "Class1Helpers.cs";
-            var selectedMembers = ImmutableArray.Create("TestMethod");
-            var expectedResult1 = @"using System;
-
+            var selectedMembers = ImmutableArray.Create("TestMethod", "TestGeneric");
+            var expectedResult1 = @"
 namespace TestNs1
 {
     public class Class1<T>
@@ -1121,21 +1121,83 @@ namespace TestNs1
 
     public class Class2
     {
-        public static Type TestMethod2()
+        public static int TestMethod2()
         {
             return Class1Helpers<int>.TestMethod();
         }
     }
 }";
-            var expectedResult2 = @"using System;
-
-namespace TestNs1
+            var expectedResult2 = @"namespace TestNs1
 {
     static class Class1Helpers<T>
     {
-        public static Type TestMethod()
+        public static T TestGeneric { get; set; }
+
+        public static T TestMethod()
         {
-            return typeof(T);
+            return TestGeneric;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodFromGenericClassAndRefactorPartialTypeArgUsage()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1<T1, T2, T3>
+        where T1 : new()
+    {
+        public static T1 Test[||]Method()
+        {
+            return new T1();
+        }
+
+        public static T2 TestGeneric2 { get; set; } 
+
+        public T3 TestGeneric3 { get; set; }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1<int, string, double>.TestMethod();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1<T1, T2, T3>
+        where T1 : new()
+    {
+        public static T2 TestGeneric2 { get; set; } 
+
+        public T3 TestGeneric3 { get; set; }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers<int>.TestMethod();
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    static class Class1Helpers<T1> where T1 : new()
+    {
+        public static T1 TestMethod()
+        {
+            return new T1();
         }
     }
 }";

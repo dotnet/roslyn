@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
@@ -75,6 +74,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var sourceDoc = _document.WithSyntaxRoot(root);
 
             var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
+            // which indices of the old type params should we keep for a new class reference, used for refactoring usages
+            var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
+                .Where(i => typeParameters.Contains(_selectedType.TypeParameters[i]))
+                .ToImmutableArray();
+
             // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 ImmutableArray.Create<AttributeData>(),
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // refactor references across the entire solution
             var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
             var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
-            var reReferencedSolution = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, cancellationToken).ConfigureAwait(false);
+            var reReferencedSolution = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
             // Possibly convert members to non-static or static if we move to/from a module
             sourceDoc = await CorrectStaticMembersAsync(reReferencedSolution.GetRequiredDocument(sourceDoc.Id), memberNodes, newType!, cancellationToken).ConfigureAwait(false);
@@ -160,6 +164,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             ILookup<ProjectId, (ReferenceLocation location, bool isExtensionMethod)> projectToLocations,
             Solution solution,
             INamedTypeSymbol newType,
+            ImmutableArray<int> typeArgIndices,
             CancellationToken cancellationToken)
         {
             foreach (var (projectId, referencesForProject) in projectToLocations)
@@ -170,7 +175,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 foreach (var (docId, referencesForDoc) in documentToLocations)
                 {
                     var doc = project.GetRequiredDocument(docId);
-                    doc = await FixReferencesSingleDocumentAsync(referencesForDoc.ToImmutableArray(), doc, newType, cancellationToken).ConfigureAwait(false);
+                    doc = await FixReferencesSingleDocumentAsync(
+                        referencesForDoc.ToImmutableArray(),
+                        doc,
+                        newType,
+                        typeArgIndices,
+                        cancellationToken).ConfigureAwait(false);
                     project = doc.Project;
                 }
 
@@ -184,6 +194,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             ImmutableArray<(ReferenceLocation location, bool isExtensionMethod)> referenceLocations,
             Document doc,
             INamedTypeSymbol newType,
+            ImmutableArray<int> typeArgIndices,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -240,11 +251,24 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 else if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
                 {
                     // static member access should never be pointer or conditional member access,
-                    // so syntax in this block should be of the form 'Class.Member'
+                    // so syntax in this block should be of the form 'Class.Member' or 'Class<TArg>.Member'
                     var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
                     if (expression != null)
                     {
-                        root = root.ReplaceNode(expression, generator.TypeExpression(newType)
+                        SyntaxNode replacement;
+                        if (syntaxFacts.IsGenericName(expression))
+                        {
+                            // if the access uses a generic name, then we copy only the type args we need
+                            var typeArgs = syntaxFacts.GetTypeArgumentsOfGenericName(expression);
+                            var newTypeArgs = typeArgIndices.SelectAsArray(i => typeArgs[i]);
+                            replacement = generator.GenericName(newType.Name, newTypeArgs);
+                        }
+                        else
+                        {
+                            replacement = generator.TypeExpression(newType);
+                        }
+
+                        root = root.ReplaceNode(expression, replacement
                             .WithTriviaFrom(refNode)
                             .WithAdditionalAnnotations(Simplifier.Annotation, Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)));
                     }
