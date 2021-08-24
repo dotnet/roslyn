@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -21,7 +22,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TExpressionStatementSyntax : SyntaxNode
     {
-        protected abstract bool TryGetVariableDeclaratorInSingleFieldDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? singleVariableDeclarator);
+        /// <summary>
+        /// Get the single variable node from the field declaration if the <paramref name="span"/> is placed on any part of the field declaration.
+        /// For C#, it fetches VariableDeclarator from BaseFieldDeclaration. (cover field and event)
+        /// For VB, it fetches the ModifiedIdentifier from the FieldDeclartion.
+        /// e.g.
+        /// class Bar
+        /// {
+        ///    public int i $$= 100;
+        /// }
+        /// Class bar
+        ///     Public i As Inte$$rger = 100;
+        /// End Class
+        /// </summary>
+        protected abstract SyntaxNode? ExtractSingleVariableFromFieldDeclaration(SyntaxNode root, int location);
 
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
@@ -107,6 +121,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // Property Decl. 
                 // We cannot check this any sooner because the above code could've changed current location.
                 AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, syntaxFacts), relevantNodesBuilder, cancellationToken);
+                // Also check the case where the location is placed over a Field that has only one varaible.
+                // e.g.
+                // class Bar { public i$$nt Foo = 100; }
+                var possibleSingleVariableNode = ExtractSingleVariableFromFieldDeclaration(root, location);
+                if (possibleSingleVariableNode != null)
+                {
+                    AddNonHiddenCorrectTypeNodes(SpecializedCollections.SingletonEnumerable(possibleSingleVariableNode), relevantNodesBuilder, cancellationToken);
+                }
 
                 // Add Nodes for touching tokens as described above.
                 AddNodesForTokenToRightOrIn(syntaxFacts, root, relevantNodesBuilder, location, tokenToRightOrIn, cancellationToken);
@@ -412,18 +434,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsExpressionStatement(node.Parent))
             {
                 yield return node.Parent;
-            }
-
-            // If there is only one variable declared in the field, then consider the only field is selected
-            // e.g.
-            // class Bar
-            // {
-            //     pub$$lic int i;
-            // }
-            // Treat as 'i' is selected
-            if (TryGetVariableDeclaratorInSingleFieldDeclaration(node, out var singleVariable))
-            {
-                yield return singleVariable;
             }
         }
 

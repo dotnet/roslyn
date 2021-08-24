@@ -5492,7 +5492,7 @@ class Base
 
 class Derived : Base
 {
-    public int TestInt = string.Emp$$ty.Length;
+    public int TestInt = string.Emp[||]ty.Length;
 }";
 
             var expected = @"
@@ -5544,6 +5544,27 @@ class Derived : Base
 {
     pub[||]lic int I, J;
 }";
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromAttribute()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    [Fo[||]o]
+    public int TestInt = string.Empty.Length;
+}
+
+internal class FooAttribute : Attribute
+{
+}";
+
             return TestQuickActionNotProvidedAsync(testText);
         }
 

@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
@@ -60,33 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
             }
         }
 
-        protected override bool TryGetVariableDeclaratorInSingleFieldDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? singleVariableDeclarator)
+        protected override SyntaxNode? ExtractSingleVariableFromFieldDeclaration(SyntaxNode root, int location)
         {
-            // 1. If node is a part of VariableDeclaration, check the grand parent of this node.
-            // e.g.
-            // class Bar
-            // {
-            //      public i$$nt i;
-            // }
-            if (node.Parent is VariableDeclarationSyntax && node.Parent.Parent is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
+            var token = root.FindToken(location);
+            if (token.Parent != null)
             {
-                singleVariableDeclarator = baseFieldDeclarationNode.Declaration.Variables[0];
-                return true;
+                var baseFieldNode = token.Parent.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
+                if (baseFieldNode is { Declaration: { Variables: { Count: 1 } } } && !baseFieldNode.AttributeLists.Span.Contains(location))
+                {
+                    return baseFieldNode.Declaration.Variables[0];
+                }
             }
 
-            // 2. If the node is a field declaration
-            // class Bar
-            // {
-            //      publ$$ic int i;
-            // }
-            if (node is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } fieldDeclarationNode)
-            {
-                singleVariableDeclarator = fieldDeclarationNode.Declaration.Variables[0];
-                return true;
-            }
-
-            singleVariableDeclarator = null;
-            return false;
+            return null;
         }
     }
 }
