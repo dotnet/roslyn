@@ -382,7 +382,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             generation = 0;
 
             Debug.Assert(returnsVoid || name.StartsWith(FuncDelegateNamePrefix));
-            Debug.Assert(name[3] == '{');
+            if (name[3] != '{')
+            {
+                byRefs = default;
+                parameterCount = 0;
+                return false;
+            }
 
             parameterCount = arity - (returnsVoid ? 0 : 1);
 
@@ -401,7 +406,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // is the last character
             if (lastBraceIndex < name.Length - 1)
             {
-                Debug.Assert(name[lastBraceIndex + 1] == '#');
+                // Format is a '#' followed by the generation number
+                if (name[lastBraceIndex + 1] != '#')
+                {
+                    return false;
+                }
+
                 if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
                 {
                     return false;

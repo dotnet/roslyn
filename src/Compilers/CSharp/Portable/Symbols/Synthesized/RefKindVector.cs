@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     value = Convert.ToUInt64(word, 16);
                 }
-                catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+                catch (Exception)
                 {
                     result = default;
                     return false;
