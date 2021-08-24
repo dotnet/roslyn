@@ -188,7 +188,7 @@ namespace RunTests
                 {
                     werValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting""";
                     localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
-                    procDumpCommand = @"start /b ""ProcDump"" ""C: \Users\dabarbet\Documents\procdump\procdump.exe"" /accepteula -ma -w -t -e testhost ""C:\cores""";
+                    procDumpCommand = @$"start /b ""ProcDump"" ""procdump.exe"" /accepteula -ma -w -t -e testhost ""C:\cores""";
                 }
 
                 var checkDumpLocation = lsCommand + @" C:\cores";
