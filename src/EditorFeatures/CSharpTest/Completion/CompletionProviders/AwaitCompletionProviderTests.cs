@@ -350,6 +350,21 @@ static class Program
         }
 
         [Fact]
+        public async Task TestDotAwaitSuggestAfterDotDot()
+        {
+            await VerifyKeywordAsync(@"
+using System.Threading.Tasks;
+
+static class Program
+{
+    static async Task Main(Task someTask)
+    {
+        someTask.$$.;
+    }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
             await VerifyAbsenceAsync(@"

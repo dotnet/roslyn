@@ -57,24 +57,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
-            // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
-            // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
-            if (dotToken?.Parent is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.GetParentConditionalAccessExpression() is null)
+            return dotToken switch
             {
-                return memberAccess;
-            }
-
-            return null;
+                // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
+                // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
+                { Parent: MemberAccessExpressionSyntax memberAccess } when memberAccess.GetParentConditionalAccessExpression() is null => memberAccess,
+                { Parent: RangeExpressionSyntax range } => range.LeftOperand,
+                _ => null,
+            };
         }
 
         private protected override SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
+            // TODO: Parts of this code are taken from UnnamedSymbolCompletionProvider.GetDotAndExpressionStart -> Unify
             var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
-            return dotToken.IsKind(SyntaxKind.DotToken, SyntaxKind.DotDotToken)
-                ? dotToken
-                : default;
+            // Has to be a . or a .. token
+            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
+                return null;
+
+            // don't want to trigger after a number. All other cases after dot are ok.
+            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+                return null;
+
+            return dotToken;
         }
 
         private protected override bool IsDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
