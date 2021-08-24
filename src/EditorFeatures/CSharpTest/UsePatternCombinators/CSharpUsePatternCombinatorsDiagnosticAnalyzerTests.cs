@@ -2,55 +2,48 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 {
-    public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUsePatternCombinatorsDiagnosticAnalyzer,
+        CSharpUsePatternCombinatorsCodeFixProvider>;
+
+    public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests
     {
-        private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview.WithLanguageVersion(LanguageVersion.CSharp9);
+        private static Task TestAllMissingOnExpressionAsync(string expression, LanguageVersion languageVersion = LanguageVersion.Latest, bool enabled = true)
+            => TestMissingAsync(FromExpression(expression), languageVersion, enabled);
 
-        private static readonly OptionsCollection s_disabled = new OptionsCollection(LanguageNames.CSharp)
+        private static async Task TestMissingAsync(string initialMarkup, LanguageVersion languageVersion = LanguageVersion.Latest, bool enabled = true)
         {
-            { CSharpCodeStyleOptions.PreferPatternMatching, new CodeStyleOption2<bool>(false, NotificationOption2.None) }
-        };
-
-        public CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutputHelper logger)
-             : base(logger)
-        {
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+                LanguageVersion = languageVersion,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferPatternMatching, enabled, NotificationOption2.Silent }
+                },
+                DiagnosticVerifier = (x, y, z) => { },
+            }.RunAsync();
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
+        private static async Task TestAllAsync(string initialMarkup, string expectedMarkup)
+        {
+            await VerifyCS.VerifyCodeFixAsync(initialMarkup, expectedMarkup);
+        }
 
-        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
-            => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
-
-        private Task TestMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
-            => TestMissingAsync(initialMarkup, new TestParameters(
-                parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
-
-        private Task TestAllAsync(string initialMarkup, string expectedMarkup)
-            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
-                parseOptions: CSharp9, options: null);
-
-        private Task TestAllOnExpressionAsync(string expression, string expected)
+        private static Task TestAllOnExpressionAsync(string expression, string expected)
             => TestAllAsync(FromExpression(expression), FromExpression(expected));
 
         private static string FromExpression(string expression)
@@ -137,7 +130,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnCSharp8()
         {
-            await TestAllMissingOnExpressionAsync("o == 1 || o == 2", parseOptions: TestOptions.Regular8);
+            await TestAllMissingOnExpressionAsync("o == 1 || o == 2", LanguageVersion.CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]

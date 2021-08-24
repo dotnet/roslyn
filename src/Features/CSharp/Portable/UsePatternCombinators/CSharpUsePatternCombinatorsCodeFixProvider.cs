@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternCombinators), Shared]
     internal class CSharpUsePatternCombinatorsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string SafeEquivalenceKey = nameof(CSharpUsePatternCombinatorsCodeFixProvider) + "_safe";
+        private const string UnsafeEquivalenceKey = nameof(CSharpUsePatternCombinatorsCodeFixProvider) + "_unsafe";
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUsePatternCombinatorsCodeFixProvider()
@@ -53,6 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected override bool IncludeDiagnosticDuringFixAll(
+            Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        {
+            var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
+            return isSafe == (equivalenceKey == SafeEquivalenceKey);
+        }
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var isSafe = context.Diagnostics.First().Properties.TryGetValue("safe", out var _);
@@ -60,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             context.RegisterCodeFix(
                 new MyCodeAction(
                     isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -128,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, nameof(CSharpUsePatternCombinatorsCodeFixProvider))
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
 
