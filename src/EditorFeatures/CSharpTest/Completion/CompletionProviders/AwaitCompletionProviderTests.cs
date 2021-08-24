@@ -297,6 +297,59 @@ class C
         }
 
         [Fact]
+        public async Task TestDotAwaitSuggestAfterDotOnValueTask()
+        {
+            var valueTaskAssembly = typeof(ValueTask).Assembly.Location;
+            await VerifyItemExistsAsync(@$"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{LanguageVersion.CSharp9.ToDisplayString()}"">
+        <MetadataReference>{valueTaskAssembly}</MetadataReference>
+        <Document FilePath=""Test2.cs"">
+using System.Threading.Tasks;
+
+class C
+{{
+  async Task F(ValueTask someTask)
+  {{
+    someTask.$$
+  }}
+}}
+        </Document>
+    </Project>
+</Workspace>
+", "await");
+        }
+
+        [Fact]
+        public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitable()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class DummyAwaiter: INotifyCompletion {
+    public bool IsCompleted => true;
+    public void OnCompleted(Action continuation) => continuation();
+    public void GetResult() {}
+}
+
+public class CustomAwaitable
+{
+    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
+}
+
+static class Program
+{
+    static async Task Main()
+    {
+        var awaitable = new CustomAwaitable();
+        awaitable.$$;
+    }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
             await VerifyAbsenceAsync(@"
