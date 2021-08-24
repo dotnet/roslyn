@@ -257,9 +257,9 @@
         <target state="translated">使用模式比對</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching_may_have_side_effects">
-        <source>Use pattern matching (may have side effects)</source>
-        <target state="new">Use pattern matching (may have side effects)</target>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
