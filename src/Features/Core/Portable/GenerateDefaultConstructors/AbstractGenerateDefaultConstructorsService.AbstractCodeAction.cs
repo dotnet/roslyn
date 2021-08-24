@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,8 +10,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
@@ -40,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(_state.ClassType);
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     : default;
 
                 var classType = _state.ClassType;
+                Contract.ThrowIfNull(classType);
 
                 var accessibility = DetermineAccessibility(baseConstructor, classType);
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(

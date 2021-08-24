@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixReturnType = nameof(FixReturnType);
         public const string FullyQualify = nameof(FullyQualify);
         public const string GenerateConstructor = nameof(GenerateConstructor);
+        public const string GenerateDefaultConstructors = nameof(GenerateDefaultConstructors);
         public const string GenerateConversion = nameof(GenerateConversion);
         public const string GenerateDeconstructMethod = nameof(GenerateDeconstructMethod);
         public const string GenerateEndConstruct = nameof(GenerateEndConstruct);
