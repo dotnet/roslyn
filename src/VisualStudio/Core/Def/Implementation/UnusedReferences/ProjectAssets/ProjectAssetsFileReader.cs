@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
             try
             {
                 var projectAssets = JsonConvert.DeserializeObject<ProjectAssetsFile>(projectAssetsFileContents);
-                return ProjectAssetsReader.AddDependencyHierarchies(projectReferences, projectAssets);
+
+                return projectAssets is null
+                    ? ImmutableArray<ReferenceInfo>.Empty
+                    : ProjectAssetsReader.AddDependencyHierarchies(projectReferences, projectAssets);
             }
             catch
             {

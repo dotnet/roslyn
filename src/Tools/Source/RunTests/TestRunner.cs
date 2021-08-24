@@ -108,7 +108,7 @@ namespace RunTests
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
         <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
-        <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
+        <DotNetCliVersion>" + globalJson?.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
     </PropertyGroup>

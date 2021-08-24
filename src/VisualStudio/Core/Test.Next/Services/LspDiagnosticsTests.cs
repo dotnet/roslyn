@@ -588,6 +588,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     Contract.ThrowIfTrue(_currentNumberOfCallbacks > _expectedNumberOfCallbacks, "received too many callbacks");
 
                     var diagnosticParams = input.ToObject<LSP.PublishDiagnosticParams>();
+                    Contract.ThrowIfNull(diagnosticParams);
+
                     Results.Add(diagnosticParams);
 
                     if (_currentNumberOfCallbacks == _expectedNumberOfCallbacks)

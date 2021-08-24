@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
         }
 
+        [Obsolete]
         public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
         {
             Contract.ThrowIfNull(textView);

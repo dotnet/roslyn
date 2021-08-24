@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _wasVSStartedWithLogParameterLazy = new AsyncLazy<bool>(WasVSStartedWithLogParameterAsync, _threadingContext.JoinableTaskFactory);
         }
 
+        [Obsolete]
         public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, string? clientName, JsonRpc jsonRpc, CancellationToken cancellationToken)
         {
             var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
