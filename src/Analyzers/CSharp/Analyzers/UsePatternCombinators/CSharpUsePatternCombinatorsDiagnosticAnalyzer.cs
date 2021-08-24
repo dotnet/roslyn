@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static readonly LocalizableResourceString s_safePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
         private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        private static readonly ImmutableDictionary<string, string> s_unsafeProperties = ImmutableDictionary<string, string>.Empty.Add(SafeKey, "");
+        private static readonly ImmutableDictionary<string, string> s_safeProperties = ImmutableDictionary<string, string>.Empty.Add(SafeKey, "");
         private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
             EnforceOnBuildValues.UsePatternCombinators,
@@ -93,15 +94,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             // if the target (the common expression in the pattern) is a method call,
             // then we can't guarantee that the rewritting won't have side-effects,
             // so we should warn the user
-            var isSafe = pattern.Target is not Operations.IInvocationOperation;
+            var isSafe = UnwrapImplicitConversion(pattern.Target) is not Operations.IInvocationOperation;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
                 expression.GetLocation(),
                 styleOption.Notification.Severity,
                 additionalLocations: null,
-                properties: isSafe ? s_unsafeProperties : null));
+                properties: isSafe ? s_safeProperties : null));
         }
+
+        private static IOperation UnwrapImplicitConversion(IOperation operation)
+            => operation is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : operation;
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
         {

@@ -65,12 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var isSafe = context.Diagnostics.First().Properties.TryGetValue("safe", out var _);
+            var diagnostic = context.Diagnostics.First();
+            var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
 
             context.RegisterCodeFix(
                 new MyCodeAction(
                     isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    c => FixAsync(context.Document, diagnostic, c),
                     isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey),
                 context.Diagnostics);
 
