@@ -297,7 +297,7 @@ class C
         }
 
         [Fact]
-        public async Task TestDotAwaitDontSuggestAfterDotOnTaskIfAlreadyAwaited()
+        public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
             await VerifyAbsenceAsync(@"
 using System.Threading.Tasks;
@@ -313,7 +313,7 @@ class C
         }
 
         [Fact]
-        public async Task TestDotAwaitDontSuggestInLock()
+        public async Task TestDotAwaitNotInLock()
         {
             await VerifyAbsenceAsync(@"
 using System.Threading.Tasks;
@@ -329,7 +329,7 @@ class C
         }
 
         [Fact]
-        public async Task TestDotAwaitDontSuggestInLock_TopLevel()
+        public async Task TestDotAwaitNotInLock_TopLevel()
         {
             await VerifyAbsenceAsync(@"
 using System.Threading.Tasks;
@@ -339,7 +339,7 @@ lock(this) { Task.CompletedTask.$$ }
         }
 
         [Fact]
-        public async Task TestDotAwaitDontSuggestInQuery()
+        public async Task TestDotAwaitNotInQuery()
         {
             await VerifyAbsenceAsync(@"
 using System.Linq;
@@ -357,7 +357,7 @@ class C
         }
 
         [Fact]
-        public async Task TestDotAwaitDontSuggestAfterConditionalAccessOfTaskMembers()
+        public async Task TestDotAwaitNotAfterConditionalAccessOfTaskMembers()
         {
             // The conditional access suggests, that someTask can be null.
             // await on null throws at runtime, so the user should do
