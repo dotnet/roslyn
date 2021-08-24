@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace).ConfigureAwait(false);
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
             ServiceBase.Equals(1, 1);
-            var tasks = new List<Task>();
+            Environment.FailFast("FAILING TEST", new ArgumentException("Some exception"));
+            /*var tasks = new List<Task>();
             for (var i = 0; i < 10; i++)
             {
                 tasks.Add(Task.Run(() =>
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
                 }));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks).ConfigureAwait(false);*/
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]

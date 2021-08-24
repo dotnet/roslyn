@@ -162,15 +162,19 @@ namespace RunTests
                 var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
 
                 // some random no-op command that works everywhere.
-                var werValues = lsCommand;
-                var localDumpsValues = lsCommand;
+                var noopCommand = @"echo ""Skip""";
+                var werValues = noopCommand;
+                var localDumpsValues = noopCommand;
+                var procDumpCommand = noopCommand;
                 if (!isUnix)
                 {
                     werValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting""";
                     localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
+                    procDumpCommand = @"start /b ""ProcDump"" ""C: \Users\dabarbet\Documents\procdump\procdump.exe"" /accepteula -ma -w -t -e testhost ""C:\cores""";
                 }
 
                 var checkDumpLocation = lsCommand + @" C:\cores";
+                var checkTestName = @$"echo {assemblyInfo.AssemblyName}";
 
                 var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
@@ -187,8 +191,10 @@ namespace RunTests
                 {werValues}
                 {localDumpsValues}
                 {checkDumpLocation}
+                {checkTestName}
                 dotnet --info
                 {setTestIOperation}
+                {procDumpCommand}
                 dotnet {commandLineArguments}
                 {checkDumpLocation}
             </Command>
