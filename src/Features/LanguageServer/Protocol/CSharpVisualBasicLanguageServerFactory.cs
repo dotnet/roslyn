@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 workspaceRegistrationService,
                 _listenerProvider,
                 logger,
+                ProtocolConstants.RoslynLspLanguages,
                 clientName: null,
                 userVisibleServerName: UserVisibleName,
                 telemetryServerTypeName: this.GetType().Name);

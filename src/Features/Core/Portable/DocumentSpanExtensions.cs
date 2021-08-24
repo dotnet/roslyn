@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis
             var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
             options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
 
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
+            // We're starting with one doc snapshot, but we're navigating to the current version of the doc.  As such,
+            // the span we're trying to navigate to may no longer be there.  Allow for that and don't crash in that case.
+            return service.TryNavigateToSpan(
+                workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, allowInvalidSpan: true, cancellationToken);
         }
 
         public static async Task<bool> IsHiddenAsync(

@@ -5831,7 +5831,7 @@ class A                                                               \
                 assemblyName.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
         public void CsiScript_WithSourceCodeRedirectedViaStandardInput_ExecutesNonInteractively()
         {
             string tempDir = Temp.CreateDirectory().Path;
@@ -9510,7 +9510,7 @@ using System.Diagnostics; // Unused.
         }
 
         [WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/55730")]
         public void ReservedDeviceNameAsFileName()
         {
             var parsedArgs = DefaultParse(new[] { "com9.cs", "/t:library " }, WorkingDirectory);
@@ -13598,7 +13598,7 @@ public class Generator : ISourceGenerator
 
                 var generatorPath = Path.Combine(directory.Path, "generator.dll");
 
-                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                var compilation = CSharpCompilation.Create($"generator",
                                                            new[] { CSharpSyntaxTree.ParseText(generatorSource) },
                                                            TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
                                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

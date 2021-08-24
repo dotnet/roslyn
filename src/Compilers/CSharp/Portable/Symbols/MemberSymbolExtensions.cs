@@ -403,12 +403,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsDefaultValueTypeConstructor(this NamedTypeSymbol type, ConstructorInitializerSyntax initializerSyntax)
         {
-            if (initializerSyntax.ArgumentList.Arguments.Count > 0)
+            if (initializerSyntax.ArgumentList.Arguments.Count > 0 || !type.IsValueType)
             {
                 return false;
             }
-            var constructor = type.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
-            return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
+
+            // If exactly one parameterless constructor, return whether it's the default value type constructor
+            // Otherwise, return false
+            bool foundParameterlessCtor = false;
+            bool result = false;
+            foreach (var constructor in type.InstanceConstructors)
+            {
+                if (constructor.ParameterCount != 0)
+                {
+                    continue;
+                }
+
+                if (foundParameterlessCtor)
+                {
+                    // finding more than one parameterless constructor is an error scenario (reported elsewhere)
+                    return false;
+                }
+
+                foundParameterlessCtor = true;
+                result = constructor.IsDefaultValueTypeConstructor(requireZeroInit: true);
+            }
+
+            return result;
         }
 
         /// <summary>

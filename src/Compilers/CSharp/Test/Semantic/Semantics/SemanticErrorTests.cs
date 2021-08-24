@@ -18132,6 +18132,47 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
         }
 
+        [Fact]
+        [WorkItem(54804, "https://github.com/dotnet/roslyn/issues/54804")]
+        public void BadNestedTypeof()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+var x = typeof(List<dynamic>); // 1
+x = typeof(nint); // 2
+x = typeof(List<nint>); // 3
+x = typeof(List<string?>); // 4
+x = typeof((int a, int b)); // 5
+x = typeof((int a, string? b)); // 6
+x = typeof(ValueTuple<int, int>); // ok
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): warning CS8959: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // var x = typeof(List<dynamic>); // 1
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<dynamic>)").WithArguments("List<dynamic>").WithLocation(7, 9),
+                // (8,5): warning CS8959: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof(nint); // 2
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(nint)").WithArguments("nint").WithLocation(8, 5),
+                // (9,5): warning CS8959: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof(List<nint>); // 3
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<nint>)").WithArguments("List<nint>").WithLocation(9, 5),
+                // (10,5): warning CS8959: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof(List<string?>); // 4
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<string?>)").WithArguments("List<string?>").WithLocation(10, 5),
+                // (11,5): warning CS8959: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof((int a, int b)); // 5
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, int b))").WithArguments("(int a, int b)").WithLocation(11, 5),
+                // (12,5): warning CS8959: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
+                // x = typeof((int a, string? b)); // 6
+                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, string? b))").WithArguments("(int a, string? b)").WithLocation(12, 5));
+
+            CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
+        }
+
         // CS1963ERR_ExpressionTreeContainsDynamicOperation --> SyntaxBinderTests
 
         [Fact]

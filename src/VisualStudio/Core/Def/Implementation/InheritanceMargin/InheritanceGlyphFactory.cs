@@ -5,6 +5,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -21,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IWpfTextView _textView;
+        private readonly IAsynchronousOperationListener _listener;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
@@ -28,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
-            IWpfTextView textView)
+            IWpfTextView textView,
+            IAsynchronousOperationListener listener)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -36,26 +39,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationFormatMap = classificationFormatMap;
             _operationExecutor = operationExecutor;
             _textView = textView;
+            _listener = listener;
         }
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
-            if (tag is InheritanceMarginTag inheritanceMarginTag)
-            {
-                var membersOnLine = inheritanceMarginTag.MembersOnLine;
-                Contract.ThrowIfTrue(membersOnLine.IsEmpty);
+            if (tag is not InheritanceMarginTag inheritanceMarginTag)
+                return null;
 
-                return new MarginGlyph.InheritanceMargin(
-                    _threadingContext,
-                    _streamingFindUsagesPresenter,
-                    _classificationTypeMap,
-                    _classificationFormatMap,
-                    _operationExecutor,
-                    inheritanceMarginTag,
-                    _textView);
-            }
+            var membersOnLine = inheritanceMarginTag.MembersOnLine;
+            Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-            return null;
+            return new MarginGlyph.InheritanceMargin(
+                _threadingContext,
+                _streamingFindUsagesPresenter,
+                _classificationTypeMap,
+                _classificationFormatMap,
+                _operationExecutor,
+                inheritanceMarginTag,
+                _textView,
+                _listener);
         }
     }
 }
