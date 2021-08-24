@@ -273,8 +273,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Friend Async Function RaiseFileChangeAsync(path As String) As Task
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
-            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
-            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
+            Dim mockFileChangeService = Assert.IsType(Of MockVsFileChangeEx)(ServiceProvider.GetService(GetType(SVsFileChangeEx)))
             Await ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync()
             mockFileChangeService.FireUpdate(path)
         End Function

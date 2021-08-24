@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Task<IVsAsyncFileChangeEx> _fileChangeService;
 
         /// <summary>
-        /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
+        /// We create a batching queue of operations against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
         /// block on it being available, so anybody who wants to do anything must wait for it. Secondly, the service itself is single-threaded; the entry points
         /// are asynchronous so we avoid starving the thread pool, but there's still no reason to create a lot more work blocked than needed. Finally, since this
         /// is all happening async, we generally need to ensure that an operation that happens for an earlier call to this is done before we do later calls. For example,
@@ -40,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Task<IVsAsyncFileChangeEx> fileChangeService)
         {
             _fileChangeService = fileChangeService;
+
+            // 📝 Empirical testing during high activity (e.g. solution close) showed strong batching performance even
+            // though the batching delay is 0.
             _taskQueue = new AsyncBatchingWorkQueue<WatcherOperation>(
                 TimeSpan.Zero,
                 ProcessBatchAsync,
@@ -51,20 +54,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var service = await _fileChangeService.ConfigureAwait(false);
 
-            var next = WatcherOperation.Empty;
+            var prior = WatcherOperation.Empty;
             for (var i = 0; i < workItems.Length; i++)
             {
-                if (next.TryCombineWith(workItems[i], out var combined))
+                if (prior.TryCombineWith(workItems[i], out var combined))
                 {
-                    next = combined;
+                    prior = combined;
                     continue;
                 }
 
-                await next.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
-                next = workItems[i];
+                // The current item can't be combined with the prior item. Process the prior item before marking the
+                // current item as the new prior item.
+                await prior.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
+                prior = workItems[i];
             }
 
-            await next.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
+            // The last item is always stored in prior rather than processing it directly. Make sure to process it
+            // before returning from the batch.
+            await prior.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
         }
 
         public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
@@ -141,21 +148,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
+        /// <summary>
+        /// Represents an operation to subscribe or unsubscribe from <see cref="IVsAsyncFileChangeEx"/> events. The
+        /// values of the fields depends on the <see cref="_kind"/> of the particular instance.
+        /// </summary>
         private readonly struct WatcherOperation
         {
+            /// <summary>
+            /// The kind of the watcher operation. The values of individual fields depends on the kind.
+            /// </summary>
             private readonly Kind _kind;
 
+            /// <summary>
+            /// The path to subscribe to for <see cref="Kind.WatchDirectory"/> or <see cref="Kind.WatchFile"/>.
+            /// </summary>
             private readonly string _directory;
+
+            /// <summary>
+            /// The extension filter to apply for <see cref="Kind.WatchDirectory"/>. This value may be
+            /// <see langword="null"/> to disable the extension filter.
+            /// </summary>
             private readonly string? _filter;
+
+            /// <summary>
+            /// The file change flags to apply for <see cref="Kind.WatchFile"/>.
+            /// </summary>
             private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
+
+            /// <summary>
+            /// The instance to receive callback events for <see cref="Kind.WatchDirectory"/> or
+            /// <see cref="Kind.WatchFile"/>.
+            /// </summary>
             private readonly IVsFreeThreadedFileChangeEvents2 _sink;
 
-            // ⚠ Do not change this to another collection like ImmutableList<uint>. This collection references an
-            // instance held by the Context class, and the values are lazily read when TryCombineWith is called.
+            /// <summary>
+            /// The collection holding cookies. For <see cref="Kind.WatchDirectory"/>, the operation will add the
+            /// resulting cookie to this collection. For <see cref="Kind.UnwatchDirectories"/>, the operation will
+            /// unsubscribe to all cookies in the collection.
+            /// </summary>
+            /// <remarks>
+            /// ⚠ Do not change this to another collection like <c>ImmutableList&lt;uint&gt;</c>. This collection
+            /// references an instance held by the <see cref="Context"/> class, and the values are lazily read when
+            /// <see cref="TryCombineWith"/> is called.
+            /// </remarks>
             private readonly List<uint> _cookies;
 
-            private readonly IFileWatchingToken _token;
-            private readonly IEnumerable<IFileWatchingToken> _tokens;
+            /// <summary>
+            /// A file watcher token. The <see cref="Context.FileWatchingToken.Cookie"/> field is assigned by the
+            /// operation for <see cref="Kind.WatchFile"/>, or read by the operation for <see cref="Kind.UnwatchFile"/>.
+            /// </summary>
+            private readonly Context.FileWatchingToken _token;
+
+            /// <summary>
+            /// A collection of file watcher tokens to remove for <see cref="Kind.UnwatchFiles"/>.
+            /// </summary>
+            private readonly IEnumerable<Context.FileWatchingToken> _tokens;
 
             private WatcherOperation(Kind kind)
             {
@@ -188,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _tokens = null!;
             }
 
-            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, IFileWatchingToken token)
+            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.FileWatchingToken token)
             {
                 Contract.ThrowIfFalse(kind is Kind.WatchFile);
                 _kind = kind;
@@ -220,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _tokens = null!;
             }
 
-            private WatcherOperation(Kind kind, IEnumerable<IFileWatchingToken> tokens)
+            private WatcherOperation(Kind kind, IEnumerable<Context.FileWatchingToken> tokens)
             {
                 Contract.ThrowIfFalse(kind is Kind.UnwatchFiles);
                 _kind = kind;
@@ -236,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _token = null!;
             }
 
-            private WatcherOperation(Kind kind, IFileWatchingToken token)
+            private WatcherOperation(Kind kind, Context.FileWatchingToken token)
             {
                 Contract.ThrowIfFalse(kind is Kind.UnwatchFile);
                 _kind = kind;
@@ -262,23 +309,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 UnwatchFiles,
             }
 
+            /// <summary>
+            /// Represents a watcher operation that takes no action when applied. This value intentionally has the same
+            /// representation as <c>default(WatcherOperation)</c>.
+            /// </summary>
             public static WatcherOperation Empty => new(Kind.None);
 
             public static WatcherOperation WatchDirectory(string directory, string? filter, IVsFreeThreadedFileChangeEvents2 sink, List<uint> cookies)
                 => new(Kind.WatchDirectory, directory, filter, sink, cookies);
 
-            public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, IFileWatchingToken token)
+            public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.FileWatchingToken token)
                 => new(Kind.WatchFile, path, fileChangeFlags, sink, token);
 
             public static WatcherOperation UnwatchDirectories(List<uint> cookies)
                 => new(Kind.UnwatchDirectories, cookies);
 
-            public static WatcherOperation UnwatchFiles(IEnumerable<IFileWatchingToken> tokens)
+            public static WatcherOperation UnwatchFiles(IEnumerable<Context.FileWatchingToken> tokens)
                 => new(Kind.UnwatchFiles, tokens);
 
-            public static WatcherOperation UnwatchFile(IFileWatchingToken token)
+            public static WatcherOperation UnwatchFile(Context.FileWatchingToken token)
                 => new(Kind.UnwatchFile, token);
 
+            /// <summary>
+            /// Attempts to combine the current <see cref="WatcherOperation"/> with the next operation in sequence. When
+            /// successful, <paramref name="combined"/> is assigned a value which, when applied, performs an operation
+            /// equivalent to performing the current instance immediately followed by <paramref name="other"/>.
+            /// </summary>
+            /// <param name="other">The next operation to apply.</param>
+            /// <param name="combined">An operation representing the combined application of the current instance and
+            /// <paramref name="other"/>, in that order; otherwise, <see cref="Empty"/> if the current operation cannot
+            /// be combined with <paramref name="other"/>.</param>
+            /// <returns><see langword="true"/> if the current operation can be combined with <paramref name="other"/>;
+            /// otherwise, <see langword="false"/>.</returns>
             public bool TryCombineWith(in WatcherOperation other, out WatcherOperation combined)
             {
                 if (other._kind == Kind.None)
@@ -341,16 +403,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         _cookies.Add(cookie);
 
                         if (_filter != null)
-                            await service.FilterDirectoryChangesAsync(cookie, new string[] { _filter }, cancellationToken).ConfigureAwait(false);
+                            await service.FilterDirectoryChangesAsync(cookie, new[] { _filter }, cancellationToken).ConfigureAwait(false);
 
                         return;
 
                     case Kind.WatchFile:
-                        ((Context.FileWatchingToken)_token).Cookie = await service.AdviseFileChangeAsync(_directory, _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
+                        _token.Cookie = await service.AdviseFileChangeAsync(_directory, _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
                         return;
 
                     case Kind.UnwatchFile:
-                        await service.UnadviseFileChangeAsync(((Context.FileWatchingToken)_token).Cookie!.Value, cancellationToken).ConfigureAwait(false);
+                        await service.UnadviseFileChangeAsync(_token.Cookie!.Value, cancellationToken).ConfigureAwait(false);
                         return;
 
                     case Kind.UnwatchDirectories:
@@ -366,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         Contract.ThrowIfFalse(_tokens is not null);
                         foreach (var token in _tokens)
                         {
-                            await service.UnadviseFileChangeAsync(((Context.FileWatchingToken)token).Cookie!.Value, cancellationToken).ConfigureAwait(false);
+                            await service.UnadviseFileChangeAsync(token.Cookie!.Value, cancellationToken).ConfigureAwait(false);
                         }
 
                         return;
