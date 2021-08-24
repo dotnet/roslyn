@@ -8715,5 +8715,58 @@ Func<int> lambda = () => { /*<bind>*/return args.Length;/*</bind>*/ };
         }
 
         #endregion
+
+        #region Interpolated String Handlers
+
+        [Theory]
+        [CombinatorialData]
+        public void TestInterpolatedStringHandlers(bool validityParameter, bool useBoolReturns)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+int i1;
+int i2;
+
+/*<bind>*/
+CustomHandler c = $""{i1 = 1}{i2 = 2}"";
+/*</bind>*/
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount" + (validityParameter ? ", out bool success" : "") + @")
+    {
+" + (validityParameter ? "success = true;" : "") + @"
+    }
+
+    public " + (useBoolReturns ? "bool" : "void") + @" AppendFormatted(int i) => throw null;
+}
+" + InterpolatedStringHandlerAttribute;
+
+            var (controlFlowAnalysisResults, dataFlowAnalysisResults) = CompileAndAnalyzeControlAndDataFlowStatements(code);
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+
+            var definitelyAssigned = (validityParameter, useBoolReturns) switch
+            {
+                (true, _) => "c",
+                (_, true) => "i1, c",
+                (_, false) => "i1, i2, c"
+            };
+
+            Assert.Equal(definitelyAssigned + ", args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("i1, i2, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        #endregion
     }
 }
