@@ -14,11 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class FunctionTypeSymbol : TypeSymbol
     {
-        internal const SymbolKind FunctionType_SymbolKind = SymbolKind.FunctionPointerType + 1;
-        internal const TypeKind FunctionType_TypeKind = TypeKind.FunctionPointer + 1;
-
-        // PROTOTYPE: Should be a singleton instance on SourceAssemblySymbol.
-        internal static FunctionTypeSymbol CreateErrorType(AssemblySymbol assembly) => new FunctionTypeSymbol(assembly, delegateType: null);
+        private const SymbolKind s_SymbolKind = SymbolKind.FunctionPointerType + 1;
+        private const TypeKind s_TypeKind = TypeKind.FunctionPointer + 1;
 
         private readonly AssemblySymbol _assembly;
 
@@ -61,117 +58,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsValueType => false;
 
-        public override TypeKind TypeKind => FunctionType_TypeKind;
+        public override TypeKind TypeKind => s_TypeKind;
 
         public override bool IsRefLikeType => false;
 
         public override bool IsReadOnly => true;
 
-        public override SymbolKind Kind => FunctionType_SymbolKind;
+        public override SymbolKind Kind => s_SymbolKind;
 
         public override Symbol ContainingSymbol => _assembly;
 
-        public override ImmutableArray<Location> Locations => throw new NotImplementedException();
+        public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new NotImplementedException();
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw ExceptionUtilities.Unreachable;
 
-        public override Accessibility DeclaredAccessibility => throw new NotImplementedException();
+        public override Accessibility DeclaredAccessibility => throw ExceptionUtilities.Unreachable;
 
         public override bool IsStatic => false;
 
-        public override bool IsAbstract => throw new NotImplementedException();
+        public override bool IsAbstract => throw ExceptionUtilities.Unreachable;
 
-        public override bool IsSealed => throw new NotImplementedException();
+        public override bool IsSealed => throw ExceptionUtilities.Unreachable;
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _assembly.GetSpecialType(SpecialType.System_Object);
 
-        internal override bool IsRecord => throw new NotImplementedException();
+        internal override bool IsRecord => throw ExceptionUtilities.Unreachable;
 
-        internal override bool IsRecordStruct => throw new NotImplementedException();
+        internal override bool IsRecordStruct => throw ExceptionUtilities.Unreachable;
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData => throw new NotImplementedException();
+        internal override ObsoleteAttributeData ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
 
-        public override void Accept(CSharpSymbolVisitor visitor)
-        {
-            throw new NotImplementedException();
-        }
+        public override void Accept(CSharpSymbolVisitor visitor) => throw ExceptionUtilities.Unreachable;
 
-        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
-        {
-            throw new NotImplementedException();
-        }
+        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => throw ExceptionUtilities.Unreachable;
 
-        public override ImmutableArray<Symbol> GetMembers()
-        {
-            throw new NotImplementedException();
-        }
+        public override ImmutableArray<Symbol> GetMembers() => throw ExceptionUtilities.Unreachable;
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public override ImmutableArray<Symbol> GetMembers(string name) => throw ExceptionUtilities.Unreachable;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
-        {
-            throw new NotImplementedException();
-        }
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => throw ExceptionUtilities.Unreachable;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name) => throw ExceptionUtilities.Unreachable;
 
-        protected override ISymbol CreateISymbol()
-        {
-            throw new NotImplementedException();
-        }
+        protected override ISymbol CreateISymbol() => throw ExceptionUtilities.Unreachable;
 
-        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
-        {
-            throw new NotImplementedException();
-        }
+        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation) => throw ExceptionUtilities.Unreachable;
 
-        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a)
-        {
-            throw new NotImplementedException();
-        }
+        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => throw ExceptionUtilities.Unreachable;
 
-        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
-        {
-            throw new NotImplementedException();
-        }
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms) => throw ExceptionUtilities.Unreachable;
 
-        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
-        {
-            throw new NotImplementedException();
-        }
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result) => throw ExceptionUtilities.Unreachable;
 
-        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            throw new NotImplementedException();
-        }
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => throw ExceptionUtilities.Unreachable;
 
-        internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
-        {
-            throw new NotImplementedException();
-        }
+        internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) => throw ExceptionUtilities.Unreachable;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
-        {
-            throw new NotImplementedException();
-        }
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => throw ExceptionUtilities.Unreachable;
 
-        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
-        {
-            throw new NotImplementedException();
-        }
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance) => throw ExceptionUtilities.Unreachable;
 
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform) => this;
 
-        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
-        {
-            throw new NotImplementedException();
-        }
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => throw ExceptionUtilities.Unreachable;
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
