@@ -5264,12 +5264,19 @@ class Helpers
         public void ExplicitMain_10()
         {
             var text = @"
-System.Console.Write(42);
+using System.Threading.Tasks;
 
-partial class Program2
+System.Console.Write(""Hi!"");
+
+class Program2
 {
     static void Main()
     {
+    }
+
+    static async Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => 5);
     }
 }
 
@@ -5281,14 +5288,14 @@ class Program3
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions);
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
                 Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
-                // (2,1): error CS1558: 'Program' does not have a suitable static 'Main' method
-                // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_NoMainInClass, "System").WithArguments("Program").WithLocation(2, 1)
+                // (12,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
+                //     static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(12, 23)
                 );
         }
 
