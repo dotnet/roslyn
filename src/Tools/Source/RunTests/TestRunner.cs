@@ -67,25 +67,25 @@ namespace RunTests
                 msbuildTestPayloadRoot = Path.Combine(msbuildTestPayloadRoot, "artifacts/testPayload");
             }
 
+            var duplicateDir = Path.Combine(msbuildTestPayloadRoot, ".duplicate");
+            var correlationPayload = $@"<HelixCorrelationPayload Include=""{duplicateDir}"" />";
+
             if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
                 ConsoleUtil.WriteLine($"Proc dump file path is {options.ProcDumpFilePath}");
                 var procDir = Path.GetDirectoryName(options.ProcDumpFilePath);
                 ConsoleUtil.WriteLine($"Proc dump directory is {procDir}");
                 var files = Directory.GetFiles(procDir);
-                ConsoleUtil.WriteLine($"Proc dump directory contents {files}");
-                ConsoleUtil.WriteLine($"Contents of duplicate dir is {Directory.GetFiles(msbuildTestPayloadRoot)}");
-                foreach(var file in files)
+                ConsoleUtil.WriteLine($"Proc dump directory contents {string.Join(",", files)}");
+                ConsoleUtil.WriteLine($"Contents of duplicate dir is {string.Join(",", Directory.GetFiles(duplicateDir))}");
+                foreach (var file in files)
                 {
-                    var newFileName = Path.Combine(msbuildTestPayloadRoot, Path.GetFileName(file));
+                    var newFileName = Path.Combine(duplicateDir, Path.GetFileName(file));
                     ConsoleUtil.WriteLine($"New file: {newFileName}");
                     File.Copy(file, newFileName);
                 }
-                ConsoleUtil.WriteLine($"New contents of duplicate dir is {Directory.GetFiles(msbuildTestPayloadRoot)}");
+                ConsoleUtil.WriteLine($"New contents of duplicate dir is {string.Join(",", Directory.GetFiles(duplicateDir))}");
             }
-
-            var duplicateDir = Path.Combine(msbuildTestPayloadRoot, ".duplicate");
-            var correlationPayload = $@"<HelixCorrelationPayload Include=""{duplicateDir}"" />";
 
             // https://github.com/dotnet/roslyn/issues/50661
             // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/main/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
@@ -181,12 +181,10 @@ namespace RunTests
 
                 // some random no-op command that works everywhere.
                 var noopCommand = @"echo ""Skip""";
-                var werValues = noopCommand;
                 var localDumpsValues = noopCommand;
                 var procDumpCommand = noopCommand;
                 if (!isUnix)
                 {
-                    werValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting""";
                     localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
                     procDumpCommand = @$"start /b ""ProcDump"" ""procdump.exe"" /accepteula -ma -w -t -e testhost ""C:\cores""";
                 }
@@ -206,7 +204,6 @@ namespace RunTests
                 {lsCommand}
                 {setRollforward}
                 {setPrereleaseRollforward}
-                {werValues}
                 {localDumpsValues}
                 {checkDumpLocation}
                 {checkTestName}
