@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
+            Contract.ThrowIfNull(invocationInfo);
 
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can

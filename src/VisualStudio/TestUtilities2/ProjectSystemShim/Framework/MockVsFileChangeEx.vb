@@ -172,6 +172,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return Task.CompletedTask
         End Function
 
+        Public Function UnadviseFileChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseFileChangesAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function UnadviseDirChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseDirChangesAsync
+            Throw New NotImplementedException()
+        End Function
+
         Public ReadOnly Property WatchedFileCount As Integer
             Get
                 SyncLock _lock

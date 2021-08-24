@@ -330,9 +330,9 @@ namespace BuildValidator
             }
 
             var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
-            var sourceLinks = parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+            var sourceLinks = parseResult?.documents.Select(makeSourceLink).ToImmutableArray();
 
-            if (sourceLinks.IsDefault)
+            if (!sourceLinks.HasValue || sourceLinks.Value.IsDefault)
             {
                 logger.LogInformation("Empty source link cdi found in pdb");
                 sourceLinks = ImmutableArray<SourceLinkEntry>.Empty;
@@ -344,7 +344,7 @@ namespace BuildValidator
                     logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
                 }
             }
-            return sourceLinks;
+            return sourceLinks.Value;
 
             static SourceLinkEntry makeSourceLink(KeyValuePair<string, string> entry)
             {
