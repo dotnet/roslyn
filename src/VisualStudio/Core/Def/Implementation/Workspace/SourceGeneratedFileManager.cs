@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         internal static readonly Option2<bool?> EnableOpeningInWorkspace =
             new(nameof(SourceGeneratedFileManager), nameof(EnableOpeningInWorkspace), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
