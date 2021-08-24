@@ -9,6 +9,8 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(AwaitCompletionProvider), LanguageNames.VisualBasic)>
@@ -41,6 +43,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        End Function
+
+        Private Protected Overrides Function IsDotAwaitKeywordContext(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
+        Private Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
+            Return Nothing
         End Function
     End Class
 End Namespace

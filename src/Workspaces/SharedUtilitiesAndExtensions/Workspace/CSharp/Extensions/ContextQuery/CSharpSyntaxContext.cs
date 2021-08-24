@@ -456,37 +456,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
-
-        internal override bool IsDotAwaitKeywordContext(CancellationToken cancellationToken)
-        {
-            var tokenOnLeft = SyntaxTree.FindTokenOnLeftOfPosition(Position, cancellationToken);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(Position);
-            // TODO: someTask.$$. Middle of DotDotToken // see UnnamedSymbolCompletionProvider.GetDotAndExpressionStart
-            // TODO: Support corner cases like: someTask.$$ int i = 0; // see CSharpRecommendationServiceRunner.ShouldBeTreatedAsTypeInsteadOfExpression
-
-            // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
-            // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
-            if (dotToken.Parent is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.GetParentConditionalAccessExpression() is null)
-            {
-                var expr = memberAccess.Expression;
-                if (expr is not null)
-                {
-                    var symbol = SemanticModel.GetSymbolInfo(expr, cancellationToken).Symbol?.GetSymbolType();
-                    var isAwaitable = symbol?.IsAwaitableNonDynamic(SemanticModel, Position);
-                    if (isAwaitable == true)
-                    {
-                        var parentOfAwaitable = memberAccess.Parent;
-                        if (parentOfAwaitable is not AwaitExpressionSyntax)
-                        {
-                            // We have a awaitable type left of the dot, that is not yet awaited.
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
     }
 }

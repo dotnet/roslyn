@@ -144,16 +144,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         internal abstract bool IsAwaitKeywordContext();
 
-        /// <summary>
-        /// Should <see langword="await"/> be offered, if left of the dot at position is an awaitable expression?
-        /// <code>
-        ///   someTask.$$ // Suggest await completion
-        ///   await someTask.$$ // Don't suggest await completion
-        /// </code>
-        /// </summary>
-        /// <returns><see langword="true"/>, if await should be suggested for the expression left of the dot.</returns>
-        internal abstract bool IsDotAwaitKeywordContext(CancellationToken cancellationToken);
-
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)
         {
             if (_outerTypes == null)

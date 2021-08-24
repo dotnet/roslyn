@@ -313,6 +313,50 @@ class C
         }
 
         [Fact]
+        public async Task TestDotAwaitDontSuggestInLock()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F(Task someTask)
+  {
+    lock(this) { someTask.$$ }
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitDontSuggestInLock_TopLevel()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+
+lock(this) { Task.CompletedTask.$$ }
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitDontSuggestInQuery()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F()
+  {
+    var z = from t in new[] { Task.CompletedTask }
+            select t.$$
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
         public async Task TestDotAwaitDontSuggestAfterConditionalAccessOfTaskMembers()
         {
             // The conditional access suggests, that someTask can be null.
