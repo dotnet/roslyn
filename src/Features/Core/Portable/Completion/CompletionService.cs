@@ -238,8 +238,10 @@ namespace Microsoft.CodeAnalysis.Completion
             var highestMatchPriorityInBest = int.MinValue;
             using var _1 = ArrayBuilder<(CompletionItem item, PatternMatch? match)>.GetInstance(out var bestItems);
 
-            // This contains a list of items of worse case-sensitive match but higher MatchPriority than all best ones.
-            using var _2 = ArrayBuilder<(CompletionItem item, PatternMatch? match)>.GetInstance(out var similarItemsWithHigherMatchPriority);
+            // This contains a list of items that are considered equally good match as bestItems except casing,
+            // and they have higher MatchPriority than the ones in bestItems (although as a perf optimization we don't
+            // actually guarantee this during the process, instead we check the MatchPriority again after the loop.)
+            using var _2 = ArrayBuilder<(CompletionItem item, PatternMatch? match)>.GetInstance(out var itemsWithCasingMismatchButHigherMatchPriority);
 
             foreach (var pair in itemsWithPatternMatch)
             {
@@ -269,13 +271,13 @@ namespace Microsoft.CodeAnalysis.Completion
                     // This item is strictly better than the best items we've found so far.
                     // However, if it's only better in terms of case-sensitivity, we'd like 
                     // to save the prior best items and consider their MatchPriority later.
-                    similarItemsWithHigherMatchPriority.Clear();
+                    itemsWithCasingMismatchButHigherMatchPriority.Clear();
 
                     if (filterTextContainsNoUpperLetters &&
                         onlyDifferInCaseSensitivity &&
                         highestMatchPriorityInBest > pair.item.Rules.MatchPriority) // don't add if this item has higher MatchPriority than all prior best items
                     {
-                        similarItemsWithHigherMatchPriority.AddRange(bestItems);
+                        itemsWithCasingMismatchButHigherMatchPriority.AddRange(bestItems);
                     }
 
                     bestItems.Clear();
@@ -291,13 +293,13 @@ namespace Microsoft.CodeAnalysis.Completion
                         onlyDifferInCaseSensitivity &&
                         pair.item.Rules.MatchPriority > highestMatchPriorityInBest)  // don't add if this item doesn't have higher MatchPriority
                     {
-                        similarItemsWithHigherMatchPriority.Add(pair);
+                        itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
                     }
                 }
             }
 
             // Include those similar items (only worse in terms of case-sensitivity) that have better MatchPriority.
-            foreach (var pair in similarItemsWithHigherMatchPriority)
+            foreach (var pair in itemsWithCasingMismatchButHigherMatchPriority)
             {
                 if (pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
                 {
