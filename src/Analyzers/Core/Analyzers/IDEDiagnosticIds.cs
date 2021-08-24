@@ -136,9 +136,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvalidSuppressMessageAttributeDiagnosticId = "IDE0076";
         public const string LegacyFormatSuppressMessageAttributeDiagnosticId = "IDE0077";
 
-        /// <summary>
-        /// <b>Side-effects free</b> codefix for when a logical expression can be rewritten using pattern matching
-        /// </summary>
         public const string UsePatternCombinatorsDiagnosticId = "IDE0078";
 
         public const string RemoveUnnecessarySuppressionDiagnosticId = "IDE0079";
