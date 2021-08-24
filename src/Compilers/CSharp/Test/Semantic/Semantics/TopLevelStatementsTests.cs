@@ -5140,7 +5140,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main(string[] args)
     {
@@ -5159,16 +5159,15 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (7,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
-                // class Program
-                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(7, 7),
-                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static void Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(9, 17),
-                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(9, 17),
+                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(14, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(14, 23)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -5181,7 +5180,7 @@ using System.Threading.Tasks;
 await Task.Factory.StartNew(() => 5);
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main()
     {
@@ -5199,16 +5198,15 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (8,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
-                // class Program
-                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(8, 7),
-                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static void Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
-                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(10, 17),
+                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(15, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(15, 23)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -5268,14 +5266,14 @@ class Helpers
             var text = @"
 System.Console.Write(42);
 
-partial class Program
+partial class Program2
 {
     static void Main()
     {
     }
 }
 
-class Program2
+class Program3
 {
     static void Main(string[] args)
     {
@@ -5287,7 +5285,10 @@ class Program2
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
+                // (2,1): error CS1558: 'Program' does not have a suitable static 'Main' method
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_NoMainInClass, "System").WithArguments("Program").WithLocation(2, 1)
                 );
         }
 
