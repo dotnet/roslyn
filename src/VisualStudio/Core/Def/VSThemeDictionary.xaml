@@ -22,11 +22,12 @@
 
     <Style TargetType="GroupBox">
         <Setter Property="TextBlock.Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
+        <Setter Property="TextBlock.Background" Value="Transparent" />
     </Style>
 
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
-        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.DropDownBackgroundKey}}" />
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <!-- DataGrid styling -->

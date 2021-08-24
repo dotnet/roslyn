@@ -55,8 +55,9 @@
                      KeyboardNavigation.IsTabStop="False" />
 
         <GroupBox x:Uid="DestinationSelectionGroupBox"
-                      Margin="0, 9, 0, 0"
-                      Header="{Binding ElementName=control, Path=SelectDestinationFile}">
+                  Margin="0, 9, 0, 0"
+                  Header="{Binding ElementName=control, Path=SelectDestinationFile}"
+                  BorderThickness="0" >
             <Grid Margin="9, 9, 9, 7">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

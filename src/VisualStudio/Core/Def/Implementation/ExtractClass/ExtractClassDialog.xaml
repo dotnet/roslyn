@@ -39,14 +39,16 @@
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"
+                  BorderThickness="0"
                   Grid.Row="1"
                   Header="{Binding ElementName=dialog, Path=SelectMembers}">
-            <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
+            <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" Margin="9, 9, 9, 7" />
         </GroupBox>
 
         <StackPanel Grid.Row="2" 
                     Margin="0, 11, 0, 0"
-                    Orientation="Horizontal">
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
             <Button x:Uid="OkButton" 
                     Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 

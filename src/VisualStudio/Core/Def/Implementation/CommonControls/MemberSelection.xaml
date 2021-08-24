@@ -17,6 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
             <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
             <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -107,7 +108,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Width="100">
+                <DataGridTemplateColumn Width="100" x:Name="AbstractColumn">
                     <DataGridTemplateColumn.Header>
                         <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MakeAbstractHeader}" Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}" />
                     </DataGridTemplateColumn.Header>
@@ -162,6 +163,7 @@
                 x:Uid="SelecDependentsButton"
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectDependents}"
+                Visibility="{Binding ShowCheckDependentsButton, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Click="SelectDependentsButton_Click"
                 Margin="2, 2, 0, 7"
                 Width="Auto"
@@ -170,6 +172,7 @@
                 x:Name="SelectPublicButton"
                 x:Uid="SelectPublicButton"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectPublic}"
+                Visibility="{Binding ShowPublicButton, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Margin="2, 0, 0, 0"
                 Click="SelectPublic_Click"
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"

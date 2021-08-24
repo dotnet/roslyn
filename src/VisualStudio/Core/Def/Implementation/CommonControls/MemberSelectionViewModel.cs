@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
-            TypeKind destinationTypeKind = TypeKind.Class)
+            TypeKind destinationTypeKind = TypeKind.Class,
+            bool showDependentsButton = true,
+            bool showPublicButton = true)
         {
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             // Use public property to hook property change events up
@@ -38,8 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 
             UpdateMembersBasedOnDestinationKind(destinationTypeKind);
+
+            ShowCheckDependentsButton = showDependentsButton;
+            ShowPublicButton = showPublicButton;
         }
 
+        public bool ShowCheckDependentsButton { get; }
+        public bool ShowPublicButton { get; }
+        public bool ShowMakeAbstract => _members.Any(m => m.IsMakeAbstractCheckable);
         public ImmutableArray<PullMemberUpSymbolViewModel> CheckedMembers => Members.WhereAsArray(m => m.IsChecked && m.IsCheckable);
 
         private ImmutableArray<PullMemberUpSymbolViewModel> _members;
@@ -65,6 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
                     {
                         member.PropertyChanged += MemberPropertyChangedHandler;
                     }
+
+                    NotifyPropertyChanged(nameof(ShowMakeAbstract));
                 }
             }
         }
@@ -75,6 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             {
                 // Hook the CheckedMembers property change to each individual member checked status change
                 NotifyPropertyChanged(nameof(CheckedMembers));
+            }
+
+            if (e.PropertyName == nameof(PullMemberUpSymbolViewModel.IsMakeAbstractCheckable))
+            {
+                NotifyPropertyChanged(nameof(ShowMakeAbstract));
             }
         }
 
@@ -89,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 
         public void SelectDependents()
         {
+            Contract.ThrowIfFalse(ShowCheckDependentsButton);
+
             var checkedMembers = Members
               .WhereAsArray(member => member.IsChecked && member.IsCheckable);
 
