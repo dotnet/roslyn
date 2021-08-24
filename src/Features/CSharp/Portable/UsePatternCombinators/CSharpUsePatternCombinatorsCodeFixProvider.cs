@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects,
+                    isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
                     c => FixAsync(context.Document, diagnostic, c),
                     isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey),
                 context.Diagnostics);

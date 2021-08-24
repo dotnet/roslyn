@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private const string SafeKey = "safe";
 
         private static readonly LocalizableResourceString s_safePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching_may_have_side_effects), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly ImmutableDictionary<string, string> s_safeProperties = ImmutableDictionary<string, string>.Empty.Add(SafeKey, "");
         private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
