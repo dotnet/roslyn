@@ -1339,5 +1339,30 @@ public class C
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "C2").WithLocation(7, 12)
                 );
         }
+
+        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        public void TwoParameterlessConstructors_Struct()
+        {
+            string source = @"
+public struct C
+{
+    public C() : this()
+    {
+    }
+    public C2()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+                //     public C() : this()
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 18),
+                // (7,12): error CS1520: Method must have a return type
+                //     public C2()
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "C2").WithLocation(7, 12)
+                );
+        }
     }
 }

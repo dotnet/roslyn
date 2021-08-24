@@ -403,11 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsDefaultValueTypeConstructor(this NamedTypeSymbol type, ConstructorInitializerSyntax initializerSyntax)
         {
-            if (initializerSyntax.ArgumentList.Arguments.Count > 0)
+            if (initializerSyntax.ArgumentList.Arguments.Count > 0 || !type.IsValueType)
             {
                 return false;
             }
 
+            // If exactly one parameterless constructor, return whether it's the default value type constructor
+            // Otherwise, return false
             bool foundParameterlessCtor = false;
             bool result = false;
             foreach (var constructor in type.InstanceConstructors)
