@@ -3650,7 +3650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             memberNames.Free();
 
             // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
-            Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly : false }));
+            Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly: false }));
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration

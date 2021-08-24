@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1394,7 +1393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (delegateType is null)
             {
-                return LambdaConversionResult.Success;
+                Debug.Assert(IsFeatureInferredDelegateTypeEnabled(anonymousFunction));
+                return GetInferredDelegateTypeResult(anonymousFunction);
             }
 
             return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
                 {
-                    return LambdaConversionResult.Success;
+                    return GetInferredDelegateTypeResult(anonymousFunction);
                 }
             }
             else if (type.IsDelegateType())
@@ -1430,6 +1430,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
         {
             return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
+        }
+
+        private static LambdaConversionResult GetInferredDelegateTypeResult(UnboundLambda anonymousFunction)
+        {
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return anonymousFunction.InferDelegateType(ref discardedUseSiteInfo) is null ?
+                LambdaConversionResult.CannotInferDelegateType :
+                LambdaConversionResult.Success;
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
