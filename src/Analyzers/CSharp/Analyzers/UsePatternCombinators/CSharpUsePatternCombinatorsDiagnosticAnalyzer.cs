@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var isSafe = pattern.Target is not Operations.IInvocationOperation;
 
             var desc = CreateDescriptorWithId(
-                    IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-                    EnforceOnBuildValues.UsePatternCombinators,
-                    isSafe ? s_safePatternTitle : s_unsafePatternTitle);
+                IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                EnforceOnBuildValues.UsePatternCombinators,
+                isSafe ? s_safePatternTitle : s_unsafePatternTitle);
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 desc,
