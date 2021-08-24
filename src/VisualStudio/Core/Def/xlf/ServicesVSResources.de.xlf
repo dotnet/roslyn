@@ -7,6 +7,11 @@
         <target state="translated">Ein neuer Namespace wird erstellt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_new_type_will_be_created">
+        <source>A new type will be created</source>
+        <target state="new">A new type will be created</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
         <target state="translated">Typ und Name müssen angegeben werden.</target>
@@ -482,6 +487,11 @@
         <target state="translated">Nicht definierte TODO-Variablen einführen</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Elementursprung</target>
@@ -555,6 +565,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">Einstellungen für Modifizierer:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">

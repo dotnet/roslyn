@@ -940,6 +940,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ファイルをプロジェクト ルート フォルダーに移動します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">名前空間に移動します...</target>

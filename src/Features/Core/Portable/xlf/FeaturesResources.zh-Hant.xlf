@@ -940,6 +940,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將檔案移到專案根資料夾</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">移到命名空間...</target>

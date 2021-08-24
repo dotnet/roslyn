@@ -1744,6 +1744,15 @@ Additional information: {1}</value>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
   </data>
+  <data name="A_new_type_will_be_created" xml:space="preserve">
+    <value>A new type will be created</value>
+  </data>
+  <data name="Invalid_type_name" xml:space="preserve">
+    <value>Invalid type name</value>
+  </data>
+  <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
+    <value>Move Static Members to Another Type:</value>
+  </data>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
   </data>
