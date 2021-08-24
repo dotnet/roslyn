@@ -462,7 +462,7 @@ class C
     [System.ComponentModel.Description(""The F method"")]
     static string F() { return null; }
 }",
-                    verification: g =>
+                    validator: g =>
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("Main", "F", ".ctor");
@@ -479,7 +479,7 @@ class C
     static string F() { return string.Empty; }
 }",
                     edits: new[] { Edit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
-                    verification: g =>
+                    validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F");
@@ -525,7 +525,7 @@ class C
                         Edit(SemanticEditKind.Update, c => c.GetMember("C")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
                     },
-                    verification: g =>
+                    validator: g =>
                     {
                         g.VerifyTypeDefNames("C");
                         g.VerifyMethodDefNames("F");
@@ -582,7 +582,7 @@ class C
                     edits: new[] {
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
                     },
-                    verification: g =>
+                    validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F");
