@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
@@ -20,11 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FileChangeWatcherProvider(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
+        public FileChangeWatcherProvider(
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            [Import(typeof(SVsServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
         {
             // We do not want background work to implicitly block on the availability of the SVsFileChangeEx to avoid any deadlock risk,
             // since the first fetch for a file watcher might end up happening on the background.
-            Watcher = new FileChangeWatcher(_fileChangeService.Task);
+            Watcher = new FileChangeWatcher(listenerProvider, _fileChangeService.Task);
 
             System.Threading.Tasks.Task.Run(async () =>
                 {

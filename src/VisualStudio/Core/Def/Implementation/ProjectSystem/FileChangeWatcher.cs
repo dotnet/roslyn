@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
@@ -20,12 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </summary>
     internal sealed class FileChangeWatcher
     {
-        internal const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
-
-        /// <summary>
-        /// Gate that is used to guard modifications to <see cref="_taskQueue"/>.
-        /// </summary>
-        private readonly object _taskQueueGate = new();
+        private readonly Task<IVsAsyncFileChangeEx> _fileChangeService;
 
         /// <summary>
         /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
@@ -36,43 +33,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// For performance and correctness reasons, NOTHING should ever do a block on this; figure out how to do your work without a block and add any work to
         /// the end of the queue.
         /// </summary>
-        private Task<IVsAsyncFileChangeEx> _taskQueue;
-        private static readonly Func<Task<IVsAsyncFileChangeEx>, object, Task<IVsAsyncFileChangeEx>> _executeActionDelegate =
-            async (precedingTask, state) =>
-            {
-                var action = (Func<IVsAsyncFileChangeEx, Task>)state;
-                await action(precedingTask.Result).ConfigureAwait(false);
-                return precedingTask.Result;
-            };
+        private readonly AsyncBatchingWorkQueue<WatcherOperation> _taskQueue;
 
-        public FileChangeWatcher(Task<IVsAsyncFileChangeEx> fileChangeService)
-            => _taskQueue = fileChangeService;
-
-        private void EnqueueWork(Func<IVsAsyncFileChangeEx, Task> action)
+        public FileChangeWatcher(
+            IAsynchronousOperationListenerProvider listenerProvider,
+            Task<IVsAsyncFileChangeEx> fileChangeService)
         {
-            lock (_taskQueueGate)
-            {
-                _taskQueue = _taskQueue.ContinueWith(
-                    _executeActionDelegate,
-                    action,
-                    CancellationToken.None,
-                    TaskContinuationOptions.None,
-                    TaskScheduler.Default).Unwrap();
-            }
+            _fileChangeService = fileChangeService;
+            _taskQueue = new AsyncBatchingWorkQueue<WatcherOperation>(
+                TimeSpan.Zero,
+                ProcessBatchAsync,
+                listenerProvider.GetListener(FeatureAttribute.Workspace),
+                CancellationToken.None);
         }
 
-        // TODO: remove this when there is a mechanism for a caller of EnqueueWatchingFile
-        // to explicitly wait on that being complete.
-        public void WaitForQueue_TestOnly()
+        private async ValueTask ProcessBatchAsync(ImmutableArray<WatcherOperation> workItems, CancellationToken cancellationToken)
         {
-            Task queue;
+            var service = await _fileChangeService.ConfigureAwait(false);
 
-            lock (_taskQueueGate)
+            var next = WatcherOperation.Empty;
+            for (var i = 0; i < workItems.Length; i++)
             {
-                queue = _taskQueue;
+                if (next.TryCombineWith(workItems[i], out var combined))
+                {
+                    next = combined;
+                    continue;
+                }
+
+                await next.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
+                next = workItems[i];
             }
 
-            queue.Wait();
+            await next.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
         }
 
         public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
@@ -149,6 +141,206 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
+        private readonly struct WatcherOperation
+        {
+            private readonly Kind _kind;
+
+            private readonly string _directory;
+            private readonly string? _filter;
+            private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
+            private readonly IVsFreeThreadedFileChangeEvents2 _sink;
+            private readonly List<uint> _cookies;
+
+            private readonly IFileWatchingToken _token;
+            private readonly IEnumerable<IFileWatchingToken> _tokens;
+
+            private WatcherOperation(Kind kind)
+            {
+                Contract.ThrowIfFalse(kind is Kind.None);
+                _kind = kind;
+
+                // Other watching fields are not used for this kind
+                _directory = null!;
+                _filter = null;
+                _fileChangeFlags = 0;
+                _sink = null!;
+                _cookies = null!;
+                _token = null!;
+                _tokens = null!;
+            }
+
+            private WatcherOperation(Kind kind, string directory, string? filter, IVsFreeThreadedFileChangeEvents2 sink, List<uint> cookies)
+            {
+                Contract.ThrowIfFalse(kind is Kind.WatchDirectory);
+                _kind = kind;
+
+                _directory = directory;
+                _filter = filter;
+                _sink = sink;
+                _cookies = cookies;
+
+                // Other watching fields are not used for this kind
+                _fileChangeFlags = 0;
+                _token = null!;
+                _tokens = null!;
+            }
+
+            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, IFileWatchingToken token)
+            {
+                Contract.ThrowIfFalse(kind is Kind.WatchFile);
+                _kind = kind;
+
+                _directory = path;
+                _fileChangeFlags = fileChangeFlags;
+                _sink = sink;
+                _token = token;
+
+                // Other watching fields are not used for this kind
+                _filter = null;
+                _cookies = null!;
+                _tokens = null!;
+            }
+
+            private WatcherOperation(Kind kind, List<uint> cookies)
+            {
+                Contract.ThrowIfFalse(kind is Kind.UnwatchDirectories);
+                _kind = kind;
+
+                _cookies = cookies;
+
+                // Other watching fields are not used for this kind
+                _directory = null!;
+                _filter = null;
+                _fileChangeFlags = 0;
+                _sink = null!;
+                _token = null!;
+                _tokens = null!;
+            }
+
+            private WatcherOperation(Kind kind, IEnumerable<IFileWatchingToken> tokens)
+            {
+                Contract.ThrowIfFalse(kind is Kind.UnwatchFiles);
+                _kind = kind;
+
+                _tokens = tokens;
+
+                // Other watching fields are not used for this kind
+                _directory = null!;
+                _filter = null;
+                _fileChangeFlags = 0;
+                _sink = null!;
+                _cookies = null!;
+                _token = null!;
+            }
+
+            private WatcherOperation(Kind kind, IFileWatchingToken token)
+            {
+                Contract.ThrowIfFalse(kind is Kind.UnwatchFile);
+                _kind = kind;
+
+                _token = token;
+
+                // Other watching fields are not used for this kind
+                _directory = null!;
+                _filter = null;
+                _fileChangeFlags = 0;
+                _sink = null!;
+                _cookies = null!;
+                _tokens = null!;
+            }
+
+            private enum Kind
+            {
+                None,
+                WatchDirectory,
+                WatchFile,
+                UnwatchFile,
+                UnwatchDirectories,
+                UnwatchFiles,
+            }
+
+            public static WatcherOperation Empty => new(Kind.None);
+
+            public static WatcherOperation WatchDirectory(string directory, string? filter, IVsFreeThreadedFileChangeEvents2 sink, List<uint> cookies)
+                => new(Kind.WatchDirectory, directory, filter, sink, cookies);
+
+            public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, IFileWatchingToken token)
+                => new(Kind.WatchFile, path, fileChangeFlags, sink, token);
+
+            public static WatcherOperation UnwatchDirectories(List<uint> cookies)
+                => new(Kind.UnwatchDirectories, cookies);
+
+            public static WatcherOperation UnwatchFiles(IEnumerable<IFileWatchingToken> tokens)
+                => new(Kind.UnwatchFiles, tokens);
+
+            public static WatcherOperation UnwatchFile(IFileWatchingToken token)
+                => new(Kind.UnwatchFile, token);
+
+            public bool TryCombineWith(in WatcherOperation other, out WatcherOperation combined)
+            {
+                if (other._kind == Kind.None)
+                {
+                    combined = this;
+                    return true;
+                }
+                else if (_kind == Kind.None)
+                {
+                    combined = other;
+                    return true;
+                }
+
+                combined = default;
+                return false;
+            }
+
+            public async ValueTask ApplyAsync(IVsAsyncFileChangeEx service, CancellationToken cancellationToken)
+            {
+                switch (_kind)
+                {
+                    case Kind.None:
+                        return;
+
+                    case Kind.WatchDirectory:
+                        var cookie = await service.AdviseDirChangeAsync(_directory, watchSubdirectories: true, _sink, cancellationToken).ConfigureAwait(false);
+                        _cookies.Add(cookie);
+
+                        if (_filter != null)
+                            await service.FilterDirectoryChangesAsync(cookie, new string[] { _filter }, cancellationToken).ConfigureAwait(false);
+
+                        return;
+
+                    case Kind.WatchFile:
+                        ((Context.FileWatchingToken)_token).Cookie = await service.AdviseFileChangeAsync(_directory, _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
+                        return;
+
+                    case Kind.UnwatchFile:
+                        await service.UnadviseFileChangeAsync(((Context.FileWatchingToken)_token).Cookie!.Value, cancellationToken).ConfigureAwait(false);
+                        return;
+
+                    case Kind.UnwatchDirectories:
+                        Contract.ThrowIfFalse(_cookies is not null);
+                        foreach (var unwatchCookie in _cookies)
+                        {
+                            await service.UnadviseDirChangeAsync(unwatchCookie, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        return;
+
+                    case Kind.UnwatchFiles:
+                        Contract.ThrowIfFalse(_tokens is not null);
+                        foreach (var token in _tokens)
+                        {
+                            await service.UnadviseFileChangeAsync(((Context.FileWatchingToken)token).Cookie!.Value, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        return;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
+
         private sealed class Context : IVsFreeThreadedFileChangeEvents2, IContext
         {
             private readonly FileChangeWatcher _fileChangeWatcher;
@@ -179,17 +371,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var watchedDirectory in watchedDirectories)
                 {
-                    _fileChangeWatcher.EnqueueWork(
-                        async service =>
-                        {
-                            var cookie = await service.AdviseDirChangeAsync(watchedDirectory.Path, watchSubdirectories: true, this).ConfigureAwait(false);
-                            _directoryWatchCookies.Add(cookie);
-
-                            if (watchedDirectory.ExtensionFilter != null)
-                            {
-                                await service.FilterDirectoryChangesAsync(cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None).ConfigureAwait(false);
-                            }
-                        });
+                    _fileChangeWatcher._taskQueue.AddWork(watchedDirectories.Select(
+                        watchedDirectory => WatcherOperation.WatchDirectory(watchedDirectory.Path, watchedDirectory.ExtensionFilter, this, _directoryWatchCookies)));
                 }
             }
 
@@ -205,28 +388,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _disposed = true;
                 }
 
-                _fileChangeWatcher.EnqueueWork(
-                    async service =>
-                    {
-                        // This cleanup code all runs in the single queue that we push usages of the file change service into.
-                        // Therefore, we know that any advise operations we had done have ran in that queue by now. Since this is also
-                        // running after dispose, we don't need to take any locks at this point, since we're taking the general policy
-                        // that any use of the type after it's been disposed is simply undefined behavior.
-
-                        // We don't use IAsyncDisposable here simply because we don't ever want to block on the queue if we're
-                        // able to avoid it, since that would potentially cause a stall or UI delay on shutting down.
-
-                        foreach (var cookie in _directoryWatchCookies)
-                        {
-                            await service.UnadviseDirChangeAsync(cookie).ConfigureAwait(false);
-                        }
-
-                        // Since this runs after disposal, no lock is needed for _activeFileWatchingTokens
-                        foreach (var token in _activeFileWatchingTokens)
-                        {
-                            await UnsubscribeFileChangeEventsAsync(service, token).ConfigureAwait(false);
-                        }
-                    });
+                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchDirectories(_directoryWatchCookies));
+                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFiles(_activeFileWatchingTokens));
             }
 
             public IFileWatchingToken EnqueueWatchingFile(string filePath)
@@ -253,10 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _activeFileWatchingTokens.Add(token);
                 }
 
-                _fileChangeWatcher.EnqueueWork(async service =>
-                {
-                    token.Cookie = await service.AdviseFileChangeAsync(filePath, _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Time, this).ConfigureAwait(false);
-                });
+                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.WatchFile(filePath, _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Time, this, token));
 
                 return token;
             }
@@ -278,11 +438,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(typedToken), "This token was no longer being watched.");
                 }
 
-                _fileChangeWatcher.EnqueueWork(service => UnsubscribeFileChangeEventsAsync(service, typedToken));
+                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFile(typedToken));
             }
-
-            private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
-                => service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
 
             public event EventHandler<string>? FileChanged;
 
