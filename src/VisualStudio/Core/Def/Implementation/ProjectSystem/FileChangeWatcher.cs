@@ -149,6 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly string? _filter;
             private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
             private readonly IVsFreeThreadedFileChangeEvents2 _sink;
+
+            // ⚠ Do not change this to another collection like ImmutableList<uint>. This collection references an
+            // instance held by the Context class, and the values are lazily read when TryCombineWith is called.
             private readonly List<uint> _cookies;
 
             private readonly IFileWatchingToken _token;
@@ -287,6 +290,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     combined = other;
                     return true;
+                }
+
+                switch (_kind)
+                {
+                    case Kind.WatchDirectory:
+                    case Kind.WatchFile:
+                        // Watching operations cannot be combined
+                        break;
+
+                    case Kind.UnwatchFile when other._kind == Kind.UnwatchFile:
+                        combined = UnwatchFiles(ImmutableList.Create(_token, other._token));
+                        return true;
+
+                    case Kind.UnwatchFile when other._kind == Kind.UnwatchFiles:
+                        combined = UnwatchFiles(other._tokens.ToImmutableList().Insert(0, _token));
+                        return true;
+
+                    case Kind.UnwatchDirectories when other._kind == Kind.UnwatchDirectories:
+                        var cookies = new List<uint>(_cookies);
+                        cookies.AddRange(other._cookies);
+                        combined = UnwatchDirectories(cookies);
+                        return true;
+
+                    case Kind.UnwatchFiles when other._kind == Kind.UnwatchFile:
+                        combined = UnwatchFiles(_tokens.ToImmutableList().Add(other._token));
+                        return true;
+
+                    case Kind.UnwatchFiles when other._kind == Kind.UnwatchFiles:
+                        combined = UnwatchFiles(_tokens.ToImmutableList().AddRange(other._tokens));
+                        return true;
+
+                    default:
+                        break;
                 }
 
                 combined = default;
