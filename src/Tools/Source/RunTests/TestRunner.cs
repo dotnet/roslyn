@@ -183,10 +183,11 @@ namespace RunTests
                 var noopCommand = @"echo ""Skip""";
                 var localDumpsValues = noopCommand;
                 var procDumpCommand = noopCommand;
+                var echoCorrelationPayload = "echo %HELIX_CORRELATION_PAYLOAD%";
                 if (!isUnix)
                 {
                     localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
-                    procDumpCommand = @$"start /b ""ProcDump"" ""procdump.exe"" /accepteula -ma -w -t -e testhost ""C:\cores""";
+                    procDumpCommand = @$"start /b ""ProcDump"" %HELIX_CORRELATION_PAYLOAD%\procdump.exe /accepteula -ma -w -t -e testhost ""C:\cores""";
                 }
 
                 var checkDumpLocation = lsCommand + @" C:\cores";
@@ -206,6 +207,7 @@ namespace RunTests
                 {setPrereleaseRollforward}
                 {localDumpsValues}
                 {checkDumpLocation}
+                {echoCorrelationPayload}
                 {checkTestName}
                 dotnet --info
                 {setTestIOperation}
