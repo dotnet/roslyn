@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private protected abstract bool IsDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken);
 
         private protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        private protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -88,12 +89,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             var completionChangeEdit = (CompletionChangeEdit)Enum.Parse(typeof(CompletionChangeEdit), item.Properties[nameof(CompletionChangeEdit)]);
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
             if ((completionChangeEdit & CompletionChangeEdit.MakeContainerAsync) != 0)
             {
+                var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var declaration = GetAsyncSupportingDeclaration(root.FindToken(item.Span.Start));
                 if (declaration is null)
                 {
@@ -113,7 +115,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if ((completionChangeEdit & CompletionChangeEdit.AddAwaitBeforeDotExpression) != 0)
             {
-                builder.Add(new TextChange(item.Span, item.DisplayText));
+                var position = item.Span.Start;
+                var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
+                var expr = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
+                if (expr is not null && dotToken.HasValue)
+                {
+                    // place "await" in front of expr
+                    builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), item.DisplayText + " "));
+                    // remove any remains after dot, including the dot token
+                    builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), ""));
+                }
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

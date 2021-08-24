@@ -56,17 +56,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
+            var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
             // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
             // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
-            if (dotToken.Parent is MemberAccessExpressionSyntax memberAccess &&
+            if (dotToken?.Parent is MemberAccessExpressionSyntax memberAccess &&
                 memberAccess.GetParentConditionalAccessExpression() is null)
             {
                 return memberAccess;
             }
 
             return null;
+        }
+
+        private protected override SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
+            return dotToken.IsKind(SyntaxKind.DotToken, SyntaxKind.DotDotToken)
+                ? dotToken
+                : default;
         }
 
         private protected override bool IsDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)

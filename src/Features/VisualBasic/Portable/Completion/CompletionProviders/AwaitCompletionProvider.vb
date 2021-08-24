@@ -52,5 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
             Return Nothing
         End Function
+
+        Private Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?
+            Return Nothing
+        End Function
     End Class
 End Namespace

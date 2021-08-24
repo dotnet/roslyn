@@ -384,5 +384,73 @@ public class C
 ", state.GetDocumentText())
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpression() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        Task.CompletedTask.$$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAsyncModifier() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static Task Main()
+    {
+        Task.CompletedTask.$$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask", "")
+            End Using
+        End Function
     End Class
 End Namespace
