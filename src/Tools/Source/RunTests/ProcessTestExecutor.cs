@@ -75,6 +75,8 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
+            builder.Append(" --blame");
+
             return builder.ToString();
         }
 

@@ -141,7 +141,7 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = options.UseHelix
-                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
+                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, options, cancellationToken).ConfigureAwait(true)
                 : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 

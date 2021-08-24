@@ -43,7 +43,7 @@ namespace RunTests
             _options = options;
         }
 
-        internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, Options options, CancellationToken cancellationToken)
         {
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
@@ -66,6 +66,24 @@ namespace RunTests
                 // in a local run we assume the user runs using the root test.sh and that the test payload is nested in the artifacts directory.
                 msbuildTestPayloadRoot = Path.Combine(msbuildTestPayloadRoot, "artifacts/testPayload");
             }
+
+            if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
+            {
+                ConsoleUtil.WriteLine($"Proc dump file path is {options.ProcDumpFilePath}");
+                var procDir = Path.GetDirectoryName(options.ProcDumpFilePath);
+                ConsoleUtil.WriteLine($"Proc dump directory is {procDir}");
+                var files = Directory.GetFiles(procDir);
+                ConsoleUtil.WriteLine($"Proc dump directory contents {files}");
+                ConsoleUtil.WriteLine($"Contents of duplicate dir is {Directory.GetFiles(msbuildTestPayloadRoot)}");
+                foreach(var file in files)
+                {
+                    var newFileName = Path.Combine(msbuildTestPayloadRoot, Path.GetFileName(file));
+                    ConsoleUtil.WriteLine($"New file: {newFileName}");
+                    File.Copy(file, newFileName);
+                }
+                ConsoleUtil.WriteLine($"New contents of duplicate dir is {Directory.GetFiles(msbuildTestPayloadRoot)}");
+            }
+
             var duplicateDir = Path.Combine(msbuildTestPayloadRoot, ".duplicate");
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{duplicateDir}"" />";
 
