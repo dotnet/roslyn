@@ -41,15 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         UnconstrainedTypeParameterInConditional
         CommentsAfterLineContinuation
         InitOnlySettersUsage
-        CallerArgumentExpression
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.CallerArgumentExpression
-                    Return NameOf(Feature.CallerArgumentExpression)
                 Case Else
                     Return Nothing
             End Select
@@ -181,8 +178,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_CommentsAfterLineContinuation
                 Case Feature.InitOnlySettersUsage
                     Return ERRID.FEATURE_InitOnlySettersUsage
-                Case Feature.CallerArgumentExpression
-                    Return ERRID.FEATURE_CallerArgumentExpression
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
