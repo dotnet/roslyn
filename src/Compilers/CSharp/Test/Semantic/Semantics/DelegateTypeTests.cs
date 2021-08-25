@@ -3145,6 +3145,112 @@ System.Func`2[System.String,System.Int32]");
         }
 
         [Fact]
+        public void BestCommonType_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(T t) { }
+    static T F2<T>() => default;
+    static void Main()
+    {
+        var a1 = new[] { F1<object>, F1<string> };
+        var a2 = new[] { F2<object>, F2<string> };
+        Report(a1[0]);
+        Report(a2[0]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1<object>, F1<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1<object>, F1<string> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F2<object>, F2<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<object>, F2<string> }").WithLocation(9, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action`1[System.String]
+System.Func`1[System.Object]");
+
+            // PROTOTYPE: Test with synthesized delegate types - say add ref parameters.
+            // PROTOTYPE: Test the same with lambda expressions.
+        }
+
+        [Fact]
+        public void BestCommonType_07()
+        {
+            var source =
+@"class Program
+{
+    static void F1<T>(T t) { }
+    static T F2<T>() => default;
+    static T F3<T>(T t) => t;
+    static void Main()
+    {
+        var a1 = new[] { F1<int>, F1<object> };
+        var a2 = new[] { F2<nint>, F2<System.IntPtr> };
+        var a3 = new[] { F3<string>, F3<object> };
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1<int>, F1<object> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1<int>, F1<object> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F2<nint>, F2<System.IntPtr> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<nint>, F2<System.IntPtr> }").WithLocation(9, 18),
+                // (10,18): error CS0826: No best type found for implicitly-typed array
+                //         var a3 = new[] { F3<string>, F3<object> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F3<string>, F3<object> }").WithLocation(10, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void BestCommonType_08()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void F<T>(T t) { }
+    static void Main()
+    {
+        var a1 = new[] { F<string?>, F<string> };
+        var a2 = new[] { F<(int X, object Y)>, F<(int, dynamic)> };
+        Report(a1[0]);
+        Report(a2[0]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F<string?>, F<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F<string?>, F<string> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F<(int X, object Y)>, F<(int, dynamic)> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F<(int X, object Y)>, F<(int, dynamic)> }").WithLocation(9, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action`1[System.String]
+System.Action`1[System.ValueTuple`2[System.Int32,System.Object]]");
+        }
+
+        [Fact]
         public void ArrayInitializer_01()
         {
             var source =
@@ -3456,21 +3562,19 @@ class Program
     static void Report(object obj) => Console.WriteLine(obj.GetType());
 }";
 
-            var expectedDiagnostics = new[]
-            {
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
                 // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Report(F(F1, (string s) => int.Parse(s)));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
                 // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Report(F((string s) => { }, F2));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16)
-            };
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`2[System.String,System.Int32]
+System.Action`1[System.String]
+");
         }
 
         [Fact]
@@ -3501,7 +3605,7 @@ D2`1[System.Int32]
         }
 
         [Fact]
-        public void TypeInference_LowerBoundsDistinctSignature()
+        public void TypeInference_LowerBoundsDistinctSignature_01()
         {
             var source =
 @"using System;
@@ -3541,8 +3645,41 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
 
-            // PROTOTYPE: Test variance differences.
+        [Fact]
+        public void TypeInference_LowerBoundsDistinctSignature_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((string s) => { }, (object o) => { }));
+        Report(F(() => string.Empty, () => new object()));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(() => string.Empty, () => new object()));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 37),
+                // (7,45): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45));
         }
 
         [Fact]
@@ -3574,7 +3711,7 @@ D2`1[System.Int32]
         }
 
         [Fact]
-        public void TypeInference_UpperAndLowerBoundsDistinctSignature()
+        public void TypeInference_UpperAndLowerBoundsDistinctSignature_01()
         {
             var source =
 @"using System;
@@ -3587,9 +3724,9 @@ class Program
     static void Main()
     {
         Action<D1<string>> a1 = null;
-        Action<D2<int>> a2 = null;
+        Action<D2<object>> a2 = null;
         Report(F1(a1, (object o) => { }));
-        Report(F2(() => 1.0, a2));
+        Report(F2(() => string.Empty, a2));
     }
     static void Report(object obj) => Console.WriteLine(obj.GetType());
 }";
@@ -3601,13 +3738,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 23),
                 // (12,31): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F1(a1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 31),
-                // (13,25): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         Report(F2(() => 1.0, a2));
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.0").WithArguments("double", "int").WithLocation(13, 25),
-                // (13,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         Report(F2(() => 1.0, a2));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25)
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 31)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3615,8 +3746,42 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
 
-            // PROTOTYPE: Test variance differences.
+        [Fact]
+        public void TypeInference_UpperAndLowerBoundsDistinctSignature_02()
+        {
+            var source =
+@"using System;
+delegate void D1<T>(T t);
+delegate T D2<T>();
+class Program
+{
+    static T F1<T>(Action<T> x, T y) => y;
+    static T F2<T>(T x, Action<T> y) => x;
+    static void Main()
+    {
+        Report(F1((D1<string> d) => { }, (object o) => { }));
+        Report(F2(() => string.Empty, (D2<object>  d) => { }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                   // (10,42): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(10, 42),
+                // (10,50): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(10, 50)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3648,7 +3813,7 @@ D2`1[System.Int32]
         }
 
         [Fact]
-        public void TypeInference_ExactAndLowerBoundsDistinctSignature()
+        public void TypeInference_ExactAndLowerBoundsDistinctSignature_01()
         {
             var source =
 @"using System;
@@ -3661,27 +3826,21 @@ class Program
     static void Main()
     {
         D1<string> d1 = (string s) => { };
-        D2<int> d2 = () => 1;
+        D2<object> d2 = () => new object();
         Report(F1(ref d1, (object o) => { }));
-        Report(F2(() => 1.0, ref d2));
+        Report(F2(() => string.Empty, ref d2));
     }
     static void Report(object obj) => Console.WriteLine(obj.GetType());
 }";
 
             var expectedDiagnostics = new[]
             {
-                // (12,27): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F1(ref d1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 27),
-                // (12,35): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
-                //         Report(F1(ref d1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 35),
-                // (13,25): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         Report(F2(() => 1.0, ref d2));
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.0").WithArguments("double", "int").WithLocation(13, 25),
-                // (13,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         Report(F2(() => 1.0, ref d2));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25)
+                    // (12,27): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                    //         Report(F1(ref d1, (object o) => { }));
+                    Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 27),
+                    // (12,35): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                    //         Report(F1(ref d1, (object o) => { }));
+                    Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 35)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3689,8 +3848,51 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
 
-            // PROTOTYPE: Test variance differences.
+        [Fact]
+        public void TypeInference_ExactAndLowerBoundsDistinctSignature_02()
+        {
+            var source =
+@"using System;
+delegate void D1<T>(T t);
+delegate T D2<T>();
+class Program
+{
+    static T F1<T>(in T x, T y) => y;
+    static T F2<T>(T x, in T y) => y;
+    static void Main()
+    {
+        Report(F1((D1<string> d) => { }, (object o) => { }));
+        Report(F2(() => string.Empty, (D2<object> d) => { }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,16): error CS0411: The type arguments for method 'Program.F1<T>(in T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(in T, T)").WithLocation(10, 16),
+                // (11,16): error CS0411: The type arguments for method 'Program.F2<T>(T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F2(() => 1.0, (D2<int> d) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, in T)").WithLocation(11, 16)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,42): error CS1661: Cannot convert lambda expression to type 'Action<D1<string>>' because the parameter types do not match the delegate parameter types
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<D1<string>>").WithLocation(10, 42),
+                // (10,50): error CS1678: Parameter 1 is declared as type 'object' but should be 'D1<string>'
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "D1<string>").WithLocation(10, 50),
+                // (11,16): error CS0411: The type arguments for method 'Program.F2<T>(T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F2(() => 1.0, (D2<int> d) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, in T)").WithLocation(11, 16));
         }
 
         [Fact]

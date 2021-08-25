@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -2529,7 +2530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
-#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -2572,9 +2572,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             ConversionsBase conversions,
             TypeParameterSymbol typeParameter,
-            HashSet<TypeWithAnnotations> exact,
-            HashSet<TypeWithAnnotations> lower,
-            HashSet<TypeWithAnnotations> upper,
+            HashSet<TypeWithAnnotations>? exact,
+            HashSet<TypeWithAnnotations>? lower,
+            HashSet<TypeWithAnnotations>? upper,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // UNDONE: This method makes a lot of garbage.
@@ -2598,8 +2598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                HashSet<TypeWithAnnotations> updated = null;
-                foreach (var candidate in lower)
+                HashSet<TypeWithAnnotations>? updated = null;
+                foreach (var candidate in lower!)
                 {
                     if (!isFunctionType(candidate, out _))
                     {
@@ -2713,17 +2713,17 @@ OuterBreak:
 
             return best;
 
-            static bool containsFunctionTypes(HashSet<TypeWithAnnotations> types)
+            static bool containsFunctionTypes(HashSet<TypeWithAnnotations>? types)
             {
                 return types?.Any(t => isFunctionType(t, out _)) == true;
             }
 
-            static bool containsNonFunctionTypes(HashSet<TypeWithAnnotations> types)
+            static bool containsNonFunctionTypes(HashSet<TypeWithAnnotations>? types)
             {
                 return types?.Any(t => !isFunctionType(t, out _)) == true;
             }
 
-            static bool isFunctionType(TypeWithAnnotations type, out FunctionTypeSymbol functionType)
+            static bool isFunctionType(TypeWithAnnotations type, [NotNullWhen(true)] out FunctionTypeSymbol? functionType)
             {
                 functionType = type.Type as FunctionTypeSymbol;
                 return functionType is not null;
@@ -2765,14 +2765,9 @@ OuterBreak:
                 return false;
             }
 
-            if (source is FunctionTypeSymbol sourceFunctionType &&
-                destination is FunctionTypeSymbol destinationFunctionType)
-            {
-                return conversions.HasImplicitSignatureConversion(sourceFunctionType, destinationFunctionType, ref useSiteInfo);
-            }
-
             return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).Exists;
         }
+#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -2988,6 +2983,7 @@ OuterBreak:
             return true;
         }
 
+#nullable enable
         /// <summary>
         /// Return the inferred type arguments using null
         /// for any type arguments that were not inferred.
@@ -2997,9 +2993,9 @@ OuterBreak:
             return _fixedResults.AsImmutable();
         }
 
-        private static bool IsReallyAType(TypeSymbol type)
+        private static bool IsReallyAType(TypeSymbol? type)
         {
-            return (object)type != null &&
+            return type is { } &&
                 !type.IsErrorType() &&
                 !type.IsVoidType();
         }

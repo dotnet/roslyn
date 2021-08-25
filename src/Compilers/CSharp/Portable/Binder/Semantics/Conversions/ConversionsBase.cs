@@ -2578,6 +2578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (destination is FunctionTypeSymbol destinationFunctionType)
+            {
+                return HasImplicitSignatureConversion(source, destinationFunctionType, ref useSiteInfo);
+            }
+
             return IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo);
         }
 
@@ -2603,28 +2608,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasImplicitSignatureConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool HasImplicitSignatureConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var sourceMethod = sourceType.GetInternalDelegateType()?.DelegateInvokeMethod();
-            var destinationMethod = destinationType.GetInternalDelegateType()?.DelegateInvokeMethod();
+            var sourceDelegate = sourceType.GetInternalDelegateType();
+            var destinationDelegate = destinationType.GetInternalDelegateType();
 
-            if (sourceMethod is null || destinationMethod is null)
+            if (sourceDelegate is null || destinationDelegate is null)
             {
                 return false;
             }
 
-            return areEqual(sourceMethod.ReturnType, sourceMethod.RefKind, destinationMethod.ReturnType, destinationMethod.RefKind) &&
-                sourceMethod.Parameters.SequenceEqual(
-                    destinationMethod.Parameters,
-                    (sourceParameter, destinationParameter) => areEqual(sourceParameter.Type, sourceParameter.RefKind, destinationParameter.Type, destinationParameter.RefKind));
-
-            static bool areEqual(TypeSymbol sourceType, RefKind sourceRefKind, TypeSymbol destinationType, RefKind destinationRefKind)
-            {
-                // PROTOTYPE: Allow variance.
-                // PROTOTYPE: Check nullability when IncludeNullability is set.
-                return sourceRefKind == destinationRefKind &&
-                    TypeSymbol.Equals(sourceType, destinationType, TypeCompareKind.AllIgnoreOptions);
-            }
+            return HasDelegateVarianceConversion(sourceDelegate, destinationDelegate, ref useSiteInfo);
         }
 #nullable disable
 

@@ -12,6 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class FunctionTypeSymbol : TypeSymbol
     {
         private const SymbolKind s_SymbolKind = SymbolKind.FunctionPointerType + 1;
@@ -116,9 +117,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => throw ExceptionUtilities.Unreachable;
 
-        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance) => throw ExceptionUtilities.Unreachable;
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform) => this;
+            var otherType = (FunctionTypeSymbol)other;
+            var delegateType = GetInternalDelegateType();
+            var otherDelegateType = otherType.GetInternalDelegateType();
+
+            Debug.Assert((object)_assembly == otherType._assembly);
+            Debug.Assert(delegateType is { });
+            Debug.Assert(otherDelegateType is { });
+
+            delegateType = (NamedTypeSymbol)delegateType.MergeEquivalentTypes(otherDelegateType, variance);
+            return new FunctionTypeSymbol(_assembly, delegateType);
+        }
+
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
+        {
+            var delegateType = (NamedTypeSymbol?)GetInternalDelegateType()?.SetNullabilityForReferenceTypes(transform);
+            return new FunctionTypeSymbol(_assembly, delegateType);
+        }
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => throw ExceptionUtilities.Unreachable;
 
@@ -143,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var delegateType = GetInternalDelegateType();
             return delegateType is null ? 0 : delegateType.GetHashCode();
+        }
+
+        internal override string GetDebuggerDisplay()
+        {
+            return $"DelegateType: {GetInternalDelegateType()?.ToDisplayString(s_debuggerDisplayFormat) ?? "<null>"}";
         }
     }
 }
