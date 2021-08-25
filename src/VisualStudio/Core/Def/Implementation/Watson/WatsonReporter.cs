@@ -124,11 +124,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 {
                     session.PostEvent(faultEvent);
                 }
-
-                if (int.TryParse("1", out var someInt) && someInt == 1)
-                {
-                    throw new Exception("Throwing a random exception in the report non fatal code path");
-                }
             }
             catch (OutOfMemoryException)
             {

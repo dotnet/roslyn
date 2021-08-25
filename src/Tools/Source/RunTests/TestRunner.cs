@@ -70,21 +70,20 @@ namespace RunTests
             var duplicateDir = Path.Combine(msbuildTestPayloadRoot, ".duplicate");
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{duplicateDir}"" />";
 
+            // Temporarily include procdump in the correlation directory to allow us
+            // to capture dumps on test host exit.  Typically WER is good enough,
+            // but https://github.com/dotnet/roslyn/issues/55639 requires procdump dumps.
+            // This should be removed once we have enough dumps to investigate the above issue.
             if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                ConsoleUtil.WriteLine($"Proc dump file path is {options.ProcDumpFilePath}");
-                var procDir = Path.GetDirectoryName(options.ProcDumpFilePath);
-                ConsoleUtil.WriteLine($"Proc dump directory is {procDir}");
-                var files = Directory.GetFiles(procDir);
-                ConsoleUtil.WriteLine($"Proc dump directory contents {string.Join(",", files)}");
-                ConsoleUtil.WriteLine($"Contents of duplicate dir is {string.Join(",", Directory.GetFiles(duplicateDir))}");
+                ConsoleUtil.WriteLine($"Copying procdump files from {options.ProcDumpFilePath} to {duplicateDir}");
+                var files = Directory.GetFiles(options.ProcDumpFilePath);
                 foreach (var file in files)
                 {
                     var newFileName = Path.Combine(duplicateDir, Path.GetFileName(file));
-                    ConsoleUtil.WriteLine($"New file: {newFileName}");
                     File.Copy(file, newFileName);
+                    ConsoleUtil.WriteLine($"Created {newFileName}");
                 }
-                ConsoleUtil.WriteLine($"New contents of duplicate dir is {string.Join(",", Directory.GetFiles(duplicateDir))}");
             }
 
             // https://github.com/dotnet/roslyn/issues/50661
