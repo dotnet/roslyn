@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides ReadOnly Property GeneratedNamePrefix As String
                 Get
-                    Return GeneratedNames.AnonymousTypeTemplateNamePrefix
+                    Return GeneratedNameConstants.AnonymousTypeTemplateNamePrefix
                 End Get
             End Property
 

@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -34,10 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new Project(ProjectName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            VisualStudio.SolutionExplorer.UpdateFile(
-                ProjectName,
-                FileName,
-                @"using System;
+            VisualStudio.Editor.SetText(@"using System;
 
  namespace TestProj
  {
@@ -65,8 +61,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-",
-                open: true);
+");
+            VisualStudio.Editor.Activate();
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
@@ -240,10 +236,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
-            var defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
-            VisualStudio.InteractiveWindow.SetTimeout(120000);
             VisualStudio.InteractiveWindow.WaitForReplOutput("using TestProj;");
-            VisualStudio.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
 
             VisualStudio.InteractiveWindow.SubmitText("x");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");

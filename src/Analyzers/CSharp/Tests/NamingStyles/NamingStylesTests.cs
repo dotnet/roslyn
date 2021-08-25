@@ -1382,5 +1382,44 @@ class C : I
     int [|global::I.X|] => 0;
 }", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
+        public async Task TestAsyncEntryPoint()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task [|Main|]()
+    {
+        await Task.Delay(0);
+    }
+}", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
+        public async Task TestAsyncEntryPoint_TopLevel()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+
+[|await Task.Delay(0);|]
+", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact]
+        [WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        public async Task TestExternAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    static extern void [|some_p_invoke()|];
+}", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
     }
 }

@@ -59,7 +59,7 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
+            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute", isComplexTextEdit:=True)
             Await VerifyItemIsAbsentAsync(markup, "MyAttributeWithoutSuffix", inlineDescription:="Foo") ' We intentionally ignore attribute types without proper suffix for perf reason
             Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Foo")
             Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
@@ -90,9 +90,9 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
-            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix")
-            Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyVBClass")
+            Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute", isComplexTextEdit:=True)
+            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix", isComplexTextEdit:=True)
+            Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyVBClass", isComplexTextEdit:=True)
             Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
         End Function
 
@@ -141,7 +141,7 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForProjectWithProjectReference(file2, file1, LanguageNames.VisualBasic, LanguageNames.CSharp)
-            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.Myattribute")
+            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.Myattribute", isComplexTextEdit:=True)
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function
 
@@ -163,7 +163,7 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)")
+            Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)", isComplexTextEdit:=True)
         End Function
 
         <InlineData(SourceCodeKind.Regular)>
@@ -260,7 +260,7 @@ Namespace Foo1
 End Namespace"
 
             Dim markup = CreateMarkupForSingleProject(file1, file2, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "Foo4", glyph:=Glyph.ClassPublic, inlineDescription:="Foo1.Foo2.Foo3", displayTextSuffix:="(Of ...)")
+            Await VerifyItemExistsAsync(markup, "Foo4", glyph:=Glyph.ClassPublic, inlineDescription:="Foo1.Foo2.Foo3", displayTextSuffix:="(Of ...)", isComplexTextEdit:=True)
         End Function
     End Class
 End Namespace

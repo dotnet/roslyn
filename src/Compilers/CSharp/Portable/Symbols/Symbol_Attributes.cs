@@ -295,6 +295,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var attributeTypesBuilder = new NamedTypeSymbol[totalAttributesCount];
 
                 Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, diagnostics);
+                for (var i = 0; i < totalAttributesCount; i++)
+                {
+                    if (attributeTypesBuilder[i].IsGenericType)
+                    {
+                        MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, attributesToBind[i]);
+                    }
+                }
+
                 ImmutableArray<NamedTypeSymbol> boundAttributeTypes = attributeTypesBuilder.AsImmutableOrNull();
 
                 this.EarlyDecodeWellKnownAttributeTypes(boundAttributeTypes, attributesToBind);
@@ -447,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");
+                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod }, "Possible cycle in attribute binding");
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {
@@ -674,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeUsageInfo attributeUsageInfo = attributeType.GetAttributeUsageInfo();
 
             // Given attribute can't be specified more than once if AllowMultiple is false.
-            if (!uniqueAttributeTypes.Add(attributeType) && !attributeUsageInfo.AllowMultiple)
+            if (!uniqueAttributeTypes.Add(attributeType.OriginalDefinition) && !attributeUsageInfo.AllowMultiple)
             {
                 diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.GetErrorDisplayName());
                 return false;

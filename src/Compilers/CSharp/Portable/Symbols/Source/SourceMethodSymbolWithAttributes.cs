@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -56,11 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 case RecordDeclarationSyntax recordDecl:
+                    Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
                     return recordDecl;
                 default:
                     return null;
             }
         }
+
+        internal virtual Binder? SignatureBinder => null;
+
+        internal virtual Binder? ParameterBinder => null;
+
 #nullable disable
 
         internal SyntaxReference SyntaxRef
@@ -278,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
+                    binderOpt: SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)
@@ -639,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!this.CanBeReferencedByName || this.MethodKind == MethodKind.Destructor)
             {
-                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation
+                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 diagnostics.Add(ErrorCode.ERR_ConditionalOnSpecialMethod, node.Location, this);
             }
             else if (!this.ReturnsVoid)
@@ -969,7 +974,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
             }
         }
-#nullable disable
 
         internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
@@ -1027,37 +1031,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
         {
+            AsyncMethodChecks(verifyReturnType: true, this.Locations[0], diagnostics);
+        }
+
+        protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)
+        {
             if (IsAsync)
             {
-                var errorLocation = this.Locations[0];
                 bool hasErrors = false;
 
-                if (this.RefKind != RefKind.None)
+                if (verifyReturnType)
                 {
-                    var returnTypeSyntax = this.SyntaxNode switch
+                    if (this.RefKind != RefKind.None)
                     {
-                        MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
-                        LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
-                        var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
-                    };
+                        var returnTypeSyntax = this.SyntaxNode switch
+                        {
+                            MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
+                            LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
+                            ParenthesizedLambdaExpressionSyntax { ReturnType: { } lambdaReturnType } => lambdaReturnType,
+                            var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
+                        };
 
-                    ReportBadRefToken(returnTypeSyntax, diagnostics);
-                    hasErrors = true;
-                }
-                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-                    hasErrors = true;
-                }
-
-                for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-                {
-                    var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                    if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                        ReportBadRefToken(returnTypeSyntax, diagnostics);
                         hasErrors = true;
-                        break;
+                    }
+                    else if (isBadAsyncReturn(this))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                        hasErrors = true;
+                    }
+                }
+
+                if (this.HasAsyncMethodBuilderAttribute(out _))
+                {
+                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                }
+
+                // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
+                // is used in an attribute argument - see https://github.com/dotnet/roslyn/issues/54074.
+                // (ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct was never reported
+                // for lambda expressions and is not a .NET Core scenario so it's not necessary to handle.)
+                if (this.MethodKind != MethodKind.LambdaMethod)
+                {
+                    for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                    {
+                        if (curr is SourceNamedTypeSymbol { HasSecurityCriticalAttributes: true })
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                            hasErrors = true;
+                            break;
+                        }
                     }
                 }
 
@@ -1092,6 +1115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
                     }
                 }
+            }
+
+            static bool isBadAsyncReturn(MethodSymbol methodSymbol)
+            {
+                var returnType = methodSymbol.ReturnType;
+                var declaringCompilation = methodSymbol.DeclaringCompilation;
+                return !returnType.IsErrorType() &&
+                    !returnType.IsVoidType() &&
+                    !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                    !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation);
             }
         }
 
@@ -1188,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
-                SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
+                SecurityWellKnownAttributeData? securityData = wellKnownData.SecurityInformation;
                 if (securityData != null)
                 {
                     return securityData.GetSecurityAttributes(attributesBag.Attributes);
@@ -1198,13 +1233,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get
             {

@@ -54,6 +54,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        {
+            if (symbol?.IsValueType != true)
+                return false;
+
+            return !symbol.IsNullable();
+        }
+
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
             [NotNullWhen(true)] out ITypeSymbol? underlyingType)
@@ -311,17 +319,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
-            if (type.IsAnonymousType)
-            {
+            if (type.IsAnonymousType || type.IsAnonymousDelegateType())
                 return true;
-            }
 
             foreach (var typeArg in type.GetAllTypeArguments())
             {
                 if (ContainsAnonymousType(typeArg))
-                {
                     return true;
-                }
             }
 
             return false;

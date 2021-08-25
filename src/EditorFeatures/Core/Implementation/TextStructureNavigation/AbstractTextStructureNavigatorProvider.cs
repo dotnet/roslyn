@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -17,19 +16,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
     {
         private readonly ITextStructureNavigatorSelectorService _selectorService;
         private readonly IContentTypeRegistryService _contentTypeService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         protected AbstractTextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor uIThreadOperationExecutor)
         {
             Contract.ThrowIfNull(selectorService);
             Contract.ThrowIfNull(contentTypeService);
 
             _selectorService = selectorService;
             _contentTypeService = contentTypeService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uIThreadOperationExecutor;
         }
 
         protected abstract bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia);
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 subjectBuffer,
                 naturalLanguageNavigator,
                 this,
-                _waitIndicator);
+                _uiThreadOperationExecutor);
         }
     }
 }

@@ -86,6 +86,32 @@ class C
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
+        [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void HighlightBasedOnSelection()
+        {
+            var text = @"
+class C
+{
+   void M()
+    {
+        int x = 0;
+        x++;       
+        x = 3;
+    }
+}";
+            VisualStudio.Editor.SetText(text);
+            VisualStudio.Editor.PlaceCaret("x");
+
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Editor.Verify.CurrentLineText("x$$++;", assertCaretPosition: true, trimWhitespace: true);
+
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
+        }
+
         private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);

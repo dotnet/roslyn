@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
             if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                // A generic type cannot derive from '{0}' because it is an attribute class
-                diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
+                MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, baseLocation);
             }
 
             // Check constraints on the first declaration with explicit bases.
@@ -127,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (declaration.Kind == DeclarationKind.Record)
                 {
-                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is null ||
-                        SynthesizedRecordPrintMembers.FindValidPrintMembersMethod(localBase, DeclaringCompilation) is null)
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
                     }
@@ -339,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (declaration.Kind == DeclarationKind.Record)
+            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
             {
                 var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
                 if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
@@ -493,12 +491,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var info = diagnostics.Add(ErrorCode.ERR_StaticDerivedFromNonObject, location, this, localBase);
                             localBase = new ExtendedErrorTypeSymbol(localBase, LookupResultKind.NotReferencable, info);
                         }
+                        checkPrimaryConstructorBaseType(baseTypeSyntax, localBase);
                         continue;
                     }
                 }
                 else
                 {
                     baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
+                }
+
+                if (i == 0)
+                {
+                    checkPrimaryConstructorBaseType(baseTypeSyntax, baseType);
                 }
 
                 switch (baseType.TypeKind)
@@ -583,6 +587,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(localBase, localInterfaces.ToImmutableAndFree());
+
+            void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
+            {
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
+                    (!IsRecord || TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((RecordDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                }
+            }
         }
 
         /// <summary>

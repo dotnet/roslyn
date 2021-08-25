@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -53,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             switch (diagnosticId)
             {
                 case CS7036:
+                case CS0308:
                 case CS0428:
                 case CS1061:
                     if (node.IsKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax conditionalAccess))
@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     {
                         node = memberBindingExpr.Name;
                     }
+
                     break;
                 case CS1929:
                     var memberAccessName = (node.Parent as MemberAccessExpressionSyntax)?.Name;
@@ -451,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
 
             var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
-            var namespaceToAddTo = container as NamespaceDeclarationSyntax;
+            var namespaceToAddTo = container as BaseNamespaceDeclarationSyntax;
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked
             // up off of an extern alias.
@@ -490,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         private static NameSyntax RemoveGlobalAliasIfUnnecessary(
             SemanticModel semanticModel,
             NameSyntax nameSyntax,
-            NamespaceDeclarationSyntax namespaceToAddTo)
+            BaseNamespaceDeclarationSyntax namespaceToAddTo)
         {
             var aliasQualifiedName = nameSyntax.DescendantNodesAndSelf()
                                                .OfType<AliasQualifiedNameSyntax>()
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         private static bool ConflictsWithExistingMember(
             SemanticModel semanticModel,
-            NamespaceDeclarationSyntax namespaceToAddTo,
+            BaseNamespaceDeclarationSyntax namespaceToAddTo,
             string rightOfAliasName)
         {
             if (namespaceToAddTo != null)

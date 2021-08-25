@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             MethodKind methodKind = MethodKind.Ordinary,
             bool isInitOnly = false)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind, isInitOnly);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml: null, methodKind, isInitOnly);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }
@@ -195,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOperatorKind operatorKind,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
-            ImmutableArray<AttributeData> returnTypeAttributes = default)
+            ImmutableArray<AttributeData> returnTypeAttributes = default,
+            string? documentationCommentXml = null)
         {
             var expectedParameterCount = CodeGenerationOperatorSymbol.GetParameterCount(operatorKind);
             if (parameters.Length != expectedParameterCount)
@@ -206,9 +207,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(message, nameof(parameters));
             }
 
-            var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes);
+            var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes, documentationCommentXml);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
             return result;
+        }
+
+        /// <summary>
+        /// Creates a method symbol that can be used to describe a conversion declaration.
+        /// </summary>
+        public static IMethodSymbol CreateConversionSymbol(
+            ITypeSymbol toType,
+            IParameterSymbol fromType,
+            INamedTypeSymbol? containingType = null,
+            bool isImplicit = false,
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<AttributeData> toTypeAttributes = default,
+            string? documentationCommentXml = null)
+        {
+            return CreateConversionSymbol(
+                attributes: default,
+                accessibility: Accessibility.Public,
+                DeclarationModifiers.Static,
+                toType,
+                fromType,
+                containingType,
+                isImplicit,
+                statements,
+                toTypeAttributes,
+                documentationCommentXml);
         }
 
         /// <summary>
@@ -220,11 +246,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             ITypeSymbol toType,
             IParameterSymbol fromType,
+            INamedTypeSymbol? containingType = null,
             bool isImplicit = false,
             ImmutableArray<SyntaxNode> statements = default,
-            ImmutableArray<AttributeData> toTypeAttributes = default)
+            ImmutableArray<AttributeData> toTypeAttributes = default,
+            string? documentationCommentXml = null)
         {
-            var result = new CodeGenerationConversionSymbol(null, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes);
+            var result = new CodeGenerationConversionSymbol(containingType, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes, documentationCommentXml);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
             return result;
         }

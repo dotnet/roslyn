@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
+        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
             Assumes.Present(shell);
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return _languageService.ComAggregate;
             });
 
-            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
+            await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
             var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
@@ -107,7 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
 
-                return (IComponentModel)GetService(typeof(SComponentModel));
+                if (_componentModel_doNotAccessDirectly == null)
+                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
+
+                return _componentModel_doNotAccessDirectly;
             }
         }
 

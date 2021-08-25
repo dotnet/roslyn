@@ -3577,7 +3577,7 @@ End Class
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodUsedInSourceGenerator(kind As TestKind) As Task
+        Public Async Function TestOrdinaryMethodUsedInSourceGenerator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3604,7 +3604,7 @@ End Class
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeatureAsync(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -3785,6 +3785,126 @@ End Class
     </Project>
 </Workspace>
             Await TestStreamingFeatureAsync(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMemberStaticAbstractMethodFromInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M$$1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeatureAsync(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M$$1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.M1() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeatureAsync(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void M1() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M$$1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeatureAsync(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaAPI1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M$$1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAsync(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaAPI2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M$$1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAsync(input, host)
         End Function
     End Class
 End Namespace

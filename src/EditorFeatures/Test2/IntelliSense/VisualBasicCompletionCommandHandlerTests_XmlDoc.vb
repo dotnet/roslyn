@@ -663,6 +663,7 @@ End Class
                     Await state.AssertSelectedCompletionItemAsync(displayText:=keyword)
                     state.SendTab()
                 End If
+
                 Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <see langword="keyword"/>$$

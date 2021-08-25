@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
                             useDecompiler = false;
                         }
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
             if (project == null)

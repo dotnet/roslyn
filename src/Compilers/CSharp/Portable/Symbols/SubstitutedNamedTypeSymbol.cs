@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal abstract override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes);
+
         public sealed override IEnumerable<string> MemberNames
         {
             get
@@ -316,6 +318,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            if (_unbound)
+            {
+                yield break;
+            }
+
+            foreach ((MethodSymbol body, MethodSymbol implemented) in OriginalDefinition.SynthesizedInterfaceMethodImpls())
+            {
+                var newBody = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(body, this.TypeSubstitution);
+                var newImplemented = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(implemented, this.TypeSubstitution);
+                yield return (newBody, newImplemented);
+            }
+        }
+#nullable disable
+
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
             throw ExceptionUtilities.Unreachable;
@@ -399,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
+        internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
     }
 }

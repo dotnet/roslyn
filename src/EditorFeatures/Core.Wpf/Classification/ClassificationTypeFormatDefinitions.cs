@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Reassigned Variable
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ReassignedVariable)]
+        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [Order(After = Priority.High)]
+        [UserVisible(false)]
+        [ExcludeFromCodeCoverage]
+        private class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ReassignedVariableFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Reassigned_variable;
+                this.TextDecorations = System.Windows.TextDecorations.Underline;
+            }
+        }
+        #endregion
+
         #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
@@ -201,6 +220,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeRecordsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Records;
+            }
+        }
+        #endregion
+        #region User Types - Record structs
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordStructName)]
+        [Name(ClassificationTypeNames.RecordStructName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public UserTypeRecordStructsFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Types_Record_Structs;
             }
         }
         #endregion

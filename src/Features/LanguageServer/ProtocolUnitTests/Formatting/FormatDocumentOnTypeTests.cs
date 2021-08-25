@@ -46,13 +46,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(TestLspServer testLspServer, string characterTyped, LSP.Location locationTyped)
+        [Fact]
+        public async Task TestFormatDocumentOnType_UseTabsAsync()
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
-                           CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var markup =
+@"class A
+{
+	void M()
+	{
+		if (true)
+			{{|type:|}
+	}
+}";
+            var expected =
+@"class A
+{
+	void M()
+	{
+		if (true)
+		{
+	}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var characterTyped = ";";
+            var locationTyped = locations["type"].Single();
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, insertSpaces: false, tabSize: 4);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
         }
 
-        private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(string characterTyped, LSP.Location locationTyped)
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(
+            TestLspServer testLspServer,
+            string characterTyped,
+            LSP.Location locationTyped,
+            bool insertSpaces = true,
+            int tabSize = 4)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
+                CreateDocumentOnTypeFormattingParams(
+                    characterTyped, locationTyped, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
+
+        private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(
+            string characterTyped,
+            LSP.Location locationTyped,
+            bool insertSpaces,
+            int tabSize)
             => new LSP.DocumentOnTypeFormattingParams()
             {
                 Position = locationTyped.Range.Start,
@@ -60,7 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
                 TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
                 Options = new LSP.FormattingOptions()
                 {
-                    // TODO - Format should respect formatting options.
+                    InsertSpaces = insertSpaces,
+                    TabSize = tabSize,
                 }
             };
     }

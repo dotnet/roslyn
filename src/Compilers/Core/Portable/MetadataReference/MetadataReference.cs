@@ -228,9 +228,18 @@ namespace Microsoft.CodeAnalysis
             string path,
             MetadataReferenceProperties properties = default,
             DocumentationProvider? documentation = null)
-        {
-            var peStream = FileUtilities.OpenFileStream(path);
+            => CreateFromFile(
+                StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read),
+                path,
+                properties,
+                documentation);
 
+        internal static PortableExecutableReference CreateFromFile(
+            Stream peStream,
+            string path,
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null)
+        {
             // prefetch image, close stream to avoid locking it:
             var module = ModuleMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);
 
@@ -324,7 +333,7 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
             }
 
-            Stream peStream = FileUtilities.OpenFileStream(location);
+            Stream peStream = StandardFileSystem.Instance.OpenFileWithNormalizedException(location, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
             // which might also lock the file until the reference is GC'd.

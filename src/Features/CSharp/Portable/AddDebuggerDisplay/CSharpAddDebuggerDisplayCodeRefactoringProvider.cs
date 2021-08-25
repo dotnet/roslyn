@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddDebuggerDisplayCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay), Shared]
     internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider
         : AbstractAddDebuggerDisplayCodeRefactoringProvider<
             TypeDeclarationSyntax,

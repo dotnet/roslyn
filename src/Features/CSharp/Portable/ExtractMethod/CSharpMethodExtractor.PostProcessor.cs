@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     return statements;
                 }
+
                 if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ReturnStatementSyntax returnStatement))
                 {
                     return statements;

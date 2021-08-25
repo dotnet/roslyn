@@ -50,25 +50,7 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var context = await CreateContextAsync(document, cancellationToken).ConfigureAwait(false);
-            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
-        }
-
-        public override BlockStructure GetBlockStructure(
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            var context = CreateContextAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             return GetBlockStructure(context, _providers);
-        }
-
-        public async Task<BlockStructure> GetBlockStructureAsync(
-            SyntaxTree syntaxTree,
-            OptionSet options,
-            bool isMetadataAsSource,
-            CancellationToken cancellationToken)
-        {
-            var context = CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
-            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
         }
 
         public BlockStructure GetBlockStructure(
@@ -99,26 +81,12 @@ namespace Microsoft.CodeAnalysis.Structure
             return new BlockStructureContext(syntaxTree, optionProvider, cancellationToken);
         }
 
-        private static async Task<BlockStructure> GetBlockStructureAsync(
-            BlockStructureContext context,
-            ImmutableArray<BlockStructureProvider> providers)
-        {
-            foreach (var provider in providers)
-            {
-                await provider.ProvideBlockStructureAsync(context).ConfigureAwait(false);
-            }
-
-            return CreateBlockStructure(context);
-        }
-
         private static BlockStructure GetBlockStructure(
             BlockStructureContext context,
             ImmutableArray<BlockStructureProvider> providers)
         {
             foreach (var provider in providers)
-            {
                 provider.ProvideBlockStructure(context);
-            }
 
             return CreateBlockStructure(context);
         }

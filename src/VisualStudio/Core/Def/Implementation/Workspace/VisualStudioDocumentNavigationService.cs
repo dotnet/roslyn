@@ -141,19 +141,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
                 _ => textSpan,
-                text => GetVsTextSpan(text, textSpan),
+                text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
                 options,
                 cancellationToken);
 
-            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan)
+            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan, bool allowInvalidSpan)
             {
                 var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-                if (boundedTextSpan != textSpan)
+                if (boundedTextSpan != textSpan && !allowInvalidSpan)
                 {
                     try
                     {
@@ -251,9 +251,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (workspace.CurrentSolution.GetDocument(documentId) == null)
                 {
-                    var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
+                    var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
+                    if (project is null)
+                    {
+                        // This is a source generated document shown in Solution Explorer, but is no longer valid since
+                        // the configuration and/or platform changed since the last generation completed.
+                        return false;
+                    }
+
+                    var generatedDocument = project
                                                                      .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
-                                                                     .GetAwaiter().GetResult();
+                                                                     .AsTask().GetAwaiter().GetResult();
 
                     if (generatedDocument != null)
                     {

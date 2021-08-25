@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,10 +18,12 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
+        protected abstract bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration);
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             if (context.Diagnostics.Length == 1 &&
-                IsValidMemberNode(context.Diagnostics[0].Location?.FindNode(context.CancellationToken)))
+                TryGetMemberDeclaration(context.Diagnostics[0].Location.FindNode(context.CancellationToken), out _))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
@@ -37,19 +38,18 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
-                var declaration = diagnostics[i].Location?.FindNode(cancellationToken);
+                var declaration = diagnostics[i].Location.FindNode(cancellationToken);
 
-                if (IsValidMemberNode(declaration))
+                if (TryGetMemberDeclaration(declaration, out var memberDeclaration))
                 {
-                    editor.ReplaceNode(declaration,
-                        (currentDeclaration, generator) => generator.WithModifiers(currentDeclaration, DeclarationModifiers.Static));
+                    var generator = SyntaxGenerator.GetGenerator(document);
+                    var newNode = generator.WithModifiers(memberDeclaration, generator.GetModifiers(declaration).WithIsStatic(true));
+                    editor.ReplaceNode(declaration, newNode);
                 }
             }
 
             return Task.CompletedTask;
         }
-
-        protected abstract bool IsValidMemberNode(SyntaxNode node);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

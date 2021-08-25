@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol? accessWithinOpt)
         {
             var members = declaringType.GetMembers(descriptor.Name);
             return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);

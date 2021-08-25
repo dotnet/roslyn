@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(PredefinedCodeRefactoringProviderNames.InlineMethod)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineMethod), [Shared]>
     <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend Class VisualBasicInlineMethodRefactoringProvider
         Inherits AbstractInlineMethodRefactoringProvider(Of MethodBlockSyntax, ExecutableStatementSyntax, ExpressionSyntax, InvocationExpressionSyntax)
@@ -42,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                     Return throwStatement.Expression
                 End If
             End If
+
             Return Nothing
         End Function
 

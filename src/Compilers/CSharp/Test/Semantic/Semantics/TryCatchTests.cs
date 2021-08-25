@@ -76,7 +76,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(9, 20));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [Fact]
         [WorkItem(7030, "https://github.com/dotnet/roslyn/issues/7030")]
         public void Issue7030()
         {

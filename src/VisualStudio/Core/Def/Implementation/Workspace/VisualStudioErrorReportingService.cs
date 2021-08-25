@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -22,7 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public string HostDisplayName => "Visual Studio";
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBar(message, items);
+        {
+            _infoBarService.ShowInfoBar(message, items);
+
+            // Have to use KeyValueLogMessage so it gets reported in telemetry
+            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, message, LogLevel.Information);
+        }
 
         public void ShowDetailedErrorInfo(Exception exception)
         {

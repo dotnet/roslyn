@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }

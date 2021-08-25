@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If identifierName IsNot Nothing Then
                 Dim text = token.ToString()
                 If (SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.FromKeyword OrElse SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.AggregateKeyword) Then
-                    Dim symbol = context.SemanticModel.GetSymbolInfo(identifierName).Symbol
+                    Dim symbol = context.SemanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol
                     If symbol Is Nothing Then
                         Return False
                     End If

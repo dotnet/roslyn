@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract string GenericSuffix { get; }
 
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document, completionContext.Options.GetOption(CompletionServiceOptions.DisallowAddingImports));
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (expressionNode != null)
             {
                 // Check if we are accessing members of a type, no extension methods are exposed off of types.
-                if (!(syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol))
+                if (syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
                 {
                     // The expression we're calling off of needs to have an actual instance type.
                     // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.

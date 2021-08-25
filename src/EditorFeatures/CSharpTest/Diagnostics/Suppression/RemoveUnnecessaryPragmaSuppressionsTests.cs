@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
     [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
-        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+        protected RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
             : base(logger)
         {
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
-            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+            protected CompilerOrAnalyzerTests(ITestOutputHelper logger)
                 : base(logger)
             {
             }

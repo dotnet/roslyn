@@ -13,6 +13,12 @@ function Add-TargetFramework($name, $packagePath, $list)
 
 "@
 
+  $refAllContent = @"
+            public static ReferenceInfo[] All => new[]
+            {
+
+"@
+
   $name = $name.ToLower()
   foreach ($dllPath in $list)
   {
@@ -31,6 +37,7 @@ function Add-TargetFramework($name, $packagePath, $list)
       $logicalName = "$($name).$($dll)";
     }
 
+    $dllFileName = "$($dllName).dll"
     $link = "Resources\ReferenceAssemblies\$name\$dll"
     $script:targetsContent += @"
         <EmbeddedResource Include="$packagePath\$dllPath">
@@ -48,14 +55,21 @@ function Add-TargetFramework($name, $packagePath, $list)
 
 "@
 
+    $refAllContent += @"
+                new ReferenceInfo("$dllFileName", $propName),
+
+"@
+
     $refContent += @"
-            public static PortableExecutableReference $propName { get; } = AssemblyMetadata.CreateFromImage($($resourceTypeName).$($propName)).GetReference(display: "$dll ($name)");
+            public static PortableExecutableReference $propName { get; } = AssemblyMetadata.CreateFromImage($($resourceTypeName).$($propName)).GetReference(display: "$dll ($name)", filePath: "$dllFileName");
 
 "@
 
   }
 
+  $script:codeContent += $refAllContent
   $script:codeContent += @"
+            };
         }
 
 "@
@@ -88,6 +102,16 @@ namespace Roslyn.Test.Utilities
 {
     public static class TestMetadata
     {
+        public readonly struct ReferenceInfo
+        {
+            public string FileName { get; }
+            public byte[] ImageBytes { get; }
+            public ReferenceInfo(string fileName, byte[] imageBytes)
+            {
+                FileName = fileName;
+                ImageBytes = imageBytes;
+            }
+        }
 
 "@
 
@@ -157,7 +181,8 @@ Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0' @(
   'System.Threading.Tasks.dll',
   'netstandard.dll',
   'Microsoft.CSharp.dll',
-  'Microsoft.VisualBasic.dll'
+  'Microsoft.VisualBasic.dll',
+  'Microsoft.VisualBasic.Core.dll'
 )
 
 Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref' @(

@@ -267,6 +267,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
         }
 
+        public CompilationVerifier VerifyMissing(
+            string qualifiedMethodName)
+        {
+            Assert.False(_testData.TryGetMethodData(qualifiedMethodName, out _));
+            return this;
+        }
+
         public void VerifyLocalSignature(
             string qualifiedMethodName,
             string expectedSignature,
@@ -293,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string source = null)
         {
             string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 

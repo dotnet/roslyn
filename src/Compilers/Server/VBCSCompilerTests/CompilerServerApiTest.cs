@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -26,6 +28,70 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public CompilerServerApiTest(ITestOutputHelper testOutputHelper)
         {
             Logger = new XunitCompilerServerLogger(testOutputHelper);
+        }
+
+        private const string HelloWorldSourceText = @"
+using System;
+class Hello
+{
+    static void Main()
+    {
+        Console.WriteLine(""Hello, world.""); 
+    }
+}";
+
+        private static Task TaskFromExceptionAsync(Exception e)
+        {
+            return TaskFromExceptionAsync<bool>(e);
+        }
+
+        private static Task<T> TaskFromExceptionAsync<T>(Exception e)
+        {
+            var source = new TaskCompletionSource<T>();
+            source.SetException(e);
+            return source.Task;
+        }
+
+        private async Task<BuildRequest> CreateBuildRequestAsync(string sourceText, TimeSpan? keepAlive = null)
+        {
+            var directory = Temp.CreateDirectory();
+            var file = directory.CreateFile("temp.cs");
+            await file.WriteAllTextAsync(sourceText);
+
+            var builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
+            if (keepAlive.HasValue)
+            {
+                builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, argumentIndex: 0, value: keepAlive.Value.TotalSeconds.ToString()));
+            }
+
+            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, argumentIndex: 0, value: directory.Path));
+            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 0, value: file.Path));
+
+            return new BuildRequest(
+                RequestLanguage.CSharpCompile,
+                BuildProtocolConstants.GetCommitHash(),
+                builder.ToImmutable());
+        }
+
+        /// <summary>
+        /// Run a C# compilation against the given source text using the provided named pipe name.
+        /// </summary>
+        private async Task<BuildResponse> RunCSharpCompileAsync(string pipeName, string sourceText, TimeSpan? keepAlive = null)
+        {
+            using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
+            {
+                var buildRequest = await CreateBuildRequestAsync(sourceText, keepAlive);
+                namedPipe.Connect(Timeout.Infinite);
+                await buildRequest.WriteAsync(namedPipe, default(CancellationToken));
+                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken));
+            }
+        }
+
+        private static Task<T> FromExceptionAsync<T>(Exception ex)
+        {
+            var source = new TaskCompletionSource<T>();
+            source.SetException(ex);
+            return source.Task;
         }
 
         [Fact]
@@ -107,25 +173,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public async Task RejectEmptyTempPath()
         {
             using var temp = new TempRoot();
-            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger);
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
-            var response = await serverData.SendAsync(request).ConfigureAwait(false);
+            var response = await serverData.SendAsync(request);
             Assert.Equal(ResponseType.Rejected, response.Type);
-        }
-
-        [Fact]
-        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
-        {
-            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
-            Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
         }
 
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger);
+            var buildResponse = await serverData.SendAsync(new BuildRequest(RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }
 

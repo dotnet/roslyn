@@ -59,12 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedInterpolatedString:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
                     // syntactic context where it could be either a pointer or a span, and
                     // in that case it requires conversion to one or the other.
                     return this.Type is null;
+                case BoundKind.BinaryOperator:
+                    return ((BoundBinaryOperator)this).IsUnconvertedInterpolatedStringAddition;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:
@@ -275,20 +278,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBinaryOperator
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
+        public override ConstantValue? ConstantValue => Data?.ConstantValue;
 
-        public override Symbol? ExpressionSymbol
-        {
-            get { return this.MethodOpt; }
-        }
+        public override Symbol? ExpressionSymbol => this.Method;
+
+        internal MethodSymbol? Method => Data?.Method;
+
+        internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
+
+        internal bool IsUnconvertedInterpolatedStringAddition => Data?.IsUnconvertedInterpolatedStringAddition ?? false;
+
+        internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
+
+        internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
 
-    internal partial class BoundInterpolatedString
+    internal partial class BoundInterpolatedStringBase
     {
-        public override ConstantValue? ConstantValue
+        public sealed override ConstantValue? ConstantValue
         {
             get { return this.ConstantValueOpt; }
         }

@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null
             };
 
@@ -309,11 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
@@ -354,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null,
             };
 

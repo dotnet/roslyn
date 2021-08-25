@@ -53,8 +53,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51817")>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestOrdering() As Task
             Dim code = "
 namespace System.Windows.Controls
@@ -73,7 +72,7 @@ namespace System.Windows.Forms.VisualStyles.VisualStyleElement
 end namespace
 
 Public Class TextBoxEx
-    Inherits TextBox
+    Inherits [|TextBox|]
 
 End Class"
 

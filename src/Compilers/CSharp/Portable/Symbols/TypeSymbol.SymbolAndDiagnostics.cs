@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Represents the method by which this type implements a given interface type
         /// and/or the corresponding diagnostics.
         /// </summary>
-        protected class SymbolAndDiagnostics
+        internal class SymbolAndDiagnostics
         {
             public static readonly SymbolAndDiagnostics Empty = new SymbolAndDiagnostics(null, ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
 

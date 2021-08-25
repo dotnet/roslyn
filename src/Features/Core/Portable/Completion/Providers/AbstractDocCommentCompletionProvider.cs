@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
+                new[] { SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
                 new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
@@ -94,6 +96,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract IEnumerable<string> GetExistingTopLevelElementNames(TSyntax syntax);
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
+
+        protected abstract IEnumerable<string> GetKeywordNames();
+
+        /// <summary>
+        /// A temporarily hack that should be removed once/if https://github.com/dotnet/roslyn/issues/53092 is fixed.
+        /// </summary>
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol symbol);
 
         private CompletionItem GetItem(string name)
         {
@@ -150,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private IEnumerable<CompletionItem> GetParamRefItems(ISymbol symbol)
         {
-            var names = symbol.GetParameters().Select(p => p.Name);
+            var names = GetParameters(symbol).Select(p => p.Name);
 
             return names.Select(p => CreateCompletionItem(
                 displayText: FormatParameter(ParameterReferenceElementName, p),
@@ -172,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (attributeName == NameAttributeName && symbol != null)
             {
-                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
+                if (tagName is ParameterElementName or ParameterReferenceElementName)
                 {
-                    return symbol.GetParameters()
+                    return GetParameters(symbol)
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
                 }
                 else if (tagName == TypeParameterElementName)
@@ -200,8 +209,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        protected abstract IEnumerable<string> GetKeywordNames();
-
         protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
             using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
@@ -214,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (symbol != null)
             {
-                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(GetParameters(symbol), syntax, ParameterElementName));
                 items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
                 if (symbol is IPropertySymbol && !existingTopLevelTags.Contains(ValueElementName))

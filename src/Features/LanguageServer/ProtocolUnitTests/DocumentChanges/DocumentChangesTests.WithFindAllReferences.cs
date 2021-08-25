@@ -28,13 +28,13 @@ class B
     }
 }";
 
-            var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
+            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
             using (testLspServer)
             {
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
-                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
                 var findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Single(findResults);
@@ -42,7 +42,7 @@ class B
                 Assert.Equal("A", findResults[0].ContainingType);
 
                 // Declare a local inside A.M()
-                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (5, 0, "var i = someInt + 1;\r\n")));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (5, 0, "var i = someInt + 1;\r\n"));
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(2, findResults.Length);
@@ -51,7 +51,7 @@ class B
                 Assert.Equal("M", findResults[1].ContainingMember);
 
                 // Declare a field in B
-                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (10, 0, "int someInt = A.someInt + 1;\r\n")));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (10, 0, "int someInt = A.someInt + 1;\r\n"));
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(3, findResults.Length);
@@ -61,7 +61,7 @@ class B
                 Assert.Equal("M", findResults[1].ContainingMember);
 
                 // Declare a local inside B.M2()
-                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (13, 0, "var j = someInt + A.someInt;\r\n")));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (13, 0, "var j = someInt + A.someInt;\r\n"));
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(4, findResults.Length);
@@ -76,7 +76,7 @@ class B
                 // the original state will have been updated by back channels (text buffer sync, file changed on disk, etc.)
                 // This is validating that the above didn't succeed by any means except the FAR handler being passed
                 // the updated document, so if we regress and get lucky, we still know about it.
-                await DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(locationTyped));
+                await DidCloseAsync(testLspServer, locationTyped.Uri);
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Single(findResults);

@@ -73,6 +73,13 @@ $$", options: CSharp9ParseOptions);
 @"using Goo = $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)

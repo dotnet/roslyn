@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -86,7 +87,7 @@ class B
 
             // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
             // with the test creating one, and the handler another, we have to unwrap.
-            results = progress.GetValues().Cast<LSP.VSReferenceItem>().ToArray();
+            results = progress.GetValues().Cast<LSP.VSInternalReferenceItem>().ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);
@@ -292,18 +293,19 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
         {
-            var vsClientCapabilities = new LSP.VSClientCapabilities
+            var vsClientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
+            return results?.Cast<LSP.VSInternalReferenceItem>()?.ToArray();
         }
 
-        private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
+        private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
         {
             var definition = referenceItems[definitionIndex];
             var definitionId = definition.DefinitionId;
@@ -326,7 +328,7 @@ class C
         }
 
         private static void AssertHighlightCount(
-            LSP.VSReferenceItem[] referenceItems,
+            LSP.VSInternalReferenceItem[] referenceItems,
             int expectedDefinitionCount,
             int expectedWrittenReferenceCount,
             int expectedReferenceCount)

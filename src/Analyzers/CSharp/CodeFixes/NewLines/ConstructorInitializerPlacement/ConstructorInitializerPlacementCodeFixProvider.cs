@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConstructorInitializerPlacement), Shared]
     internal sealed class ConstructorInitializerPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]

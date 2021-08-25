@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDelegateCreationExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -1683,7 +1683,7 @@ IVariableDeclaratorOperation (Symbol: Program.DType d1) (OperationKind.VariableD
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new IOperationTests_IConversionExpression.ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

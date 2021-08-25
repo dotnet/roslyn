@@ -395,21 +395,48 @@ public class Point
                 // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(17, 18),
                 // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(18, 19),
                 // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(19, 21),
                 // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(20, 18),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(20, 18),
                 // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(21, 19),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(21, 19),
                 // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!!").WithLocation(22, 21),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(22, 21),
                 // (22,22): error CS8715: Duplicate null suppression operator ('!')
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
@@ -2872,20 +2899,18 @@ class F
                 switch (i)
                 {
                     case 0:
-                    case 7:
                         checkType(expr, null, "C", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
                         checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
                         checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 1:
-                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr, "?", "?", ConversionKind.Identity);
                         checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
                         break;
                     case 2:
-                    case 8:
                         checkType(expr, null, "D", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
@@ -2893,12 +2918,6 @@ class F
                         break;
                     case 3:
                         checkType(expr, "?", "D", ConversionKind.NoConversion);
-                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
-                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
-                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
-                        break;
-                    case 9:
-                        checkType(expr, null, "?", ConversionKind.Identity);
                         checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
@@ -2926,11 +2945,38 @@ class F
                         checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 6:
-                    case 12:
                         checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    case 7:
+                        checkType(expr, null, null, ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "C", "C", ConversionKind.Identity);
+                        break;
+                    case 8:
+                        checkType(expr, null, null, ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
+                        break;
+                    case 9:
+                        checkType(expr, "?", "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
+                        break;
+                    case 12:
+                        checkType(expr, "System.Int32", "System.Int32", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
                         break;
                     default:
                         Assert.False(true);

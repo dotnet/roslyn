@@ -25,10 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
 
-        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Push,
+        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Default,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
 
         public static readonly Option2<DiagnosticMode> RazorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(RazorDiagnosticMode), defaultValue: DiagnosticMode.Pull,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "RazorDiagnosticMode"));
+
+        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(EnableFileLoggingForDiagnostics), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
     }
 }

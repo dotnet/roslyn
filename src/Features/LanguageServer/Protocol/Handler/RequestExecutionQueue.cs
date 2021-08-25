@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly string _serverName;
+        private readonly ImmutableArray<string> _supportedLanguages;
 
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
@@ -80,11 +82,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(
             ILspLogger logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
+            ImmutableArray<string> supportedLanguages,
             string serverName,
             string serverTypeName)
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
+            _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
             _queue = new AsyncQueue<QueueItem>();
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
+                    var work = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
 
                     // Record when the work item was been de-queued and the request context preparation started.
                     work.Metrics.RecordExecutionStart();
@@ -224,14 +228,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = ExecuteCallbackAsync(work, context, _cancelSource.Token).ReportNonFatalErrorAsync();
+                        // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
+                        // blocking the request queue for longer periods of time (it enforces parallelizabilty).
+                        _ = Task.Run(() => ExecuteCallbackAsync(work, context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
             {
-                // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
-                // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
+                // If cancellation occurs as a result of our token, then it was either because we cancelled it in the Shutdown
+                // method, if it happened during a mutating request, or because the queue was completed in the Shutdown method
+                // if it happened while waiting to dequeue the next item. Either way, we're already shutting down so we don't
+                // want to log it.
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -240,12 +248,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static async Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
+        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
         {
             // Create a combined cancellation token to cancel any requests in progress when this shuts down
             using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
 
-            await work.CallbackAsync(context, combinedTokenSource.Token).ConfigureAwait(false);
+            return work.CallbackAsync(context, combinedTokenSource.Token);
         }
 
         private void OnRequestServerShutdown(string message)
@@ -286,10 +294,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
+                _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
                 trackerToUse,
+                _supportedLanguages,
                 out workspace);
         }
     }

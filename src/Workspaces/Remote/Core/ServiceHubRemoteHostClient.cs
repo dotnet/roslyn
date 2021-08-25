@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
         private readonly ConnectionPools? _connectionPools;
-        private readonly bool _isRemoteHost64Bit;
         private readonly bool _isRemoteHostServerGC;
+        private readonly bool _isRemoteHostCoreClr;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
             _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
-            _isRemoteHost64Bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
             _isRemoteHostServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
+            _isRemoteHostCoreClr = RemoteHostOptions.IsServiceHubProcessCoreClr(services);
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -88,14 +88,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(
-                    LogType.Trace,
-                    m =>
-                    {
-                        m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services);
-                        m["ServerGC"] = RemoteHostOptions.IsServiceHubProcessServerGC(services);
-                    }));
-
 #pragma warning disable ISB001    // Dispose of proxies
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
                 var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
@@ -131,13 +123,13 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceName serviceName,
             CancellationToken cancellationToken)
         {
-            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
             var isServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
+            var isCoreClr = RemoteHostOptions.IsServiceHubProcessCoreClr(services);
 
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit, isServerGC));
+            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(isServerGC, isCoreClr));
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
@@ -182,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
         {
-            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHost64Bit, _isRemoteHostServerGC);
+            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHostServerGC, _isRemoteHostCoreClr);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(

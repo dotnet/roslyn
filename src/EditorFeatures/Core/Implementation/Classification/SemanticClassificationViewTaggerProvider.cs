@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -49,35 +46,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Short;
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
             // 
-            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way we appear
-            // semantically unclassified for a very short amount of time.
-            //
             // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
             return new CompilationAvailableTaggerEventSource(
-                subjectBuffer, Delay,
-                ThreadingContext,
+                subjectBuffer,
                 AsyncListener,
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptions.ClassifyReassignedVariables));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -103,23 +97,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var spanToTag = context.SpansToTag.Single();
 
             var document = spanToTag.Document;
+            if (document == null)
+                return Task.CompletedTask;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var classificationService = document?.GetLanguageService<IClassificationService>();
+            var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
                 return Task.CompletedTask;
-            }
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
-            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
             if (workspaceContextService?.IsInLspEditorContext() == true)
-            {
                 return Task.CompletedTask;
-            }
 
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }

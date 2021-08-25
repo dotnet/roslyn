@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
             public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken) => true;
 
-            public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken) => true;
+            public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpans, CancellationToken cancellationToken) => true;
         }
     }
 }

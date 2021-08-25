@@ -21,6 +21,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AwaitExpressionTests : CompilingTestBase
     {
         [Fact]
+        public void TestAwaitInfoExtensionMethod()
+        {
+            var text =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+static class App{
+    public static async Task Main(){
+        var x = new MyAwaitable();
+        x.SetValue(42);
+
+        Console.WriteLine(await x + ""!"");
+    }
+}
+
+struct MyAwaitable
+{
+    private ValueTask<int> task;
+    private TaskCompletionSource<int> source;
+
+    private TaskCompletionSource<int> Source
+    {
+        get
+        {
+            if (source == null)
+            {
+                source = new TaskCompletionSource<int>();
+                task = new ValueTask<int>(source.Task);
+            }
+            return source;
+        }
+    }
+    internal ValueTask<int> Task
+    {
+        get
+        {
+            _ = Source;
+            return task;
+        }
+    }
+
+    public void SetValue(int i)
+    {
+        Source.SetResult(i);
+    }
+}
+
+static class MyAwaitableExtension
+{
+    public static System.Runtime.CompilerServices.ValueTaskAwaiter<int> GetAwaiter(this MyAwaitable a)
+    {
+        return a.Task.GetAwaiter();
+    }
+}";
+
+            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreAppAndCSharp);
+            var tree = csCompilation.SyntaxTrees.Single();
+
+            var model = csCompilation.GetSemanticModel(tree);
+            var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
+            Assert.Equal("await x", awaitExpression.ToString());
+
+            var info = model.GetAwaitExpressionInfo(awaitExpression);
+            Assert.Equal(
+                "System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32> MyAwaitableExtension.GetAwaiter(this MyAwaitable a)",
+                info.GetAwaiterMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Int32 System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.GetResult()",
+                info.GetResultMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Boolean System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.IsCompleted { get; }",
+                info.IsCompletedProperty.ToTestDisplayString()
+            );
+        }
+
+        [Fact]
         [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
         public void TestAwaitInfo()
         {

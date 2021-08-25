@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -80,6 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
         protected internal Binder? Next { get; }
+
+        /// <summary>
+        /// Get the next binder in which to look up a name, if not found by this binder, asserting if `Next` is null.
+        /// </summary>
+        protected internal Binder NextRequired
+        {
+            get
+            {
+                Debug.Assert(Next is not null);
+                return Next;
+            }
+        }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
@@ -208,6 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        internal bool InExpressionTree => (Flags & BinderFlags.InExpressionTree) == BinderFlags.InExpressionTree;
 
         /// <summary>
         /// True if this is the top-level binder for a local function or lambda
@@ -392,12 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RoslynDebug.Assert(Next is object);
                 return Next.QuickAttributeChecker;
             }
-        }
-
-        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            RoslynDebug.Assert(Next is object);
-            return Next.GetImports(basesBeingResolved);
         }
 
         protected virtual bool InExecutableBinder

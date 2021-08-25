@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -12,9 +10,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     {
         public static PatternMatch? GetFirstMatch(this PatternMatcher matcher, string candidate)
         {
-            using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
-            matcher.AddMatches(candidate, matches);
-            return matches.Any() ? (PatternMatch?)matches.First() : null;
+            using var matches = TemporaryArray<PatternMatch>.Empty;
+            matcher.AddMatches(candidate, ref matches.AsRef());
+            return matches.Count > 0 ? (PatternMatch?)matches[0] : null;
         }
 
         public static bool Matches(this PatternMatcher matcher, string candidate)

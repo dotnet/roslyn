@@ -440,7 +440,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol? VisitNamespace(NamespaceSymbol @namespace)
             {
                 var otherContainer = Visit(@namespace.ContainingSymbol);
-                RoslynDebug.AssertNotNull(otherContainer);
+
+                // Containing namespace will be missing from other assembly
+                // if its was added in the (newer) source assembly.
+                if (otherContainer is null)
+                {
+                    return null;
+                }
 
                 switch (otherContainer.Kind)
                 {
@@ -751,8 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
-                    (parameter.RefKind == other.RefKind) &&
+                return (parameter.RefKind == other.RefKind) &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
 

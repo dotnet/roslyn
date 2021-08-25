@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Return items
-            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken)
                 Return SpecializedCollections.EmptyEnumerable(Of CompletionItem)
             End Try
         End Function
@@ -336,6 +336,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(attribute As XmlCrefAttributeSyntax) attribute.Name)
 
             Return nameSyntax?.LocalName.ValueText
+        End Function
+
+        Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return symbol.GetParameters()
         End Function
 
         Private Shared ReadOnly s_defaultRules As CompletionItemRules =

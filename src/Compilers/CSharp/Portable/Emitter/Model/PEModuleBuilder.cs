@@ -276,12 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         AddSymbolLocation(result, member);
                                         break;
                                     case SymbolKind.Field:
+                                        if (member is TupleErrorFieldSymbol)
+                                        {
+                                            break;
+                                        }
+
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
                                         //       but adds backing fields for events, Roslyn adds both
-                                        {
-                                            var field = (FieldSymbol)member;
-                                            AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
-                                        }
+                                        AddSymbolLocation(result, member);
                                         break;
 
                                     case SymbolKind.Event:
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                             FieldSymbol field = ((EventSymbol)member).AssociatedField;
                                             if ((object)field != null)
                                             {
-                                                AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
+                                                AddSymbolLocation(result, field);
                                             }
                                         }
                                         break;
@@ -361,11 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// (e.g.: binding to internal types in the EE).
         /// </summary>
         internal virtual bool IgnoreAccessibility => false;
-
-        /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta => false;
 
         /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
@@ -540,9 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
 
+                // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter()));
+                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
@@ -1028,7 +1026,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsVirtualTupleField && (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol, "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField &&
+                (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol &&
+                fieldSymbol is not TupleErrorFieldSymbol, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
-            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true));
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);

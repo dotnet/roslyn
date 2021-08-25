@@ -18,13 +18,24 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
+    internal enum RebuildResult
+    {
+        Success,
+        MissingReferences,
+        CompilationError,
+        BinaryDifference,
+        MiscError
+    }
+
     internal sealed class CompilationDiff
     {
         public record BuildInfo(
@@ -42,41 +53,98 @@ namespace BuildValidator
             string ILFilePath,
             string CustomDataFilePath);
 
-        public bool? AreEqual { get; }
-        public string OriginalPath { get; }
-        public ImmutableArray<Diagnostic> Diagnostics { get; }
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+        private readonly byte[]? _originalPortableExecutableBytes;
+        private readonly MetadataReader? _originalPdbReader;
+        private readonly byte[]? _rebuildPortableExecutableBytes;
+        private readonly MetadataReader? _rebuildPdbReader;
+        private readonly Compilation? _rebuildCompilation;
+        private readonly ImmutableArray<MetadataReferenceInfo> _references;
+        private readonly LocalReferenceResolver? _localReferenceResolver;
+        private readonly string? _message;
 
-        private CompilationDiff(string originalPath, bool? areEqual)
+        public AssemblyInfo AssemblyInfo { get; }
+        public RebuildResult Result { get; }
+
+        public bool Succeeded => Result == RebuildResult.Success;
+
+        public ImmutableArray<Diagnostic> Diagnostics
         {
-            AreEqual = areEqual;
-            OriginalPath = originalPath;
+            get
+            {
+                EnsureRebuildResult(RebuildResult.CompilationError);
+                return _diagnostics;
+            }
         }
 
-        private CompilationDiff(ImmutableArray<Diagnostic> diagnostics, string originalPath)
+        public string MiscErrorMessage
         {
-            Diagnostics = diagnostics;
-            OriginalPath = originalPath;
+            get
+            {
+                EnsureRebuildResult(RebuildResult.MiscError);
+                Debug.Assert(_message is object);
+                return _message;
+            }
         }
 
-        public static CompilationDiff CreatePlaceholder(FileInfo originalBinaryPath, bool isError)
+        private CompilationDiff(
+            AssemblyInfo assemblyInfo,
+            RebuildResult outcome,
+            ImmutableArray<Diagnostic> diagnostics = default,
+            byte[]? originalPortableExecutableBytes = null,
+            MetadataReader? originalPdbReader = null,
+            byte[]? rebuildPortableExecutableBytes = null,
+            MetadataReader? rebuildPdbReader = null,
+            Compilation? rebuildCompilation = null,
+            LocalReferenceResolver? localReferenceResolver = null,
+            ImmutableArray<MetadataReferenceInfo> references = default,
+            string? message = null)
         {
-            return new CompilationDiff(originalBinaryPath.FullName, areEqual: isError ? false : null);
+            AssemblyInfo = assemblyInfo;
+            Result = outcome;
+            _diagnostics = diagnostics;
+            _originalPortableExecutableBytes = originalPortableExecutableBytes;
+            _originalPdbReader = originalPdbReader;
+            _rebuildPortableExecutableBytes = rebuildPortableExecutableBytes;
+            _rebuildPdbReader = rebuildPdbReader;
+            _rebuildCompilation = rebuildCompilation;
+            _references = references;
+            _localReferenceResolver = localReferenceResolver;
+            _message = message;
         }
+
+        public static CompilationDiff CreateMiscError(
+            AssemblyInfo assemblyInfo,
+            string message) =>
+            new CompilationDiff(
+                assemblyInfo,
+                RebuildResult.MiscError,
+                message: message);
+
+        public static unsafe CompilationDiff CreateMissingReferences(
+            AssemblyInfo assemblyInfo,
+            LocalReferenceResolver resolver,
+            ImmutableArray<MetadataReferenceInfo> references) =>
+            new CompilationDiff(
+                assemblyInfo,
+                RebuildResult.MissingReferences,
+                localReferenceResolver: resolver,
+                references: references);
 
         public static unsafe CompilationDiff Create(
-            FileInfo originalBinaryPath,
-            CompilationOptionsReader optionsReader,
-            Compilation producedCompilation,
-            ILogger logger,
-            Options options)
+            AssemblyInfo assemblyInfo,
+            CompilationFactory compilationFactory,
+            RebuildArtifactResolver artifactResolver,
+            ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
-            var emitResult = BuildConstructor.Emit(
+            var hasEmbeddedPdb = compilationFactory.OptionsReader.HasEmbeddedPdb;
+            var rebuildPdbStream = hasEmbeddedPdb ? null : new MemoryStream();
+            var rebuildCompilation = compilationFactory.CreateCompilation(artifactResolver);
+            var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
-                originalBinaryPath,
-                optionsReader,
-                producedCompilation,
-                logger,
+                rebuildPdbStream,
+                rebuildCompilation,
                 CancellationToken.None);
 
             if (!emitResult.Success)
@@ -87,58 +155,141 @@ namespace BuildValidator
                     logger.LogError(diag.ToString());
                 }
 
-                return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
+                return new CompilationDiff(
+                    assemblyInfo,
+                    RebuildResult.CompilationError,
+                    diagnostics: emitResult.Diagnostics);
             }
             else
             {
-                var originalBytes = File.ReadAllBytes(originalBinaryPath.FullName);
+                var originalBytes = File.ReadAllBytes(assemblyInfo.FilePath);
                 var rebuildBytes = rebuildPeStream.ToArray();
-
-                var bytesEqual = originalBytes.SequenceEqual(rebuildBytes);
-                if (!bytesEqual)
+                if (originalBytes.SequenceEqual(rebuildBytes))
                 {
-                    logger.LogError($"Rebuild of {originalBinaryPath.Name} was not equivalent to the original.");
-                    if (!options.Debug)
+                    return new CompilationDiff(assemblyInfo, RebuildResult.Success);
+                }
+                else
+                {
+                    return new CompilationDiff(
+                        assemblyInfo,
+                        RebuildResult.BinaryDifference,
+                        originalPortableExecutableBytes: originalBytes,
+                        originalPdbReader: compilationFactory.OptionsReader.PdbReader,
+                        rebuildPortableExecutableBytes: rebuildBytes,
+                        rebuildPdbReader: getRebuildPdbReader(),
+                        rebuildCompilation: rebuildCompilation);
+                }
+
+                MetadataReader getRebuildPdbReader()
+                {
+                    if (hasEmbeddedPdb)
                     {
-                        logger.LogInformation("Pass the --debug argument and re-run to write the visualization of the original and rebuild to disk.");
+                        var peReader = new PEReader(rebuildBytes.ToImmutableArray());
+                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
                     }
                     else
                     {
-                        logger.LogInformation("Creating a diff...");
+                        rebuildPdbStream!.Position = 0;
+                        return MetadataReaderProvider.FromPortablePdbStream(rebuildPdbStream).GetMetadataReader();
+                    }
+                }
+            }
+        }
 
-                        var debugPath = options.DebugPath;
-                        logger.LogInformation($@"Writing diffs to ""{Path.GetFullPath(debugPath)}""");
+        private void EnsureRebuildResult(RebuildResult result)
+        {
+            if (Result != result)
+            {
+                throw new InvalidOperationException();
+            }
+        }
 
-                        fixed (byte* ptr = rebuildBytes)
+        public unsafe void WriteArtifacts(string debugPath, ILogger logger)
+        {
+            if (Result == RebuildResult.Success)
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(debugPath);
+            switch (Result)
+            {
+                case RebuildResult.BinaryDifference:
+                    writeBinaryDiffArtifacts();
+                    break;
+                case RebuildResult.CompilationError:
+                    writeDiagnostics(Diagnostics);
+                    break;
+                case RebuildResult.MissingReferences:
+                    writeMissingReferences();
+                    break;
+                case RebuildResult.MiscError:
+                    // No artifacts to write here
+                    break;
+                default:
+                    throw new Exception($"Unexpected value {Result}");
+            }
+
+            void writeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                using var writer = new StreamWriter(Path.Combine(debugPath, "diagnostics.txt"), append: false);
+                foreach (var diagnostic in diagnostics)
+                {
+                    writer.WriteLine(diagnostic);
+                }
+            }
+
+            void writeMissingReferences()
+            {
+                Debug.Assert(_localReferenceResolver is object);
+                using var writer = new StreamWriter(Path.Combine(debugPath, "references.txt"), append: false);
+                foreach (var info in _references)
+                {
+                    if (_localReferenceResolver.TryGetCachedAssemblyInfo(info.ModuleVersionId, out var assemblyInfo))
+                    {
+                        writer.WriteLine($"Found: {info.ModuleVersionId} {info.FileName} at {assemblyInfo.FilePath}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"Missing: {info.ModuleVersionId} {info.FileName}");
+                        foreach (var cachedInfo in _localReferenceResolver.GetCachedAssemblyInfos(info.FileName))
                         {
-                            using var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
-                            var originalInfo = new BuildInfo(
-                                AssemblyBytes: originalBytes,
-                                AssemblyReader: optionsReader.PeReader,
-                                PdbMetadataReader: optionsReader.PdbReader);
-
-                            var rebuildInfo = new BuildInfo(
-                                AssemblyBytes: rebuildBytes,
-                                AssemblyReader: rebuildPeReader,
-                                PdbMetadataReader: rebuildPeReader.GetEmbeddedPdbMetadataReader());
-
-                            createDiffArtifacts(debugPath, originalBinaryPath.Name, originalInfo, rebuildInfo, producedCompilation);
-                            SearchForKnownIssues(logger, originalInfo, rebuildInfo);
+                            writer.WriteLine($"\t{cachedInfo.Mvid} {cachedInfo.FilePath}");
                         }
                     }
                 }
+            }
 
-                return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
+            void writeBinaryDiffArtifacts()
+            {
+                Debug.Assert(Result == RebuildResult.BinaryDifference);
+                Debug.Assert(_originalPortableExecutableBytes is object);
+                Debug.Assert(_originalPdbReader is object);
+                Debug.Assert(_rebuildPortableExecutableBytes is object);
+                Debug.Assert(_rebuildPdbReader is object);
+                Debug.Assert(_rebuildCompilation is object);
+
+                var originalPeReader = new PEReader(_originalPortableExecutableBytes.ToImmutableArray());
+                var rebuildPeReader = new PEReader(_rebuildPortableExecutableBytes.ToImmutableArray());
+                var originalInfo = new BuildInfo(
+                    AssemblyBytes: _originalPortableExecutableBytes,
+                    AssemblyReader: originalPeReader,
+                    PdbMetadataReader: _originalPdbReader);
+
+                var rebuildInfo = new BuildInfo(
+                    AssemblyBytes: _rebuildPortableExecutableBytes,
+                    AssemblyReader: rebuildPeReader,
+                    PdbMetadataReader: _rebuildPdbReader);
+
+                createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
+                SearchForKnownIssues(logger, originalInfo, rebuildInfo);
             }
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
-                var assemblyDebugPath = Path.Combine(debugPath, assemblyName);
-                Directory.CreateDirectory(assemblyDebugPath);
-
-                var originalDataFiles = createBuildArtifacts(Path.Combine(assemblyDebugPath, "original"), assemblyFileName, originalInfo);
-                var rebuildDataFiles = createBuildArtifacts(Path.Combine(assemblyDebugPath, "rebuild"), assemblyFileName, rebuildInfo);
+                var originalDataFiles = createBuildArtifacts(Path.Combine(debugPath, "original"), assemblyFileName, originalInfo);
+                var rebuildDataFiles = createBuildArtifacts(Path.Combine(debugPath, "rebuild"), assemblyFileName, rebuildInfo);
 
                 createDiffScript("compare-pe.mdv.ps1", originalDataFiles.AssemblyMdvFilePath, rebuildDataFiles.AssemblyMdvFilePath);
                 createDiffScript("compare-pdb.mdv.ps1", originalDataFiles.PdbMdvFilePath, rebuildDataFiles.PdbMdvFilePath);
@@ -150,11 +301,11 @@ namespace BuildValidator
                     originalFilePath = getRelativePath(originalFilePath);
                     rebuildFilePath = getRelativePath(rebuildFilePath);
 
-                    File.WriteAllText(Path.Combine(assemblyDebugPath, scriptName), $@"code --diff (Join-Path $PSScriptRoot ""{originalFilePath}"") (Join-Path $PSScriptRoot ""{rebuildFilePath}"")");
-                    string getRelativePath(string dataFilePath) => dataFilePath.Substring(assemblyDebugPath.Length);
+                    File.WriteAllText(Path.Combine(debugPath, scriptName), $@"code --diff (Join-Path $PSScriptRoot ""{originalFilePath}"") (Join-Path $PSScriptRoot ""{rebuildFilePath}"")");
+                    string getRelativePath(string dataFilePath) => dataFilePath.Substring(debugPath.Length);
                 }
 
-                var sourcesPath = Path.Combine(assemblyDebugPath, "sources");
+                var sourcesPath = Path.Combine(debugPath, "sources");
                 Directory.CreateDirectory(sourcesPath);
 
                 // TODO: output source files should include the entire relative path instead of just the file name.
@@ -255,13 +406,12 @@ namespace BuildValidator
                 {
                     writer.WriteLine("Embedded File Info");
                     var optionsReader = new CompilationOptionsReader(EmptyLogger.Instance, pdbMetadataReader, peReader);
-                    var sourceFileInfos = optionsReader.GetSourceFileInfos(optionsReader.GetEncoding());
-                    foreach (var info in sourceFileInfos)
+                    foreach (var info in optionsReader.GetEmbeddedSourceTextInfo())
                     {
-                        if (info.EmbeddedCompressedHash is { } hash)
+                        if (!info.CompressedHash.IsDefaultOrEmpty)
                         {
-                            var hashString = BitConverter.ToString(hash).Replace("-", "");
-                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceFilePath)}"" - {hashString}");
+                            var hashString = BitConverter.ToString(info.CompressedHash.ToArray()).Replace("-", "");
+                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceTextInfo.OriginalSourceFilePath)}"" - {hashString}");
                         }
                     }
                 }
@@ -278,8 +428,21 @@ namespace BuildValidator
 
             bool hasPdbCompressionDifferences()
             {
-                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (originalEntry.Type == DebugDirectoryEntryType.Unknown && rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
+                {
+                    return false;
+                }
+
+                var originalMissingEmbeddedPdb = originalEntry.Type == DebugDirectoryEntryType.Unknown;
+                if (originalMissingEmbeddedPdb || rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
+                {
+                    var (hasEmbedded, doesntHaveEmbedded) = originalMissingEmbeddedPdb ? ("rebuild", "original") : ("original", "rebuild");
+                    logger.LogError($"Known issue: {hasEmbedded} has an embedded PDB but {doesntHaveEmbedded} does not have an embedded PDB");
+                    return true;
+                }
+
                 if (originalEntry.DataSize != rebuildEntry.DataSize)
                 {
                     var originalPdbSpan = new Span<byte>(originalInfo.PdbMetadataReader.MetadataPointer, originalInfo.PdbMetadataReader.MetadataLength);

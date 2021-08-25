@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool IsClassOrStructOrInterfaceOrRecord(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration ||
-            node.Kind() == SyntaxKind.InterfaceDeclaration || node.Kind() == SyntaxKind.RecordDeclaration;
+            => node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or
+                SyntaxKind.InterfaceDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration;
     }
 }

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
         {
-            if (symbol is TupleFieldSymbol fieldSymbol)
+            if (symbol is TupleElementFieldSymbol fieldSymbol)
             {
                 TypeSymbol containingType = symbol.ContainingType;
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+        private static readonly ImmutableHashSet<char> s_triggerCharacters = ImmutableHashSet.Create(' ', '[', '(', '~');
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
+        public override ImmutableHashSet<char> TriggerCharacters => s_triggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -114,14 +117,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = typeArg;
             }
 
+            // When true, this completion provider shows both the type (e.g. DayOfWeek) and its qualified members (e.g.
+            // DayOfWeek.Friday). We set this to false for enum-like cases (static members of structs and classes) so we
+            // only show the qualified members in these cases.
+            var showType = true;
             var position = context.Position;
+            var enclosingNamedType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (type.TypeKind != TypeKind.Enum)
             {
                 var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
-                               TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+                               TryGetCompletionListType(type, enclosingNamedType, semanticModel.Compilation);
 
                 if (enumType == null)
-                    return;
+                {
+                    if (context.Trigger.Kind == CompletionTriggerKind.Insertion && s_triggerCharacters.Contains(context.Trigger.Character))
+                    {
+                        // This completion provider understands static members of matching types, but doesn't
+                        // proactively trigger completion for them to avoid interfering with common typing patterns.
+                        return;
+                    }
+
+                    // If this isn't an enum or marked with completionlist, also check if it contains static members of
+                    // a matching type. These 'enum-like' types have similar characteristics to enum completion, but do
+                    // not show the containing type as a separate item in completion.
+                    showType = false;
+                    enumType = TryGetTypeWithStaticMembers(type);
+                    if (enumType == null)
+                    {
+                        return;
+                    }
+                }
 
                 type = enumType;
             }
@@ -142,13 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = alias ?? type;
             var sortText = symbol.Name;
 
-            context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                displayText,
-                displayTextSuffix: "",
-                symbols: ImmutableArray.Create(symbol),
-                rules: s_enumTypeRules,
-                contextPosition: position,
-                sortText: sortText));
+            if (showType)
+            {
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                    displayText,
+                    displayTextSuffix: "",
+                    symbols: ImmutableArray.Create(symbol),
+                    rules: s_enumTypeRules,
+                    contextPosition: position,
+                    sortText: sortText));
+            }
 
             // And now all the accessible members of the enum.
             if (type.TypeKind == TypeKind.Enum)
@@ -171,6 +199,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: $"{sortText}_{index:0000}",
+                        filterText: memberDisplayName));
+                }
+            }
+            else if (enclosingNamedType is not null)
+            {
+                // Build a list of the members with the same type as the target
+                foreach (var member in type.GetMembers())
+                {
+                    ISymbol staticSymbol;
+                    ITypeSymbol symbolType;
+                    if (member is IFieldSymbol { IsStatic: true } field)
+                    {
+                        staticSymbol = field;
+                        symbolType = field.Type;
+                    }
+                    else if (member is IPropertySymbol { IsStatic: true, IsIndexer: false } property)
+                    {
+                        staticSymbol = property;
+                        symbolType = property.Type;
+                    }
+                    else
+                    {
+                        // Only fields and properties are supported for static member matching
+                        continue;
+                    }
+
+                    if (!SymbolEqualityComparer.Default.Equals(type, symbolType)
+                        || !staticSymbol.IsAccessibleWithin(enclosingNamedType)
+                        || !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    {
+                        continue;
+                    }
+
+                    var memberDisplayName = $"{displayText}.{staticSymbol.Name}";
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: memberDisplayName,
+                        displayTextSuffix: "",
+                        symbols: ImmutableArray.Create(staticSymbol),
+                        rules: CompletionItemRules.Default,
+                        contextPosition: position,
+                        sortText: memberDisplayName,
                         filterText: memberDisplayName));
                 }
             }
@@ -247,6 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return completionListType != null && completionListType.IsAccessibleWithin(within)
                 ? completionListType
                 : null;
+        }
+
+        private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
+        {
+            if (type.TypeKind == TypeKind.Struct || type.TypeKind == TypeKind.Class)
+                return type as INamedTypeSymbol;
+
+            return null;
         }
     }
 }

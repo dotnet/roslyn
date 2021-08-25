@@ -51,6 +51,13 @@ $$");
 @"using Goo = $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
         [Fact]
         public async Task TestNotInEmptyStatement()
         {

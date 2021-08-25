@@ -99,6 +99,11 @@
         <target state="translated">"{0}" 파일을 읽을 수 없습니다. {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImplicitlySkipAnalyzersMessage">
+        <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
+        <target state="new">Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">공유 컴파일 실패, 다음 도구로 변경 중: {0}</target>

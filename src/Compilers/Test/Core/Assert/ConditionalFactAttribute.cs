@@ -222,9 +222,21 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
-        public override bool ShouldSkip =>
-            !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
-            !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        public override bool ShouldSkip
+        {
+            get
+            {
+                // WSL environments can have this value as empty string
+                if (string.IsNullOrEmpty(CultureInfo.CurrentCulture.Name))
+                {
+                    return false;
+                }
+
+                return
+                    !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
+                    !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         public override string SkipReason => "Current culture is not en";
     }

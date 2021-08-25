@@ -41,8 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetStartPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetStartPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:
@@ -63,7 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.DelegateDeclaration:
                         return GetStartPoint(text, (DelegateDeclarationSyntax)node, part);
                     case SyntaxKind.NamespaceDeclaration:
-                        return GetStartPoint(text, (NamespaceDeclarationSyntax)node, part);
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        return GetStartPoint(text, (BaseNamespaceDeclarationSyntax)node, part);
                     case SyntaxKind.UsingDirective:
                         return GetStartPoint(text, (UsingDirectiveSyntax)node, part);
                     case SyntaxKind.EnumMemberDeclaration:
@@ -89,8 +92,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetEndPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetEndPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:
@@ -111,7 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.DelegateDeclaration:
                         return GetEndPoint(text, (DelegateDeclarationSyntax)node, part);
                     case SyntaxKind.NamespaceDeclaration:
-                        return GetEndPoint(text, (NamespaceDeclarationSyntax)node, part);
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        return GetEndPoint(text, (BaseNamespaceDeclarationSyntax)node, part);
                     case SyntaxKind.UsingDirective:
                         return GetEndPoint(text, (UsingDirectiveSyntax)node, part);
                     case SyntaxKind.EnumMemberDeclaration:
@@ -547,7 +553,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, NamespaceDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private VirtualTreePoint GetStartPoint(SourceText text, BaseNamespaceDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -573,12 +579,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         break;
 
                     case EnvDTE.vsCMPart.vsCMPartBody:
-                        if (node.OpenBraceToken.IsMissing || node.CloseBraceToken.IsMissing)
+                        if (node is NamespaceDeclarationSyntax namespaceDeclaration)
+                        {
+                            if (namespaceDeclaration.OpenBraceToken.IsMissing || namespaceDeclaration.CloseBraceToken.IsMissing)
+                                throw Exceptions.ThrowEFail();
+
+                            return GetBodyStartPoint(text, namespaceDeclaration.OpenBraceToken);
+                        }
+                        else if (node is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+                        {
+                            return GetBodyStartPoint(text, fileScopedNamespace.SemicolonToken);
+                        }
+                        else
                         {
                             throw Exceptions.ThrowEFail();
                         }
-
-                        return GetBodyStartPoint(text, node.OpenBraceToken);
 
                     default:
                         throw Exceptions.ThrowEInvalidArg();
@@ -1117,7 +1132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, NamespaceDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private VirtualTreePoint GetEndPoint(SourceText text, BaseNamespaceDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -1143,12 +1158,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         break;
 
                     case EnvDTE.vsCMPart.vsCMPartBody:
-                        if (node.OpenBraceToken.IsMissing || node.CloseBraceToken.IsMissing)
+                        if (node is NamespaceDeclarationSyntax namespaceDeclaration)
+                        {
+                            if (namespaceDeclaration.OpenBraceToken.IsMissing || namespaceDeclaration.CloseBraceToken.IsMissing)
+                                throw Exceptions.ThrowEFail();
+
+                            return GetBodyEndPoint(text, namespaceDeclaration.CloseBraceToken);
+                        }
+                        else if (node is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+                        {
+                            return new VirtualTreePoint(fileScopedNamespace.SyntaxTree, text, fileScopedNamespace.Parent.Span.End);
+                        }
+                        else
                         {
                             throw Exceptions.ThrowEFail();
                         }
-
-                        return GetBodyEndPoint(text, node.CloseBraceToken);
 
                     default:
                         throw Exceptions.ThrowEInvalidArg();
