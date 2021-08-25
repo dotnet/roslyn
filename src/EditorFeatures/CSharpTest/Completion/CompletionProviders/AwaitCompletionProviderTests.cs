@@ -302,7 +302,7 @@ class C
             var valueTaskAssembly = typeof(ValueTask).Assembly.Location;
             await VerifyItemExistsAsync(@$"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{LanguageVersion.CSharp9.ToDisplayString()}"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <MetadataReference>{valueTaskAssembly}</MetadataReference>
         <Document FilePath=""Test2.cs"">
 using System.Threading.Tasks;
