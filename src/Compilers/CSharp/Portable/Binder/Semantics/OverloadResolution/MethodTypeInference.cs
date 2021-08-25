@@ -2594,18 +2594,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!containsFunctionTypes(exact));
             Debug.Assert(!containsFunctionTypes(upper));
 
-            if (containsFunctionTypes(lower) && containsNonFunctionTypes(lower))
+            // Function types are dropped if there are any non-function types.
+            if (containsFunctionTypes(lower) &&
+                (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                var updated = new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
+                HashSet<TypeWithAnnotations> updated = null;
                 foreach (var candidate in lower)
                 {
                     if (!isFunctionType(candidate, out _))
                     {
+                        updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
                         updated.Add(candidate);
                     }
                 }
                 lower = updated;
-                Debug.Assert(lower.Count > 0);
             }
 
             // Optimization: if we have one exact bound then we need not add any
@@ -2763,9 +2765,10 @@ OuterBreak:
                 return false;
             }
 
-            if (source is FunctionTypeSymbol functionType)
+            if (source is FunctionTypeSymbol sourceFunctionType &&
+                destination is FunctionTypeSymbol destinationFunctionType)
             {
-                return conversions.HasImplicitFunctionTypeSignatureConversion(functionType, destination, ref useSiteInfo);
+                return conversions.HasImplicitSignatureConversion(sourceFunctionType, destinationFunctionType, ref useSiteInfo);
             }
 
             return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).Exists;

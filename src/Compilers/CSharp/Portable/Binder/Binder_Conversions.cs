@@ -622,7 +622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundUnconvertedAddressOfOperator { Operand: { } m } => (m, true),
                 _ => throw ExceptionUtilities.UnexpectedValue(source),
             };
-
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
             bool hasErrors = false;
 

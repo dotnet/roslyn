@@ -2603,15 +2603,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasImplicitFunctionTypeSignatureConversion(FunctionTypeSymbol sourceType, TypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal bool HasImplicitSignatureConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (!destinationType.IsDelegateType())
-            {
-                return false;
-            }
-
             var sourceMethod = sourceType.GetInternalDelegateType()?.DelegateInvokeMethod();
-            var destinationMethod = ((NamedTypeSymbol)destinationType).DelegateInvokeMethod();
+            var destinationMethod = destinationType.GetInternalDelegateType()?.DelegateInvokeMethod();
 
             if (sourceMethod is null || destinationMethod is null)
             {

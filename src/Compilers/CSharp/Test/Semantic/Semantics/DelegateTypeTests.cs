@@ -3594,8 +3594,8 @@ class Program
     static void Report(object obj) => Console.WriteLine(obj.GetType());
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (12,23): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
                 //         Report(F1(a1, (object o) => { }));
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 23),
@@ -3607,16 +3607,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.0").WithArguments("double", "int").WithLocation(13, 25),
                 // (13,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                 //         Report(F2(() => 1.0, a2));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (12,16): error CS0411: The type arguments for method 'Program.F1<T>(Action<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Report(F1(a1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Action<T>, T)").WithLocation(12, 16),
-                // (13,16): error CS0411: The type arguments for method 'Program.F2<T>(T, Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Report(F2(() => 1.0, a2));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, System.Action<T>)").WithLocation(13, 16));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             // PROTOTYPE: Test variance differences.
         }
@@ -3670,8 +3668,8 @@ class Program
     static void Report(object obj) => Console.WriteLine(obj.GetType());
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (12,27): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
                 //         Report(F1(ref d1, (object o) => { }));
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 27),
@@ -3683,16 +3681,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.0").WithArguments("double", "int").WithLocation(13, 25),
                 // (13,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                 //         Report(F2(() => 1.0, ref d2));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1.0").WithArguments("lambda expression").WithLocation(13, 25)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (12,16): error CS0411: The type arguments for method 'Program.F1<T>(ref T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Report(F1(ref d1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(ref T, T)").WithLocation(12, 16),
-                // (13,16): error CS0411: The type arguments for method 'Program.F2<T>(T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Report(F2(() => 1.0, ref d2));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, ref T)").WithLocation(13, 16));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             // PROTOTYPE: Test variance differences.
         }
