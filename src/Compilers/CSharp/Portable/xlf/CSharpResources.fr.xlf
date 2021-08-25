@@ -1412,6 +1412,16 @@
         <target state="translated">Ne pas comparer les valeurs des pointeurs de fonction</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
+        <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
+        <target state="new">InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters_Title">
+        <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
+        <target state="new">InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Le paramètre '{0}' doit avoir une valeur non null au moment de la sortie, car le paramètre '{1}' a une valeur non null.</target>
