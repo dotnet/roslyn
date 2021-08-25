@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
+    using static PerformanceSensitiveAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class ExplicitAllocationAnalyzer : AbstractAllocationAnalyzer
     {
@@ -19,10 +21,10 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         // HAA0505 is retired and should not be reused
         public const string LetCauseRuleId = "HAA0506";
 
-        private static readonly LocalizableString s_localizableArrayCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.NewArrayRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizableObjectCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.NewObjectRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.AnonymousNewObjectRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.LetCauseRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
+        private static readonly LocalizableString s_localizableArrayCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(NewArrayRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizableObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(NewObjectRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(AnonymousNewObjectRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = CreateLocalizableResourceString(nameof(LetCauseRuleTitleAndMessage));
 
         internal static DiagnosticDescriptor ArrayCreationRule = new(
             ArrayCreationRuleId,
