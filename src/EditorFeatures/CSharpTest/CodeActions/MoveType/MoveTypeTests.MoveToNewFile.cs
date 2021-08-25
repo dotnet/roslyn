@@ -1479,5 +1479,45 @@ var c = new object();
 
             await TestMissingAsync(code);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveDoesNotMoveUnrelatedAttributes()
+        {
+            var code = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+
+    class [||]B
+    {
+    }
+}";
+
+            var codeAfterMove = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+}";
+
+            var expectedDocumentName = "B.cs";
+            var destinationDocumentText = @"namespace N
+{
+    class B
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }
