@@ -430,6 +430,7 @@ static class Program
         [InlineData("(parameter).$$")]
         [InlineData("((parameter)).$$")]
         [InlineData("(true ? parameter : parameter).$$")]
+        [InlineData("(null ?? Task.CompletedTask).$$")]
         public async Task TestDotAwaitSuggestAfterDifferentExpressions(string expression)
         {
             await VerifyKeywordAsync($@"
@@ -473,7 +474,6 @@ static class Program
             // This is only the case if await is partially written (local.a) and only for locals (e.g. IParameterSymbols are fine).
             // This is bad, because we expect users to write "af" to complete await local.ConfigureAwait(false)
             await VerifyKeywordAsync(@"
-using System;
 using System.Threading.Tasks;
 
 static class Program
@@ -588,25 +588,43 @@ class C
 ", LanguageVersion.CSharp9);
         }
 
-        [Fact]
-        public async Task TestDotAwaitNotAfterDotInConditionalAccessChain()
+        [Theory]
+        [InlineData("c?.SomeTask.$$")]
+
+        [InlineData("c.M()?.SomeTask.$$")]
+        [InlineData("c.Pro?.SomeTask.$$")]
+
+        [InlineData("c?.M().SomeTask.$$")]
+        [InlineData("c?.Pro.SomeTask.$$")]
+
+        [InlineData("c?.M()?.SomeTask.$$")]
+        [InlineData("c?.Pro?.SomeTask.$$")]
+
+        [InlineData("c.M()?.Pro.SomeTask.$$")]
+        [InlineData("c.Pro?.M().SomeTask.$$")]
+
+        [InlineData("c.M()?.M().M()?.M().SomeTask.$$")]
+        [InlineData("new C().M()?.Pro.M()?.M().SomeTask.$$")]
+        public async Task TestDotAwaitNotAfterDotInConditionalAccessChain(string conditionalAccess)
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyAbsenceAsync($@"
 using System.Threading.Tasks;
 public class C
-{
+{{
     public Task SomeTask => Task.CompletedTask;
     
+    public C Pro => this;
     public C M() => this;
-}
+}}
 
 static class Program
-{
+{{
     public static async Task Main()
-    {
-        new C().M()?.M().M()?.M().SomeTask.$$;
-    }
-}
+    {{
+        var c = new C();
+        {conditionalAccess}
+    }}
+}}
 ", LanguageVersion.CSharp9);
         }
     }
