@@ -98,19 +98,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             // Fire and forget.  The called method will set up async operation tracking synchronously on 
             // this thread.
-            _ = InvokeWithOperationTrackingAsync(cancellationToken);
-        }
-
-        private Task InvokeWithOperationTrackingAsync(CancellationToken cancellationToken)
-        {
-            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-            return InvokeAsync(cancellationToken).CompletesAsyncOperation(token);
+            _ = InvokeAsync(cancellationToken);
         }
 
         private async Task InvokeAsync(CancellationToken cancellationToken)
         {
             try
             {
+                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
                 using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
@@ -365,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 => _suggestedAction = suggestedAction;
 
             public Task InvokeAsync()
-                => _suggestedAction.InvokeWithOperationTrackingAsync(CancellationToken.None);
+                => _suggestedAction.InvokeAsync(CancellationToken.None);
         }
     }
 }
