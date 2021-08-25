@@ -450,7 +450,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             // If project is using the default built-in ruleset or no ruleset, then prefer .editorconfig for severity configuration.
                             if (pathToAnalyzerConfigDoc != null)
                             {
-                                using var scope1 = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
+                                using var scope1 = context.AddScope(allowCancellation: true, description: "");
                                 var newSolution = await selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).ConfigureAwait(false);
                                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                                 await editHandlerService.ApplyAsync(
