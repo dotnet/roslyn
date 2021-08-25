@@ -1385,7 +1385,7 @@ delegate void D([A]int x);
         }
 
         [Fact]
-        public void Attributes()
+        public void TypePropertyField_Attributes()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
                 .AddGeneration(
