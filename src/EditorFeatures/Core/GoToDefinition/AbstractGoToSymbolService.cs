@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var solution = document.Project.Solution;
             var definitions = await GoToDefinitionHelpers.GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken).ConfigureAwait(false);
 
-            foreach (var def in definitions)
+            foreach (var definition in definitions)
             {
-                if (await def.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
-                    context.AddItem(WellKnownSymbolTypes.Definition, def);
+                if (await definition.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
+                    context.AddItem(WellKnownSymbolTypes.Definition, definition);
             }
 
             context.Span = span;
