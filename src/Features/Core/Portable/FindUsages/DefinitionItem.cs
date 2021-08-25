@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
-        public ImmutableArray<DocumentIdSpan> SourceSpans { get; }
+        public ImmutableArray<DocumentSpan> SourceSpans { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayParts = displayParts;
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
-            SourceSpans = sourceSpans.NullToEmpty().SelectAsArray(ss => new DocumentIdSpan(ss));
+            SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
@@ -163,17 +163,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
         [Obsolete("Override TryNavigateToAsync instead", error: false)]
         public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
 
-        public virtual Task<bool> CanNavigateToAsync(Solution solution, CancellationToken cancellationToken)
+        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(solution.Workspace, cancellationToken));
+            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public virtual Task<bool> TryNavigateToAsync(Solution solution, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(solution.Workspace, showInPreviewTab, activateTab, cancellationToken));
+            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 

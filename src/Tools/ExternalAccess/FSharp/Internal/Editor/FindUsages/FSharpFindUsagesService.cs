@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
             => _service = service;
 
         public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(document.Project.Solution, context, cancellationToken));
+            => _service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
 
         public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(document.Project.Solution, context, cancellationToken));
+            => _service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
     }
 }

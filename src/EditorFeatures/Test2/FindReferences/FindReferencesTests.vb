@@ -182,26 +182,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return additionalPropertiesMap
         End Function
 
-        Private Shared Async Function GetFileNamesAndSpansAsync(solution As Solution, items As IEnumerable(Of DocumentIdSpan)) As Task(Of List(Of FileNameAndSpans))
-            Dim dict = New Dictionary(Of Document, List(Of DocumentIdSpan))
+        Private Shared Function GetFileNamesAndSpansAsync(solution As Solution, items As IEnumerable(Of DocumentSpan)) As Task(Of List(Of FileNameAndSpans))
+            Dim dict = New Dictionary(Of Document, List(Of DocumentSpan))
 
             For Each item In items
-                Dim docSpan = Await item.TryRehydrateAsync(solution, CancellationToken.None)
-
-                Dim list As List(Of DocumentIdSpan) = Nothing
-                If Not dict.TryGetValue(docSpan.Value.Document, list) Then
-                    list = New List(Of DocumentIdSpan)()
-                    dict.Add(docSpan.Value.Document, list)
+                Dim list As List(Of DocumentSpan) = Nothing
+                If Not dict.TryGetValue(item.Document, list) Then
+                    list = New List(Of DocumentSpan)()
+                    dict.Add(item.Document, list)
                 End If
 
                 list.Add(item)
             Next
 
-            Return dict.OrderBy(Function(g) g.Key.Name).
-                         Select(Function(g) GetFileNameAndSpans(g.Key, g.Value)).ToList()
+            Return Task.FromResult(dict.OrderBy(Function(g) g.Key.Name).
+                         Select(Function(g) GetFileNameAndSpans(g.Key, g.Value)).ToList())
         End Function
 
-        Private Shared Function GetFileNameAndSpans(document As Document, items As List(Of DocumentIdSpan)) As FileNameAndSpans
+        Private Shared Function GetFileNameAndSpans(document As Document, items As List(Of DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 document.Name,
                 items.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).Distinct().ToList())
@@ -249,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(solution As Solution, definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
@@ -257,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(solution As Solution, reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock

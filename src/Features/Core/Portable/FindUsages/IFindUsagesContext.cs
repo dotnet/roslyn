@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken);
 
-        ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken);
-        ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken);
+        ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
+        ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
     }
 }

@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public Task<bool> TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionItem.TryNavigateToAsync(
-                    _presenter._workspace.CurrentSolution, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
+                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             public override bool TryGetValue(string key, out object? content)
             {

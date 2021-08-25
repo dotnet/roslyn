@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
-                    Presenter._workspace.CurrentSolution, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
+                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts

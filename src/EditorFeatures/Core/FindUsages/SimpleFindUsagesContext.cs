@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public override ValueTask OnDefinitionFoundAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
+        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return default;
         }
 
-        public override ValueTask OnReferenceFoundAsync(Solution solution, SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             lock (_gate)
             {

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             }
 
                             var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(document.Project.Solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                             // try getting the next one
                             overriddenSymbol = overriddenSymbol.GetOverriddenMember();
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

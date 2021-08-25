@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(project.Solution, definitionItem, cancellationToken).ConfigureAwait(false);
+            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             if (result is var (filePath, lineNumber, charOffset))
             {
                 var position = new LinePosition(lineNumber, charOffset);

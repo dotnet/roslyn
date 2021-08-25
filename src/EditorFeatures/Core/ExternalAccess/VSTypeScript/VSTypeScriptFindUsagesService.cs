@@ -28,20 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
         }
 
         public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(document.Project.Solution, context), cancellationToken);
+            => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
         public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(document.Project.Solution, context), cancellationToken);
+            => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
         private class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
         {
-            private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
             private readonly Dictionary<VSTypeScriptDefinitionItem, DefinitionItem> _definitionItemMap = new();
 
-            public VSTypeScriptFindUsagesContext(Solution solution, IFindUsagesContext context)
+            public VSTypeScriptFindUsagesContext(IFindUsagesContext context)
             {
-                _solution = solution;
                 _context = context;
             }
 
@@ -77,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             public ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken)
             {
                 var item = GetOrCreateDefinitionItem(definition);
-                return _context.OnDefinitionFoundAsync(_solution, item, cancellationToken);
+                return _context.OnDefinitionFoundAsync(item, cancellationToken);
             }
 
             public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 var item = GetOrCreateDefinitionItem(reference.Definition);
-                return _context.OnReferenceFoundAsync(_solution, new SourceReferenceItem(item, reference.SourceSpan, reference.SymbolUsageInfo), cancellationToken);
+                return _context.OnReferenceFoundAsync(new SourceReferenceItem(item, reference.SourceSpan, reference.SymbolUsageInfo), cancellationToken);
             }
         }
 

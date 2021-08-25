@@ -37,32 +37,34 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            public sealed override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
+            [Obsolete("Override CanNavigateToAsync instead", error: false)]
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            [Obsolete("Override TryNavigateToAsync instead", error: false)]
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public sealed override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return CanNavigateToMetadataSymbol(solution.Workspace, symbolKey);
+                    return CanNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await this.SourceSpans[0].TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
-                    return false;
-
-                return await span.CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
+                return await this.SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public sealed override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public sealed override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return TryNavigateToMetadataSymbol(solution.Workspace, symbolKey);
+                    return TryNavigateToMetadataSymbol(workspace, symbolKey);
 
-                if (await this.SourceSpans[0].TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false) is not DocumentSpan span)
-                    return false;
-
-                return await span.TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
+                return await this.SourceSpans[0].TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
             }
 
             public DetachedDefinitionItem Detach()

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
-            await findUsagesContext.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
             return progress.GetValues();
         }

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             foreach (var def in definitions)
             {
-                if (await def.CanNavigateToAsync(solution, cancellationToken).ConfigureAwait(false))
+                if (await def.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
                     context.AddItem(WellKnownSymbolTypes.Definition, def);
             }
 

@@ -14,7 +14,7 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTestsBase
-        Private Shared Async Function Test(
+        Private Shared Function Test(
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
                 executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean)) As Task
@@ -91,8 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                             For Each location In items
                                 For Each ss In location.SourceSpans
-                                    Dim docSpan = Await ss.TryRehydrateAsync(document.Project.Solution, CancellationToken.None)
-                                    actualLocations.Add(New FilePathAndSpan(docSpan.Value.Document.FilePath, docSpan.Value.SourceSpan))
+                                    actualLocations.Add(New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan))
                                 Next
                             Next
 
@@ -109,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     Assert.False(presenterCalled)
                 End If
 
+                Return Task.CompletedTask
             End Using
         End Function
 

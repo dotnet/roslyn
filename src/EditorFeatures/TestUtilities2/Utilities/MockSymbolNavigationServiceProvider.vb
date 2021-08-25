@@ -62,7 +62,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             End Function
 
             Public Function WouldNavigateToSymbolAsync(
-                    solution As Solution,
                     definitionItem As DefinitionItem,
                     cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
                 Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem

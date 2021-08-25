@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Navigation
             => SpecializedTasks.False;
 
         public Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
-            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
+            DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return Task.FromResult<(string filePath, int lineNumber, int charOffset)?>(null);
         }

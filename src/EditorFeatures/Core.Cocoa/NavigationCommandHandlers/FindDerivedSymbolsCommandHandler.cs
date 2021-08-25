@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         foreach (var candidate in candidates)
                         {
                             var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-                            await context.OnDefinitionFoundAsync(document.Project.Solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
                 finally
                 {
-                    await context.OnCompletedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

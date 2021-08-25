@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
                     solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
-                await context.OnDefinitionFoundAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
         }
 

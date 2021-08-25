@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document.Project.Solution, definitionTrackingContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in thirdPartyDefinitions)
-                await context.OnDefinitionFoundAsync(document.Project.Solution, definition, cancellationToken).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
         }
 
         Task IFindUsagesLSPService.FindReferencesAsync(
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 ImmutableArray.Create(TextTags.StringLiteral),
                 ImmutableArray.Create(new TaggedText(TextTags.Text, searchTitle)));
 
-            await context.OnDefinitionFoundAsync(solution, definition, cancellationToken).ConfigureAwait(false);
+            await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
 
             var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
 

@@ -51,17 +51,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var span = await sourceSpan.TryRehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                    if (span == null)
-                        continue;
-
                     if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(span.Value, text, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(span.Value, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
