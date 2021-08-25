@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 isEnabledByDefault:=True)
             Dim diagnosticItem = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
 
-            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, AsynchronousOperationListenerProvider.NullProvider, Nothing)
+            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing, AsynchronousOperationListenerProvider.NullProvider, Nothing)
             Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
             Assert.False(shown)
         End Sub
