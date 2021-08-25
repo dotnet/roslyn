@@ -2846,17 +2846,17 @@ class C { int Y => 1; }
                     activeInstruction1,
                     documentPath,
                     activeLineSpan11.ToSourceSpan(),
-                    ActiveStatementFlags.IsNonLeafFrame),
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame),
                 new ManagedActiveStatementDebugInfo(
                     activeInstruction2,
                     documentPath,
                     activeLineSpan12.ToSourceSpan(),
-                    ActiveStatementFlags.IsLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame));
 
             EnterBreakState(debuggingSession, activeStatements);
 
-            var activeStatementSpan11 = new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan12 = new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan11 = new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan12 = new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
 
             var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
@@ -2935,20 +2935,20 @@ class C { int Y => 1; }
                     activeInstruction1,
                     documentFilePath,
                     activeLineSpan11.ToSourceSpan(),
-                    ActiveStatementFlags.IsNonLeafFrame),
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame),
                 new ManagedActiveStatementDebugInfo(
                     activeInstruction2,
                     documentFilePath,
                     activeLineSpan12.ToSourceSpan(),
-                    ActiveStatementFlags.IsLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame));
 
             EnterBreakState(debuggingSession, activeStatements);
 
             var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
-                new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)
             }, baseSpans);
 
             // change the source (valid edit):
@@ -3374,12 +3374,11 @@ class C
         /// 1) Break, edit F from version 1 to version 2, continue (change is applied), G is still running in its loop
         ///    Function remapping is produced for F v1 -> F v2.
         /// 2) Hot-reload edit F (without breaking) to version 3.
-        ///    Function remapping is produced for F v2 -> F v3 based on the last set of active statements calculated for F v2.
-        ///    Assume that the execution did not progress since the last resume.
-        ///    These active statements will likely not match the actual runtime active statements,
-        ///    however F v2 will never be remapped since it was hot-reloaded and not EnC'd.
-        ///    This remapping is needed for mapping from F v1 to F v3.
-        /// 3) Break. Update F to v4.
+        ///    Function remapping is not produced for F v2 -> F v3. If G ever returned to F it will be remapped from F v1 -> F v2,
+        ///    where F v2 is considered stale code. This is consistent with the semantic of Hot Reload: Hot Reloaded changes do not have 
+        ///    an effect until the method is called again. In this case the method is not called, it it returned into hence the stale
+        ///    version executes.
+        /// 3) Break and apply EnC edit. This edit is to F v3 (Hot Reload) of the method. We will produce remapping F v3 -> v4.
         /// </summary>
         [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
         public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
@@ -3434,6 +3433,7 @@ class C
 
             AssertEx.Equal(new[]
             {
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
@@ -3451,8 +3451,10 @@ class C
 
             CommitSolutionUpdate(debuggingSession);
 
+            // the regions remain unchanged
             AssertEx.Equal(new[]
             {
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
@@ -3466,8 +3468,14 @@ class C
                 flags: new[]
                 {
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // G
-                    ActiveStatementFlags.IsNonLeafFrame,                                       // F - not up-to-date anymore
+                    ActiveStatementFlags.IsStale | ActiveStatementFlags.IsNonLeafFrame,        // F - not up-to-date anymore and since F v1 is followed by F v3 (hot-reload) it is now stale
                 }));
+
+            var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+            AssertEx.Equal(new[]
+            {
+                new ActiveStatementSpan(0, new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null),
+            }, spans);
 
             solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSourceV4), Encoding.UTF8));
 
@@ -3479,11 +3487,10 @@ class C
 
             CommitSolutionUpdate(debuggingSession);
 
-            // TODO: https://github.com/dotnet/roslyn/issues/52100
-            // this is incorrect. correct value is: 0x06000003 v1 | AS (9,14)-(9,18) δ=16
+            // Stale active statement region is gone.
             AssertEx.Equal(new[]
             {
-                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=5"
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);
@@ -3608,6 +3615,7 @@ class C
 
             AssertEx.Equal(new[]
             {
+                $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) δ=0",
                 $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
@@ -3682,19 +3690,20 @@ class C
             var expectedSpanF1 = new LinePositionSpan(new LinePosition(7, 14), new LinePosition(7, 18));
             var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
 
+            var activeInstructionG1 = new ManagedInstructionId(new ManagedMethodId(moduleId, 0x06000002, version: 1), ilOffset: 0);
+            var span = await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, activeInstructionG1, CancellationToken.None);
+            Assert.Equal(expectedSpanG1, span);
+
+            // Active statement in F has been deleted:
             var activeInstructionF1 = new ManagedInstructionId(new ManagedMethodId(moduleId, 0x06000003, version: 1), ilOffset: 0);
-            var span = await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, activeInstructionF1, CancellationToken.None);
-            Assert.Equal(expectedSpanF1, span);
+            span = await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, activeInstructionF1, CancellationToken.None);
+            Assert.Null(span);
 
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null),
-
-                // TODO: https://github.com/dotnet/roslyn/issues/52100
-                // This is incorrect: the active statement shouldn't be reported since it has been deleted.
-                // We need the debugger to mark the method version as replaced by run-mode update.
-                new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)
+                // active statement in F has been deleted
             }, spans);
 
             ExitBreakState(debuggingSession);
