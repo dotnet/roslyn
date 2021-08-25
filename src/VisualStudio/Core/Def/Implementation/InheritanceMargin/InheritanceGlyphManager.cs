@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.PlatformUI;
@@ -18,14 +19,13 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     /// <summary>
     /// Manager controls all the glyphs of Inheritance Margin in <see cref="InheritanceMarginViewMargin"/>.
     /// </summary>
-    internal class InheritanceGlyphManager : ForegroundThreadAffinitizedObject, IDisposable
+    internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObject, IDisposable
     {
         // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
         private const string GlyphMarginName = "Indicator Margin";
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IEditorFormatMap _editorFormatMap;
         private readonly IAsynchronousOperationListener _listener;
         private readonly Canvas _glyphsContainer;
-        private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
+        private readonly SimpleIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
         public InheritanceGlyphManager(IWpfTextView textView,
             IThreadingContext threadingContext,
@@ -64,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _listener = listener;
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
-            _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
+            // _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
+            _glyphDataTree = new SimpleIntervalTree<GlyphData, GlyphDataIntrospector>(new GlyphDataIntrospector(), values: null);
             UpdateBackgroundColor();
         }
 
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 glyph.Height = HeightAndWidthOfTheGlyph;
                 glyph.Width = HeightAndWidthOfTheGlyph;
                 SetTop(line, glyph);
-                _glyphToTaggedSpan[glyph] = span;
+                _glyphDataTree.AddIntervalInPlace(new GlyphData(span, glyph));
                 _glyphsContainer.Children.Add(glyph);
             }
         }
@@ -99,13 +100,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public void RemoveGlyphs(SnapshotSpan snapshotSpan)
         {
             AssertIsForeground();
-            var marginsToRemove = _glyphToTaggedSpan
-                .Where(kvp => snapshotSpan.IntersectsWith(kvp.Value))
-                .ToImmutableArray();
-            foreach (var (margin, _) in marginsToRemove)
+            var glyphDataToRemove = _glyphDataTree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length);
+            foreach (var (_, glyph) in glyphDataToRemove)
             {
-                _glyphsContainer.Children.Remove(margin);
-                _glyphToTaggedSpan.Remove(margin);
+                _glyphsContainer.Children.Remove(glyph);
+            }
+
+            var remainingGlyphData = _glyphDataTree.Except(glyphDataToRemove).ToImmutableArray();
+            _glyphDataTree.Clear();
+            foreach (var glyphData in remainingGlyphData)
+            {
+                _glyphDataTree.AddIntervalInPlace(glyphData);
             }
         }
 
@@ -117,12 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
         {
             AssertIsForeground();
-            if (_glyphToTaggedSpan.Count > 0)
+            if (_glyphDataTree.Any())
             {
                 // Go through all the existing visuals and invalidate or transform as appropriate.
-                var glyphToTaggedSpanBuilder = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>(_glyphToTaggedSpan.Count);
-
-                foreach (var (glyph, span) in _glyphToTaggedSpan)
+                var allGlyphData = _glyphDataTree.ToImmutableArray();
+                _glyphDataTree.Clear();
+                foreach (var (span, glyph) in allGlyphData)
                 {
                     var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
                     if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || GetStartingLine(newOrReformattedLines, span) != null)
@@ -133,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     }
                     else
                     {
-                        glyphToTaggedSpanBuilder[glyph] = newSpan;
+                        _glyphDataTree.AddIntervalInPlace(new GlyphData(newSpan, glyph));
                         var line = GetStartingLine(translatedLines, span);
                         if (line != null)
                         {
@@ -141,8 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                         }
                     }
                 }
-
-                _glyphToTaggedSpan = glyphToTaggedSpanBuilder;
             }
         }
 

@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             this.root = Insert(root, newNode, in Introspector);
         }
 
+        /// <summary>
+        /// Warning.  Mutates the tree in place.
+        /// </summary>
+        public void Clear()
+            => this.root = null;
+
         public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
             => GetIntervalsThatOverlapWith(start, length, in _introspector);
 
