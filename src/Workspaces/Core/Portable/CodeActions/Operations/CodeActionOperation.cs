@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal virtual Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // It is a requirement that this method be alled on the UI thread.  So it's safe for us to call
+            // It is a requirement that this method be called on the UI thread.  So it's safe for us to call
             // into .Apply without any threading operations here.
             this.Apply(workspace, cancellationToken);
             return SpecializedTasks.True;
