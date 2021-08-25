@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
-            Solution solution,
+            Workspace workspace,
             string title,
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             foreach (var item in items)
             {
                 // Ignore any definitions that we can't navigate to.
-                if (await item.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
+                if (await item.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
                     definitionsBuilder.Add(item);
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (await item.TryNavigateToAsync(solution.Workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
+                if (await item.TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
                     return true;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
                 return await nonExternalItems[0].TryNavigateToAsync(
-                    solution.Workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
+                    workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
             }
 
             if (presenter != null)
