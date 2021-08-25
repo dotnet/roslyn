@@ -213,7 +213,6 @@ namespace RunTests
                 {setTestIOperation}
                 {procDumpCommand}
                 dotnet {commandLineArguments}
-                {checkDumpLocation}
             </Command>
             <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
