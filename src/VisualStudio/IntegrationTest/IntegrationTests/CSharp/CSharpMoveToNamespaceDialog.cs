@@ -113,7 +113,6 @@ namespace A
             MoveToNamespaceDialog.ClickOK();
             MoveToNamespaceDialog.VerifyClosed();
 
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
             VisualStudio.Editor.Verify.TextContains(
 @"
 namespace A
@@ -146,7 +145,6 @@ namespace A
             MoveToNamespaceDialog.ClickOK();
             MoveToNamespaceDialog.VerifyClosed();
 
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
             VisualStudio.Editor.Verify.TextContains(
 @"namespace B
 {
