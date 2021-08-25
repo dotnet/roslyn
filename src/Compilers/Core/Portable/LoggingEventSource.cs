@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis
         {
             public const EventTask GeneratorDriverRunTime = (EventTask)1;
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
-
         }
 
         [NonEvent]
@@ -41,6 +40,5 @@ namespace Microsoft.CodeAnalysis
 
         [Event(2, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.SingleGeneratorRunTime)]
         private void ReportSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks) => WriteEvent(2, generatorName, assemblyPath, elapsedTicks);
-
     }
 }
