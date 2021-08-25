@@ -41,16 +41,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 return await MapSymbolAsync(document, SymbolKey.Create(symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
-
-            public Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
-            {
-                if (document.Project.Solution.Workspace is not MetadataAsSourceWorkspace workspace)
-                {
-                    throw new ArgumentException(FeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
-                }
-
-                return workspace.FileService.MapDocumentAsync(document, cancellationToken);
-            }
         }
     }
 }

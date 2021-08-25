@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
         }
 
-        internal async Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
+        private async Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo? fileInfo;
 
