@@ -1267,11 +1267,9 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
 
-            // ran generator 1 always
+            // ran individual incremental and source generators
             Assert.Equal(1, initCount);
             Assert.Equal(1, executeCount);
-
-            // ran the incremental generator if supported
             Assert.Equal(1, incrementalInitCount);
 
             // ran the combined generator only as an IIncrementalGenerator
