@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class DisplayClassAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
@@ -20,35 +21,26 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ClosureCaptureRuleId = "HAA0302";
         public const string LambaOrAnonymousMethodInGenericMethodRuleId = "HAA0303";
 
-        private static readonly LocalizableString s_localizableClosureDriverRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ClosureDriverRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableClosureDriverRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ClosureDriverRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableClosureCaptureRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ClosureCaptureRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableClosureCaptureRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ClosureCaptureRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableLambaOrAnonymousMethodInGenericMethodRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.LambaOrAnonymousMethodInGenericMethodRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableLambaOrAnonymousMethodInGenericMethodRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.LambaOrAnonymousMethodInGenericMethodRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         internal static DiagnosticDescriptor ClosureDriverRule = new(
             ClosureDriverRuleId,
-            s_localizableClosureDriverRuleTitle,
-            s_localizableClosureDriverRuleMessage,
+            CreateLocalizableResourceString(nameof(ClosureDriverRuleTitle)),
+            CreateLocalizableResourceString(nameof(ClosureDriverRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor ClosureCaptureRule = new(
             ClosureCaptureRuleId,
-            s_localizableClosureCaptureRuleTitle,
-            s_localizableClosureCaptureRuleMessage,
+            CreateLocalizableResourceString(nameof(ClosureCaptureRuleTitle)),
+            CreateLocalizableResourceString(nameof(ClosureCaptureRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new(
             LambaOrAnonymousMethodInGenericMethodRuleId,
-            s_localizableLambaOrAnonymousMethodInGenericMethodRuleTitle,
-            s_localizableLambaOrAnonymousMethodInGenericMethodRuleMessage,
+            CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleTitle)),
+            CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

@@ -11,19 +11,17 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class EnumeratorAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ReferenceTypeEnumeratorRuleId = "HAA0401";
 
-        private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new(
             ReferenceTypeEnumeratorRuleId,
-            s_localizableReferenceTypeEnumeratorRuleTitle,
-            s_localizableReferenceTypeEnumeratorRuleMessage,
+            CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleTitle)),
+            CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

@@ -10,30 +10,26 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CallSiteImplicitAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ParamsParameterRuleId = "HAA0101";
         public const string ValueTypeNonOverridenCallRuleId = "HAA0102";
 
-        private static readonly LocalizableString s_localizableParamsParameterRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ParamsParameterRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableParamsParameterRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ParamsParameterRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableValueTypeNonOverridenCallRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeNonOverridenCallRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableValueTypeNonOverridenCallRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeNonOverridenCallRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         internal static DiagnosticDescriptor ParamsParameterRule = new(
             ParamsParameterRuleId,
-            s_localizableParamsParameterRuleTitle,
-            s_localizableParamsParameterRuleMessage,
+            CreateLocalizableResourceString(nameof(ParamsParameterRuleTitle)),
+            CreateLocalizableResourceString(nameof(ParamsParameterRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor ValueTypeNonOverridenCallRule = new(
             ValueTypeNonOverridenCallRuleId,
-            s_localizableValueTypeNonOverridenCallRuleTitle,
-            s_localizableValueTypeNonOverridenCallRuleMessage,
+            CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleTitle)),
+            CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

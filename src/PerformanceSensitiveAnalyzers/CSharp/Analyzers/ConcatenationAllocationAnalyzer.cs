@@ -11,22 +11,18 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class ConcatenationAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string StringConcatenationAllocationRuleId = "HAA0201";
         public const string ValueTypeToReferenceTypeInAStringConcatenationRuleId = "HAA0202";
 
-        private static readonly LocalizableString s_localizableStringConcatenationAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.StringConcatenationAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableStringConcatenationAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.StringConcatenationAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         internal static DiagnosticDescriptor StringConcatenationAllocationRule = new(
             StringConcatenationAllocationRuleId,
-            s_localizableStringConcatenationAllocationRuleTitle,
-            s_localizableStringConcatenationAllocationRuleMessage,
+            CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleTitle)),
+            CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -34,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
-            s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle,
-            s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage,
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleTitle)),
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
