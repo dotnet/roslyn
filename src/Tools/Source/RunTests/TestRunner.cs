@@ -179,19 +179,15 @@ namespace RunTests
                 var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
                 var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
 
-                // some random no-op command that works everywhere.
-                var noopCommand = @"echo ""Skip""";
-                var localDumpsValues = noopCommand;
-                var procDumpCommand = noopCommand;
-                var echoCorrelationPayload = "echo %HELIX_CORRELATION_PAYLOAD%";
-                if (!isUnix)
+                var procDumpCommand = @"echo ""Skip""";
+                // Run procdump on all test runs for Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll to
+                // capture dumps required to resolve https://github.com/dotnet/roslyn/issues/55639
+                // Should be removed once dumps obtained as this will capture dumps for _every_ run.
+                if (!isUnix && Equals("Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll", assemblyInfo.AssemblyName))
                 {
-                    localDumpsValues = @"reg query ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps""";
+                    ConsoleUtil.WriteLine("Enabling procdump collection for this work item.");
                     procDumpCommand = @$"start /b ""ProcDump"" %HELIX_CORRELATION_PAYLOAD%\procdump.exe /accepteula -ma -w -t -e testhost ""C:\cores""";
                 }
-
-                var checkDumpLocation = lsCommand + @" C:\cores";
-                var checkTestName = @$"echo {assemblyInfo.AssemblyName}";
 
                 var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
@@ -205,10 +201,6 @@ namespace RunTests
                 {lsCommand}
                 {setRollforward}
                 {setPrereleaseRollforward}
-                {localDumpsValues}
-                {checkDumpLocation}
-                {echoCorrelationPayload}
-                {checkTestName}
                 dotnet --info
                 {setTestIOperation}
                 {procDumpCommand}
