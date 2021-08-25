@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => $@"<Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
         <Document FilePath=""Test2.cs"">
+<![CDATA[
 {source}
+]]>
         </Document>
     </Project>
 </Workspace>";
