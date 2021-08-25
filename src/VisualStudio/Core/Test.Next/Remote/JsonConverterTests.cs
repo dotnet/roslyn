@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void TestPinnedSolutionInfo()
         {
             var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum, projectId: null), (x, y) =>
             {
                 return (x.ScopeId == y.ScopeId &&
                         x.FromPrimaryBranch == y.FromPrimaryBranch &&

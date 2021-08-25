@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                     Location = location,
-                    Icon = new ImageElement(result.NavigableItem.Glyph.GetImageId())
+                    Icon = ProtocolConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
                 });
             }
         }

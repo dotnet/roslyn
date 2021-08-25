@@ -765,6 +765,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Nom de groupe non valide : les noms de groupe doivent commencer par un caractère alphabétique</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Rendre la classe 'abstract'</target>
@@ -1141,11 +1146,11 @@ Cette option est recommandée si vous savez que le retour sur trace va être un 
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Une définition de groupe d'équilibrage supprime la définition d'un groupe défini et stocke, dans le groupe actuel, l'intervalle entre le groupe défini et le groupe actuel.
+        <target state="needs-review-translation">Une définition de groupe d'équilibrage supprime la définition d'un groupe défini et stocke, dans le groupe actuel, l'intervalle entre le groupe défini et le groupe actuel.
     
 'nom1' est le groupe actuel facultatif, 'nom2' est un groupe défini et 'sous-expression' est un modèle d'expression régulière valide. La définition du groupe d'équilibrage supprime la définition de name2 et stocke l'intervalle entre name2 et name1 dans name1. Si aucun groupe name2 n'est défini, la correspondance fait l'objet d'une rétroaction. Dans la mesure où la suppression de la dernière définition de name2 révèle la définition précédente de name2, cette construction vous permet d'utiliser la pile de captures du groupe name2 en tant que compteur permettant d'effectuer le suivi des constructions imbriquées telles que les parenthèses ou les crochets d'ouverture et de fermeture.
 
@@ -2183,6 +2188,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="new">Renaming {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">

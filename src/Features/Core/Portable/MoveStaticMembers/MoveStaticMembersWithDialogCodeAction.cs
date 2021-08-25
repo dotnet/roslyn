@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // Find the original doc root
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var fileBanner = syntaxFacts.GetFileBanner(root);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
             // These symbols should all have (singular) definitions, but in the case that we can't find
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 _document.Project.Id,
                 _document.Folders,
                 newType,
-                fileBanner,
+                _document,
                 cancellationToken).ConfigureAwait(false);
 
             // get back type declaration in the newly created file

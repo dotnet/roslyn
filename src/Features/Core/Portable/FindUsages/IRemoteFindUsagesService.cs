@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
 
-        public async ValueTask<DefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<DefinitionItem.DefaultDefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var sourceSpans = await SourceSpans.SelectAsArrayAsync((ss, cancellationToken) => ss.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
 

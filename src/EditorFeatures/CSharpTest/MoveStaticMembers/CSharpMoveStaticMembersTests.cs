@@ -42,7 +42,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -74,7 +74,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestProperty { get; set; }
     }
@@ -111,7 +111,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static event EventHandler TestEvent;
     }
@@ -145,7 +145,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -200,7 +200,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
@@ -235,7 +235,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public const int TestField = 1;
     }
@@ -315,7 +315,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static bool TestMethodBool()
         {
@@ -367,7 +367,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
 
         public static bool TestMethodBool()
@@ -421,7 +421,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField;
 
@@ -467,7 +467,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -505,7 +505,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.InnerNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -528,7 +528,7 @@ public class Class1
 public class Class1
 {
 }";
-            var expectedResult2 = @"static class Class1Helpers
+            var expectedResult2 = @"internal static class Class1Helpers
 {
     public static int TestField = 1;
 }";
@@ -552,7 +552,7 @@ public class Class1
 }";
             var expectedResult2 = @"namespace NewNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -588,7 +588,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -624,7 +624,7 @@ public class Class1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -673,7 +673,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static T TestMethod<T>(T item)
         {
@@ -710,7 +710,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers<T>
+    internal static class Class1Helpers<T>
     {
         public static T Test[||]Method(T item)
         {
@@ -956,7 +956,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         private static int _testProperty;
 
@@ -1997,7 +1997,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -2041,7 +2041,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -2081,7 +2081,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -2115,7 +2115,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -2146,7 +2146,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -2177,7 +2177,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -2208,7 +2208,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -2242,7 +2242,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -2277,7 +2277,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }

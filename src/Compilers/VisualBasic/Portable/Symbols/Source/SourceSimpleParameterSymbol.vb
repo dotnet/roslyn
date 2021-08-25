@@ -131,10 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                If Not Location.SourceTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
-                    ' Silently require feature flag for this feature until Aleksey approves.
-                    Return -1
-                End If
                 Dim data = GetEarlyDecodedWellKnownAttributeData()
                 If data Is Nothing Then
                     Return -1

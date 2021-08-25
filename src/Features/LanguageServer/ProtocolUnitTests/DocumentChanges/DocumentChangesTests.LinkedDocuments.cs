@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             return testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
         }
 
-        [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+        [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
         [ProvidesMethod(GetLSPSolutionHandler.MethodName)]
         private class GetLspSolutionHandlerProvider : AbstractRequestHandlerProvider
         {

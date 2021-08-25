@@ -2152,13 +2152,19 @@ namespace System.ServiceModel
             var source =
 @"class C<T> { }
 class C<T> : System.Attribute { }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
+                );
+
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
-                // (2,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute")
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7)
                 );
         }
 

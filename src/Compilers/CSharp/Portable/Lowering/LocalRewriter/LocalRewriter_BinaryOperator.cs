@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -157,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             while (true)
             {
-                partsBuilder.AddRange(((BoundInterpolatedString)node.Right).Parts);
+                addReversedParts((BoundInterpolatedString)node.Right);
 
                 if (node.Left is BoundBinaryOperator next)
                 {
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    partsBuilder.AddRange(((BoundInterpolatedString)node.Left).Parts);
+                    addReversedParts((BoundInterpolatedString)node.Left);
                     break;
                 }
             }
@@ -174,6 +173,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> parts = partsBuilder.ToImmutableAndFree();
             return parts;
+
+            void addReversedParts(BoundInterpolatedString boundInterpolated)
+            {
+                for (int i = boundInterpolated.Parts.Length - 1; i >= 0; i--)
+                {
+                    partsBuilder.Add(boundInterpolated.Parts[i]);
+                }
+            }
         }
 
         private BoundExpression MakeBinaryOperator(

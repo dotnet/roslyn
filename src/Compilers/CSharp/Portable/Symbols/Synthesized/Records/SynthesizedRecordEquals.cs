@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly PropertySymbol? _equalityContract;
 
         public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: containingType.IsRecordStruct, hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(equalityContract is null == containingType.IsRecordStruct);
             _equalityContract = equalityContract;
