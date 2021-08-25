@@ -411,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
 
                 using var context = uiThreadOperationExecutor.BeginExecute(
-                     title: ServicesVSResources.Updating_severity,
+                    title: ServicesVSResources.Updating_severity,
                     defaultDescription: "",
                     allowCancellation: true,
                     showProgress: true);
