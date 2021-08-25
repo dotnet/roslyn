@@ -418,13 +418,18 @@ static class Program
         [InlineData("c.Self.Field.$$")]
         [InlineData("c.Self.Property.$$")]
         [InlineData("c.Self.Method().$$")]
-        [InlineData("c.Function().$$")]
+        [InlineData("c.Function()().$$")]
 
         // indexer, operator, conversion
         [InlineData("c[0].$$")]
         [InlineData("(c + c).$$")]
         [InlineData("((Task)c).$$")]
         [InlineData("(c as Task).$$")]
+
+        // parenthesized
+        [InlineData("(parameter).$$")]
+        [InlineData("((parameter)).$$")]
+        [InlineData("(true ? parameter : parameter).$$")]
         public async Task TestDotAwaitSuggestAfterDifferentExpressions(string expression)
         {
             await VerifyKeywordAsync($@"
@@ -438,7 +443,7 @@ class C
     public Task Method() => Task.CompletedTask;
     public Task Property => Task.CompletedTask;
     public Task this[int i] => Task.CompletedTask;
-    public Func<Task> Function => () => Task.CompletedTask;
+    public Func<Task> Function() => () => Task.CompletedTask;
     public static Task operator +(C left, C right) => Task.CompletedTask;
     public static explicit operator Task(C c) => Task.CompletedTask;
 }}
