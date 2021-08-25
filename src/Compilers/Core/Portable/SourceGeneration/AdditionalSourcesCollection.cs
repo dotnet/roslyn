@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public void CopyTo(AdditionalSourcesCollection asc) => asc._sourcesAdded.AddRange(this._sourcesAdded);
+
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
 
         internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
