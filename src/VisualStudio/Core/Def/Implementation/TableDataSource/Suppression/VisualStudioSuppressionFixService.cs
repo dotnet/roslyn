@@ -234,9 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
-            var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
-            ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog)
-                .CompletesAsyncOperation(token);
+            _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
             return true;
         }
 
@@ -244,6 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             try
             {
+                using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
