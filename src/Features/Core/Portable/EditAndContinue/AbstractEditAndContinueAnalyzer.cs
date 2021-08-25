@@ -3864,12 +3864,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             static bool IsNonCustomAttribute(AttributeData attribute)
             {
-                // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
-
-                // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
-                // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
                 return attribute.AttributeClass?.ToNameDisplayString() switch
                 {
+                    //
+                    // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
+                    // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
+                    // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
+                    //
                     "System.CLSCompliantAttribute" => true,
                     "System.Diagnostics.CodeAnalysis.AllowNullAttribute" => true,
                     "System.Diagnostics.CodeAnalysis.DisallowNullAttribute" => true,
@@ -3897,6 +3898,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute" => true,
                     "System.Security.DynamicSecurityMethodAttribute" => true,
                     "System.SerializableAttribute" => true,
+
+                    //
+                    // This list is not from the compiler, but included explicitly for Edit and Continue purposes
+                    //
+
+                    // Applying [AsyncMethodBuilder] changes the code that is emitted:
+                    // * When the target is a method, for any await call to the method
+                    // * When the target is a type, for any await call to a method that returns that type
+                    //
+                    // Therefore applying this attribute can cause unbounded changes to emitted code anywhere in a project
+                    // which EnC wouldn't pick up, so we block it with a rude edit
+                    "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute" => true,
+
+                    // Also security attributes
                     not null => IsSecurityAttribute(attribute.AttributeClass),
                     _ => false
                 };
