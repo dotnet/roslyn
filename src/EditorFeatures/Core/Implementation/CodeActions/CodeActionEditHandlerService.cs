@@ -123,20 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return false;
             }
 
-#if DEBUG && false
-            var documentErrorLookup = new HashSet<DocumentId>();
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
-                    {
-                        documentErrorLookup.Add(document.Id);
-                    }
-                }
-            }
-#endif
-
             var oldSolution = workspace.CurrentSolution;
 
             var applied = false;
