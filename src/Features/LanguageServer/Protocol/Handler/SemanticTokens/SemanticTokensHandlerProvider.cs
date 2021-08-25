@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentSemanticTokensFullName)]
     [ProvidesMethod(Methods.TextDocumentSemanticTokensFullDeltaName)]
     [ProvidesMethod(Methods.TextDocumentSemanticTokensRangeName)]

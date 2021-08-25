@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var set = new HashSet<ErrorCode>();
             foreach (ErrorCode value in values)
             {
-                Assert.True(set.Add(value));
+                Assert.True(set.Add(value), $"{value} is duplicated!");
             }
         }
 
@@ -264,6 +264,12 @@ class X
                         case ErrorCode.WRN_UnreadRecordParameter:
                         case ErrorCode.WRN_DoNotCompareFunctionPointers:
                         case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                        case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                        case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -338,6 +344,7 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
                         case ErrorCode.WRN_AnalyzerReferencesFramework:
+                        case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -361,6 +368,7 @@ class X
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_PartialMethodTypeDifference:
+                        case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -379,7 +387,7 @@ class X
         {
             foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
             {
-                if ((int)error < 8600 || (int)error >= 9000)
+                if ((int)error < 8600 || (int)error >= 8912)
                 {
                     continue;
                 }
@@ -426,6 +434,7 @@ class X
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
                     ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
+                    ErrorCode.WRN_AttrDependentTypeNotAllowed,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

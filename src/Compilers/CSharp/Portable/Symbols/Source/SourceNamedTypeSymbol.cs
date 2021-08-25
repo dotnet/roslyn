@@ -1553,6 +1553,12 @@ next:;
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(defaultMemberNameConstant)));
             }
+
+            if (this.declaration.Declarations.All(d => d.IsSimpleProgram))
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
         }
 
         #endregion
@@ -1571,6 +1577,15 @@ next:;
             return t2 is NativeIntegerTypeSymbol nativeInteger ?
                 nativeInteger.Equals(this, comparison) :
                 base.Equals(t2, comparison);
+        }
+
+#nullable enable
+        internal bool IsSimpleProgram
+        {
+            get
+            {
+                return this.declaration.Declarations.Any(d => d.IsSimpleProgram);
+            }
         }
     }
 }

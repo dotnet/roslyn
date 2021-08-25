@@ -125,6 +125,7 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_style_namespace_declarations = block_scoped
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
@@ -355,6 +356,7 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_style_namespace_declarations = block_scoped
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true

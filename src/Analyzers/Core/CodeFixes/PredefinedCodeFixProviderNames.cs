@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ChangeToYield = nameof(ChangeToYield);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
+        public const string ConvertNamespace = nameof(ConvertNamespace);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
         public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string RemoveDocCommentNode = nameof(RemoveDocCommentNode);
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string FixReturnType = nameof(FixReturnType);
         public const string GenerateConstructor = nameof(GenerateConstructor);
+        public const string GenerateDefaultConstructors = nameof(GenerateDefaultConstructors);
         public const string GenerateEndConstruct = nameof(GenerateEndConstruct);
         public const string GenerateEnumMember = nameof(GenerateEnumMember);
         public const string GenerateEvent = nameof(GenerateEvent);

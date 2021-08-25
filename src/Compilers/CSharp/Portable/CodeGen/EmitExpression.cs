@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCallExpression(BoundCall call, UseKind useKind)
         {
-            if (call.Method.IsDefaultValueTypeConstructor())
+            if (call.Method.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 EmitDefaultValueTypeConstructorCallExpression(call);
             }
@@ -1956,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)
         {
             MethodSymbol constructor = expression.Constructor;
-            if (constructor.IsDefaultValueTypeConstructor())
+            if (constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 EmitInitObj(expression.Type, used, expression.Syntax);
             }

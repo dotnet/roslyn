@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             AssertEx.Equal(expectedFolders, addedDocument.Folders);
             Assert.Equal(expectedDocumentName, addedDocument.Name);
-            Assert.Equal(expected, (await addedDocument.GetTextAsync()).ToString());
+            var actual = (await addedDocument.GetTextAsync()).ToString();
+            Assert.Equal(expected, actual);
 
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
             if (!hasProjectChange)

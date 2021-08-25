@@ -417,6 +417,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var uncommonData = UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, OriginalUserDefinedOperatorsOpt);
             return Update(operatorKind, uncommonData, resultKind, left, right, type);
         }
+
+        public BoundBinaryOperator Update(UncommonData uncommonData)
+        {
+            return Update(OperatorKind, uncommonData, ResultKind, Left, Right, Type);
+        }
     }
 
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator

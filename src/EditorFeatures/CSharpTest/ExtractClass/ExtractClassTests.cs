@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Roslyn.Test.Utilities;
@@ -22,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
 {
     public class ExtractClassTests : AbstractCSharpCodeActionTest
     {
-        private Task TestAsync(
+        private Task TestExtractClassAsync(
             string input,
-            string expected = null,
-            IEnumerable<(string name, bool makeAbstract)> dialogSelection = null,
+            string? expected = null,
+            IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null,
             bool sameFile = false,
             bool isClassDeclarationSelection = false,
             TestParameters testParameters = default)
@@ -83,7 +82,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -104,7 +103,7 @@ class Test : ErrorBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input);
+            await TestExtractClassAsync(input);
         }
 
         [Fact]
@@ -126,7 +125,7 @@ class Test
 </Workspace>";
 
             TestParameters parameters = default;
-            await TestAsync(input, testParameters: parameters.WithWorkspaceKind(WorkspaceKind.MiscellaneousFiles));
+            await TestExtractClassAsync(input, testParameters: parameters.WithWorkspaceKind(WorkspaceKind.MiscellaneousFiles));
         }
 
         [Fact]
@@ -183,7 +182,7 @@ partial class Test
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeSelection("Method", "Method2"));
@@ -234,7 +233,162 @@ namespace MyNamespace
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace1()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""10"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""10"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">namespace MyNamespace;
+
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(
+                input, expected,
+                CSharpParseOptions.Default,
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent),
+                fixProviderData: new TestExtractClassOptionsService());
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace2()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""9"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""9"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">namespace MyNamespace
+{
+    internal class MyBase
+    {
+        int Method()
+        {
+            return 1 + 1;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(
+                input, expected,
+                CSharpParseOptions.Default,
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent),
+                fixProviderData: new TestExtractClassOptionsService());
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace3()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""10"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""10"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">namespace MyNamespace
+{
+    internal class MyBase
+    {
+        int Method()
+        {
+            return 1 + 1;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(
+                input, expected,
+                CSharpParseOptions.Default,
+                options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
+                fixProviderData: new TestExtractClassOptionsService());
         }
 
         [Fact]
@@ -273,7 +427,7 @@ public class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -310,7 +464,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -343,7 +497,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -376,11 +530,11 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
-        public async Task TestFileHeader()
+        public async Task TestFileHeader_FromExistingFile()
         {
             var input = @"
 <Workspace>
@@ -422,7 +576,52 @@ internal class MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
+        }
+
+        [Fact]
+        public async Task TestFileHeader_FromOption()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">// this is my document header
+// that should be ignored
+
+class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">// this is my document header
+// that should be ignored
+
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">// this is my real document header
+
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestExtractClassAsync(input, expected, testParameters: new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "this is my real document header")));
         }
 
         [Fact]
@@ -471,7 +670,7 @@ class Test : MyBase, ITest
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45977")]
@@ -521,7 +720,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeSelection("Method"));
@@ -564,7 +763,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeAbstractSelection("Method"));
@@ -615,7 +814,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeAbstractSelection("Method", "Method2", "Method3"));
@@ -661,7 +860,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeSelection("Method", "Method2"));
@@ -707,7 +906,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(
+            await TestExtractClassAsync(
                 input,
                 expected,
                 dialogSelection: MakeSelection("Method2"));
@@ -755,7 +954,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -800,7 +999,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -845,7 +1044,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -890,7 +1089,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -945,7 +1144,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -1004,7 +1203,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
@@ -1062,7 +1261,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
@@ -1120,7 +1319,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestExtractClassAsync(input, expected);
         }
 
         [Fact]
@@ -1156,7 +1355,7 @@ class Test : MyBase
         </Document>
     </Project>
 </Workspace>";
-            await TestAsync(input, expected, sameFile: true);
+            await TestExtractClassAsync(input, expected, sameFile: true);
         }
 
         [Fact]
@@ -1195,7 +1394,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1234,7 +1433,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1273,7 +1472,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1312,7 +1511,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1361,7 +1560,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1410,7 +1609,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1459,7 +1658,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1509,7 +1708,7 @@ internal class MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1548,7 +1747,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1587,7 +1786,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await TestExtractClassAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
@@ -1598,11 +1797,11 @@ class Test : MyBase
 
         private class TestExtractClassOptionsService : IExtractClassOptionsService
         {
-            private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
+            private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
             private readonly bool _sameFile;
             private readonly bool isClassDeclarationSelection;
 
-            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
+            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
@@ -1612,7 +1811,7 @@ class Test : MyBase
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol selectedMember)
+            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember)
             {
                 var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -1642,7 +1841,7 @@ class Test : MyBase
                         s.makeAbstract))
                     .ToImmutableArray();
 
-                return Task.FromResult(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
+                return Task.FromResult<ExtractClassOptions?>(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
             }
         }
     }

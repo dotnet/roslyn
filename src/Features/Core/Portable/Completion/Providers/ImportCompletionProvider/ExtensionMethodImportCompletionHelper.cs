@@ -44,8 +44,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var receiverTypeSymbolKeyData = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
                 var targetTypesSymbolKeyData = targetTypesSymbols.SelectAsArray(s => SymbolKey.CreateString(s, cancellationToken));
 
+                // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
+                // project cone.
                 var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
-                    project.Solution,
+                    project,
                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
                         targetTypesSymbolKeyData, forceIndexCreation, cancellationToken),

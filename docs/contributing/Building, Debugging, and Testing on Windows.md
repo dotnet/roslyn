@@ -13,14 +13,14 @@ Using the command line, Roslyn can be developed using the following pattern:
 
 The minimal required version of .NET Framework is 4.7.2.
 
-## Developing with Visual Studio 2019
+## Developing with Visual Studio 2022
 
-1. [Visual Studio 2019 16.9](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2022 17.0 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.9" or greater
+    - Ensure Visual Studio is on Version "17.0" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 6.0 Preview 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.3-windows-x64-installer)
+1. [.NET 6.0 Preview 7 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.7-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -37,7 +37,7 @@ There are a number of options for running the core Roslyn unit tests:
 
 The Test.cmd script will run our unit test on already built binaries. It can be passed the `-build` argument to force a new build before running tests.
 
-1. Run the "Developer Command Prompt for VS2019" from your start menu.
+1. Run the "Developer Command Prompt for VS2022" from your start menu.
 2. Navigate to the directory of your Git clone.
 3. Run `Test.cmd` in the command prompt.
 
@@ -178,8 +178,8 @@ under `AppData`, not from `Program File`).
 
 ### Testing with extra IOperation validation
 
-Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.  
-For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.  
+Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.
+For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
 ## Contributing

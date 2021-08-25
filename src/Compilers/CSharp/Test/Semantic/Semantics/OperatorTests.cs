@@ -11099,7 +11099,7 @@ public class C {
             // we produced a diagnostic.  However, the compiler still consumed O(n^2) memory for the
             // concatenation and this test used to consume so much memory that it would cause other tests running
             // in parallel to fail because they might not have enough memory to succeed.  So the test was
-            // disabled and eventually removed.  The compiler would still crash with programs constaining large
+            // disabled and eventually removed.  The compiler would still crash with programs containing large
             // string concatenations, so the underlying problem had not been addressed.  Now we have revised the
             // implementation of constant folding so that it requires O(n) memory. As a consequence this test now
             // runs very quickly and does not consume gobs of memory.

@@ -111,7 +111,7 @@ static class C { }
             UpdateDocumentText(newMarkup, testLspServer.TestWorkspace);
             var editResults = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "2");
 
-            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(0, 1, new int[] { 1 });
+            var expectedEdit = new LSP.SemanticTokensEdit { Start = 0, DeleteCount = 1, Data = new int[] { 1 } };
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)editResults).Edits.First());
             Assert.Equal("3", ((LSP.SemanticTokensDelta)editResults).ResultId);
