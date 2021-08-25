@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
                                       IncrementalGeneratorOutputKind disabledOutputs,
-                                      TimeSpan runtime)
+                                      TimeSpan elapsedTime,
+                                      bool cancelled)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
             DisabledOutputs = disabledOutputs;
-            RunTime = runtime;
+            ElapsedTime = elapsedTime;
+            Cancelled = cancelled;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -83,7 +85,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
 
-        internal readonly TimeSpan RunTime;
+        /// <summary>
+        /// The time spent during the pass that created this state.
+        /// </summary>
+        internal readonly TimeSpan ElapsedTime;
+
+        /// <summary>
+        /// <see langword="true"/> if the generation pass was cancelled before it finished.
+        /// </summary>
+        internal readonly bool Cancelled;
 
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
@@ -94,7 +104,8 @@ namespace Microsoft.CodeAnalysis
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
             IncrementalGeneratorOutputKind? disabledOutputs = null,
-            TimeSpan? runTime = null)
+            TimeSpan? elapsedTime = null,
+            bool? cancelled = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -105,7 +116,8 @@ namespace Microsoft.CodeAnalysis
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
                 disabledOutputs ?? this.DisabledOutputs,
-                runTime ?? this.RunTime
+                elapsedTime ?? this.ElapsedTime,
+                cancelled ?? this.Cancelled
                 );
         }
     }
