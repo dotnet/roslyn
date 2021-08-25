@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     [EventSource(Name = "Microsoft-CodeAnalysis-General")]
-    internal sealed class LoggingEventSource : EventSource
+    internal sealed class CodeAnalysisEventSource : EventSource
     {
-        public static readonly LoggingEventSource Instance = new LoggingEventSource();
+        public static readonly CodeAnalysisEventSource Log = new CodeAnalysisEventSource();
 
         public class Keywords
         {
@@ -26,7 +24,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         [NonEvent]
-        public void ReportGeneratorDriverRunTime(TimeSpan elapsed) => ReportGeneratorDriverRunTime(elapsed.Ticks);
+        public void ReportGeneratorDriverRunTime(TimeSpan elapsed)
+        {
+            if (IsEnabled(EventLevel.Informational, Keywords.Performance))
+            {
+                ReportGeneratorDriverRunTime(elapsed.Ticks);
+            }
+        }
 
         [Event(1, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.GeneratorDriverRunTime)]
         private void ReportGeneratorDriverRunTime(long elapsedTicks) => WriteEvent(1, elapsedTicks);
@@ -34,8 +38,11 @@ namespace Microsoft.CodeAnalysis
         [NonEvent]
         public void ReportSingleGeneratorRunTime(ISourceGenerator generator, TimeSpan elapsed)
         {
-            var type = generator.GetGeneratorType();
-            ReportSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, elapsed.Ticks);
+            if (IsEnabled(EventLevel.Informational, Keywords.Performance))
+            {
+                var type = generator.GetGeneratorType();
+                ReportSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, elapsed.Ticks);
+            }
         }
 
         [Event(2, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.SingleGeneratorRunTime)]

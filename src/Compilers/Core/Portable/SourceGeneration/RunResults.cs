@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<SyntaxTree> _lazyGeneratedTrees;
 
-        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan runTime)
+        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan elapsedTime)
         {
             this.Results = results;
-            RunTime = runTime;
+            ElapsedTime = elapsedTime;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wall clock time that this generator pass took to execute.
         /// </summary>
-        public TimeSpan RunTime { get; }
+        public TimeSpan ElapsedTime { get; }
 
         /// <summary>
         /// The <see cref="Diagnostic"/>s produced by all generators run during this generation pass.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorRunResult
     {
-        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan runTime)
+        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan elapsedTime)
         {
             Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             this.GeneratedSources = generatedSources;
             this.Diagnostics = diagnostics;
             this.Exception = exception;
-            RunTime = runTime;
+            this.ElapsedTime = elapsedTime;
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wallclock time that elapsed while this generator was running.
         /// </summary>
-        public TimeSpan RunTime { get; }
+        public TimeSpan ElapsedTime { get; }
     }
 
     /// <summary>

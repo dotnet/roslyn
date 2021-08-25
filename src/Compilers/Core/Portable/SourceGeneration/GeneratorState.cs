@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, runTime: TimeSpan.Zero)
+            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: TimeSpan.Zero)
         {
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan runTime)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan elapsedTime)
         {
             this.Initialized = true;
             this.PostInitTrees = postInitTrees;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             this.Info = info;
             this.Diagnostics = diagnostics;
             this.Exception = exception;
-            this.RunTime = runTime;
+            this.ElapsedTime = elapsedTime;
         }
 
         internal bool Initialized { get; }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Exception? Exception { get; }
 
-        internal TimeSpan RunTime { get; }
+        internal TimeSpan ElapsedTime { get; }
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
     }
