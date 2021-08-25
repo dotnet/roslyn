@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
 
             if ((completionChangeEdit & CompletionChangeEdit.MakeContainerAsync) != 0)
             {
