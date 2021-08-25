@@ -85,3 +85,16 @@ partial class Program
 }
 ```
 
+6. https://github.com/dotnet/roslyn/issues/53021 C# will now report an error for a misplaced ```::``` token in explicit interface implementation. In this example code:
+
+    ``` C#
+    void N::I::M()
+    {
+    }
+    ```
+
+    Previous versions of Roslyn wouldn't report any errors.
+
+    We now report an error for a ```::``` token before M.
+
+

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -135,16 +135,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public async Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
             GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
-            if (!_disabled)
+            if (_disabled)
             {
-                GetActiveStatementTrackingService().EndTracking();
+                return;
             }
 
-            return Task.CompletedTask;
+            var session = GetDebuggingSession();
+
+            try
+            {
+                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
+                GetActiveStatementTrackingService().EndTracking();
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                _disabled = true;
+                return;
+            }
         }
 
         public async Task CommitUpdatesAsync(CancellationToken cancellationToken)

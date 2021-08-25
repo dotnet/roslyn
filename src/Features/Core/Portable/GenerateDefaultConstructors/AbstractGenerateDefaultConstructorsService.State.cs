@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,13 +10,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
         private class State
         {
-            public INamedTypeSymbol ClassType { get; private set; }
+            public INamedTypeSymbol? ClassType { get; private set; }
 
             public ImmutableArray<IMethodSymbol> UnimplementedConstructors { get; private set; }
 
@@ -26,14 +24,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             {
             }
 
-            public static State Generate(
+            public static State? Generate(
                 TService service,
                 SemanticDocument document,
                 TextSpan textSpan,
+                bool forRefactoring,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!state.TryInitialize(service, document, textSpan, cancellationToken))
+                if (!state.TryInitialize(service, document, textSpan, forRefactoring, cancellationToken))
                 {
                     return null;
                 }
@@ -45,12 +44,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 TService service,
                 SemanticDocument semanticDocument,
                 TextSpan textSpan,
+                bool forRefactoring,
                 CancellationToken cancellationToken)
             {
                 if (!service.TryInitializeState(semanticDocument, textSpan, cancellationToken, out var classType))
-                {
                     return false;
-                }
 
                 ClassType = classType;
 
@@ -62,11 +60,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     return false;
                 }
 
+                // if this is for the refactoring, then don't offer this if the compiler is reporting an
+                // error here.  We'll let the code fix take care of that.
+                //
+                // Similarly if this is for the codefix only offer if we do see that there's an error.
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
+                {
+                    var fixesError = FixesError(classType, baseType);
+                    if (forRefactoring == fixesError)
+                        return false;
+                }
+
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
 
                 var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
-                var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =
@@ -75,6 +84,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
                 return UnimplementedConstructors.Length > 0;
+            }
+
+            private static bool FixesError(INamedTypeSymbol classType, INamedTypeSymbol baseType)
+            {
+                // See if the user didn't supply a constructor, and thus the compiler automatically generated
+                // one for them.   If so, also see if there's an accessible no-arg contructor in the base.
+                // If not, then the compiler will error and we want the code-fix to take over solving this problem.
+                if (classType.Constructors.Any(c => c.Parameters.Length == 0 && c.IsImplicitlyDeclared))
+                {
+                    var baseNoArgConstructor = baseType.Constructors.FirstOrDefault(c => c.Parameters.Length == 0);
+                    if (baseNoArgConstructor == null ||
+                        !baseNoArgConstructor.IsAccessibleWithin(classType))
+                    {
+                        // this code is in error, but we're the refactoring codepath.  Offer nothing
+                        // and let the code fix provider handle it instead.
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private static bool IsMissing(

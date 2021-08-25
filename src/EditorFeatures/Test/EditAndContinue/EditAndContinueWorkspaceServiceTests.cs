@@ -171,13 +171,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ImmutableArray<DocumentId> documentsWithRudeEdits = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
-            session.BreakStateEntered(out var documentsToReanalyze);
+            session.BreakStateChanged(inBreakState: true, out var documentsToReanalyze);
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
-        private void ExitBreakState()
+        private void ExitBreakState(
+            DebuggingSession session,
+            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+            session.BreakStateChanged(inBreakState: false, out var documentsToReanalyze);
+            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
         private static void CommitSolutionUpdate(DebuggingSession session, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
@@ -838,7 +842,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (breakMode)
             {
-                ExitBreakState();
+                ExitBreakState(debuggingSession);
             }
 
             EndDebuggingSession(debuggingSession);
@@ -847,7 +851,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
@@ -1023,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (breakMode)
             {
-                ExitBreakState();
+                ExitBreakState(debuggingSession);
             }
 
             EndDebuggingSession(debuggingSession);
@@ -1032,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True"
                 }, _telemetryLog);
             }
@@ -1193,10 +1197,13 @@ class C1
 
             if (breakMode)
             {
-                ExitBreakState();
+                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
-
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            else
+            {
+                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
@@ -1204,7 +1211,7 @@ class C1
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
@@ -1334,10 +1341,13 @@ class C { int Y => 2; }
 
             if (breakMode)
             {
-                ExitBreakState();
+                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
-
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            else
+            {
+                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
@@ -1345,7 +1355,7 @@ class C { int Y => 2; }
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
@@ -1623,7 +1633,7 @@ class C { int Y => 2; }
             AssertEx.Empty(diagnostics);
 
             // attach to additional processes - at least one process that does not allow updating custom attributes:
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
             EnterBreakState(debuggingSession);
 
@@ -1631,7 +1641,7 @@ class C { int Y => 2; }
             AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
@@ -1645,7 +1655,7 @@ class C { int Y => 2; }
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             EndDebuggingSession(debuggingSession);
         }
 
@@ -1762,7 +1772,7 @@ class C { int Y => 2; }
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
             CommitSolutionUpdate(debuggingSession);
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
 
             EnterBreakState(debuggingSession);
 
@@ -1785,7 +1795,7 @@ class C { int Y => 2; }
                 Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
             }
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             EndDebuggingSession(debuggingSession);
         }
 
@@ -2091,7 +2101,7 @@ class C { int Y => 2; }
 
             if (breakMode)
             {
-                ExitBreakState();
+                ExitBreakState(debuggingSession);
             }
 
             EndDebuggingSession(debuggingSession);
@@ -2105,7 +2115,7 @@ class C { int Y => 2; }
             {
                 AssertEx.Equal(new[]
                 {
-                    $"Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 2 : 1)}",
+                    $"Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True",
                 }, _telemetryLog);
             }
@@ -2201,7 +2211,7 @@ class C { int Y => 2; }
                 // solution update status after committing an update:
                 Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
-                ExitBreakState();
+                ExitBreakState(debuggingSession);
 
                 // make another update:
                 EnterBreakState(debuggingSession);
@@ -2222,7 +2232,7 @@ class C { int Y => 2; }
                 Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
             }
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             EndDebuggingSession(debuggingSession);
 
             // open module readers should be disposed when the debugging session ends:
@@ -2665,7 +2675,7 @@ class C { int Y => 1; }
             // solution update status after committing an update:
             Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             EnterBreakState(debuggingSession);
 
             //
@@ -2719,7 +2729,7 @@ class C { int Y => 1; }
             // solution update status after committing an update:
             Assert.False(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
             EndDebuggingSession(debuggingSession);
 
             // open deferred module readers should be dispose when the debugging session ends:
@@ -3268,6 +3278,95 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
+        [Fact]
+        [WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        public async Task ActiveStatements_EncSessionFollowedByHotReload()
+        {
+            var markedSource1 = @"
+class C
+{
+    int F()
+    {
+        try
+        {
+            return 0;
+        }
+        catch
+        {
+            <AS:0>return 1;</AS:0>
+        }
+    }
+}
+";
+            var markedSource2 = @"
+class C
+{
+    int F()
+    {
+        try
+        {
+            return 0;
+        }
+        catch
+        {
+            <AS:0>return 2;</AS:0>
+        }
+    }
+}
+";
+            var source1 = ActiveStatementsDescription.ClearTags(markedSource1);
+            var source2 = ActiveStatementsDescription.ClearTags(markedSource2);
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document) = AddDefaultTestProject(solution, source1);
+
+            var moduleId = EmitLibrary(source1);
+            LoadLibraryToDebuggee(moduleId);
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
+                new[] { markedSource1 },
+                modules: new[] { moduleId },
+                methodRowIds: new[] { 1 },
+                methodVersions: new[] { 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame
+                }));
+
+            // change the source (rude edit)
+            solution = solution.WithDocumentText(document.Id, SourceText.From(source2, Encoding.UTF8));
+            document = solution.GetDocument(document.Id);
+
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0063: " + string.Format(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application, CSharpFeaturesResources.catch_clause) },
+                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+
+            // undo the change
+            solution = solution.WithDocumentText(document.Id, SourceText.From(source1, Encoding.UTF8));
+            document = solution.GetDocument(document.Id);
+
+            ExitBreakState(debuggingSession, ImmutableArray.Create(document.Id));
+
+            // change the source (now a valid edit since there is no active statement)
+            solution = solution.WithDocumentText(document.Id, SourceText.From(source2, Encoding.UTF8));
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None);
+            Assert.Empty(diagnostics);
+
+            // validate solution update status and emit (Hot Reload change):
+            (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            EndDebuggingSession(debuggingSession);
+        }
+
         /// <summary>
         /// Scenario:
         /// F5 a program that has function F that calls G. G has a long-running loop, which starts executing.
@@ -3338,7 +3437,7 @@ class C
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
 
             // Hot Reload update F v2 -> v3
 
@@ -3387,7 +3486,7 @@ class C
                 $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=5"
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
         }
 
         /// <summary>
@@ -3512,7 +3611,7 @@ class C
                 $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
         }
 
         /// <summary>
@@ -3598,7 +3697,7 @@ class C
                 new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null)
             }, spans);
 
-            ExitBreakState();
+            ExitBreakState(debuggingSession);
         }
 
         [Fact]
@@ -3670,7 +3769,7 @@ class C
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None));
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, instructionId: default, CancellationToken.None));
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId: default, CancellationToken.None));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateEntered(out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateChanged(inBreakState: true, out _));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));
