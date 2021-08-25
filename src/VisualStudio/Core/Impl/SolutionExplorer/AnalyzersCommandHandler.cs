@@ -451,7 +451,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             if (pathToAnalyzerConfigDoc != null)
                             {
                                 using var scope1 = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
-                                var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
+                                var newSolution = await selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).ConfigureAwait(false);
                                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                                 await editHandlerService.ApplyAsync(
                                     _workspace,
