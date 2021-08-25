@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,29 +24,16 @@ namespace Microsoft.CodeAnalysis
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
         }
 
-        [NonEvent]
-        public void ReportGeneratorDriverRunTime(TimeSpan elapsed)
-        {
-            if (IsEnabled(EventLevel.Informational, Keywords.Performance))
-            {
-                ReportGeneratorDriverRunTime(elapsed.Ticks);
-            }
-        }
+        [Event(1, Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.GeneratorDriverRunTime)]
+        internal void StartGeneratorDriverRunTime(string id) => WriteEvent(1, id);
 
-        [Event(1, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.GeneratorDriverRunTime)]
-        private void ReportGeneratorDriverRunTime(long elapsedTicks) => WriteEvent(1, elapsedTicks);
+        [Event(2, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.GeneratorDriverRunTime)]
+        internal void StopGeneratorDriverRunTime(long elapsedTicks, string id) => WriteEvent(2, elapsedTicks, id);
 
-        [NonEvent]
-        public void ReportSingleGeneratorRunTime(ISourceGenerator generator, TimeSpan elapsed)
-        {
-            if (IsEnabled(EventLevel.Informational, Keywords.Performance))
-            {
-                var type = generator.GetGeneratorType();
-                ReportSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, elapsed.Ticks);
-            }
-        }
+        [Event(3, Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.SingleGeneratorRunTime)]
+        internal void StartSingleGeneratorRunTime(string id) => WriteEvent(3, id);
 
-        [Event(2, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.SingleGeneratorRunTime)]
-        private void ReportSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks) => WriteEvent(2, generatorName, assemblyPath, elapsedTicks);
+        [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
+        internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id) => WriteEvent(4, generatorName, assemblyPath, elapsedTicks, id);
     }
 }
