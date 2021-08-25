@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     // already blocking the UI thread by being in a JTF.Run call.  So we might as well try to
                     // continue to use the blocking UI thread to do as much work as possible instead of making
                     // it wait for threadpool threads to be available to process the work.
-                    foreach (var def in await GoToDefinitionHelpers.GetDefinitionsAsync(impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true))
-                        definitions.Add(def);
+                    definitions.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
+                        impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true));
                 }
 
                 return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(

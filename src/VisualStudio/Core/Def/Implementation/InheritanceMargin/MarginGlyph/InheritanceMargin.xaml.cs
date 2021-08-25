@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
                 _threadingContext,
-                _workspace.CurrentSolution,
+                _workspace,
                 string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                 ImmutableArray.Create<DefinitionItem>(rehydrated),
                 cancellationToken).ConfigureAwait(false);
