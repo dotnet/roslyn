@@ -676,13 +676,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Commit(bool previewChanges = false)
-            => CommitWorker(previewChanges);
+        {
+            var token = _asyncListener.BeginAsyncOperation(nameof(Commit));
+            CommitWorkerAsync(previewChanges).CompletesAsyncOperation(token);
+        }
 
         /// <returns><see langword="true"/> if the rename operation was commited, <see
         /// langword="false"/> otherwise</returns>
-        private bool CommitWorker(bool previewChanges)
+        private async Task<bool> CommitWorkerAsync(bool previewChanges)
         {
-            AssertIsForeground();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             VerifyNotDismissed();
 
             // If the identifier was deleted (or didn't change at all) then cancel the operation.
@@ -703,19 +706,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             previewChanges = previewChanges || OptionSet.GetOption(RenameOptions.PreviewChanges);
 
-            var result = _uiThreadOperationExecutor.Execute(
+            using var context = _uiThreadOperationExecutor.BeginExecute(
                 title: EditorFeaturesResources.Rename,
                 defaultDescription: EditorFeaturesResources.Computing_Rename_information,
                 allowCancellation: true,
-                showProgress: false,
-                action: context => CommitCore(context, previewChanges));
+                showProgress: false);
 
-            if (result == UIThreadOperationStatus.Canceled)
+            try
+            {
+                await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
             {
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
+
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 Dismiss(rollbackTemporaryEdits: true);
                 EndRenameSession();
-
                 return false;
             }
 
@@ -736,12 +743,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _conflictResolutionTaskCancellationSource.Cancel();
         }
 
-        private void CommitCore(IUIThreadOperationContext operationContext, bool previewChanges)
+        private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges)
         {
             var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
             using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), operationContext.UserCancellationToken))
             {
-                var newSolution = _conflictResolutionTask.Join(operationContext.UserCancellationToken).NewSolution;
+                // compute the new solution on a background thread
+                await TaskScheduler.Default;
+                var replacementInfo = await _conflictResolutionTask.JoinAsync(operationContext.UserCancellationToken).ConfigureAwait(false);
+                var newSolution = replacementInfo.NewSolution;
+
+                // After computing the new solution everything else should be done on the UI thread
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(operationContext.UserCancellationToken);
 
                 if (previewChanges)
                 {
@@ -898,8 +911,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public TestAccessor(InlineRenameSession inlineRenameSession)
                 => _inlineRenameSession = inlineRenameSession;
 
-            public bool CommitWorker(bool previewChanges)
-                => _inlineRenameSession.CommitWorker(previewChanges);
+            public Task<bool> CommitWorkerAsync(bool previewChanges)
+                => _inlineRenameSession.CommitWorkerAsync(previewChanges);
         }
     }
 }
