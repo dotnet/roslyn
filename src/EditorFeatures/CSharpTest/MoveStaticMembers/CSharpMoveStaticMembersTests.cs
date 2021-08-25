@@ -272,7 +272,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         // some comment we want to move
         public static int TestMethod()
@@ -763,7 +763,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -818,7 +818,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -864,7 +864,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -907,7 +907,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 0;
     }
@@ -1015,7 +1015,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static T TestMethod<T>(T item)
         {
@@ -1074,7 +1074,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static Type TestMethod<T>()
         {
@@ -1129,7 +1129,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers<T>
+    internal static class Class1Helpers<T>
     {
         public static T TestGeneric { get; set; }
 
@@ -1193,7 +1193,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers<T1> where T1 : new()
+    internal static class Class1Helpers<T1> where T1 : new()
     {
         public static T1 TestMethod()
         {
@@ -1256,7 +1256,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1311,7 +1311,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1368,7 +1368,7 @@ public class Class2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1451,7 +1451,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1515,7 +1515,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1594,7 +1594,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int Foo()
         {
@@ -1669,7 +1669,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1733,7 +1733,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1797,7 +1797,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1870,7 +1870,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
@@ -1960,7 +1960,7 @@ namespace TestNs2
 
 namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
