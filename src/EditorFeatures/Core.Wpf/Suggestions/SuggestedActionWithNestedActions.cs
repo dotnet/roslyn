@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
             // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
             // this happened.
-            Debug.Fail("InnerInvoke should not be called on a SuggestedActionWithNestedActions");
+            Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
             try
             {
-                throw new InvalidOperationException("Invoke should not be called on a SuggestedActionWithNestedActions");
+                throw new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
