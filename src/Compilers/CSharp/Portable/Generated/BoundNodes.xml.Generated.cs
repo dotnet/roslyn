@@ -5587,7 +5587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol? signature, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionSignature? signature, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
             : base(BoundKind.MethodGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -5616,13 +5616,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodGroupFlags? Flags { get; }
 
-        public FunctionTypeSymbol? Signature { get; }
+        public FunctionSignature? Signature { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitMethodGroup(this);
 
-        public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol? signature, BoundExpression? receiverOpt, LookupResultKind resultKind)
+        public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionSignature? signature, BoundExpression? receiverOpt, LookupResultKind resultKind)
         {
-            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(signature, this.Signature) || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
+            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || signature != this.Signature || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
                 var result = new BoundMethodGroup(this.Syntax, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, signature, receiverOpt, resultKind, this.HasErrors);
                 result.CopyAttributes(this);
@@ -7031,7 +7031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundLambda : BoundExpression
     {
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol? signature, Boolean withDependencies, bool hasErrors)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionSignature? signature, Boolean withDependencies, bool hasErrors)
             : base(BoundKind.UnboundLambda, syntax, null, hasErrors)
         {
 
@@ -7042,7 +7042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WithDependencies = withDependencies;
         }
 
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol? signature, Boolean withDependencies)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionSignature? signature, Boolean withDependencies)
             : base(BoundKind.UnboundLambda, syntax, null)
         {
 
@@ -7058,15 +7058,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public UnboundLambdaState Data { get; }
 
-        public FunctionTypeSymbol? Signature { get; }
+        public FunctionSignature? Signature { get; }
 
         public Boolean WithDependencies { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnboundLambda(this);
 
-        public UnboundLambda Update(UnboundLambdaState data, FunctionTypeSymbol? signature, Boolean withDependencies)
+        public UnboundLambda Update(UnboundLambdaState data, FunctionSignature? signature, Boolean withDependencies)
         {
-            if (data != this.Data || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(signature, this.Signature) || withDependencies != this.WithDependencies)
+            if (data != this.Data || signature != this.Signature || withDependencies != this.WithDependencies)
             {
                 var result = new UnboundLambda(this.Syntax, data, signature, withDependencies, this.HasErrors);
                 result.CopyAttributes(this);
@@ -12613,18 +12613,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<MethodSymbol> methods = GetUpdatedArray(node, node.Methods);
             Symbol? lookupSymbolOpt = GetUpdatedSymbol(node, node.LookupSymbolOpt);
-            FunctionTypeSymbol? signature = GetUpdatedSymbol(node, node.Signature);
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             BoundMethodGroup updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, signature, receiverOpt, node.ResultKind);
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, node.Signature, receiverOpt, node.ResultKind);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, signature, receiverOpt, node.ResultKind);
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, node.Signature, receiverOpt, node.ResultKind);
             }
             return updatedNode;
         }
@@ -13230,18 +13229,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
         {
-            FunctionTypeSymbol? signature = GetUpdatedSymbol(node, node.Signature);
-            UnboundLambda updatedNode;
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(node.Data, signature, node.WithDependencies);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(node.Data, signature, node.WithDependencies);
-            }
+            UnboundLambda updatedNode = node.Update(node.Data, node.Signature, node.WithDependencies);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 

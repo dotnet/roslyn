@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false)
             : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, signature: CreateSignature(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
-            Signature?.SetMethodGroup(binder, this);
+            Signature?.SetCallback(this, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr, out _));
         }
 
-        private static FunctionTypeSymbol? CreateSignature(Binder binder, SyntaxNode syntax)
+        private static FunctionSignature? CreateSignature(Binder binder, SyntaxNode syntax)
         {
             return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionTypeSymbol(binder.Compilation.Assembly) :
+                new FunctionSignature(binder) :
                 null;
         }
 

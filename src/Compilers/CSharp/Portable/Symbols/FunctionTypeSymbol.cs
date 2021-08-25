@@ -6,54 +6,40 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// A <see cref="TypeSymbol"/> implementation that exists only to allow types and function signatures
+    /// to be treated similarly in <see cref="ConversionsBase"/>, <see cref="BestTypeInferrer"/>, and
+    /// <see cref="MethodTypeInferrer"/>. Instances of this type should not be used or observable
+    /// outside of those code paths.
+    /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class FunctionTypeSymbol : TypeSymbol
     {
+        internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol();
+
         private const SymbolKind s_SymbolKind = SymbolKind.FunctionPointerType + 1;
         private const TypeKind s_TypeKind = TypeKind.FunctionPointer + 1;
 
-        private readonly AssemblySymbol _assembly;
+        private readonly AssemblySymbol? _assembly;
+        private readonly NamedTypeSymbol _delegateType;
 
-        private Binder? _binder;
-        private BoundMethodGroup? _methodGroup;
-        private NamedTypeSymbol? _lazyDelegateType;
-
-        internal FunctionTypeSymbol(AssemblySymbol assembly) :
-            this(assembly, ErrorTypeSymbol.UnknownResultType)
+        private FunctionTypeSymbol()
         {
+            _delegateType = ErrorTypeSymbol.UnknownResultType;
         }
 
-        internal FunctionTypeSymbol(AssemblySymbol assembly, NamedTypeSymbol? delegateType)
+        internal FunctionTypeSymbol(AssemblySymbol assembly, NamedTypeSymbol delegateType)
         {
             _assembly = assembly;
-            _lazyDelegateType = delegateType;
+            _delegateType = delegateType;
         }
 
-        internal void SetMethodGroup(Binder binder, BoundMethodGroup methodGroup)
-        {
-            Debug.Assert(_binder is null);
-            Debug.Assert(_methodGroup is null);
-            Debug.Assert((object?)_lazyDelegateType == ErrorTypeSymbol.UnknownResultType);
-
-            _binder = binder;
-            _methodGroup = methodGroup;
-        }
-
-        internal NamedTypeSymbol? GetInternalDelegateType()
-        {
-            if ((object?)_lazyDelegateType == ErrorTypeSymbol.UnknownResultType)
-            {
-                var delegateType = _binder!.GetMethodGroupDelegateType(_methodGroup!, out _);
-                Interlocked.CompareExchange(ref _lazyDelegateType, delegateType, ErrorTypeSymbol.UnknownResultType);
-            }
-            return _lazyDelegateType;
-        }
+        internal NamedTypeSymbol GetInternalDelegateType() => _delegateType;
 
         public override bool IsReferenceType => true;
 
@@ -67,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override SymbolKind Kind => s_SymbolKind;
 
-        public override Symbol ContainingSymbol => _assembly;
+        public override Symbol? ContainingSymbol => _assembly;
 
         public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable;
 
@@ -81,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => throw ExceptionUtilities.Unreachable;
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _assembly.GetSpecialType(SpecialType.System_Object);
+        internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => _assembly?.GetSpecialType(SpecialType.System_Object);
 
         internal override bool IsRecord => throw ExceptionUtilities.Unreachable;
 
@@ -122,20 +108,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             var otherType = (FunctionTypeSymbol)other;
-            var delegateType = GetInternalDelegateType();
-            var otherDelegateType = otherType.GetInternalDelegateType();
 
+            Debug.Assert(_assembly is { });
             Debug.Assert((object)_assembly == otherType._assembly);
-            Debug.Assert(delegateType is { });
-            Debug.Assert(otherDelegateType is { });
 
-            delegateType = (NamedTypeSymbol)delegateType.MergeEquivalentTypes(otherDelegateType, variance);
+            var delegateType = (NamedTypeSymbol)_delegateType.MergeEquivalentTypes(otherType._delegateType, variance);
             return new FunctionTypeSymbol(_assembly, delegateType);
         }
 
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            var delegateType = (NamedTypeSymbol?)GetInternalDelegateType()?.SetNullabilityForReferenceTypes(transform);
+            Debug.Assert(_assembly is { });
+
+            var delegateType = (NamedTypeSymbol)_delegateType.SetNullabilityForReferenceTypes(transform);
             return new FunctionTypeSymbol(_assembly, delegateType);
         }
 
@@ -148,25 +133,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var delegateType = GetInternalDelegateType();
-            if (delegateType is null)
-            {
-                return false;
-            }
-
-            var otherType = (t2 as FunctionTypeSymbol)?.GetInternalDelegateType();
-            return delegateType.Equals(otherType, compareKind);
+            var otherType = (t2 as FunctionTypeSymbol)?._delegateType;
+            return _delegateType.Equals(otherType, compareKind);
         }
 
         public override int GetHashCode()
         {
-            var delegateType = GetInternalDelegateType();
-            return delegateType is null ? 0 : delegateType.GetHashCode();
+            return _delegateType.GetHashCode();
         }
 
         internal override string GetDebuggerDisplay()
         {
-            return $"DelegateType: {GetInternalDelegateType()?.ToDisplayString(s_debuggerDisplayFormat) ?? "<null>"}";
+            return $"DelegateType: {_delegateType.ToDisplayString(s_debuggerDisplayFormat)}";
         }
     }
 }

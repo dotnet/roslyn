@@ -2618,6 +2618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // https://github.com/dotnet/roslyn/issues/55909: We're relying on the variance of
+            // FunctionTypeSymbol.GetInternalDelegateType() which fails for synthesized
+            // delegate types where the type parameters are invariant.
             return HasDelegateVarianceConversion(sourceDelegate, destinationDelegate, ref useSiteInfo);
         }
 #nullable disable

@@ -2704,7 +2704,6 @@ OuterBreak:
                 var resultType = functionType.GetInternalDelegateType();
                 if (isExpressionType(compilation, conversions, typeParameter))
                 {
-                    // PROTOTYPE: Test with missing Expression<T>.
                     var expressionOfTType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T);
                     resultType = expressionOfTType.Construct(resultType);
                 }

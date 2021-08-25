@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (anonymousFunction.Signature is { } signature &&
-                    signature.GetInternalDelegateType() is null)
+                    signature.GetSignatureAsTypeSymbol() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (targetType.IsDelegateType() ||

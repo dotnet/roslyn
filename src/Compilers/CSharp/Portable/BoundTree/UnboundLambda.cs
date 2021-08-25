@@ -346,25 +346,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
             bool hasErrors = !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType);
-            var lambda = createLambda(signature: null);
-            if (syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
-            {
-                var delegateType = lambda.Data.InferDelegateType();
-                // PROTOTYPE: Shouldn't need to create a second UnboundLambda instance.
-                lambda = createLambda(new FunctionTypeSymbol(binder.Compilation.Assembly, delegateType));
-            }
-            return lambda;
 
-            UnboundLambda createLambda(FunctionTypeSymbol? signature)
-            {
-                var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
-                var lambda = new UnboundLambda(syntax, data, signature, withDependencies, hasErrors: hasErrors);
-                data.SetUnboundLambda(lambda);
-                return lambda;
-            }
+            var signature = syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
+                new FunctionSignature(binder) :
+                null;
+            var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
+            var lambda = new UnboundLambda(syntax, data, signature, withDependencies, hasErrors: hasErrors);
+            signature?.SetCallback(lambda, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
+            data.SetUnboundLambda(lambda);
+            return lambda;
         }
 
-        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? signature, bool withDependencies, NullableWalker.VariableState? nullableState, bool hasErrors) :
+        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionSignature? signature, bool withDependencies, NullableWalker.VariableState? nullableState, bool hasErrors) :
             this(syntax, state, signature, withDependencies, hasErrors)
         {
             this._nullableState = nullableState;

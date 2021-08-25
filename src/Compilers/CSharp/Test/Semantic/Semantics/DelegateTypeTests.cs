@@ -1911,6 +1911,10 @@ static class E2
 .class public abstract System.Delegate extends System.Object
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.MulticastDelegate extends System.Delegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }";
             var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
 
@@ -1926,14 +1930,19 @@ static class E2
 }";
 
             var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Where are the use-site errors?
             comp.VerifyDiagnostics(
-                // (6,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Delegate'. Did you intend to invoke the method?
+                // (6,13): error CS8917: The delegate type could not be inferred.
                 //         d = Main;
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Delegate").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "Main").WithLocation(6, 13),
+                // (6,13): error CS0518: Predefined type 'System.Action' is not defined or imported
+                //         d = Main;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Main").WithArguments("System.Action").WithLocation(6, 13),
                 // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13),
+                // (7,13): error CS0518: Predefined type 'System.Func`1' is not defined or imported
+                //         d = () => 1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Func`1").WithLocation(7, 13));
         }
 
         private static MetadataReference GetCorlibWithInvalidActionAndFuncOfT()
@@ -3175,9 +3184,6 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action`1[System.String]
 System.Func`1[System.Object]");
-
-            // PROTOTYPE: Test with synthesized delegate types - say add ref parameters.
-            // PROTOTYPE: Test the same with lambda expressions.
         }
 
         [Fact]
@@ -3248,6 +3254,204 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action`1[System.String]
 System.Action`1[System.ValueTuple`2[System.Int32,System.Object]]");
+        }
+
+        [Fact]
+        public void BestCommonType_09()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var a1 = new[] { (object o) => { }, (string s) => { } };
+        var a2 = new[] { () => (object)null, () => (string)null };
+        Report(a1[0]);
+        Report(a2[0]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { (object o) => { }, (string s) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (object o) => { }, (string s) => { } }").WithLocation(6, 18),
+                // (7,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { () => (object)null, () => (string)null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { () => (object)null, () => (string)null }").WithLocation(7, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         var a1 = new[] { (object o) => { }, (string s) => { } };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(6, 26),
+                // (6,34): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         var a1 = new[] { (object o) => { }, (string s) => { } };
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void BestCommonType_10()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(T t, ref object o) { }
+    static void F2<T, U>(ref T t, U u) { }
+    static void Main()
+    {
+        var a1 = new[] { F1<string>, F1<string> };
+        var a2 = new[] { F2<object, string>, F2<object, string> };
+        Report(a1[0]);
+        Report(a2[0]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1<string>, F1<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1<string>, F1<string> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F2<object, string>, F2<object, string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<object, string>, F2<object, string> }").WithLocation(9, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"<>A{00000004}`2[System.String,System.Object]
+<>A{00000001}`2[System.Object,System.String]");
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void BestCommonType_11()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(T t, ref object o) { }
+    static void F2<T, U>(ref T t, U u) { }
+    static void Main()
+    {
+        var a1 = new[] { F1<object>, F1<string> };
+        var a2 = new[] { F2<object, string>, F2<object, object> };
+        Report(a1[0]);
+        Report(a2[0]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1<object>, F1<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1<object>, F1<string> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F2<object, string>, F2<object, object> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<object, string>, F2<object, object> }").WithLocation(9, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            // https://github.com/dotnet/roslyn/issues/55909: ConversionsBase.HasImplicitSignatureConversion()
+            // relies on the variance of FunctionTypeSymbol.GetInternalDelegateType() which fails for synthesized
+            // delegate types where the type parameters are invariant.
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void BestCommonType_12()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(ref T t) { }
+    static void Main()
+    {
+        var a1 = new[] { F<object>, F<string> };
+        var a2 = new[] { (object x, ref object y) => { }, (string x, ref object y) => { } };
+        var a3 = new[] { (object x, ref object y) => { }, (object x, ref string y) => { } };
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F<object>, F<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F<object>, F<string> }").WithLocation(6, 18),
+                // (7,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { (object x, ref object y) => { }, (string x, ref object y) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (object x, ref object y) => { }, (string x, ref object y) => { } }").WithLocation(7, 18),
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a3 = new[] { (object x, ref object y) => { }, (object x, ref string y) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (object x, ref object y) => { }, (object x, ref string y) => { } }").WithLocation(8, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        /// <summary>
+        /// Best common type inference with delegate signatures that cannot be inferred.
+        /// </summary>
+        [Fact]
+        public void BestCommonType_NoInferredSignature()
+        {
+            var source =
+@"class Program
+{
+    static void F1() { }
+    static void F1(int i) { }
+    static void F2() { }
+    static void Main()
+    {
+        var a1 = new[] { F1 };
+        var a2 = new[] { F1, F2 };
+        var a3 = new[] { F2, F1 };
+        var a4 = new[] { x => x };
+        var a5 = new[] { x => x, (int y) => y };
+        var a6 = new[] { (int y) => y, x => x };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1 }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { F1, F2 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1, F2 }").WithLocation(9, 18),
+                // (10,18): error CS0826: No best type found for implicitly-typed array
+                //         var a3 = new[] { F2, F1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2, F1 }").WithLocation(10, 18),
+                // (11,18): error CS0826: No best type found for implicitly-typed array
+                //         var a4 = new[] { x => x };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x }").WithLocation(11, 18),
+                // (12,18): error CS0826: No best type found for implicitly-typed array
+                //         var a5 = new[] { x => x, (int y) => y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x, (int y) => y }").WithLocation(12, 18),
+                // (13,18): error CS0826: No best type found for implicitly-typed array
+                //         var a6 = new[] { (int y) => y, x => x };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int y) => y, x => x }").WithLocation(13, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1 }").WithLocation(8, 18),
+                // (11,18): error CS0826: No best type found for implicitly-typed array
+                //         var a4 = new[] { x => x };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x }").WithLocation(11, 18));
         }
 
         [Fact]
@@ -3951,6 +4155,62 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<T>)").WithLocation(8, 9));
         }
 
+        /// <summary>
+        /// Method type inference with delegate signatures that cannot be inferred.
+        /// </summary>
+        [Fact]
+        public void TypeInference_NoInferredSignature()
+        {
+            var source =
+@"class Program
+{
+    static void F1() { }
+    static void F1(int i) { }
+    static void F2() { }
+    static T M1<T>(T t) => t;
+    static T M2<T>(T x, T y) => x;
+    static void Main()
+    {
+        var a1 = M1(F1);
+        var a2 = M2(F1, F2);
+        var a3 = M2(F2, F1);
+        var a4 = M1(x => x);
+        var a5 = M2(x => x, (int y) => y);
+        var a6 = M2((int y) => y, x => x);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS0411: The type arguments for method 'Program.M1<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a1 = M1(F1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(T)").WithLocation(10, 18),
+                // (11,18): error CS0411: The type arguments for method 'Program.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a2 = M2(F1, F2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(T, T)").WithLocation(11, 18),
+                // (12,18): error CS0411: The type arguments for method 'Program.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a3 = M2(F2, F1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(T, T)").WithLocation(12, 18),
+                // (13,18): error CS0411: The type arguments for method 'Program.M1<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a4 = M1(x => x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(T)").WithLocation(13, 18),
+                // (14,18): error CS0411: The type arguments for method 'Program.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a5 = M2(x => x, (int y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(T, T)").WithLocation(14, 18),
+                // (15,18): error CS0411: The type arguments for method 'Program.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a6 = M2((int y) => y, x => x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(T, T)").WithLocation(15, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS0411: The type arguments for method 'Program.M1<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a1 = M1(F1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(T)").WithLocation(10, 18),
+                // (13,18): error CS0411: The type arguments for method 'Program.M1<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a4 = M1(x => x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(T)").WithLocation(13, 18));
+        }
+
         [Fact]
         public void Variance()
         {
@@ -4470,8 +4730,6 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
-
-        // PROTOTYPE: Test synthesized delegates are only emitted if used.
 
         [Fact]
         public void SynthesizedDelegateTypes_01()
@@ -5361,6 +5619,53 @@ System.Action`2[System.Object,System.Object[]]
 <>A{00000001}`1[System.ValueTuple`2[System.Int32,System.Int32]]
 <>A{00000004}`2[System.Object,System.Object[]]
 ");
+        }
+
+        /// <summary>
+        /// Synthesized delegate types should only be emitted if used.
+        /// </summary>
+        [Fact]
+        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        public void SynthesizedDelegateTypes_18()
+        {
+            var source =
+@"using System;
+delegate void D2(object x, ref object y);
+delegate void D4(out object x, ref object y);
+class Program
+{
+    static void F1(ref object x, object y) { }
+    static void F2(object x, ref object y) { }
+    static void Main()
+    {
+        var d1 = F1;
+        D2 d2 = F2;
+        var d3 = (ref object x, out object y) => { y = null; };
+        D4 d4 = (out object x, ref object y) => { x = null; };
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
+@"<>A{00000001}`2[System.Object,System.Object]
+D2
+<>A{00000009}`2[System.Object,System.Object]
+D4");
+
+            static void validator(PEAssembly assembly)
+            {
+                var reader = assembly.GetMetadataReader();
+                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+
+                // https://github.com/dotnet/roslyn/issues/55896: Should not include <>A{00000004}`2 or <>A{00000006}`2.
+                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000004}`2", "<>A{00000006}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                AssertEx.Equal(expectedTypes, actualTypes);
+            }
         }
 
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedLocal, string expectedInvokeMethod)

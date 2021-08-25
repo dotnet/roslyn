@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
 
-            var delegateType = expr.GetSignature()?.GetInternalDelegateType();
+            var delegateType = expr.GetSignature()?.GetSignatureAsTypeSymbol()?.GetInternalDelegateType();
             if (delegateType is { })
             {
                 delegateType.AddUseSiteInfo(ref useSiteInfo);
@@ -103,19 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return delegateType;
         }
 
-        // PROTOTYPE: This method might return a FunctionTypeSymbol with null internal delegate type.
-        // There are various callers, such as MethodTypeInferrer and BestTypeInferrer, that are not
-        // checking for null delegate directly. Test those cases with delegate types that cannot be inferred.
         public static TypeSymbol? GetTypeOrSignature(this BoundExpression expr)
         {
             if (expr.Type is { } type)
             {
                 return type;
             }
-            return expr.GetSignature();
+            return expr.GetSignature()?.GetSignatureAsTypeSymbol();
         }
 
-        public static FunctionTypeSymbol? GetSignature(this BoundExpression expr)
+        public static FunctionSignature? GetSignature(this BoundExpression expr)
         {
             return expr switch
             {
