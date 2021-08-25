@@ -500,6 +500,22 @@ class C
         }
 
         [Fact]
+        public async Task TestDotAwaitNotAfterTaskType()
+        {
+            await VerifyAbsenceAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F()
+  {
+    Task.$$
+  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
         public async Task TestDotAwaitNotInLock()
         {
             await VerifyAbsenceAsync(@"

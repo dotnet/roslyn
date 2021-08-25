@@ -129,7 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             static ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
             {
                 if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
-                    return semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
+                {
+                    var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
+                    var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+                    if (symbol is INamedTypeSymbol) // e.g. Task.$$
+                    {
+                        return null;
+                    }
+
+                    return
+                        symbol?.GetSymbolType() ??
+                        symbol?.GetMemberType() ??
+                        // Some expressions don't have a symbol (e.g. (o as Task).$$), but GetTypeInfo finds the right type.
+                        semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
+                }
 
                 if (potentialAwaitableExpression is ExpressionSyntax expression)
                 {
