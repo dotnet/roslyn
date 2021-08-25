@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
-            // When we get to the expensive parts we can do in hte BG then we'll switch over to relinguish 
+            // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish 
             // the UI thread.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
