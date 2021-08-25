@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
+
             var completionChangeEdit = (CompletionChangeEdit)Enum.Parse(typeof(CompletionChangeEdit), item.Properties[nameof(CompletionChangeEdit)]);
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

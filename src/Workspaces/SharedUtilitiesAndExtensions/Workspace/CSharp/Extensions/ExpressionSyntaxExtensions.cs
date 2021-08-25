@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             container = null;
             return false;
         }
-
     }
 }
 
