@@ -11411,5 +11411,61 @@ class Program
                 Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
             }
         }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
+        }
     }
 }
