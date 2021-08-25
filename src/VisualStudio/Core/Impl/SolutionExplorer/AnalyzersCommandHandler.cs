@@ -400,16 +400,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private void SetSeverityHandler(object sender, EventArgs args)
-        {
-            var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
-            SetSeverityHandlerAsync(sender, args).CompletesAsyncOperation(token);
-        }
-
-        private async Task SetSeverityHandlerAsync(object sender, EventArgs args)
+#pragma warning disable VSTHRD100 // Avoid async void methods. This signature is required for events.
+        private async void SetSeverityHandler(object sender, EventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             try
             {
+                using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
                 var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                 var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
 
