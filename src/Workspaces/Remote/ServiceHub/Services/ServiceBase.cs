@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var reader = solutionInfo.CreateReader();
             var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
             var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
+            Assumes.Present(pinnedSolutionInfo);
 
             return GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
         }
