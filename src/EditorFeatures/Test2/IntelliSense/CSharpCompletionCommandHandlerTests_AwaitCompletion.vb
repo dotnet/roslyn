@@ -452,5 +452,145 @@ public class C
                 Await state.AssertLineTextAroundCaret("        await Task.CompletedTask", "")
             End Using
         End Function
+
+        <WpfTheory>
+        <InlineData(' static
+            "StaticField.$$",
+            "await StaticField")>
+        <InlineData(
+            "StaticProperty.$$",
+            "await StaticProperty")>
+        <InlineData(
+            "StaticMethod().$$",
+            "await StaticMethod()")>
+        <InlineData(' parameters, locals and local function
+            "parameter.$$",
+            "await parameter")>
+        <InlineData(
+            "LocalFunction().$$",
+            "await LocalFunction()")>
+        <InlineData(' members
+            "c.Field.$$",
+            "await c.Field")>
+        <InlineData(
+            "c.Property.$$",
+            "await c.Property")>
+        <InlineData(
+            "c.Method().$$",
+            "await c.Method()")>
+        <InlineData(
+            "c.Self.Field.$$",
+            "await c.Self.Field")>
+        <InlineData(
+            "c.Self.Property.$$",
+            "await c.Self.Property")>
+        <InlineData(
+            "c.Self.Method().$$",
+            "await c.Self.Method()")>
+        <InlineData(
+            "c.Function()().$$",
+            "await c.Function()()")>
+        <InlineData(' indexer, operator, conversion
+            "c[0].$$",
+            "await c[0]")>
+        <InlineData(
+            "c.Self[0].$$",
+            "await c.Self[0]")>
+        <InlineData(
+            "(c + c).$$",
+            "await (c + c)")>
+        <InlineData(
+            "((Task)c).$$",
+            "await ((Task)c)")>
+        <InlineData(
+            "(c as Task).$$",
+            "await (c as Task)")>
+        <InlineData(' parenthesized
+            "(parameter).$$",
+            "await (parameter)")>
+        <InlineData(
+            "((parameter)).$$",
+            "await ((parameter))")>
+        <InlineData(
+            "(true ? parameter : parameter).$$",
+            "await (true ? parameter : parameter)")>
+        <InlineData(
+            "(null ?? Task.CompletedTask).$$",
+            "await (null ?? Task.CompletedTask)")>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionForDifferntExpressions(expression As String, committed As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document>
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public C Self => this;
+    public Task Field = Task.CompletedTask;
+    public Task Method() => Task.CompletedTask;
+    public Task Property => Task.CompletedTask;
+    public Task this[int i] => Task.CompletedTask;
+    public Func&lt;Task&gt; Function() => () => Task.CompletedTask;
+    public static Task operator +(C left, C right) => Task.CompletedTask;
+    public static explicit operator Task(C c) => Task.CompletedTask;
+}
+
+static class Program
+{
+    static Task StaticField = Task.CompletedTask;
+    static Task StaticProperty => Task.CompletedTask;
+    static Task StaticMethod() => Task.CompletedTask;
+
+    static async Task Main(Task parameter)
+    {
+        var local = Task.CompletedTask;
+        var c = new C();
+
+        <%= expression %>
+
+        Task LocalFunction() => Task.CompletedTask;
+    }
+}
+</Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal($"
+using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public C Self => this;
+    public Task Field = Task.CompletedTask;
+    public Task Method() => Task.CompletedTask;
+    public Task Property => Task.CompletedTask;
+    public Task this[int i] => Task.CompletedTask;
+    public Func<Task> Function() => () => Task.CompletedTask;
+    public static Task operator +(C left, C right) => Task.CompletedTask;
+    public static explicit operator Task(C c) => Task.CompletedTask;
+}}
+
+static class Program
+{{
+    static Task StaticField = Task.CompletedTask;
+    static Task StaticProperty => Task.CompletedTask;
+    static Task StaticMethod() => Task.CompletedTask;
+
+    static async Task Main(Task parameter)
+    {{
+        var local = Task.CompletedTask;
+        var c = new C();
+
+        {committed}
+
+        Task LocalFunction() => Task.CompletedTask;
+    }}
+}}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret($"        {committed}", "")
+            End Using
+        End Function
     End Class
 End Namespace
