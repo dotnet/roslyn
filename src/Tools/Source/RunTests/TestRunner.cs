@@ -76,8 +76,9 @@ namespace RunTests
             // This should be removed once we have enough dumps to investigate the above issue.
             if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                ConsoleUtil.WriteLine($"Copying procdump files from {options.ProcDumpFilePath} to {duplicateDir}");
-                var files = Directory.GetFiles(options.ProcDumpFilePath);
+                var procDumpDir = Path.GetDirectoryName(options.ProcDumpFilePath);
+                ConsoleUtil.WriteLine($"Copying procdump files from {procDumpDir} to {duplicateDir}");
+                var files = Directory.GetFiles(procDumpDir);
                 foreach (var file in files)
                 {
                     var newFileName = Path.Combine(duplicateDir, Path.GetFileName(file));
