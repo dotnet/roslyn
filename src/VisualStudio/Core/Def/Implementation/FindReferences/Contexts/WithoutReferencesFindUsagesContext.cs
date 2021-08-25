@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 
@@ -99,7 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var documentSpan = definition.SourceSpans[0];
-
                 var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
                 var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
