@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType = partBase;
                         baseTypeLocation = decl.NameLocation;
                     }
-                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything2) && partBase.TypeKind != TypeKind.Error)
+                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything) && partBase.TypeKind != TypeKind.Error)
                     {
                         // the parts do not agree
                         if (partBase.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
