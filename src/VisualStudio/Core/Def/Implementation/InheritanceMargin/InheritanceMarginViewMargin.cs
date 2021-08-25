@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,49 +22,49 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal class InheritanceMarginViewMargin : IWpfTextViewMargin
+    internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, IWpfTextViewMargin
     {
-        private readonly IWpfTextViewHost _textViewHost;
+        // Same size as the Glyph Margin
+        private const double HeightAndWidthOfMargin = 17;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
         private readonly IOptionService _optionService;
         private readonly InheritanceGlyphManager _glyphManager;
         private readonly string _languageName;
-        private bool _refreshAllGlyphs;
-        private bool _disposed;
         private readonly Grid _grid;
         private readonly Canvas _mainCanvas;
 
-        // Same size as the Glyph Margin
-        private const double HeightAndWidthOfMargin = 17;
+        /// <summary>
+        /// A flag indicates all the glyphs in this margin needs be refreshed when the Layout of the TextView changes.
+        /// </summary>
+        private bool _refreshAllGlyphs;
+        private bool _disposed;
 
-        public InheritanceMarginViewMargin(
-            IWpfTextViewHost textViewHost,
+        public InheritanceMarginViewMargin(IWpfTextView textView,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IUIThreadOperationExecutor operationExecutor,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap,
-            IEditorFormatMap editorFormatMap,
-            IAsynchronousOperationListener listener,
             ITagAggregator<InheritanceMarginTag> tagAggregator,
+            IEditorFormatMap editorFormatMap,
             IOptionService optionService,
-            string languageName)
+            IAsynchronousOperationListener listener,
+            string languageName) : base(threadingContext)
         {
-            _textViewHost = textViewHost;
-            _textView = textViewHost.TextView;
+            _textView = textView;
             _tagAggregator = tagAggregator;
             _optionService = optionService;
             _languageName = languageName;
-            _mainCanvas = new Canvas { ClipToBounds = true };
+            _mainCanvas = new Canvas { ClipToBounds = true, Width = HeightAndWidthOfMargin };
             _grid = new Grid();
             _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
-                textViewHost.TextView,
+                textView,
                 threadingContext,
                 streamingFindUsagesPresenter,
-                classificationTypeMap,
                 classificationFormatMap,
+                classificationTypeMap,
                 operationExecutor,
                 editorFormatMap,
                 listener,
@@ -79,14 +77,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _optionService.OptionChanged += OnRoslynOptionChanged;
 
-            _mainCanvas.Width = HeightAndWidthOfMargin;
-
             _grid.LayoutTransform = new ScaleTransform(
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
             _grid.LayoutTransform.Freeze();
-
             UpdateMarginVisibility();
+        }
+
+        void IDisposable.Dispose()
+        {
+            AssertIsForeground();
+            if (!_disposed)
+            {
+                _disposed = true;
+                _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
+                _textView.LayoutChanged -= OnLayoutChanged;
+                _textView.ZoomLevelChanged -= OnZoomLevelChanged;
+                _optionService.OptionChanged -= OnRoslynOptionChanged;
+                _tagAggregator.Dispose();
+                ((IDisposable)_glyphManager).Dispose();
+            }
         }
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
@@ -105,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IList<ITextViewLine> lines = _refreshAllGlyphs ? _textView.TextViewLines : e.NewOrReformattedLines;
             foreach (var line in lines)
             {
-                _glyphManager.RemoveGlyph(line.Extent);
+                _glyphManager.RemoveGlyphs(line.Extent);
                 RefreshGlyphsOver(line);
             }
 
@@ -122,16 +132,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void UpdateMarginVisibility()
         {
-            var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) != false;
-            var showMargin = !_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            if (showMargin && featureEnabled)
+            var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) ?? true;
+            if (featureEnabled)
             {
-                _mainCanvas.Visibility = Visibility.Visible;
+                var showMargin = !_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
+                if (showMargin)
+                {
+                    _mainCanvas.Visibility = Visibility.Visible;
+                    return;
+                }
             }
-            else
-            {
-                _mainCanvas.Visibility = Visibility.Collapsed;
-            }
+
+            _mainCanvas.Visibility = Visibility.Collapsed;
         }
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
@@ -141,7 +153,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var changedSnapshotSpans = e.Spans.SelectMany(span => span.GetSpans(_textView.TextSnapshot)).ToImmutableArray();
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
+            foreach (var mappingSpan in e.Spans)
+            {
+                var normalizedSpan = mappingSpan.GetSpans(_textView.TextSnapshot);
+                builder.AddRange(normalizedSpan);
+            }
+
+            var changedSnapshotSpans = builder.ToImmutable();
             if (changedSnapshotSpans.Length == 0)
             {
                 return;
@@ -151,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var endOfChangedSpan = changedSnapshotSpans.Max(span => span.End);
             var changedSpan = new SnapshotSpan(startOfChangedSpan, endOfChangedSpan);
 
-            _glyphManager.RemoveGlyph(changedSpan);
+            _glyphManager.RemoveGlyphs(changedSpan);
 
             foreach (var line in _textView.TextViewLines.GetTextViewLinesIntersectingSpan(changedSpan))
             {
@@ -182,8 +201,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        #region IWpfTextViewMargin
-
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -192,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public FrameworkElement VisualElement
+        FrameworkElement IWpfTextViewMargin.VisualElement
         {
             get
             {
@@ -201,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public double MarginSize
+        double ITextViewMargin.MarginSize
         {
             get
             {
@@ -210,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public bool Enabled
+        bool ITextViewMargin.Enabled
         {
             get
             {
@@ -219,22 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public ITextViewMargin? GetTextViewMargin(string marginName) =>
-            marginName == nameof(InheritanceMarginViewMargin) ? this : null;
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
-                _textView.LayoutChanged -= OnLayoutChanged;
-                _textView.ZoomLevelChanged -= OnZoomLevelChanged;
-                _optionService.OptionChanged -= OnRoslynOptionChanged;
-                _tagAggregator.Dispose();
-                _glyphManager.Dispose();
-                _disposed = true;
-            }
-        }
-        #endregion
+        ITextViewMargin? ITextViewMargin.GetTextViewMargin(string marginName)
+            => marginName == nameof(InheritanceMarginViewMargin) ? this : null;
     }
 }

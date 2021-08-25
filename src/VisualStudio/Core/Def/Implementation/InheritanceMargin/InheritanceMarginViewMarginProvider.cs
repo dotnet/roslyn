@@ -60,8 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
         {
-            var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(wpfTextViewHost.TextView);
-            var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(wpfTextViewHost.TextView);
+            var textView = wpfTextViewHost.TextView;
+            var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(textView);
+            var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(textView);
 
             var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -72,17 +73,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             var listener = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
             return new InheritanceMarginViewMargin(
-                wpfTextViewHost,
+                textView,
                 _threadingContext,
                 _streamingFindUsagesPresenter,
                 _operationExecutor,
                 _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
                 _classificationTypeMap,
-                editorFormatMap,
-                listener,
                 tagAggregator,
-                optionService,
-                document.Project.Language);
+                editorFormatMap,
+                optionService, listener, document.Project.Language);
         }
     }
 }

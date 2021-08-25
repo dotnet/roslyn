@@ -27,6 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// </summary>
     internal class InheritanceGlyphManager : ForegroundThreadAffinitizedObject, IDisposable
     {
+        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
+        private const string GlyphMarginName = "Indicator Margin";
+
+        // The same width and height as the margin of indicator margin.
+        private const double HeightAndWidthOfTheGlyph = 17;
         private readonly IWpfTextView _textView;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -35,25 +40,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IEditorFormatMap _editorFormatMap;
         private readonly IAsynchronousOperationListener _listener;
-        private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
         private readonly Canvas _glyphsContainer;
+        private Dictionary<InheritanceMarginGlyph, SnapshotSpan> _glyphToTaggedSpan;
 
-        // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
-        private const string GlyphMarginName = "Indicator Margin";
-
-        // The same width and height as the margin of indicator margin.
-        private const double HeighAndWidthOfTheGlyph = 17;
-
-        public InheritanceGlyphManager(
-            IWpfTextView textView,
+        public InheritanceGlyphManager(IWpfTextView textView,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
+            ClassificationTypeMap classificationTypeMap,
             IUIThreadOperationExecutor operationExecutor,
             IEditorFormatMap editorFormatMap,
             IAsynchronousOperationListener listener,
-            Canvas canvas) : base(threadingContext, assertIsForeground: true)
+            Canvas canvas) : base(threadingContext)
         {
             _textView = textView;
             _threadingContext = threadingContext;
@@ -70,6 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             UpdateBackgroundColor();
         }
 
+        void IDisposable.Dispose()
+        {
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
+        }
+
         /// <summary>
         /// Generate the glyph by the given <paramref name="tag"/>, and add it to the margin.
         /// It should only be called by UI thread because UI elements are manipulated by this method.
@@ -81,8 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (lines.IntersectsBufferSpan(span) && GetStartingLine(lines, span) is IWpfTextViewLine line)
             {
                 var glyph = CreateNewGlyph(tag);
-                glyph.Height = HeighAndWidthOfTheGlyph;
-                glyph.Width = HeighAndWidthOfTheGlyph;
+                glyph.Height = HeightAndWidthOfTheGlyph;
+                glyph.Width = HeightAndWidthOfTheGlyph;
                 SetTop(line, glyph);
                 _glyphToTaggedSpan[glyph] = span;
                 _glyphsContainer.Children.Add(glyph);
@@ -93,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// Remove the glyphs covered by <paramref name="snapshotSpan"/>.
         /// It should only be called by UI thread because UI elements are manipulated by this method.
         /// </summary>
-        public void RemoveGlyph(SnapshotSpan snapshotSpan)
+        public void RemoveGlyphs(SnapshotSpan snapshotSpan)
         {
             AssertIsForeground();
             var marginsToRemove = _glyphToTaggedSpan
@@ -122,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 foreach (var (glyph, span) in _glyphToTaggedSpan)
                 {
                     var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
-                    if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || (GetStartingLine(newOrReformattedLines, span) != null))
+                    if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || GetStartingLine(newOrReformattedLines, span) != null)
                     {
                         //Either visual is no longer visible or it crosses a line
                         //that was reformatted.
@@ -177,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         private InheritanceMarginGlyph CreateNewGlyph(InheritanceMarginTag tag)
-            => new InheritanceMarginGlyph(
+            => new(
                 _threadingContext,
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,
@@ -200,11 +203,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Set background color for all the glyphs
                 ImageThemingUtilities.SetImageBackgroundColor(_glyphsContainer, backgroundColor);
             }
-        }
-
-        public void Dispose()
-        {
-            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
         }
     }
 }
