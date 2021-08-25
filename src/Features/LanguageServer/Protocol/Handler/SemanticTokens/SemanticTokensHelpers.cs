@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range if they wish.
             var textSpan = range == null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
+            document = document.WithFrozenPartialSemantics(cancellationToken);
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
 
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
+            // https://devdiv.visualstaaudio.com/DevDiv/_workitems/edit/1276300
             return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
