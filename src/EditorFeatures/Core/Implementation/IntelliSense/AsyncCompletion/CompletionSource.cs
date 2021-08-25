@@ -247,6 +247,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             bool isExpanded,
             CancellationToken cancellationToken)
         {
+            await TaskScheduler.Default;
+            
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
