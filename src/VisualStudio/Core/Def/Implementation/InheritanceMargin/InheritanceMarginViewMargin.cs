@@ -50,13 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IEditorFormatMap editorFormatMap,
             IAsynchronousOperationListener listener,
             ITagAggregator<InheritanceMarginTag> tagAggregator,
-            Document document)
+            IOptionService optionService,
+            string languageName)
         {
             _textViewHost = textViewHost;
             _textView = textViewHost.TextView;
             _tagAggregator = tagAggregator;
-            _optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            _languageName = document.Project.Language;
+            _optionService = optionService;
+            _languageName = languageName;
             _mainCanvas = new Canvas { ClipToBounds = true };
             _grid = new Grid();
             _grid.Children.Add(_mainCanvas);
@@ -84,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 scaleX: _textView.ZoomLevel / 100,
                 scaleY: _textView.ZoomLevel / 100);
             _grid.LayoutTransform.Freeze();
+
             UpdateMarginVisibility();
         }
 
@@ -112,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnRoslynOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == FeatureOnOffOptions.ShowInheritanceMargin || e.Option == FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
+            if (e.Option.Equals(FeatureOnOffOptions.ShowInheritanceMargin) || e.Option.Equals(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 UpdateMarginVisibility();
             }
@@ -121,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void UpdateMarginVisibility()
         {
             var featureEnabled = _optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) != false;
-            var showMargin = !_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName);
+            var showMargin = !_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
             if (showMargin && featureEnabled)
             {
                 _mainCanvas.Visibility = Visibility.Visible;
@@ -162,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            if (!_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, _languageName))
+            if (!_optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
                 {

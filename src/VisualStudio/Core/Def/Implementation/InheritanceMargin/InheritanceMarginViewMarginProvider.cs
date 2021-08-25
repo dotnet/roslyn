@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -18,8 +19,8 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     [Export(typeof(IWpfTextViewMarginProvider))]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Name(nameof(InheritanceMarginViewMarginProvider))]
     [MarginContainer(PredefinedMarginNames.Left)]
     [Order(After = PredefinedMarginNames.Glyph)]
@@ -61,24 +62,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(wpfTextViewHost.TextView);
             var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(wpfTextViewHost.TextView);
+
             var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var listner = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
-            if (document != null)
+            if (document == null)
             {
-                return new InheritanceMarginViewMargin(
-                    wpfTextViewHost,
-                    _threadingContext,
-                    _streamingFindUsagesPresenter,
-                    _operationExecutor,
-                    _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
-                    _classificationTypeMap,
-                    editorFormatMap,
-                    listner,
-                    tagAggregator,
-                    document);
+                return null;
             }
 
-            return null;
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var listener = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
+            return new InheritanceMarginViewMargin(
+                wpfTextViewHost,
+                _threadingContext,
+                _streamingFindUsagesPresenter,
+                _operationExecutor,
+                _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
+                _classificationTypeMap,
+                editorFormatMap,
+                listener,
+                tagAggregator,
+                optionService,
+                document.Project.Language);
         }
     }
 }
