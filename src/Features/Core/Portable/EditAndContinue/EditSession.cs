@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
             {
                 // If the runtime doesn't support adding new types then we expect every row number for any type that is
-                // emitted will be less than the number of rows in the original metadata.
+                // emitted will be less than or equal to the number of rows in the original metadata.
                 var highestEmittedTypeDefRow = emitResult.ChangedTypes.Max(t => MetadataTokens.GetRowNumber(t));
                 var highestExistingTypeDefRow = emitResult.Baseline.OriginalMetadata.GetMetadataReader().GetTableRowCount(TableIndex.TypeDef);
 
