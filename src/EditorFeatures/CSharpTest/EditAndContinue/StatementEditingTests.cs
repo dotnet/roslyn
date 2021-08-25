@@ -155,6 +155,56 @@ var (a1, a3) = (1, () => { return 8; });
         }
 
         [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed1()
+        {
+            var src1 = @"int a; (var z1, a) = (1, 2);";
+            var src2 = @"int a; (var z1, a, var z3) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, a) = (1, 2);]@9 -> [(var z1, a, var z3) = (1, 2, 5);]@9",
+                "Insert [z3]@25");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed2()
+        {
+            var src1 = @"int a; (var z1, var z2) = (1, 2);";
+            var src2 = @"int a; (var z1, var z2, a) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, var z2) = (1, 2);]@9 -> [(var z1, var z2, a) = (1, 2, 5);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed1()
+        {
+            var src1 = @"int a; (var y1, var y2, a) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, var y2) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, var y2, a) = (1, 2, 7);]@9 -> [(var y1, var y2) = (1, 4);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed2()
+        {
+            var src1 = @"int a; (var y1, a, var y3) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, a) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, a, var y3) = (1, 2, 7);]@9 -> [(var y1, a) = (1, 4);]@9",
+                "Delete [y3]@25");
+        }
+
+        [Fact]
         public void VariableDeclaraions_Reorder()
         {
             var src1 = @"var (a, b) = (1, 2); var (c, d) = (3, 4);";
@@ -164,6 +214,18 @@ var (a1, a3) = (1, () => { return 8; });
 
             edits.VerifyEdits(
                 "Reorder [var (c, d) = (3, 4);]@23 -> @2");
+        }
+
+        [Fact]
+        public void VariableDeclaraions_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2); (int c, int d) = (3, 4);";
+            var src2 = @"int a; (int c, int d) = (3, 4); (a, int b) = (1, 2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [(int c, int d) = (3, 4);]@30 -> @9");
         }
 
         [Fact]
@@ -177,6 +239,18 @@ var (a1, a3) = (1, () => { return 8; });
             edits.VerifyEdits(
                 "Update [var (a, b) = (1, 2);]@2 -> [var (b, a) = (2, 1);]@2",
                 "Reorder [b]@10 -> @7");
+        }
+
+        [Fact]
+        public void VariableNames_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2);";
+            var src2 = @"int a; (int b, a) = (2, 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a, int b) = (1, 2);]@9 -> [(int b, a) = (2, 1);]@9");
         }
 
         [Fact]
@@ -4942,8 +5016,57 @@ class Program
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard1()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((a, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [b]@45 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard2()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((int a, int b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@42 -> [_]@42",
+                "Update [int b]@49 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard3()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a]@42 -> [_]@42",
+                "Update [b]@45 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         #endregion
@@ -6986,8 +7109,13 @@ class Program
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [Fact]

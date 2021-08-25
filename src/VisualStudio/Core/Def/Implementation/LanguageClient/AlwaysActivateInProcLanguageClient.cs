@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -46,17 +47,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
+        protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
         public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSServerCapabilities();
+            var serverCapabilities = new VSInternalServerCapabilities();
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
             if (isLspEditorEnabled)
             {
-                serverCapabilities = (VSServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+                serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
             }
             else
             {
@@ -80,5 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             return serverCapabilities;
         }
+
+        /// <summary>
+        /// When pull diagnostics is enabled, ensure that initialization failures are displayed to the user as
+        /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
+        /// as the failure is not catastrophic.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
     }
 }

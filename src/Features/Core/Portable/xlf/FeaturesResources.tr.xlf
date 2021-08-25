@@ -765,6 +765,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Geçersiz grup adı: grup adları bir sözcük karakteri ile başlamalıdır</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Sınıfı 'abstract' yap</target>
@@ -1141,11 +1146,11 @@ Bu seçenek, geri izlemenin başarısız olacağını biliyorsanız önerilir. N
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
+        <target state="needs-review-translation">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
     
 'name1' geçerli grup (isteğe bağlı), 'name2' önceden tanımlanmış bir grup ve 'subexpression' ise herhangi bir geçerli normal ifade desenidir. Dengeleme grubu tanımı name2'nin tanımını siler ve name2 ile name1 arasındaki aralığı name1'e depolar. Bir name2 grubu tanımlanmamışsa, eşleşme geri iz sürer. name2'nin son tanımını silmek, name2'nin önceki tanımını ortaya çıkardığından, bu yapı name2 grubu için yakalama yığınını, parantez veya açma ve kapama ayracı gibi iç içe yapıları izlemek için bir sayaç olarak kullanmanıza olanak sağlar.
 
@@ -2183,6 +2188,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="new">Renaming {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">

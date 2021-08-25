@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
-        ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
+        ///       where escape is known otherwise. Therefore we do not have two ref/val variants of this.
         ///       
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
