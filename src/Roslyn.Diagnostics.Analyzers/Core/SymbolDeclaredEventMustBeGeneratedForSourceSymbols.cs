@@ -14,22 +14,21 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
         internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new(
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle)),
+            CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage)),
             DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);

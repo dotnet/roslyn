@@ -11,26 +11,24 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     /// <summary>
     /// RS0023: Parts exported with MEFv2 must be marked as Shared
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule = new(RoslynDiagnosticIds.MissingSharedAttributeRuleId,
-                                                                             s_localizableTitle,
-                                                                             s_localizableMessage,
-                                                                             DiagnosticCategory.RoslynDiagnosticsReliability,
-                                                                             DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true,
-                                                                             description: s_localizableDescription,
-                                                                             helpLinkUri: null,
-                                                                             customTags: WellKnownDiagnosticTags.Telemetry);
+        internal static DiagnosticDescriptor Rule = new(
+            RoslynDiagnosticIds.MissingSharedAttributeRuleId,
+            CreateLocalizableResourceString(nameof(PartsExportedWithMEFv2MustBeMarkedAsSharedTitle)),
+            CreateLocalizableResourceString(nameof(PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)),
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(PartsExportedWithMEFv2MustBeMarkedAsSharedDescription)),
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

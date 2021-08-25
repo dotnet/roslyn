@@ -10,23 +10,21 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class TemporaryArrayAsRefAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TemporaryArrayAsRefTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TemporaryArrayAsRefMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TemporaryArrayAsRefDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.TemporaryArrayAsRefRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(TemporaryArrayAsRefTitle)),
+            CreateLocalizableResourceString(nameof(TemporaryArrayAsRefMessage)),
             DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(TemporaryArrayAsRefDescription)),
             helpLinkUri: null,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

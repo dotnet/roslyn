@@ -9,23 +9,22 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CodeActionCreateAnalyzer : DiagnosticAnalyzer
     {
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
 
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         internal static readonly DiagnosticDescriptor DoNotUseCodeActionCreateRule = new(
             RoslynDiagnosticIds.DoNotUseCodeActionCreateRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(DoNotUseGenericCodeActionCreateToCreateCodeActionTitle)),
+            CreateLocalizableResourceString(nameof(DoNotUseGenericCodeActionCreateToCreateCodeActionMessage)),
             DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseCodeActionCreateRule);
 
