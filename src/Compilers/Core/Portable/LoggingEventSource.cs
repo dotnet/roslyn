@@ -21,14 +21,16 @@ namespace Microsoft.CodeAnalysis
 
         public class Tasks
         {
-            public const EventTask Generators = (EventTask)1;
+            public const EventTask GeneratorDriverRunTime = (EventTask)1;
+            public const EventTask SingleGeneratorRunTime = (EventTask)2;
+
         }
 
         [NonEvent]
-        public void ReportGeneratorRunTime(TimeSpan elapsed) => ReportGeneratorRunTime(elapsed.Ticks);
+        public void ReportGeneratorDriverRunTime(TimeSpan elapsed) => ReportGeneratorDriverRunTime(elapsed.Ticks);
 
-        [Event(1, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.Generators)]
-        private void ReportGeneratorRunTime(long elapsedTicks) => WriteEvent(1, elapsedTicks);
+        [Event(1, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.GeneratorDriverRunTime)]
+        private void ReportGeneratorDriverRunTime(long elapsedTicks) => WriteEvent(1, elapsedTicks);
 
         [NonEvent]
         public void ReportSingleGeneratorRunTime(ISourceGenerator generator, TimeSpan elapsed)
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             ReportSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, elapsed.Ticks);
         }
 
-        [Event(2, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.Generators)]
+        [Event(2, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.SingleGeneratorRunTime)]
         private void ReportSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks) => WriteEvent(2, generatorName, assemblyPath, elapsedTicks);
 
     }

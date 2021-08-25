@@ -13,7 +13,9 @@ Microsoft.CodeAnalysis.GeneratorDriver.WithUpdatedParseOptions(Microsoft.CodeAna
 Microsoft.CodeAnalysis.GeneratorDriverOptions
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions() -> void
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs) -> void
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.RunTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.GeneratorExtensions
+Microsoft.CodeAnalysis.GeneratorRunResult.RunTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.IFieldSymbol.FixedSize.get -> int
 Microsoft.CodeAnalysis.IFieldSymbol.IsExplicitlyNamedTupleElement.get -> bool
 Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxContextReceiver.get -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
