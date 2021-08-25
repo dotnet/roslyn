@@ -67,9 +67,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
-                    Dim solution = workspace.CurrentSolution
-                    Dim startDocument = If(solution.GetDocument(cursorDocument.Id),
-                                      Await solution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
+                    Dim startDocument = If(workspace.CurrentSolution.GetDocument(cursorDocument.Id),
+                                      Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
@@ -82,8 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.AnnotatedSpans(DefinitionKey).ToList())).ToList()
 
-                    Dim actualDefinitions = Await GetFileNamesAndSpansAsync(
-                        solution,
+                    Dim actualDefinitions = GetFileNamesAndSpans(
                         context.Definitions.Where(AddressOf context.ShouldShow).
                                             SelectMany(Function(d) d.SourceSpans))
 
@@ -95,8 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.SelectedSpans.ToList())).ToList()
 
-                    Dim actualReferences = Await GetFileNamesAndSpansAsync(
-                        solution,
+                    Dim actualReferences = GetFileNamesAndSpans(
                         context.References.Select(Function(r) r.SourceSpan))
 
                     Assert.Equal(expectedReferences, actualReferences)
@@ -109,8 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.AnnotatedSpans(key).ToList())).ToList()
                         Dim valueUsageInfoField = key.Substring(ValueUsageInfoKey.Length)
-                        Dim actual = Await GetFileNamesAndSpansAsync(
-                            solution,
+                        Dim actual = GetFileNamesAndSpans(
                             context.References.Where(Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField).Select(Function(r) r.SourceSpan))
 
                         Assert.Equal(expected, actual)
@@ -124,8 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.AnnotatedSpans(key).ToList())).ToList()
                         Dim typeOrNamespaceUsageInfoFieldNames = key.Substring(TypeOrNamespaceUsageInfoKey.Length).Split(","c).Select(Function(s) s.Trim)
-                        Dim actual = Await GetFileNamesAndSpansAsync(
-                            solution,
+                        Dim actual = GetFileNamesAndSpans(
                             context.References.Where(Function(r)
                                                          Return r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt IsNot Nothing AndAlso
                                                                 r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt.ToString().Split(","c).Select(Function(s) s.Trim).SetEquals(typeOrNamespaceUsageInfoFieldNames)
@@ -144,8 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                 OrderBy(Function(d) d.Name).
                                                 Select(Function(d) New FileNameAndSpans(
                                                        d.Name, d.AnnotatedSpans(annotationKey).ToList())).ToList()
-                            Dim actual = Await GetFileNamesAndSpansAsync(
-                                solution,
+                            Dim actual = GetFileNamesAndSpans(
                                 context.References.Where(Function(r)
                                                              Dim actualValue As String = Nothing
                                                              If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
@@ -182,27 +176,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return additionalPropertiesMap
         End Function
 
-        Private Shared Function GetFileNamesAndSpansAsync(solution As Solution, items As IEnumerable(Of DocumentSpan)) As Task(Of List(Of FileNameAndSpans))
-            Dim dict = New Dictionary(Of Document, List(Of DocumentSpan))
-
-            For Each item In items
-                Dim list As List(Of DocumentSpan) = Nothing
-                If Not dict.TryGetValue(item.Document, list) Then
-                    list = New List(Of DocumentSpan)()
-                    dict.Add(item.Document, list)
-                End If
-
-                list.Add(item)
-            Next
-
-            Return Task.FromResult(dict.OrderBy(Function(g) g.Key.Name).
-                         Select(Function(g) GetFileNameAndSpans(g.Key, g.Value)).ToList())
+        Private Shared Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
+            Return items.Where(Function(i) i.Document IsNot Nothing).
+                         GroupBy(Function(i) i.Document).
+                         OrderBy(Function(g) g.Key.Name).
+                         Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Shared Function GetFileNameAndSpans(document As Document, items As List(Of DocumentSpan)) As FileNameAndSpans
+        Private Shared Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
-                document.Name,
-                items.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).Distinct().ToList())
+                g.Key.Name,
+                g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
+                                                   Distinct().ToList())
         End Function
 
         Private Structure FileNameAndSpans
