@@ -400,6 +400,89 @@ static class Program
 }", LanguageVersion.CSharp9);
         }
 
+        [Theory]
+        // static
+        [InlineData("StaticField.$$")]
+        [InlineData("StaticProperty.$$")]
+        [InlineData("StaticMethod().$$")]
+
+        // parameters, locals and local function
+        //[InlineData("local.$$")] Fails, because of binding problems. TestDotAwaitSuggestBeforeLocalFunction added for this particular problem.
+        [InlineData("parameter.$$")]
+        [InlineData("LocalFunction().$$")]
+
+        // members
+        [InlineData("c.Field.$$")]
+        [InlineData("c.Property.$$")]
+        [InlineData("c.Method().$$")]
+        [InlineData("c.Self.Field.$$")]
+        [InlineData("c.Self.Property.$$")]
+        [InlineData("c.Self.Method().$$")]
+        [InlineData("c.Function().$$")]
+
+        // indexer, operator, conversion
+        [InlineData("c[0].$$")]
+        [InlineData("(c + c).$$")]
+        [InlineData("((Task)c).$$")]
+        [InlineData("(c as Task).$$")]
+        public async Task TestDotAwaitSuggestAfterDifferentExpressions(string expression)
+        {
+            await VerifyKeywordAsync($@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public C Self => this;
+    public Task Field = Task.CompletedTask;
+    public Task Method() => Task.CompletedTask;
+    public Task Property => Task.CompletedTask;
+    public Task this[int i] => Task.CompletedTask;
+    public Func<Task> Function => () => Task.CompletedTask;
+    public static Task operator +(C left, C right) => Task.CompletedTask;
+    public static explicit operator Task(C c) => Task.CompletedTask;
+}}
+
+static class Program
+{{
+    static Task StaticField = Task.CompletedTask;
+    static Task StaticProperty => Task.CompletedTask;
+    static Task StaticMethod() => Task.CompletedTask;
+
+    static async Task Main(Task parameter)
+    {{
+        var local = Task.CompletedTask;
+        var c = new C();
+
+        {expression}
+
+        Task LocalFunction() => Task.CompletedTask;
+    }}
+}}", LanguageVersion.CSharp9);
+        }
+
+        [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
+        public async Task TestDotAwaitSuggestBeforeLocalFunction()
+        {
+            // Speculative binding a local as expression finds the local as ILocalSymbol, but the type is ErrorType.
+            // This is only the case if await is partially written (local.a) and only for locals (e.g. IParameterSymbols are fine).
+            // This is bad, because we expect users to write "af" to complete await local.ConfigureAwait(false)
+            await VerifyKeywordAsync(@"
+using System;
+using System.Threading.Tasks;
+
+static class Program
+{
+    static async Task Main()
+    {
+        var local = Task.CompletedTask;
+        local.a$$
+
+        Task LocalFunction() => Task.CompletedTask;
+    }
+}", LanguageVersion.CSharp9);
+        }
+
         [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             static ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
             {
                 if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
-                    return semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol?.GetSymbolType();
+                    return semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
 
                 if (potentialAwaitableExpression is ExpressionSyntax expression)
                 {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return container;
                 }
 
-                return semanticModel.GetSymbolInfo(potentialAwaitableExpression, cancellationToken).Symbol?.GetSymbolType();
+                return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
             }
         }
     }
