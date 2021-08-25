@@ -96,28 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            // Fire and forget.  The called method will set up async operation tracking synchronously on 
-            // this thread.
-            _ = InvokeAsync(cancellationToken);
-        }
-
-        private async Task InvokeAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-                using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true);
-                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
-                using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
-
-                await InnerInvokeAsync(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
+            throw new NotImplementedException("Invoke(CancellationToken) is no longer supported. Use Invoke(IUIThreadOperationContext) instead.");
         }
 
         public void Invoke(IUIThreadOperationContext context)
@@ -127,14 +106,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // So we need to take ownership of it and start our own TWD instead to track this.
             context.TakeOwnership();
 
-            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
-            InvokeAsync().CompletesAsyncOperation(token);
+            _ = InvokeAsync();
         }
 
         private async Task InvokeAsync()
         {
             try
             {
+                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                     EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
@@ -349,8 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         #endregion
 
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -360,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 => _suggestedAction = suggestedAction;
 
             public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync(CancellationToken.None);
+                => _suggestedAction.InvokeAsync();
         }
     }
 }
