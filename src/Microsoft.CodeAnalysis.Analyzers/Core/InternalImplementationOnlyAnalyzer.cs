@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
     {
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";
         private const string InternalImplementationOnlyAttributeFullName = "System.Runtime.CompilerServices.InternalImplementationOnlyAttribute";
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle));
+        private static readonly LocalizableString s_localizableMessageFormat = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage));
+        private static readonly LocalizableString s_localizableDescription = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription));
 
         public static readonly DiagnosticDescriptor Rule = new(
                                                         DiagnosticIds.InternalImplementationOnlyRuleId,
