@@ -119,15 +119,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private async Task<Diagnostic?> GetUnsupportedChangesDiagnosticAsync(EmitDifferenceResult emitResult, CancellationToken cancellationToken)
         {
-            if (!emitResult.Success)
-            {
-                return null;
-            }
-
-            if (emitResult.Baseline is null)
-            {
-                return null;
-            }
+            Debug.Assert(emitResult.Success);
+            Debug.Assert(emitResult.Baseline is not null);
 
             var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
@@ -139,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (highestEmittedTypeDefRow > highestExistingTypeDefRow)
                 {
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangeResultsInSynthesizedType);
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired);
                     return Diagnostic.Create(descriptor, Location.None);
                 }
             }
@@ -868,42 +861,46 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             cancellationToken);
                     }
 
-                    var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
-                    if (unsupportedChangesDiagnostic is not null)
-                    {
-                        diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
-                    }
-                    else if (emitResult.Success)
+                    if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-                        var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
+                        if (unsupportedChangesDiagnostic is not null)
+                        {
+                            diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                            isBlocked = true;
+                        }
+                        else
+                        {
+                            var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                            var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
-                        // Determine all active statements whose span changed and exception region span deltas.
-                        GetActiveStatementAndExceptionRegionSpans(
-                            mvid,
-                            oldActiveStatementsMap,
-                            updatedMethodTokens,
-                            NonRemappableRegions,
-                            projectChanges.ActiveStatementChanges,
-                            out var activeStatementsInUpdatedMethods,
-                            out var moduleNonRemappableRegions,
-                            out var exceptionRegionUpdates);
+                            // Determine all active statements whose span changed and exception region span deltas.
+                            GetActiveStatementAndExceptionRegionSpans(
+                                mvid,
+                                oldActiveStatementsMap,
+                                updatedMethodTokens,
+                                NonRemappableRegions,
+                                projectChanges.ActiveStatementChanges,
+                                out var activeStatementsInUpdatedMethods,
+                                out var moduleNonRemappableRegions,
+                                out var exceptionRegionUpdates);
 
-                        deltas.Add(new ManagedModuleUpdate(
-                            mvid,
-                            ilStream.ToImmutableArray(),
-                            metadataStream.ToImmutableArray(),
-                            pdbStream.ToImmutableArray(),
-                            projectChanges.LineChanges,
-                            updatedMethodTokens,
-                            changedTypeTokens,
-                            activeStatementsInUpdatedMethods,
-                            exceptionRegionUpdates));
+                            deltas.Add(new ManagedModuleUpdate(
+                                mvid,
+                                ilStream.ToImmutableArray(),
+                                metadataStream.ToImmutableArray(),
+                                pdbStream.ToImmutableArray(),
+                                projectChanges.LineChanges,
+                                updatedMethodTokens,
+                                changedTypeTokens,
+                                activeStatementsInUpdatedMethods,
+                                exceptionRegionUpdates));
 
-                        nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                        emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                            nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
+                            emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                        }
                     }
                     else
                     {
