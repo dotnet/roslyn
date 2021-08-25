@@ -114,6 +114,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
+        /// The compiler has various scenarios that will cause it to synthesize things that might not be covered
+        /// by existing rude edits, but we still need to ensure the runtime supports them before we proceed.
+        /// </summary>
+        private async Task<Diagnostic?> GetUnsupportedChangesDiagnosticAsync(EmitDifferenceResult emitResult, CancellationToken cancellationToken)
+        {
+            if (!emitResult.Success)
+            {
+                return null;
+            }
+
+            if (emitResult.Baseline is null)
+            {
+                return null;
+            }
+
+            var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
+            {
+                // If the runtime doesn't support adding new types then we expect every row number for any type that is
+                // emitted will be less than the number of rows in the original metadata.
+                var highestEmittedTypeDefRow = emitResult.ChangedTypes.Max(t => MetadataTokens.GetRowNumber(t));
+                var highestExistingTypeDefRow = emitResult.Baseline.OriginalMetadata.GetMetadataReader().GetTableRowCount(TableIndex.TypeDef);
+
+                if (highestEmittedTypeDefRow > highestExistingTypeDefRow)
+                {
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangeResultsInSynthesizedType);
+                    return Diagnostic.Create(descriptor, Location.None);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
@@ -834,7 +868,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             cancellationToken);
                     }
 
-                    if (emitResult.Success)
+                    var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
+                    if (unsupportedChangesDiagnostic is not null)
+                    {
+                        diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                    }
+                    else if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
