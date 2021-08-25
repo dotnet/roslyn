@@ -153,6 +153,35 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
+#nullable enable
+        protected bool IsKnownDependencyLocation(string fullPath)
+        {
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+            var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
+            if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
+            {
+                return false;
+            }
+
+            if (!paths.Contains(fullPath))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// When overridden in a derived class, allows substituting an assembly path after we've
+        /// identified the context to load an assembly in, but before the assembly is actually
+        /// loaded from disk.
+        /// </summary>
+        protected virtual string GetPathToLoad(string fullPath)
+        {
+            return fullPath;
+        }
+#nullable disable
+
         public Assembly Load(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
