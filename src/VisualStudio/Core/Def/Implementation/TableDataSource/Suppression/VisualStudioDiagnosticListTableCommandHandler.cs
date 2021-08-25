@@ -180,8 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
             if (pathToAnalyzerConfigDoc != null)
             {
-                var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
-                SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project).CompletesAsyncOperation(token);
+                // Fire and forget.
+                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project);
             }
         }
 
@@ -189,6 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             try
             {
+                using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandlerAsync));
                 using var context = _uiThreadOperationExecutor.BeginExecute(
                     title: ServicesVSResources.Updating_severity,
                     defaultDescription: ServicesVSResources.Updating_severity,
