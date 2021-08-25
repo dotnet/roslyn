@@ -2593,7 +2593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // PROTOTYPE: Test conversion to dynamic.
             var derivedType = this.corLibrary.GetDeclaredSpecialType(SpecialType.System_MulticastDelegate);
             if (IsBaseClass(derivedType, destination, ref useSiteInfo) ||
                 IsBaseInterface(destination, derivedType, ref useSiteInfo))

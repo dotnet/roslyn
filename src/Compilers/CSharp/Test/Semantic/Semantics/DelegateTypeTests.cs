@@ -216,6 +216,45 @@ System.Action
         }
 
         [Fact]
+        public void MethodGroupConversions_04()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F() { }
+    static void F(object o) { }
+    static void Main()
+    {
+        object o = F;
+        ICloneable c = F;
+        Delegate d = F;
+        MulticastDelegate m = F;
+        Expression e = F;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,20): error CS8917: The delegate type could not be inferred.
+                //         object o = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(9, 20),
+                // (10,24): error CS8917: The delegate type could not be inferred.
+                //         ICloneable c = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(10, 24),
+                // (11,22): error CS8917: The delegate type could not be inferred.
+                //         Delegate d = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(11, 22),
+                // (12,31): error CS8917: The delegate type could not be inferred.
+                //         MulticastDelegate m = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(12, 31),
+                // (13,24): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
+                //         Expression e = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(13, 24));
+        }
+
+        [Fact]
         public void LambdaConversions_01()
         {
             var source =
@@ -448,6 +487,32 @@ System.Action
 System.Action
 System.Action
 ");
+        }
+
+        [Fact]
+        public void DynamicConversion()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        dynamic d;
+        d = Main;
+        d = () => 1;
+    }
+    static void Report(dynamic d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'dynamic'. Did you intend to invoke the method?
+                //         d = Main;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "dynamic").WithLocation(7, 13),
+                // (8,13): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
+                //         d = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "dynamic").WithLocation(8, 13));
         }
 
         private static IEnumerable<object?[]> GetMethodGroupData(Func<string, string, DiagnosticDescription[]> getExpectedDiagnostics)
@@ -1863,9 +1928,9 @@ static class E2
             var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
             // PROTOTYPE: Where are the use-site errors?
             comp.VerifyDiagnostics(
-                // (6,13): error CS8917: The delegate type could not be inferred.
+                // (6,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Delegate'. Did you intend to invoke the method?
                 //         d = Main;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "Main").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Delegate").WithLocation(6, 13),
                 // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         d = () => 1;
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13));
@@ -2384,15 +2449,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return string.Empty; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(10, 11));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            // PROTOTYPE: If the `delegate () { ... }` is the body of the Expression, DiagnosticsPass.VisitLambda() should report
-            // ERR_AnonymousMethodToExpressionTree instead of ERR_ExpressionTreeContainsAnonymousMethod.
             comp.VerifyDiagnostics(
                 // (9,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate () { return 0; }").WithLocation(9, 11),
-                // (10,11): error CS1945: An expression tree may not contain an anonymous method expression
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 0; }").WithLocation(9, 11),
+                // (10,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return string.Empty; });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate () { return string.Empty; }").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return string.Empty; }").WithLocation(10, 11));
         }
 
         [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]

@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (conversion.IsMethodGroup ||
-                (conversion.Kind == ConversionKind.FunctionType && source.Kind == BoundKind.MethodGroup))
+            if (conversion.IsMethodGroup)
             {
                 return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
@@ -93,12 +92,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
             CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
-            if ((conversion.IsAnonymousFunction || conversion.Kind == ConversionKind.FunctionType) && source.Kind == BoundKind.UnboundLambda)
+            if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
 
-            Debug.Assert(conversion.Kind != ConversionKind.FunctionType);
+            if (conversion.Kind == ConversionKind.FunctionType)
+            {
+                return CreateFunctionTypeConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+            }
 
             if (conversion.IsStackAlloc)
             {
@@ -549,6 +551,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
+        private BoundExpression CreateFunctionTypeConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(source.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
+            Debug.Assert(syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType));
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var delegateType = source.GetInferredDelegateType(ref useSiteInfo);
+            Debug.Assert(delegateType is { });
+
+            if (source.Kind == BoundKind.UnboundLambda &&
+                destination.IsNonGenericExpressionType())
+            {
+                delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
+                delegateType.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
+            BoundExpression expr;
+            if (!conversion.Exists)
+            {
+                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, delegateType);
+                expr = new BoundConversion(syntax, source, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: delegateType, hasErrors: true) { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+            else
+            {
+                expr = CreateConversion(syntax, source, conversion, isCast, conversionGroup, delegateType, diagnostics);
+            }
+
+            conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+            if (!conversion.Exists)
+            {
+                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+            }
+
+            diagnostics.Add(syntax, useSiteInfo);
+            return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
+        }
+
         private BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
@@ -560,96 +600,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var unboundLambda = (UnboundLambda)source;
 
-            if (conversion.Kind == ConversionKind.FunctionType)
-            {
-                Debug.Assert(syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType));
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var delegateType = unboundLambda.GetInferredDelegateType(ref useSiteInfo);
-                Debug.Assert(delegateType is { });
-                bool isExpressionTree = destination.IsNonGenericExpressionType();
-                if (isExpressionTree)
-                {
-                    delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
-                    delegateType.AddUseSiteInfo(ref useSiteInfo);
-                }
-                var boundLambda = unboundLambda.Bind(delegateType, isExpressionTree);
-                diagnostics.AddRange(boundLambda.Diagnostics);
-                var expr = createAnonymousFunctionConversion(syntax, source, boundLambda, Conversion.AnonymousFunction, isCast, conversionGroup, delegateType);
-                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                if (!conversion.Exists)
-                {
-                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
-                }
-                diagnostics.Add(syntax, useSiteInfo);
-                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-            else
-            {
-                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
-                diagnostics.AddRange(boundLambda.Diagnostics);
-                return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
-            }
-
-            static BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, BoundLambda boundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination)
-            {
-                return new BoundConversion(
-                    syntax,
-                    boundLambda,
-                    conversion,
-                    @checked: false,
-                    explicitCastInCode: isCast,
-                    conversionGroup,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: destination)
-                { WasCompilerGenerated = source.WasCompilerGenerated };
-            }
+            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
+            diagnostics.AddRange(boundLambda.Diagnostics);
+            return new BoundConversion(
+                syntax,
+                boundLambda,
+                conversion,
+                @checked: false,
+                explicitCastInCode: isCast,
+                conversionGroup,
+                constantValueOpt: ConstantValue.NotAvailable,
+                type: destination)
+            { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
-            if (conversion.Kind == ConversionKind.FunctionType)
+            var (originalGroup, isAddressOf) = source switch
             {
-                Debug.Assert(source.Kind == BoundKind.MethodGroup);
-                Debug.Assert(syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType));
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var delegateType = source.GetInferredDelegateType(ref useSiteInfo);
-                Debug.Assert(delegateType is { });
-                conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
-                BoundExpression expr;
-                if (!conversion.Exists)
-                {
-                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, delegateType);
-                    expr = new BoundConversion(syntax, source, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: delegateType, hasErrors: true) { WasCompilerGenerated = source.WasCompilerGenerated };
-                }
-                else
-                {
-                    Debug.Assert(conversion.Kind == ConversionKind.MethodGroup);
-                    expr = CreateMethodGroupConversionCore(syntax, (BoundMethodGroup)source, isAddressOf: false, conversion, isCast, conversionGroup, delegateType, diagnostics);
-                }
-                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                if (!conversion.Exists)
-                {
-                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
-                }
-                diagnostics.Add(syntax, useSiteInfo);
-                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-            else
-            {
-                var (originalGroup, isAddressOf) = source switch
-                {
-                    BoundMethodGroup m => (m, false),
-                    BoundUnconvertedAddressOfOperator { Operand: { } m } => (m, true),
-                    _ => throw ExceptionUtilities.UnexpectedValue(source),
-                };
+                BoundMethodGroup m => (m, false),
+                BoundUnconvertedAddressOfOperator { Operand: { } m } => (m, true),
+                _ => throw ExceptionUtilities.UnexpectedValue(source),
+            };
 
-                return CreateMethodGroupConversionCore(syntax, originalGroup, isAddressOf, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-        }
-
-        private BoundExpression CreateMethodGroupConversionCore(SyntaxNode syntax, BoundMethodGroup originalGroup, bool isAddressOf, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
-        {
-            var group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
+            BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
             bool hasErrors = false;
 
             if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf, destination, diagnostics))

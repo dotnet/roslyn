@@ -568,9 +568,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SyntaxKind.AnonymousMethodExpression:
-                        // PROTOTYPE: If the `delegate () { ... }` is the body of the Expression, we should report
-                        // ERR_AnonymousMethodToExpressionTree instead. See DelegateTypeTests.OverloadResolution_11.
-                        // See also ERR_StatementLambdaToExpressionTree above which we report. This case seems similar.
                         Error(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, node);
                         break;
 

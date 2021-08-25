@@ -2287,11 +2287,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             if (fromAddressOf)
                             {
                                 errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
                             }
-                            else if (targetType.SpecialType == SpecialType.System_Delegate && // PROTOTYPE: What about System.MulticastDelegate or base classes of System.Delegate?
+                            else if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo) &&
+                                !targetType.IsNonGenericExpressionType() &&
                                 syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
                             {
                                 Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
