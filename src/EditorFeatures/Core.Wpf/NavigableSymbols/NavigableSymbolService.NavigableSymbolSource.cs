@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
             private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-            
+
             private bool _disposed;
 
             public NavigableSymbolSource(
