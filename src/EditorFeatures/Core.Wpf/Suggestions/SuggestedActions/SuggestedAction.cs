@@ -134,21 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
                 // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
-                await InvokeCoreAsync(
-                    () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges(),
-                    progressTracker, cancellationToken).ConfigureAwait(true);
+                await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+                    Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
             }
         }
 
-        protected Task InvokeCoreAsync(
-            Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            return Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
-                Provider, () => InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken));
-        }
-
-        private async Task InvokeWorkerAsync(
-            Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        private async Task InvokeWorkerAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -175,7 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    await EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                    await EditHandler.ApplyAsync(
+                        Workspace, document,
                         operations.ToImmutableArray(), CodeAction.Title,
                         progressTracker, cancellationToken).ConfigureAwait(false);
                 }
