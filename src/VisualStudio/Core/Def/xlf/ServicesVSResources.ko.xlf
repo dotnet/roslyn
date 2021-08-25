@@ -1137,6 +1137,11 @@
         <target state="translated">제안</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
         <target state="translated">매개 변수 이름이 메서드의 의도와 일치하는 경우 힌트 표시 안 함</target>
@@ -1145,11 +1150,6 @@
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
         <target state="translated">매개 변수 이름이 접미사만 다른 경우 힌트 표시 안 함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_hints_when_parameter_names_match_argument_names">
-        <source>Suppress hints when parameter names match argument names</source>
-        <target state="new">Suppress hints when parameter names match argument names</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols_without_references">

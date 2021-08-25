@@ -1137,6 +1137,11 @@
         <target state="translated">Suggestion</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
         <target state="translated">Supprimer les indicateurs quand le nom de paramètre correspond à l'intention de la méthode</target>
@@ -1145,11 +1150,6 @@
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
         <target state="translated">Supprimer les indicateurs quand les noms de paramètres ne diffèrent que par le suffixe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_hints_when_parameter_names_match_argument_names">
-        <source>Suppress hints when parameter names match argument names</source>
-        <target state="new">Suppress hints when parameter names match argument names</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols_without_references">
