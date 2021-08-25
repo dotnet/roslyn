@@ -110,6 +110,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public string Name => _variableSymbol.Name;
 
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
+
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;

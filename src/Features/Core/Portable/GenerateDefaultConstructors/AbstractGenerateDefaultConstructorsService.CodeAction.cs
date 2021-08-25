@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
@@ -25,6 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var parameters = constructor.Parameters.Select(p => p.Name);
                 var parameterString = string.Join(", ", parameters);
 
+                Contract.ThrowIfNull(state.ClassType);
                 return string.Format(FeaturesResources.Generate_constructor_0_1,
                     state.ClassType.Name, parameterString);
             }

@@ -1425,6 +1425,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
             => ((ParameterSyntax)node).Identifier;
 
+        public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
+            => node switch
+            {
+                BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
+
         public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
             => ((IdentifierNameSyntax)node).Identifier;
 
