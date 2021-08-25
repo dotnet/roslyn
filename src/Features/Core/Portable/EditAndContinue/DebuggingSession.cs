@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
-            => RestartEditSession(nonRemappableRegions: null, inBreakState: true, out documentsToReanalyze);
+        public void BreakStateChanged(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+            => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
 
         internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
