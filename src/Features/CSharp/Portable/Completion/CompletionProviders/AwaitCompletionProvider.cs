@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return dotToken;
         }
 
-        private protected override bool IsDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private protected override DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var position = syntaxContext.Position;
             var syntaxTree = syntaxContext.SyntaxTree;
@@ -109,8 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var semanticModel = syntaxContext.SemanticModel;
                 var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
-                var isAwaitable = symbol?.IsAwaitableNonDynamic(semanticModel, position);
-                if (isAwaitable == true)
+                if (symbol is not null && symbol.IsAwaitableNonDynamic(semanticModel, position))
                 {
                     var parentOfAwaitable = potentialAwaitableExpression.Parent;
                     if (parentOfAwaitable is not AwaitExpressionSyntax)
@@ -119,12 +118,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         // We need to check if await is valid at the insertion position.
                         var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
                             syntaxContext.Workspace, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
-                        return syntaxContextAtInsertationPosition.IsAwaitKeywordContext();
+                        if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
+                        {
+                            return IsConfigureAwaitable(symbol)
+                                ? DotAwaitContext.AwaitAndConfigureAwait
+                                : DotAwaitContext.AwaitOnly;
+                        }
                     }
                 }
             }
 
-            return false;
+            return DotAwaitContext.None;
 
             static ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
             {
@@ -151,6 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
+            }
+
+            static bool IsConfigureAwaitable(ITypeSymbol symbol)
+            {
+                const string TaskNameSpace = "System.Threading.Tasks";
+                return symbol.OriginalDefinition.ToSignatureDisplayString() is $"{TaskNameSpace}.Task" or $"{TaskNameSpace}.Task<TResult>";
             }
         }
     }

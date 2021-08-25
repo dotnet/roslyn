@@ -27,16 +27,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         private async Task VerifyAbsenceAsync(string code)
         {
             await VerifyItemIsAbsentAsync(code, "await");
+            await VerifyItemIsAbsentAsync(code, "awaitF");
         }
 
         private async Task VerifyAbsenceAsync(string code, LanguageVersion languageVersion)
         {
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "await");
+            await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "awaitF");
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool includeingAwaitf = false)
         {
             await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "await", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
+            if (includeingAwaitf)
+            {
+                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "awaitF", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "awaitF");
+            }
         }
 
         [Fact]
@@ -293,7 +303,23 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9);
+", LanguageVersion.CSharp9, includeingAwaitf: true);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitSuggestAfterDotOnTaskOfT()
+        {
+            await VerifyKeywordAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+  async Task F(Task<int> someTask)
+  {
+    someTask.$$
+  }
+}
+", LanguageVersion.CSharp9, includeingAwaitf: true);
         }
 
         [Fact]
@@ -361,7 +387,7 @@ static class Program
     {
         someTask.$$.;
     }
-}", LanguageVersion.CSharp9);
+}", LanguageVersion.CSharp9, includeingAwaitf: true);
         }
 
         [Fact]
@@ -378,7 +404,7 @@ static class Program
         someTask.$$
         Int32 i = 0;
     }
-}", LanguageVersion.CSharp9);
+}", LanguageVersion.CSharp9, includeingAwaitf: true);
         }
 
         [Fact]
@@ -397,7 +423,7 @@ static class Program
     }
 
     async Task Test() { }
-}", LanguageVersion.CSharp9);
+}", LanguageVersion.CSharp9, includeingAwaitf: true);
         }
 
         [Theory]
@@ -464,7 +490,7 @@ static class Program
 
         Task LocalFunction() => Task.CompletedTask;
     }}
-}}", LanguageVersion.CSharp9);
+}}", LanguageVersion.CSharp9, includeingAwaitf: true);
         }
 
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]

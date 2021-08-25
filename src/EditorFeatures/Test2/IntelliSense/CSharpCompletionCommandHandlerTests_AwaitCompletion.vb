@@ -435,7 +435,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -590,6 +590,44 @@ static class Program
 }}
 ", state.GetDocumentText())
                 Await state.AssertLineTextAroundCaret($"        {committed}", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAppendsConfigureAwait() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        Task.CompletedTask.$$
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitF")
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+                state.SendTypeChars("f")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitF", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask.ConfigureAwait(false)
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask.ConfigureAwait(false)", "")
             End Using
         End Function
     End Class

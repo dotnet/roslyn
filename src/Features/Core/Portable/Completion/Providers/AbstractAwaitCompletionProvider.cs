@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -27,7 +29,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             AddAwaitAtCursor = 1,
             AddAwaitBeforeDotExpression = 2,
-            MakeContainerAsync = 4,
+            AppendConfigureAwait = 4,
+            MakeContainerAsync = 8,
+        }
+
+        protected enum DotAwaitContext
+        {
+            None,
+            AwaitOnly,
+            AwaitAndConfigureAwait,
         }
 
         /// <summary>
@@ -44,8 +54,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         ///   await someTask.$$ // Don't suggest await completion
         /// </code>
         /// </summary>
-        /// <returns><see langword="true"/>, if await should be suggested for the expression left of the dot.</returns>
-        private protected abstract bool IsDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken);
+        /// <returns>
+        ///     <see cref="DotAwaitContext.None"/>, if await can not be suggested for the expression left of the dot.
+        ///     <see cref="DotAwaitContext.AwaitOnly"/>, if await should be suggested for the expression left of the dot, but ConfigureAwait(false) not.
+        ///     <see cref="DotAwaitContext.AwaitAndConfigureAwait"/>, if await should be suggested for the expression left of the dot and ConfigureAwait(false).
+        /// </returns>
+        private protected abstract DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken);
 
         private protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         private protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -67,17 +81,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(workspace, semanticModel, position, cancellationToken);
 
             var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext();
-            var isDotAwaitContext = IsDotAwaitKeywordContext(syntaxContext, cancellationToken);
-            Debug.Assert(!(isAwaitKeywordContext && isDotAwaitContext), "isDotAwaitContext and isAwaitKeywordContext should never be both true.");
-            if (!isAwaitKeywordContext && !isDotAwaitContext)
+            var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
+            Debug.Assert(!(isAwaitKeywordContext && (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)), "isDotAwaitContext and isAwaitKeywordContext should never be both true.");
+            if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
             {
                 return;
             }
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-            var completionItem = GetCompletionItem(syntaxContext.TargetToken, isAwaitKeywordContext, isDotAwaitContext, generator, syntaxKinds, syntaxFacts);
-            context.AddItem(completionItem);
+            var completionItems = GetCompletionItems(syntaxContext.TargetToken, isAwaitKeywordContext, dotAwaitContext, generator, syntaxKinds, syntaxFacts);
+            context.AddItems(completionItems);
         }
 
         public sealed override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
@@ -109,9 +123,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
             }
 
+            var awaitKeyword = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
             if ((completionChangeEdit & CompletionChangeEdit.AddAwaitAtCursor) != 0)
             {
-                builder.Add(new TextChange(item.Span, item.DisplayText));
+                builder.Add(new TextChange(item.Span, awaitKeyword));
             }
 
             if ((completionChangeEdit & CompletionChangeEdit.AddAwaitBeforeDotExpression) != 0)
@@ -119,13 +134,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var position = item.Span.Start;
                 var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
                 var expr = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
-                if (expr is not null && dotToken.HasValue)
-                {
-                    // place "await" in front of expr
-                    builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), item.DisplayText + " "));
-                    // remove any remains after dot, including the dot token
-                    builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), ""));
-                }
+                Contract.ThrowIfFalse(dotToken.HasValue);
+                Contract.ThrowIfNull(expr);
+                // place "await" in front of expr
+                builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), awaitKeyword + " "));
+
+                // remove any remains after dot, including the dot token and optionally append .ConfigureAwait(false)
+                var replacementText = (completionChangeEdit & CompletionChangeEdit.AppendConfigureAwait) != 0
+                    ? $".ConfigureAwait({syntaxFacts.GetText(syntaxKinds.FalseKeyword)})"
+                    : "";
+                builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -141,29 +159,51 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return declaration is not null && !generator.GetModifiers(declaration).IsAsync;
         }
 
-        private CompletionItem GetCompletionItem(SyntaxToken token, bool isAwaitKeywordContext, bool isDotAwaitContext, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)
+        private IEnumerable<CompletionItem> GetCompletionItems(SyntaxToken token, bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)
         {
             var shouldMakeContainerAsync = ShouldMakeContainerAsync(token, generator);
             var text = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
-            var completionChangeEdit = GetCompletionChangeEdit(isAwaitKeywordContext, isDotAwaitContext, shouldMakeContainerAsync);
+            if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
+            {
+                // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
+                // This case adds "await"
+                var completionChangeEditForAwaitOnly = GetCompletionChangeEdit(isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
+                yield return CreateCompletionItem(completionChangeEditForAwaitOnly);
 
-            return CommonCompletionItem.Create(
-                displayText: text,
-                displayTextSuffix: "",
-                rules: CompletionItemRules.Default,
-                Glyph.Keyword,
-                description: RecommendedKeyword.CreateDisplayParts(text, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
-                inlineDescription: shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null,
-                isComplexTextEdit: shouldMakeContainerAsync || isDotAwaitContext,
-                properties: ImmutableDictionary.Create<string, string>().Add(nameof(CompletionChangeEdit), completionChangeEdit.ToString()));
+            }
 
-            static CompletionChangeEdit GetCompletionChangeEdit(bool isAwaitKeywordContext, bool isDotAwaitContext, bool shouldMakeContainerAsync)
+            var completionChangeEdit = GetCompletionChangeEdit(isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
+            if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
+                text += "F";
+
+            yield return CreateCompletionItem(completionChangeEdit);
+
+            CompletionItem CreateCompletionItem(CompletionChangeEdit completionChangeEdit)
+            {
+                var inlineDescription = shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null; // TODO: Description for ConfigureAwait(false)
+                var isComplexTextEdit = (completionChangeEdit & // Any of the flags
+                    (CompletionChangeEdit.AddAwaitBeforeDotExpression | CompletionChangeEdit.AppendConfigureAwait | CompletionChangeEdit.MakeContainerAsync)) != 0;
+
+                return CommonCompletionItem.Create(
+                    displayText: text,
+                    displayTextSuffix: "",
+                    rules: CompletionItemRules.Default,
+                    Glyph.Keyword,
+                    description: RecommendedKeyword.CreateDisplayParts(text, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
+                    inlineDescription: inlineDescription,
+                    isComplexTextEdit: isComplexTextEdit,
+                    properties: ImmutableDictionary.Create<string, string>().Add(nameof(CompletionChangeEdit), completionChangeEdit.ToString()));
+            }
+
+            static CompletionChangeEdit GetCompletionChangeEdit(bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, bool shouldMakeContainerAsync)
             {
                 var codeActionEdit = default(CompletionChangeEdit);
                 if (isAwaitKeywordContext)
                     codeActionEdit |= CompletionChangeEdit.AddAwaitAtCursor;
-                if (isDotAwaitContext)
+                if (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)
                     codeActionEdit |= CompletionChangeEdit.AddAwaitBeforeDotExpression;
+                if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
+                    codeActionEdit |= CompletionChangeEdit.AppendConfigureAwait;
                 if (shouldMakeContainerAsync)
                     codeActionEdit |= CompletionChangeEdit.MakeContainerAsync;
                 return codeActionEdit;

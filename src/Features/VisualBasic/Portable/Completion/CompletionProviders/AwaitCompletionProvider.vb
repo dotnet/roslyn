@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
         End Function
 
-        Private Protected Overrides Function IsDotAwaitKeywordContext(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As Boolean
-            Return False
+        Private Protected Overrides Function GetDotAwaitKeywordContext(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As DotAwaitContext
+            Return DotAwaitContext.None
         End Function
 
         Private Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
