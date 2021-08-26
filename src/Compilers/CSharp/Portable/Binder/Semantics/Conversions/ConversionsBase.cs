@@ -2573,11 +2573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitFunctionTypeConversion(FunctionTypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (source.GetInternalDelegateType() is null)
-            {
-                return false;
-            }
-
             if (destination is FunctionTypeSymbol destinationFunctionType)
             {
                 return HasImplicitSignatureConversion(source, destinationFunctionType, ref useSiteInfo);
@@ -2612,11 +2607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sourceDelegate = sourceType.GetInternalDelegateType();
             var destinationDelegate = destinationType.GetInternalDelegateType();
-
-            if (sourceDelegate is null || destinationDelegate is null)
-            {
-                return false;
-            }
 
             // https://github.com/dotnet/roslyn/issues/55909: We're relying on the variance of
             // FunctionTypeSymbol.GetInternalDelegateType() which fails for synthesized

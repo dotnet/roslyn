@@ -22,20 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol();
 
-        private const SymbolKind s_SymbolKind = (SymbolKind)255;
-        private const TypeKind s_TypeKind = (TypeKind)255;
-
-#if DEBUG
-        static FunctionTypeSymbol()
-        {
-            // Verify the SymbolKind and TypeKind values are not existing values in the enums.
-            Debug.Assert(isDistinctValue(s_SymbolKind));
-            Debug.Assert(isDistinctValue(s_TypeKind));
-
-            static bool isDistinctValue<TEnum>(TEnum value) => Array.IndexOf(Enum.GetValues(typeof(TEnum)), value) < 0;
-        }
-#endif
-
         private readonly AssemblySymbol? _assembly;
         private readonly NamedTypeSymbol _delegateType;
 
@@ -57,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsValueType => false;
 
-        public override TypeKind TypeKind => s_TypeKind;
+        public override TypeKind TypeKind => TypeKindInternal.FunctionType;
 
         public override bool IsRefLikeType => false;
 
         public override bool IsReadOnly => true;
 
-        public override SymbolKind Kind => s_SymbolKind;
+        public override SymbolKind Kind => SymbolKindInternal.FunctionType;
 
         public override Symbol? ContainingSymbol => _assembly;
 
