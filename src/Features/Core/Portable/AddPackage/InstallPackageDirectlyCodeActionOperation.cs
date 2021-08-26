@@ -72,10 +72,9 @@ namespace Microsoft.CodeAnalysis.AddPackage
         internal override Task<bool> TryApplyAsync(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var result = _installerService.TryInstallPackage(
+            return _installerService.TryInstallPackageAsync(
                 workspace, _document.Id, _source, _packageName,
                 _versionOpt, _includePrerelease, progressTracker, cancellationToken);
-            return result ? SpecializedTasks.True : SpecializedTasks.False;
         }
     }
 }
