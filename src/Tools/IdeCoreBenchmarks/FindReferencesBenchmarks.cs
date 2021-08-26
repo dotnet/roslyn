@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -29,7 +28,6 @@ namespace IdeCoreBenchmarks
     public class FindReferencesBenchmarks
     {
         [Benchmark]
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Benchmarks are equivalent to test methods")]
         public async Task RunFindReferences()
         {
             try
