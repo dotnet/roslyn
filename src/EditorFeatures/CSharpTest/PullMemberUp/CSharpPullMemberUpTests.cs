@@ -5557,11 +5557,11 @@ class Base
 
 class Derived : Base
 {
-    [Fo[||]o]
+    [Go[||]o]
     public int TestInt = string.Empty.Length;
 }
 
-internal class FooAttribute : Attribute
+internal class GooAttribute : Attribute
 {
 }";
 
