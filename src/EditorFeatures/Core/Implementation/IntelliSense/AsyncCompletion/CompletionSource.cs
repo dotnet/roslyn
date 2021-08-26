@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -29,6 +30,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -60,16 +62,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(
             ITextView textView,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            VSUtilities.IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             _textView = textView;
             _streamingPresenter = streamingPresenter;
+            _operationExecutor = operationExecutor;
+            _asyncListener = asyncListener;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
         }
@@ -369,19 +377,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return null;
-            }
 
             var service = document.GetLanguageService<CompletionService>();
             if (service == null)
-            {
                 return null;
-            }
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var context = new IntellisenseQuickInfoBuilderContext(document, ThreadingContext, _streamingPresenter);
+            var context = new IntellisenseQuickInfoBuilderContext(
+                document, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
             var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)
             {

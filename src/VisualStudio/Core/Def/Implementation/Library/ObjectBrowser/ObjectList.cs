@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -744,19 +745,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         protected override async Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType)
         {
-            using var token = _manager.AsynchronousOperationListener.BeginAsyncOperation(nameof(GoToSourceAsync));
-            using var context = _manager.OperationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
-
-            var cancellationToken = context.UserCancellationToken;
-            if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&
-                GetListItem(index) is SymbolListItem symbolItem &&
-                symbolItem.SupportsGoToDefinition)
+            try
             {
-                var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolItem.ProjectId);
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = symbolItem.ResolveSymbol(compilation);
+                using var token = _manager.AsynchronousOperationListener.BeginAsyncOperation(nameof(GoToSourceAsync));
+                using var context = _manager.OperationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
-                await this.LibraryManager.Workspace.TryGoToDefinitionAsync(symbol, project, cancellationToken).ConfigureAwait(false);
+                var cancellationToken = context.UserCancellationToken;
+                if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&
+                    GetListItem(index) is SymbolListItem symbolItem &&
+                    symbolItem.SupportsGoToDefinition)
+                {
+                    var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolItem.ProjectId);
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var symbol = symbolItem.ResolveSymbol(compilation);
+
+                    await this.LibraryManager.Workspace.TryGoToDefinitionAsync(symbol, project, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
             }
         }
 
