@@ -914,6 +914,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
                 }
 
+                // log capabilities for edit sessions with changes or reported errors:
+                if (isBlocked || deltas.Count > 0)
+                {
+                    Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
+                }
+
                 var update = isBlocked ?
                     SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable()) :
                     new SolutionUpdate(

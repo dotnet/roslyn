@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -15,11 +16,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind)> RudeEdits;
             public readonly ImmutableArray<string> EmitErrorIds;
+            public readonly EditAndContinueCapabilities Capabilities;
             public readonly bool HadCompilationErrors;
             public readonly bool HadRudeEdits;
             public readonly bool HadValidChanges;
             public readonly bool HadValidInsignificantChanges;
             public readonly bool InBreakState;
+            public readonly bool IsEmpty;
 
             public Data(EditSessionTelemetry telemetry)
             {
@@ -30,9 +33,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 HadValidChanges = telemetry._hadValidChanges;
                 HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
                 InBreakState = telemetry._inBreakState;
+                Capabilities = telemetry._capabilities;
+                IsEmpty = telemetry.IsEmpty;
             }
-
-            public bool IsEmpty => !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
 
         private readonly object _guard = new();
@@ -46,6 +49,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private bool _hadValidInsignificantChanges;
         private bool _inBreakState;
 
+        private EditAndContinueCapabilities _capabilities;
+
         public Data GetDataAndClear()
         {
             lock (_guard)
@@ -58,9 +63,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _hadValidChanges = false;
                 _hadValidInsignificantChanges = false;
                 _inBreakState = false;
+                _capabilities = EditAndContinueCapabilities.None;
                 return data;
             }
         }
+
+        public bool IsEmpty => !(_hadCompilationErrors || _hadRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
 
         public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<string> errorsIds, bool inBreakState)
         {
@@ -107,6 +115,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SyntaxKind));
                 }
+            }
+        }
+
+        public void LogRuntimeCapabilities(EditAndContinueCapabilities capabilities)
+        {
+            lock (_guard)
+            {
+                Debug.Assert(_capabilities == EditAndContinueCapabilities.None || _capabilities == capabilities);
+                _capabilities = capabilities;
             }
         }
     }
