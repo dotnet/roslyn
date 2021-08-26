@@ -119,6 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             return true;
         }
 
+        [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
+        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
+
         public override async Task<bool> TryGoToDefinitionAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
