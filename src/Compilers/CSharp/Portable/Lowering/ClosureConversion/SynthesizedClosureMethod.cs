@@ -105,6 +105,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
         }
 
+        internal void AfterCreate(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        {
+            var moduleBuilder = compilationState.ModuleBuilderOpt;
+            var compilation = compilationState.Compilation;
+
+            Debug.Assert(moduleBuilder is { });
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                moduleBuilder.EnsureIsReadOnlyAttributeExists();
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+
+            if (ReturnType.ContainsNativeInteger())
+            {
+                moduleBuilder.EnsureNativeIntegerAttributeExists();
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+
+            if (compilation.ShouldEmitNullableAttributes(this))
+            {
+                if (ShouldEmitNullableContextValue(out _))
+                {
+                    moduleBuilder.EnsureNullableContextAttributeExists();
+                }
+
+                if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+                {
+                    moduleBuilder.EnsureNullableAttributeExists();
+                }
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
+        }
+
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
         {
             var mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;

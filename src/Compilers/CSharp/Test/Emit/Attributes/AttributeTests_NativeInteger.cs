@@ -1075,8 +1075,15 @@ class Program
         return f();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            AssertNoNativeIntegerAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular9,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<M>b__0_0");
+                    AssertNativeIntegerAttribute(method.GetReturnTypeAttributes());
+                });
         }
 
         [Fact]
@@ -1092,8 +1099,15 @@ class Program
         a(null);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            AssertNoNativeIntegerAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular9,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<M>b__0_0");
+                    AssertNativeIntegerAttribute(method.Parameters[0].GetAttributes());
+                });
         }
 
         [Fact]

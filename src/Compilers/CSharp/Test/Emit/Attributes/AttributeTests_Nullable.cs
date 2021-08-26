@@ -2160,8 +2160,17 @@ class C
         F((object? o) => { });
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            AssertNoNullableAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<G>b__1_0");
+                    AssertAttributes(method.GetAttributes(), "System.Runtime.CompilerServices.NullableContextAttribute");
+                    AssertAttributes(method.GetReturnTypeAttributes());
+                    AssertAttributes(method.Parameters[0].GetAttributes());
+                });
         }
 
         // See https://github.com/dotnet/roslyn/issues/28862.
@@ -4961,6 +4970,128 @@ public class A
             System.Object! value
 ";
             AssertNullableAttributes(comp, expected);
+        }
+
+        private static MetadataReference GetAnnotationUtilsLibrary()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+
+public static class Utils
+{
+    public static string GetAnnotations(this Delegate d)
+    {
+        var method = d.Method;
+        var builder = new StringBuilder();
+        var contextValue = GetContextValue(method);
+        GetTypeAndAnnotation(builder, method.ReturnType, method.ReturnParameter.GetCustomAttributes(), contextValue);
+        builder.Append("" "");
+        builder.Append(method.DeclaringType.FullName);
+        builder.Append(""."");
+        builder.Append(method.Name);
+        builder.Append(""("");
+        foreach (var parameter in method.GetParameters())
+        {
+            GetTypeAndAnnotation(builder, parameter.ParameterType, parameter.GetCustomAttributes(), contextValue);
+            builder.Append("" "");
+            builder.Append(parameter.Name);
+        }
+        builder.Append("")"");
+        return builder.ToString();
+    }
+
+    private static int GetContextValue(MemberInfo member)
+    {
+        if (GetAttribute(member.GetCustomAttributes(), ""System.Runtime.CompilerServices.NullableContextAttribute"") is { } attribute)
+        {
+            var field = attribute.GetType().GetField(""Flag"");
+            return (int)(byte)field.GetValue(attribute);
+        }
+        if (member.DeclaringType is { } declaringType)
+        {
+            return GetContextValue(declaringType);
+        }
+        return 0;
+    }
+
+    private static void GetTypeAndAnnotation(StringBuilder builder, Type type, IEnumerable<Attribute> attributes, int contextValue)
+    {
+        builder.Append(type.FullName);
+        if (type.IsValueType)
+        {
+            return;
+        }
+        int value = contextValue;
+        if (GetAttribute(attributes, ""System.Runtime.CompilerServices.NullableAttribute"") is { } attribute)
+        {
+            var field = attribute.GetType().GetField(""NullableFlags"");
+            var bytes = (byte[])field.GetValue(attribute);
+            value = bytes.SingleOrDefault();
+        }
+        switch (value)
+        {
+            case 1:
+                builder.Append(""!"");
+                break;
+            case 2:
+                builder.Append(""?"");
+                break;
+        }
+    }
+
+    private static Attribute GetAttribute(IEnumerable<Attribute> attributes, string typeName)
+    {
+        return attributes.SingleOrDefault(attr => attr.GetType().FullName == typeName);
+    }
+}";
+            var comp = CreateCompilation(source);
+            return comp.EmitToImageReference();
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_01()
+        {
+            var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"", (string? name) => $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"", (string? name) => { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String? name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String? name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Report(Delegate d) => Console.WriteLine(d.GetAnnotations());
+    static void Main()
+    {
+#nullable enable
+        Report((string? s) => { });
+        object? f(string s) => null;
+        Report(f);
+    }
+}";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.Void Program+<>c.<Main>b__1_0(System.String? s)
+System.Object? Program.<Main>g__f|1_1(System.String! s)
+");
         }
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
