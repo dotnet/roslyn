@@ -81,7 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _classificationTypeMap,
                 tagAggregator,
                 editorFormatMap,
-                optionService, listener, document.Project.Language);
+                optionService,
+                listener,
+                document.Project.Language);
         }
     }
 }
