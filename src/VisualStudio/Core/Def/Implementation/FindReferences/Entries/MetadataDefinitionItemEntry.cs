@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -33,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => DefinitionBucket.DefinitionItem.TryNavigateTo(
+            Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+                => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
                     Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             protected override IList<Inline> CreateLineTextInlines()

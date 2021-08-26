@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -69,6 +70,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return CanNavigateToSpanReturnValue
             End Function
 
+            Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
+                Me.ProvidedDocumentId = documentId
+                Me.ProvidedTextSpan = textSpan
+
+                Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
+            End Function
+
             Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As OptionSet, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedLineNumber = lineNumber
@@ -93,6 +101,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Me.ProvidedOptions = options
 
                 Return TryNavigateToSpanReturnValue
+            End Function
+
+            Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
+                Me.ProvidedDocumentId = documentId
+                Me.ProvidedTextSpan = textSpan
+                Me.ProvidedOptions = options
+
+                Return If(TryNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
         End Class
     End Class
