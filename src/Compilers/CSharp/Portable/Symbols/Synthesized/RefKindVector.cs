@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool TryParse(string refKindString, int capacity, out RefKindVector result)
         {
             ulong? firstWord = null;
-            List<ulong>? otherWords = null;
+            ArrayBuilder<ulong>? otherWords = null;
             foreach (var word in refKindString.Split(','))
             {
                 ulong value;
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    otherWords ??= new List<ulong>();
+                    otherWords ??= ArrayBuilder<ulong>.GetInstance();
                     otherWords.Add(value);
                 }
             }
 
             Debug.Assert(firstWord is not null);
 
-            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArray() ?? s_emptyBits, capacity * 2);
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? s_emptyBits, capacity * 2);
             result = new RefKindVector(bitVector);
             return true;
         }
