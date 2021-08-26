@@ -14,7 +14,7 @@
 
     <!--
       Skipped because we appear to be missing things necessary to compile vb.net.
-      See https://github.com/mono/mono/issues/10679 
+      See https://github.com/mono/mono/issues/10679
     -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
@@ -36,6 +36,8 @@
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

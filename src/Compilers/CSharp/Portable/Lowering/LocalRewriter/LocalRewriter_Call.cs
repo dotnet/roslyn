@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
                     var creation = (BoundObjectCreationExpression)interpolationData.Construction;
 
-                    if (creation.Arguments.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 3 : 2))
+                    if (interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
                     {
                         Debug.Assert(!((BoundConversion)argument).ExplicitCastInCode);
 

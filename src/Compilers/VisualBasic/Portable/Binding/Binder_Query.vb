@@ -1970,11 +1970,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim inferenceLambda As New GroupTypeInferenceLambda(groupBy, Me,
                                                                         (New ParameterSymbol() {
-                                    CreateQueryLambdaParameterSymbol(StringConstants.It1,
+                                    CreateQueryLambdaParameterSymbol(GeneratedNameConstants.It1,
                                                                    0,
                                                                    keysLambda.Expression.Type,
                                                                    groupBy, keysRangeVariables),
-                                    CreateQueryLambdaParameterSymbol(StringConstants.It2,
+                                    CreateQueryLambdaParameterSymbol(GeneratedNameConstants.It2,
                                                                    1,
                                                                    Nothing,
                                                                    groupBy)}).AsImmutableOrNull(),
@@ -2050,11 +2050,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim inferenceLambda As New GroupTypeInferenceLambda(groupJoin, Me,
                                                                         (New ParameterSymbol() {
-                                    CreateQueryLambdaParameterSymbol(StringConstants.It1,
+                                    CreateQueryLambdaParameterSymbol(GeneratedNameConstants.It1,
                                                                    0,
                                                                    outer.CompoundVariableType,
                                                                    groupJoin, outer.RangeVariables),
-                                    CreateQueryLambdaParameterSymbol(StringConstants.It2,
+                                    CreateQueryLambdaParameterSymbol(GeneratedNameConstants.It2,
                                                                    1,
                                                                    Nothing,
                                                                    groupJoin)}).AsImmutableOrNull(),
@@ -2118,7 +2118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                           keysCompoundVariableType,
                                                                                           clauseSyntax, keysRangeVariables)
 
-            Dim groupParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(StringConstants.ItAnonymous, 1,
+            Dim groupParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GeneratedNameConstants.ItAnonymous, 1,
                                                                                             groupType, clauseSyntax)
 
             Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(clauseSyntax))
@@ -2205,22 +2205,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetQueryLambdaParameterName(rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As String
             Select Case rangeVariables.Length
                 Case 0
-                    Return StringConstants.ItAnonymous
+                    Return GeneratedNameConstants.ItAnonymous
                 Case 1
                     Return rangeVariables(0).Name
                 Case Else
-                    Return StringConstants.It
+                    Return GeneratedNameConstants.It
             End Select
         End Function
 
         Private Shared Function GetQueryLambdaParameterNameLeft(rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As String
             Select Case rangeVariables.Length
                 Case 0
-                    Return StringConstants.ItAnonymous
+                    Return GeneratedNameConstants.ItAnonymous
                 Case 1
                     Return rangeVariables(0).Name
                 Case Else
-                    Return StringConstants.It1
+                    Return GeneratedNameConstants.It1
             End Select
         End Function
 
@@ -2231,7 +2231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case 1
                     Return rangeVariables(0).Name
                 Case Else
-                    Return StringConstants.It2
+                    Return GeneratedNameConstants.It2
             End Select
         End Function
 
@@ -3096,7 +3096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
 
                         ' Handle selector for the Let.
-                        groupRangeVar = RangeVariableSymbol.CreateCompilerGenerated(Me, aggregate, StringConstants.Group, group.Type)
+                        groupRangeVar = RangeVariableSymbol.CreateCompilerGenerated(Me, aggregate, GeneratedNameConstants.Group, group.Type)
 
                         If _rangeVariables.Length = 0 Then
                             letSelector = group

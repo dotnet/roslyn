@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
             {
-                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
+                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
             }
 
             if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
@@ -194,11 +194,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
+
             if (commonRoot == null)
             {
                 return new SelectionInfo
                 {
                     Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_common_root_node_for_extraction),
+                    OriginalSpan = adjustedSpan,
+                    FirstTokenInOriginalSpan = firstTokenInSelection,
+                    LastTokenInOriginalSpan = lastTokenInSelection
+                };
+            }
+
+            if (!commonRoot.ContainedInValidType())
+            {
+                return new SelectionInfo
+                {
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection

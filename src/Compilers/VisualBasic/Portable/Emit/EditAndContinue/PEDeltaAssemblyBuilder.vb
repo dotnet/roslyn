@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
@@ -121,25 +122,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         ' friend for testing
         Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
+            ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
+            ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
+
             Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
                     Continue For
                 End If
-                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousTypeOrDelegateCommonPrefix) Then
+
+                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNameConstants.AnonymousTypeOrDelegateCommonPrefix) Then
                     Continue For
                 End If
+
                 Dim metadataName = reader.GetString(def.Name)
                 Dim arity As Short = 0
                 Dim name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, arity)
+
                 Dim index As Integer = 0
-                If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
+                If TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
-                ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
+                ElseIf TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
@@ -147,6 +155,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             Next
             Return result
+        End Function
+
+        Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
+            If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
+                Return True
+            End If
+            index = -1
+            Return False
         End Function
 
         Private Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As AnonymousTypeKey
