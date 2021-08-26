@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static readonly Option<StorageDatabase> Database = new(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
 
         /// <summary>
         /// Option that can be set in certain scenarios (like tests) to indicate that the client expects the DB to
