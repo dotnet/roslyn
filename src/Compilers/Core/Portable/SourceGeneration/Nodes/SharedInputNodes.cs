@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>(b => ImmutableArray.Create(b.DriverState.OptionsProvider));
 
-        public static readonly InputNode<MetadataReference> MetadataReferences = new InputNode<MetadataReference>(b => b.Compilation.References.AsImmutable());
+        public static readonly InputNode<MetadataReference> MetadataReferences = new InputNode<MetadataReference>(b => b.Compilation.ExternalReferences);
     }
 }
