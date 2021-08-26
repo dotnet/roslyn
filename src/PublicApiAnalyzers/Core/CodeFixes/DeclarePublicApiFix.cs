@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
     public sealed class DeclarePublicApiFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

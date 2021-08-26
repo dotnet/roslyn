@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "NullableEnablePublicApiFix"), Shared]
     public sealed class NullableEnablePublicApiFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(DiagnosticIds.ShouldAnnotateApiFilesRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(DiagnosticIds.ShouldAnnotateApiFilesRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
