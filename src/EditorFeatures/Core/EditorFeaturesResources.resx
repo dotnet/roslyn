@@ -1089,4 +1089,7 @@ Do you want to proceed?</value>
   <data name="Inline_Diagnostics_Warning" xml:space="preserve">
     <value>Inline Diagnostics - Warning</value>
   </data>
+  <data name="Execute_Suggested_Action" xml:space="preserve">
+    <value>Execute Suggested Action</value>
+  </data>
 </root>
