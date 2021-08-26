@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal struct RefKindVector : IEquatable<RefKindVector>
     {
-        private static readonly ulong[] s_emptyBits = Array.Empty<ulong>();
-
         private BitVector _bits;
 
         internal static RefKindVector Create(int capacity)
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(firstWord is not null);
 
-            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? s_emptyBits, capacity * 2);
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? Array.Empty<ulong>(), capacity * 2);
             result = new RefKindVector(bitVector);
             return true;
         }

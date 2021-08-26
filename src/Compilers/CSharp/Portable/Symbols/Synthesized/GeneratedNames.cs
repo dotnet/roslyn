@@ -352,6 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal const string ActionDelegateNamePrefix = "<>A";
         internal const string FuncDelegateNamePrefix = "<>F";
+        private const int DelegateNamePrefixLength = 3;
+        private const int DelegateNamePrefixLengthWithOpenBrace = 4;
 
         /// <summary>
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
@@ -375,26 +377,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
+            byRefs = default;
+            parameterCount = 0;
+            generation = 0;
+
             name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
 
             returnsVoid = name.StartsWith(ActionDelegateNamePrefix);
-            generation = 0;
 
-            Debug.Assert(returnsVoid || name.StartsWith(FuncDelegateNamePrefix));
-            if (name[3] != '{')
+            if (!returnsVoid && !name.StartsWith(FuncDelegateNamePrefix))
             {
-                byRefs = default;
-                parameterCount = 0;
+                return false;
+            }
+
+            // The character after the prefix should be an open brace
+            if (name[DelegateNamePrefixLength] != '{')
+            {
                 return false;
             }
 
             parameterCount = arity - (returnsVoid ? 0 : 1);
 
             var lastBraceIndex = name.LastIndexOf('}');
+            if (lastBraceIndex < 0)
+            {
+                return false;
+            }
 
-            // The prefix is 3 characters long, plus one for the open brace, so ref kinds start at 4
-            var startIndex = (ActionDelegateNamePrefix + "{").Length;
-            var refKindString = name[startIndex..lastBraceIndex];
+            // The ref kind string is between the two braces
+            var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..lastBraceIndex];
 
             if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
             {
