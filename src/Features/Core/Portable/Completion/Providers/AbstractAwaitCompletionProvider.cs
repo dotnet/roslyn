@@ -24,13 +24,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// </summary>
     internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     {
-        [Flags]
-        private enum CompletionChangeEdit
+        private static class AwaitCompletionChange
         {
-            AddAwaitAtCursor = 1,
-            AddAwaitBeforeDotExpression = 2,
-            AppendConfigureAwait = 4,
-            MakeContainerAsync = 8,
+            public const string AddAwaitAtCursor = nameof(AwaitCompletionChange) + "." + nameof(AddAwaitAtCursor);
+            public const string AddAwaitBeforeDotExpression = nameof(AwaitCompletionChange) + "." + nameof(AddAwaitBeforeDotExpression);
+            public const string AppendConfigureAwait = nameof(AwaitCompletionChange) + "." + nameof(AppendConfigureAwait);
+            public const string MakeContainerAsync = nameof(AwaitCompletionChange) + "." + nameof(MakeContainerAsync);
         }
 
         protected enum DotAwaitContext
@@ -102,13 +101,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
-            var completionChangeEdit = (CompletionChangeEdit)Enum.Parse(typeof(CompletionChangeEdit), item.Properties[nameof(CompletionChangeEdit)]);
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxKinds = syntaxFacts.SyntaxKinds;
+            var properties = item.Properties;
 
-            if ((completionChangeEdit & CompletionChangeEdit.MakeContainerAsync) != 0)
+            if (properties.ContainsKey(AwaitCompletionChange.MakeContainerAsync))
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var declaration = GetAsyncSupportingDeclaration(root.FindToken(item.Span.Start));
@@ -124,12 +123,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var awaitKeyword = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
-            if ((completionChangeEdit & CompletionChangeEdit.AddAwaitAtCursor) != 0)
+            if (properties.ContainsKey(AwaitCompletionChange.AddAwaitAtCursor))
             {
                 builder.Add(new TextChange(item.Span, awaitKeyword));
             }
 
-            if ((completionChangeEdit & CompletionChangeEdit.AddAwaitBeforeDotExpression) != 0)
+            if (properties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression))
             {
                 var position = item.Span.Start;
                 var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), awaitKeyword + " "));
 
                 // remove any remains after dot, including the dot token and optionally append .ConfigureAwait(false)
-                var replacementText = (completionChangeEdit & CompletionChangeEdit.AppendConfigureAwait) != 0
+                var replacementText = properties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait)
                     ? $".ConfigureAwait({syntaxFacts.GetText(syntaxKinds.FalseKeyword)})"
                     : "";
                 builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
@@ -167,46 +166,50 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
                 // This case adds "await"
-                var completionChangeEditForAwaitOnly = GetCompletionChangeEdit(isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
-                yield return CreateCompletionItem(completionChangeEditForAwaitOnly);
+                var completionPropertiesForAwaitOnly = GetCompletionProperties(isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
+                yield return CreateCompletionItem(text, completionPropertiesForAwaitOnly);
 
             }
 
-            var completionChangeEdit = GetCompletionChangeEdit(isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
+            var completionProperties = GetCompletionProperties(isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
                 text += "F";
 
-            yield return CreateCompletionItem(completionChangeEdit);
+            yield return CreateCompletionItem(text, completionProperties);
 
-            CompletionItem CreateCompletionItem(CompletionChangeEdit completionChangeEdit)
+            static CompletionItem CreateCompletionItem(string displayText, ImmutableDictionary<string, string> completionProperties)
             {
+                var shouldMakeContainerAsync = completionProperties.ContainsKey(AwaitCompletionChange.MakeContainerAsync);
                 var inlineDescription = shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null; // TODO: Description for ConfigureAwait(false)
-                var isComplexTextEdit = (completionChangeEdit & // Any of the flags
-                    (CompletionChangeEdit.AddAwaitBeforeDotExpression | CompletionChangeEdit.AppendConfigureAwait | CompletionChangeEdit.MakeContainerAsync)) != 0;
+                var isComplexTextEdit = shouldMakeContainerAsync |
+                    completionProperties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression) |
+                    completionProperties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait);
 
                 return CommonCompletionItem.Create(
-                    displayText: text,
+                    displayText: displayText,
                     displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     Glyph.Keyword,
-                    description: RecommendedKeyword.CreateDisplayParts(text, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
+                    description: RecommendedKeyword.CreateDisplayParts(displayText, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
                     inlineDescription: inlineDescription,
                     isComplexTextEdit: isComplexTextEdit,
-                    properties: ImmutableDictionary.Create<string, string>().Add(nameof(CompletionChangeEdit), completionChangeEdit.ToString()));
+                    properties: completionProperties);
             }
 
-            static CompletionChangeEdit GetCompletionChangeEdit(bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, bool shouldMakeContainerAsync)
+            static ImmutableDictionary<string, string> GetCompletionProperties(bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, bool shouldMakeContainerAsync)
             {
-                var codeActionEdit = default(CompletionChangeEdit);
+                using var _ = PooledDictionary<string, string>.GetInstance(out var dict);
                 if (isAwaitKeywordContext)
-                    codeActionEdit |= CompletionChangeEdit.AddAwaitAtCursor;
+                    AddKey(AwaitCompletionChange.AddAwaitAtCursor);
                 if (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)
-                    codeActionEdit |= CompletionChangeEdit.AddAwaitBeforeDotExpression;
+                    AddKey(AwaitCompletionChange.AddAwaitBeforeDotExpression);
                 if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
-                    codeActionEdit |= CompletionChangeEdit.AppendConfigureAwait;
+                    AddKey(AwaitCompletionChange.AppendConfigureAwait);
                 if (shouldMakeContainerAsync)
-                    codeActionEdit |= CompletionChangeEdit.MakeContainerAsync;
-                return codeActionEdit;
+                    AddKey(AwaitCompletionChange.MakeContainerAsync);
+                return dict.ToImmutableDictionaryAndFree();
+
+                void AddKey(string key) => dict.Add(key, string.Empty);
             }
         }
     }
