@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" none ", BinaryOperatorSpacingOptions.Remove)]
         [InlineData(" before_and_after ", BinaryOperatorSpacingOptions.Single)]
         public void TestParseSpacingAroundBinaryOperator(string rawValue, BinaryOperatorSpacingOptions parsedValue)
-            => Assert.Equal(parsedValue, CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(rawValue));
+            => Assert.Equal(parsedValue, CSharpFormattingOptions2.EditorConfig.ParseSpacingAroundBinaryOperator(rawValue).Value);
 
         [Theory]
         [InlineData("flush_left", LabelPositionOptions.LeftMost)]
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" no_change ", LabelPositionOptions.NoIndent)]
         [InlineData(" one_less_than_current ", LabelPositionOptions.OneLess)]
         public void TestParseLabelPositioning(string rawValue, LabelPositionOptions parsedValue)
-            => Assert.Equal(parsedValue, CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(rawValue));
+            => Assert.Equal(parsedValue, CSharpFormattingOptions2.EditorConfig.ParseLabelPositioning(rawValue).Value);
 
         [Theory]
         [InlineData("false:none", (int)ExpressionBodyPreference.Never, ReportDiagnostic.Suppress)]
