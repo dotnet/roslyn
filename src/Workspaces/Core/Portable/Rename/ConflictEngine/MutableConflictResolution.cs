@@ -113,6 +113,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
+            // If possible, check that the new file name is unique to on disk files as well 
+            // as solution items.
+            if (File.Exists(document.FilePath))
+            {
+                var directory = Directory.GetParent(document.FilePath).FullName;
+                var newDocumentFilePath = Path.Combine(directory, newName);
+
+                var versionNumber = 1;
+                while (File.Exists(newDocumentFilePath))
+                {
+                    var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                    newName = Path.ChangeExtension(nameWithoutExtension, extension);
+                    newDocumentFilePath = Path.Combine(directory, newName);
+                }
+            }
+
             _renamedDocument = (document.Id, newName);
         }
 
