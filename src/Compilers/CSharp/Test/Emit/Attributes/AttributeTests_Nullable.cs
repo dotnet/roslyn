@@ -5107,7 +5107,7 @@ System.Object? Program.<Main>g__f|1_1(System.String! s)
         private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.SetEqual(expectedNames, actualNames);
         }
 
         private static void AssertNoNullableAttributes(CSharpCompilation comp)
@@ -5145,7 +5145,7 @@ System.Object? Program.<Main>g__f|1_1(System.String! s)
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
             var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.SetEqual(expectedNames, actualNames);
         }
 
         private void AssertNullableAttributes(CSharpCompilation comp, string expected)

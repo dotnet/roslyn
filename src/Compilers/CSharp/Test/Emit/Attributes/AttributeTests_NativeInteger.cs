@@ -1478,7 +1478,7 @@ C
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
             var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
-            AssertEx.Equal(actualNames, expectedNames);
+            AssertEx.Equal(expectedNames, actualNames);
         }
 
         private static void AssertNoNativeIntegerAttribute(ImmutableArray<CSharpAttributeData> attributes)
@@ -1494,7 +1494,7 @@ C
         private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
-            AssertEx.Equal(actualNames, expectedNames);
+            AssertEx.Equal(expectedNames, actualNames);
         }
 
         private static void AssertNoNativeIntegerAttributes(CSharpCompilation comp)
