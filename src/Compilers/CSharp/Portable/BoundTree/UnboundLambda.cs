@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType);
 
             var signature = syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionSignature(binder) :
+                new FunctionSignature(binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType()) :
                 null;
             var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
             var lambda = new UnboundLambda(syntax, data, signature, withDependencies, hasErrors: hasErrors);
-            signature?.SetCallback(lambda, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
+            signature?.SetExpression(lambda);
             data.SetUnboundLambda(lambda);
             return lambda;
         }

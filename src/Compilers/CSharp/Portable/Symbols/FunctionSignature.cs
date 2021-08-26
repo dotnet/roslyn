@@ -17,35 +17,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly AssemblySymbol _assembly;
         private readonly Binder? _binder;
+        private readonly Func<Binder, BoundExpression, NamedTypeSymbol?> _calculateDelegate;
 
         private FunctionTypeSymbol? _lazyFunctionType;
         private BoundExpression? _expression;
-        private Func<Binder, BoundExpression, NamedTypeSymbol?>? _calculateDelegate;
 
-        internal FunctionSignature(Binder binder)
+        internal FunctionSignature(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
         {
             _assembly = binder.Compilation.Assembly;
             _binder = binder;
+            _calculateDelegate = calculateDelegate;
             _lazyFunctionType = FunctionTypeSymbol.Uninitialized;
         }
 
-        internal void SetCallback(BoundExpression expression, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+        internal void SetExpression(BoundExpression expression)
         {
-            Debug.Assert(_calculateDelegate is null);
             Debug.Assert((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized);
+            Debug.Assert(_expression is null);
 
             _expression = expression;
-            _calculateDelegate = calculateDelegate;
         }
 
         /// <summary>
-        /// Returns the inferred signature or null if the signature could not be inferred.
+        /// Returns the inferred signature as a <see cref="FunctionTypeSymbol"/> or
+        /// null if the signature could not be inferred.
+        /// The signature is exposed as a <see cref="FunctionTypeSymbol"/> to allow
+        /// conversions and type inference to treat types and signatures similarly.
         /// </summary>
         internal FunctionTypeSymbol? GetSignatureAsTypeSymbol()
         {
             if ((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized)
             {
-                var delegateType = _calculateDelegate!(_binder!, _expression!);
+                var delegateType = _calculateDelegate(_binder!, _expression!);
                 var functionType = delegateType is null ? null : new FunctionTypeSymbol(_assembly, delegateType);
                 Interlocked.CompareExchange(ref _lazyFunctionType, functionType, FunctionTypeSymbol.Uninitialized);
             }
