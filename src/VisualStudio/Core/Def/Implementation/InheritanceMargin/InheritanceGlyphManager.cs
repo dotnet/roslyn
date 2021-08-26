@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 foreach (var (span, glyph) in allGlyphData)
                 {
                     var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
-                    if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || GetStartingLine(newOrReformattedLines, span) != null)
+                    if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || GetStartingLine(newOrReformattedLines, newSpan) != null)
                     {
                         //Either visual is no longer visible or it crosses a line
                         //that was reformatted.
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     else
                     {
                         _glyphDataTree.AddIntervalInPlace(new GlyphData(newSpan, glyph));
-                        var line = GetStartingLine(translatedLines, span);
+                        var line = GetStartingLine(translatedLines, newSpan);
                         if (line != null)
                         {
                             SetTop(line, glyph);
