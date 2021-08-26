@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
         {
             AssertIsForeground();
-            if (_glyphDataTree.Any())
+            if (!_glyphDataTree.IsEmpty())
             {
                 // Go through all the existing visuals and invalidate or transform as appropriate.
                 var allGlyphData = _glyphDataTree.ToImmutableArray();
