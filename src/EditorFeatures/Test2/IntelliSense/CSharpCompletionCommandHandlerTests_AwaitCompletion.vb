@@ -491,6 +491,44 @@ public class C
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAppendsConfigureAwait() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        Task.CompletedTask.$$
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+                state.SendTypeChars("f")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask.ConfigureAwait(false)
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask.ConfigureAwait(false)", "")
+            End Using
+        End Function
+
         <WpfTheory>
         <InlineData(' static
             "StaticField.$$",
@@ -596,44 +634,6 @@ public class C
                 state.SendTab()
                 Assert.Equal(GetTestClassDocument(containerHasAsyncModifier:=True, committed).Value.NormalizeLineEndings(), state.GetDocumentText().NormalizeLineEndings())
                 Await state.AssertLineTextAroundCaret($"        {committed}", "")
-            End Using
-        End Function
-
-        <WpfFact>
-        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAppendsConfigureAwait() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                <Document><![CDATA[
-using System.Threading.Tasks;
-
-public class C
-{
-    public static async Task Main()
-    {
-        Task.CompletedTask.$$
-    }
-}
-]]>
-                </Document>)
-                state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll("await", "awaitf")
-                state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
-                state.SendTypeChars("f")
-                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
-
-                state.SendTab()
-                Assert.Equal("
-using System.Threading.Tasks;
-
-public class C
-{
-    public static async Task Main()
-    {
-        await Task.CompletedTask.ConfigureAwait(false)
-    }
-}
-", state.GetDocumentText())
-                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask.ConfigureAwait(false)", "")
             End Using
         End Function
     End Class
