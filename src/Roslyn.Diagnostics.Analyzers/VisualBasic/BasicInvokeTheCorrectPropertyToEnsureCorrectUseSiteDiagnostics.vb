@@ -23,7 +23,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
             False,
             Nothing,
             Nothing,
-            WellKnownDiagnosticTags.Telemetry)
+            WellKnownDiagnosticTagsExtensions.Telemetry)
 
         Private Shared ReadOnly s_propertiesToValidateMap As ImmutableDictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
         {

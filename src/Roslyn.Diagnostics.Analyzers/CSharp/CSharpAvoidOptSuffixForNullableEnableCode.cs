@@ -35,7 +35,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             isEnabledByDefault: true,
             description: CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeDescription)),
             helpLinkUri: null,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
