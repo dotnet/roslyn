@@ -1857,8 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     signature.GetSignatureAsTypeSymbol() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    if (targetType.IsDelegateType() ||
-                        targetType.IsExpressionTree() ||
+                    if (targetType.IsExpressionTree() ||
                         Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
                     {
                         Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);

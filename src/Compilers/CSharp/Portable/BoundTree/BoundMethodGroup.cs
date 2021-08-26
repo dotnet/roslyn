@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static FunctionSignature? CreateSignature(Binder binder, SyntaxNode syntax)
         {
-            return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionSignature(binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr, out _)) :
-                null;
+            return FunctionSignature.CreateSignatureIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
         }
 
         public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax

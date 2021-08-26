@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private FunctionTypeSymbol? _lazyFunctionType;
         private BoundExpression? _expression;
 
-        internal FunctionSignature(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+        internal static FunctionSignature? CreateSignatureIfFeatureEnabled(SyntaxNode syntax, Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+        {
+            return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
+                new FunctionSignature(binder, calculateDelegate) :
+                null;
+        }
+
+        private FunctionSignature(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
         {
             _binder = binder;
             _calculateDelegate = calculateDelegate;

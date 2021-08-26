@@ -347,9 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.IsAnonymousFunction());
             bool hasErrors = !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType);
 
-            var signature = syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionSignature(binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType()) :
-                null;
+            var signature = FunctionSignature.CreateSignatureIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
             var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
             var lambda = new UnboundLambda(syntax, data, signature, withDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);

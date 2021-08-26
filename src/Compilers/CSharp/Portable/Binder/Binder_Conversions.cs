@@ -553,6 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateFunctionTypeConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(conversion.Kind == ConversionKind.FunctionType);
             Debug.Assert(source.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
             Debug.Assert(syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType));
 
