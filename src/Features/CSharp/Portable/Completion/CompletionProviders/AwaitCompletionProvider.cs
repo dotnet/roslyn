@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
                     var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                    if (symbol is null or INamedTypeSymbol) // e.g. Task.$$
+                    if (symbol is INamedTypeSymbol) // e.g. Task.$$
                     {
                         return null;
                     }
 
                     return
-                        symbol.GetSymbolType() ??
-                        symbol.GetMemberType() ??
+                        symbol?.GetSymbolType() ??
+                        symbol?.GetMemberType() ??
                         // Some expressions don't have a symbol (e.g. (o as Task).$$), but GetTypeInfo finds the right type.
                         semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
                 }
