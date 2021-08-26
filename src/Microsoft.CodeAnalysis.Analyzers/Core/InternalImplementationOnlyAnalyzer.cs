@@ -9,23 +9,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class InternalImplementationOnlyAnalyzer : DiagnosticAnalyzer
     {
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";
         private const string InternalImplementationOnlyAttributeFullName = "System.Runtime.CompilerServices.InternalImplementationOnlyAttribute";
-        private static readonly LocalizableString s_localizableTitle = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle));
-        private static readonly LocalizableString s_localizableMessageFormat = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage));
-        private static readonly LocalizableString s_localizableDescription = CodeAnalysisDiagnosticsResources.CreateLocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription));
 
         public static readonly DiagnosticDescriptor Rule = new(
-                                                        DiagnosticIds.InternalImplementationOnlyRuleId,
-                                                        s_localizableTitle,
-                                                        s_localizableMessageFormat,
-                                                        DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
-                                                        DiagnosticSeverity.Error,
-                                                        isEnabledByDefault: true,
-                                                        description: s_localizableDescription);
+            DiagnosticIds.InternalImplementationOnlyRuleId,
+            CreateLocalizableResourceString(nameof(InternalImplementationOnlyTitle)),
+            CreateLocalizableResourceString(nameof(InternalImplementationOnlyMessage)),
+            DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(InternalImplementationOnlyDescription)));
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
