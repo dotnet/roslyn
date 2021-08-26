@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var newSemanticTokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (newSemanticTokensData, isPartial) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
@@ -61,25 +61,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // we can't calculate edits, so we must return all semantic tokens instead.
             var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
-            if (oldSemanticTokensData == null)
+
+            // If we only have partial results, we'll return partial tokens instead of edits. This case shouldn't
+            // happen very often (likely only on startup) and avoids us needing to create a custom edit type.
+            if (oldSemanticTokensData == null || isPartial)
             {
                 var newResultId = _tokensCache.GetNextResultId();
-                var updatedTokens = new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
-                await _tokensCache.UpdateCacheAsync(
-                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                var updatedTokens = new RoslynSemanticTokens
+                {
+                    IsPartial = isPartial,
+                    ResultId = newResultId,
+                    Data = newSemanticTokensData
+                };
+
+                if (newSemanticTokensData.Length > 0)
+                {
+                    await _tokensCache.UpdateCacheAsync(
+                        request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                }
+
                 return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
             }
 
-            var resultId = request.PreviousResultId;
             var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
+            var resultId = request.PreviousResultId;
 
             // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
             if (editArray.Length != 0)
             {
                 resultId = _tokensCache.GetNextResultId();
-                var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
-                await _tokensCache.UpdateCacheAsync(
-                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                if (newSemanticTokensData.Length > 0)
+                {
+                    var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
+                    await _tokensCache.UpdateCacheAsync(
+                        request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             var edits = new SemanticTokensDelta
