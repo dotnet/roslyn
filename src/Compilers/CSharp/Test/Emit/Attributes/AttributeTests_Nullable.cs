@@ -2123,7 +2123,7 @@ public class Program
         }
 
         [Fact]
-        public void EmitAttribute_LambdaReturnType()
+        public void EmitAttribute_LambdaReturnType_01()
         {
             var source =
 @"delegate T D<T>();
@@ -2146,7 +2146,33 @@ class C
         }
 
         [Fact]
-        public void EmitAttribute_LambdaParameters()
+        public void EmitAttribute_LambdaReturnType_02()
+        {
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void Main()
+    {
+        F(string?[] () => null);
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<Main>b__1_0");
+                    AssertAttributes(method.GetAttributes());
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters_01()
         {
             var source =
 @"delegate void D<T>(T t);
@@ -2168,8 +2194,35 @@ class C
                 {
                     var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<G>b__1_0");
                     AssertAttributes(method.GetAttributes(), "System.Runtime.CompilerServices.NullableContextAttribute");
+                    AssertAttributes(method.Parameters[0].GetAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters_02()
+        {
+            var source =
+@"delegate void D<T, U>(T t, U u);
+class C
+{
+    static void F<T, U>(D<T, U> d)
+    {
+    }
+    static void G()
+    {
+        F((object x, string? y) => { });
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<G>b__1_0");
                     AssertAttributes(method.GetReturnTypeAttributes());
                     AssertAttributes(method.Parameters[0].GetAttributes());
+                    AssertNullableAttribute(method.Parameters[1].GetAttributes());
                 });
         }
 

@@ -5,14 +5,10 @@
 #nullable disable
 
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2328,6 +2324,100 @@ public class Test
                 // (11,46): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public static int operator + (in Test x, in Test y) => 0;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "in Test y").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 46));
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaReturnType()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var f = (ref readonly int () => throw null);
+        f();
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<Main>b__0_0");
+                    Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var f = (in int x, ref int y) => { };
+        int x = 1;
+        int y = 2;
+        f(x, ref y);
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<Main>b__0_0");
+                    Assert.Equal(RefKind.RefReadOnly, method.Parameters[0].RefKind);
+                    Assert.Equal(RefKind.Ref, method.Parameters[1].RefKind);
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionReturnType()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        ref readonly int L() => throw null;
+        L();
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("<Main>g__L|0_0");
+                    Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionParameters()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void L(ref int x, in int y) { };
+        int x = 1;
+        int y = 2;
+        L(ref x, y);
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("<Main>g__L|0_0");
+                    Assert.Equal(RefKind.Ref, method.Parameters[0].RefKind);
+                    Assert.Equal(RefKind.RefReadOnly, method.Parameters[1].RefKind);
+                });
         }
 
         private void AssertNoIsReadOnlyAttributeExists(AssemblySymbol assembly)
