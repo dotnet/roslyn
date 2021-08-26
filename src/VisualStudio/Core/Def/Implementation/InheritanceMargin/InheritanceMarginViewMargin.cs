@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         /// <summary>
         /// A flag indicates all the glyphs in this margin needs be refreshed when the Layout of the TextView changes.
+        /// Should only be read or written to by the UI thread.
         /// </summary>
         private bool _refreshAllGlyphs;
         private bool _disposed;
@@ -68,7 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 operationExecutor,
                 editorFormatMap,
                 listener,
-                _mainCanvas);
+                _mainCanvas,
+                HeightAndWidthOfMargin);
             _refreshAllGlyphs = true;
             _disposed = false;
 

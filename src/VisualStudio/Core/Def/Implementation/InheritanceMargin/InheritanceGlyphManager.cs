@@ -31,8 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
         private const string GlyphMarginName = "Indicator Margin";
 
-        // The same width and height as the margin of indicator margin.
-        private const double HeightAndWidthOfTheGlyph = 17;
+        private readonly double _heightAndWidthOfTheGlyph;
         private readonly IWpfTextView _textView;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -44,7 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly Canvas _glyphsContainer;
         private readonly SimpleIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
-        public InheritanceGlyphManager(IWpfTextView textView,
+        public InheritanceGlyphManager(
+            IWpfTextView textView,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IClassificationFormatMap classificationFormatMap,
@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IUIThreadOperationExecutor operationExecutor,
             IEditorFormatMap editorFormatMap,
             IAsynchronousOperationListener listener,
-            Canvas canvas) : base(threadingContext)
+            Canvas canvas,
+            double heightAndWidthOfTheGlyph) : base(threadingContext)
         {
             _textView = textView;
             _threadingContext = threadingContext;
@@ -63,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _editorFormatMap = editorFormatMap;
             _glyphsContainer = canvas;
             _listener = listener;
+            _heightAndWidthOfTheGlyph = heightAndWidthOfTheGlyph;
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             // _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
@@ -86,8 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (lines.IntersectsBufferSpan(span) && GetStartingLine(lines, span) is IWpfTextViewLine line)
             {
                 var glyph = CreateNewGlyph(tag);
-                glyph.Height = HeightAndWidthOfTheGlyph;
-                glyph.Width = HeightAndWidthOfTheGlyph;
                 SetTop(line, glyph);
                 _glyphDataTree.AddIntervalInPlace(new GlyphData(span, glyph));
                 _glyphsContainer.Children.Add(glyph);
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
 
             var remainingGlyphData = _glyphDataTree.Except(glyphDataToRemove).ToImmutableArray();
-            _glyphDataTree.Clear();
+            _glyphDataTree.ClearInPlace();
             foreach (var glyphData in remainingGlyphData)
             {
                 _glyphDataTree.AddIntervalInPlace(glyphData);
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 // Go through all the existing visuals and invalidate or transform as appropriate.
                 var allGlyphData = _glyphDataTree.ToImmutableArray();
-                _glyphDataTree.Clear();
+                _glyphDataTree.ClearInPlace();
                 foreach (var (span, glyph) in allGlyphData)
                 {
                     var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _operationExecutor,
                 tag,
                 _textView,
-                _listener);
+                _listener) { Height = _heightAndWidthOfTheGlyph, Width = _heightAndWidthOfTheGlyph };
 
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
             => UpdateBackgroundColor();

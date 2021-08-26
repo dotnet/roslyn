@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal partial class InheritanceGlyphManager
     {
-        private class GlyphData
+        private record GlyphData
         {
             public SnapshotSpan SnapshotSpan { get; }
             public InheritanceMarginGlyph Glyph { get; }

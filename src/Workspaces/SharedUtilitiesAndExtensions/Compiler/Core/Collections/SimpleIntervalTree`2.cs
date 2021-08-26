@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <summary>
         /// Warning.  Mutates the tree in place.
         /// </summary>
-        public void Clear()
+        public void ClearInPlace()
             => this.root = null;
 
         public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
