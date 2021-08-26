@@ -136,7 +136,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using var environment = new TestEnvironment();
             using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             // Add analyzer reference
-            var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
+            using var tempRoot = new TempRoot();
+            var analyzerAssemblyFullPath = tempRoot.CreateFile().Path;
 
             bool AnalyzersContainsAnalyzer()
             {

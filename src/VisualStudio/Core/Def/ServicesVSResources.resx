@@ -1797,6 +1797,12 @@ Additional information: {1}</value>
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
   </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
     <comment>This text is a menu command</comment>
