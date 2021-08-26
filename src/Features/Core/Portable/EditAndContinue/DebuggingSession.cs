@@ -1028,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
                     map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
                     map["InBreakState"] = editSessionData.InBreakState;
+                    map["Capabilities"] = (int)editSessionData.Capabilities;
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)
