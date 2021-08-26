@@ -32,10 +32,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -63,13 +62,13 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public ReadOnly Property TestProperty As Integer
+    Class Class1Helpers
+        Public Shared ReadOnly Property TestProperty As Integer
             Get
                 Return 0
             End Get
         End Property
-    End Module
+    End Class
 End Namespace
 "
 
@@ -99,9 +98,9 @@ End Namespace"
             Dim expectedText2 = "Imports System
 
 Namespace TestNs
-    Module Class1Helpers
-        Public Event TestEvent As EventHandler
-    End Module
+    Class Class1Helpers
+        Public Shared Event TestEvent As EventHandler
+    End Class
 End Namespace
 "
 
@@ -141,8 +140,8 @@ End Namespace"
             Dim expectedText2 = "Imports System
 
 Namespace TestNs
-    Module Class1Helpers
-        Public Custom Event Click As EventHandler
+    Class Class1Helpers
+        Public Shared Custom Event Click As EventHandler
             AddHandler(ByVal value As EventHandler)
                 Console.WriteLine(value.ToString())
             End AddHandler
@@ -153,7 +152,7 @@ Namespace TestNs
                 Console.WriteLine(sender.ToString())
             End RaiseEvent
         End Event
-    End Module
+    End Class
 End Namespace
 "
 
@@ -179,11 +178,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -208,10 +207,10 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Sub TestSub()
+    Class Class1Helpers
+        Public Shared Sub TestSub()
         End Sub
-    End Module
+    End Class
 End Namespace
 "
 
@@ -235,9 +234,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
+    Class Class1Helpers
         Public Const TestConst As Integer = 0
-    End Module
+    End Class
 End Namespace
 "
 
@@ -266,12 +265,12 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
+    Class Class1Helpers
         'Comment we want to move
-        Public Function TestFunc() As Integer
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -301,11 +300,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -335,11 +334,11 @@ Namespace TestNs
     End Namespace
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.InnerNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -358,10 +357,9 @@ End Class"
             Dim expectedText1 = "
 Public Class Class1
 End Class"
-            Dim expectedText2 = "Module Class1Helpers
-    Public TestField As Integer = 0
-
-End Module
+            Dim expectedText2 = "Class Class1Helpers
+    Public Shared TestField As Integer = 0
+End Class
 "
 
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
@@ -380,10 +378,9 @@ End Class"
 Public Class Class1
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -407,10 +404,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.InnerNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -436,11 +432,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc(Of T)(item As T) As T
+    Class Class1Helpers
+        Public Shared Function TestFunc(Of T)(item As T) As T
             Return item
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -496,11 +492,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -530,15 +526,15 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc1() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc1() As Integer
             Return 0
         End Function
 
-        Public Function TestFunc2() As Boolean
+        Public Shared Function TestFunc2() As Boolean
             Return False
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -571,12 +567,12 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
+    Class Class1Helpers
 
-        Public Function TestFunc2() As Boolean
+        Public Shared Function TestFunc2() As Boolean
             Return False
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -626,25 +622,24 @@ End Namespace"
             Dim expectedText2 = "Imports System
 
 Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
 
-
-        Public ReadOnly Property TestProperty As Integer
+        Public Shared ReadOnly Property TestProperty As Integer
             Get
                 Return 0
             End Get
         End Property
 
-        Public Event TestEvent As EventHandler
+        Public Shared Event TestEvent As EventHandler
 
-        Public Sub TestSub()
+        Public Shared Sub TestSub()
         End Sub
 
-        Public Function TestFunc() As Integer
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -682,11 +677,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -726,11 +721,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -758,16 +753,16 @@ End Namespace"
 Namespace TestNs
     Public Class Class1
         Public Shared Function TestFunc2() As Integer
-            Return TestFunc() + 1
+            Return Class1Helpers.TestFunc() + 1
         End Function
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -793,15 +788,14 @@ End Namespace"
 Namespace TestNs
     Public Class Class1
         Public Shared Function TestFunc2() As Integer
-            Return TestField + 1
+            Return Class1Helpers.TestField + 1
         End Function
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -838,16 +832,15 @@ Imports TestNs.ExtraNs
 Namespace TestNs
     Public Class Class1
         Public Shared Function TestFunc2() As Integer
-            Return TestProperty + 1
+            Return Class1Helpers.TestProperty + 1
         End Function
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.ExtraNs
-    Module Class1Helpers
-        Private _testProperty As Integer
+    Class Class1Helpers
+        Private Shared _testProperty As Integer
 
-
-        Public Property Test[||]Property As Integer
+        Public Shared Property TestProperty As Integer
             Get
                 Return _testProperty
             End Get
@@ -855,7 +848,7 @@ End Namespace"
                 _testProperty = value
             End Set
         End Property
-    End Module
+    End Class
 End Namespace
 "
 
@@ -893,11 +886,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc(Of T)(item As T) As T
+    Class Class1Helpers
+        Public Shared Function TestFunc(Of T)(item As T) As T
             Return item
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -939,11 +932,11 @@ End Namespace"
             Dim expectedText2 = "Imports System
 
 Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc(Of T)() As Type
+    Class Class1Helpers
+        Public Shared Function TestFunc(Of T)() As Type
             Return GetType(T)
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1088,11 +1081,11 @@ Namespace TestNs2
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1132,11 +1125,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs.ExtraNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1178,11 +1171,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1232,11 +1225,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1297,11 +1290,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1352,11 +1345,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1402,15 +1395,15 @@ Imports TestNs.Class1
 
 Public Class Class2
     Public Shared Function TestFunc2() As Integer
-        Return TestFunc() + 1
+        Return Class1Helpers.TestFunc() + 1
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1460,11 +1453,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1514,11 +1507,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs.ExtraNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1734,11 +1727,11 @@ End Namespace"
 ' That we want to keep/copy over
 
 Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1765,10 +1758,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -1792,10 +1784,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -1819,10 +1810,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -1846,10 +1836,9 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public TestField As Integer = 0
-
-    End Module
+    Class Class1Helpers
+        Public Shared TestField As Integer = 0
+    End Class
 End Namespace
 "
 
@@ -1875,11 +1864,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1905,11 +1894,11 @@ Namespace TestNs
     End Class
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 

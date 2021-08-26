@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
-                GetNewTypeKind(typeParameters),
+                GetNewTypeKind(_selectedType),
                 moveOptions.TypeName,
                 typeParameters: typeParameters);
 
@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
             var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
-            // Possibly convert members to non-static or static if we move to/from a module
-            sourceDoc = await CorrectStaticMembersAsync(solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id), memberNodes, newType!, cancellationToken).ConfigureAwait(false);
+            sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
 
             // get back nodes from our changes
             root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -125,38 +124,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         }
 
         /// <summary>
-        /// Finds what type kind new type should be. In case of C#, returning both class and module create a class
-        /// For VB, we want a module unless there are class type params, in which case we want a class
+        /// Finds what type kind new type should be. Currently, we just select whatever type the source is.
+        /// This means always a class for C#, and a module for VB iff we moved from a module
+        /// This functionality can later be expanded or moved to language-specific implementations
         /// </summary>
-        private static TypeKind GetNewTypeKind(ImmutableArray<ITypeParameterSymbol> typeParameters)
+        private static TypeKind GetNewTypeKind(INamedTypeSymbol oldType)
         {
-            return typeParameters.IsEmpty ? TypeKind.Module : TypeKind.Class;
-        }
-
-        private async Task<Document> CorrectStaticMembersAsync(
-            Document sourceDoc,
-            ImmutableArray<SyntaxNode> memberNodes,
-            INamedTypeSymbol newType,
-            CancellationToken cancellationToken)
-        {
-            // We have two cases:
-            // 1. Moving from a class to a module. We need to remove the shared modifier as it is implied
-            // 2. Moving from a module to a class. We need to add the shared modifier as it is no longer implied
-            // If neither of these apply (the movement types are both classes or both modules), we return early
-            if (newType.TypeKind == _selectedType.TypeKind)
-            {
-                return sourceDoc;
-            }
-
-            var docEditor = await DocumentEditor.CreateAsync(sourceDoc, cancellationToken).ConfigureAwait(false);
-            memberNodes = docEditor.OriginalRoot.GetCurrentNodes(memberNodes).ToImmutableArray();
-            // need to make members non-static if we're moving to a module, static if we're moving away from one
-            foreach (var node in memberNodes)
-            {
-                docEditor.ReplaceNode(node, (n, generator) => generator.WithModifiers(n, generator.GetModifiers(n).WithIsStatic(newType.TypeKind != TypeKind.Module)));
-            }
-
-            return docEditor.GetChangedDocument();
+            return oldType.TypeKind;
         }
 
         private static async Task<Solution> RefactorReferencesAsync(
