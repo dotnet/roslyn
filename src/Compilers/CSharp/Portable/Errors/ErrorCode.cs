@@ -1994,6 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttrTypeArgCannotBeTypeVar = 8968,
         WRN_AttrDependentTypeNotAllowed = 8969,
         ERR_AttrDependentTypeNotAllowed = 8970,
+        WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
 
         #endregion
 
