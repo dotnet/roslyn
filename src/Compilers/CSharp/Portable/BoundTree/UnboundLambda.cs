@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
             var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
             var lambda = new UnboundLambda(syntax, data, signature, withDependencies, hasErrors: hasErrors);
-            signature?.SetExpression(lambda);
             data.SetUnboundLambda(lambda);
+            signature?.SetExpression(lambda.WithNoCache());
             return lambda;
         }
 
