@@ -609,11 +609,11 @@ public class C
 ]]>
                 </Document>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll("await", "awaitF")
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
                 state.SendTypeChars("a")
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
                 state.SendTypeChars("f")
-                Await state.AssertSelectedCompletionItem(displayText:="awaitF", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
 
                 state.SendTab()
                 Assert.Equal("

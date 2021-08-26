@@ -161,23 +161,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private IEnumerable<CompletionItem> GetCompletionItems(SyntaxToken token, bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)
         {
             var shouldMakeContainerAsync = ShouldMakeContainerAsync(token, generator);
-            var text = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
+            var displayText = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
+            var filterText = displayText;
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
                 // This case adds "await"
                 var completionPropertiesForAwaitOnly = GetCompletionProperties(isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
-                yield return CreateCompletionItem(text, completionPropertiesForAwaitOnly);
+                yield return CreateCompletionItem(displayText, filterText, completionPropertiesForAwaitOnly);
 
             }
 
             var completionProperties = GetCompletionProperties(isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
-                text += "F";
+            {
+                displayText += "f";
+                filterText += "F"; // Uppercase F to select "awaitf" if "af" is written.
+            }
 
-            yield return CreateCompletionItem(text, completionProperties);
+            yield return CreateCompletionItem(displayText, filterText, completionProperties);
 
-            static CompletionItem CreateCompletionItem(string displayText, ImmutableDictionary<string, string> completionProperties)
+            static CompletionItem CreateCompletionItem(string displayText, string filterText, ImmutableDictionary<string, string> completionProperties)
             {
                 var shouldMakeContainerAsync = completionProperties.ContainsKey(AwaitCompletionChange.MakeContainerAsync);
                 var inlineDescription = shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null; // TODO: Description for ConfigureAwait(false)
@@ -188,8 +192,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CommonCompletionItem.Create(
                     displayText: displayText,
                     displayTextSuffix: "",
+                    filterText: filterText,
                     rules: CompletionItemRules.Default,
-                    Glyph.Keyword,
+                    glyph: Glyph.Keyword,
                     description: RecommendedKeyword.CreateDisplayParts(displayText, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
                     inlineDescription: inlineDescription,
                     isComplexTextEdit: isComplexTextEdit,
@@ -207,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     AddKey(AwaitCompletionChange.AppendConfigureAwait);
                 if (shouldMakeContainerAsync)
                     AddKey(AwaitCompletionChange.MakeContainerAsync);
-                return dict.ToImmutableDictionaryAndFree();
+                return dict.ToImmutableDictionary();
 
                 void AddKey(string key) => dict.Add(key, string.Empty);
             }

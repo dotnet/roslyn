@@ -24,28 +24,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         internal override Type GetCompletionProviderType() => typeof(AwaitCompletionProvider);
 
+        private const string CompletionDisplayTextAwait = "await";
+        private const string CompletionDisplayTextAwaitAndConfigureAwait = "awaitf";
+
         private async Task VerifyAbsenceAsync(string code)
         {
-            await VerifyItemIsAbsentAsync(code, "await");
-            await VerifyItemIsAbsentAsync(code, "awaitF");
+            await VerifyItemIsAbsentAsync(code, CompletionDisplayTextAwait);
+            await VerifyItemIsAbsentAsync(code, CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
         private async Task VerifyAbsenceAsync(string code, LanguageVersion languageVersion)
         {
-            await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "await");
-            await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "awaitF");
+            await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait);
+            await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
         private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool includeingAwaitf = false)
         {
-            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "await", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
+            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
             if (includeingAwaitf)
             {
-                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "awaitF", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
+                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
             }
             else
             {
-                await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "awaitF");
+                await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
             }
         }
 
