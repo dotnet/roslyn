@@ -485,7 +485,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
         public void Generator_HintName_MustBe_Unique_Across_Outputs()
         {
             var source = @"
