@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -105,7 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public static DocumentSpanEntry? TryCreate(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
+                Guid guid,
+                string projectName,
+                string? projectFlavor,
+                string? filePath,
+                TextSpan sourceSpan,
                 HighlightSpanKind spanKind,
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
@@ -113,8 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
                 var entry = new DocumentSpanEntry(
                     context, definitionBucket,
                     projectName, projectFlavor, guid,
@@ -126,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // for the user. i.e. they're the same file/span.  Showing multiple entries for these
                 // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
                 // collapse things down to only show a single entry for each unique file/span pair.
-                var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
+                var winningEntry = definitionBucket.GetOrAddEntry(filePath, sourceSpan, entry);
 
                 // If we were the one that successfully added this entry to the bucket, then pass us
                 // back out to be put in the ui.
@@ -276,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
+            async Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 // If the document is a source generated document, we need to do the navigation ourselves;
                 // this is because the file path given to the table control isn't a real file path to a file
@@ -288,6 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     if (documentNavigationService != null)
                     {
+                        await this.Presenter.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         return documentNavigationService.TryNavigateToSpan(
                             workspace,
                             _excerptResult.Document.Id,
