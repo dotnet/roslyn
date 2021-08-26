@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
-                eventSource.StartSingleGeneratorRunTime(id);
+                eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
             }
             return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance));
         }
