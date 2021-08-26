@@ -342,17 +342,16 @@ namespace Microsoft.CodeAnalysis
                     sb.Builder.Append("{");
                     for (int i = 0; i < Count; i++)
                     {
+                        if (i > 0)
+                        {
+                            sb.Builder.Append(',');
+                        }
                         sb.Builder.Append(" (");
                         sb.Builder.Append(GetItem(i));
                         sb.Builder.Append(':');
                         sb.Builder.Append(GetState(i));
                         sb.Builder.Append(')');
-                        if (i < Count - 1)
-                        {
-                            sb.Builder.Append(',');
-                        }
                     }
-                    sb.Builder.Remove(sb.Builder.Length - 2, 1);
                     sb.Builder.Append(" }");
                     return sb.ToStringAndFree();
                 }
