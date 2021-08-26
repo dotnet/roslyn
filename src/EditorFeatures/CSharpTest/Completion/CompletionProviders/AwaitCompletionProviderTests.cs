@@ -517,6 +517,31 @@ static class Program
 }", LanguageVersion.CSharp9);
         }
 
+        [Theory]
+        [InlineData("await Task.Run(async () => Task.CompletedTask.$$", false)]
+        [InlineData("await Task.Run(async () => someTask.$$", false)]
+        [InlineData("await Task.Run(async () => someTask.$$);", false)]
+        [InlineData("await Task.Run(async () => { someTask.$$ }", false)]
+        [InlineData("await Task.Run(async () => { someTask.$$ });", false)]
+
+        [InlineData("Task.Run(async () => await someTask).$$", false)]
+
+        [InlineData("await Task.Run(() => someTask.$$", true)]
+        public async Task TestDotAwaitSuggestInLambdas(string lambda, bool makeContainerAsync)
+        {
+            await VerifyKeywordAsync($@"
+using System.Threading.Tasks;
+
+static class Program
+{{
+    static async Task Main()
+    {{
+        var someTask = Task.CompletedTask;
+        {lambda}
+    }}
+}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, includeingAwaitf: true);
+        }
+
         [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
