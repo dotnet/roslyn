@@ -1725,7 +1725,7 @@ class C { }
             {
                 ctx.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"));
 
-                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
+                ctx.RegisterSourceOutput(ctx.SyntaxProviderFactory.FromPredicate(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);

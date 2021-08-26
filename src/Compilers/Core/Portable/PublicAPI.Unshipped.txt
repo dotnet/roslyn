@@ -36,7 +36,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterImpleme
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPostInitializationOutput(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext>! callback) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.SyntaxProvider.get -> Microsoft.CodeAnalysis.SyntaxValueProvider
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.SyntaxProviderFactory.get -> Microsoft.CodeAnalysis.SyntaxProviderFactory
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Implementation = 4 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.None = 0 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
@@ -70,6 +70,9 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.SyntaxProviderFactory
+Microsoft.CodeAnalysis.SyntaxProviderFactory.FromPredicate<TResult>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, System.Threading.CancellationToken, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, System.Threading.CancellationToken, TResult>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<TResult>
+Microsoft.CodeAnalysis.SyntaxProviderFactory.SyntaxProviderFactory() -> void
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?
@@ -90,9 +93,6 @@ Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNo
 Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
-Microsoft.CodeAnalysis.SyntaxValueProvider
-Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxProvider<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, System.Threading.CancellationToken, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, System.Threading.CancellationToken, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T>
-Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxValueProvider() -> void
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 readonly Microsoft.CodeAnalysis.GeneratorDriverOptions.DisabledOutputs -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int

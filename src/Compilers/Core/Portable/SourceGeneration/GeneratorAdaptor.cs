@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             if (syntaxContextReceiverCreator is object)
             {
                 contextBuilderSource = contextBuilderSource
-                                       .Combine(context.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
+                                       .Combine(context.SyntaxProviderFactory.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
                                        .Select((p, _) => p.Item1 with { Receiver = p.Item2 });
             }
 
