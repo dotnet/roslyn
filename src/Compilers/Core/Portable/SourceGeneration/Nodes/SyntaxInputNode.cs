@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis
                     foreach (var node in nodes)
                     {
                         var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = ImmutableArray.Create(_owner._transformFunc(value, cancellationToken));
+                        var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntries(transformed, _owner._comparer))
+                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer))
                         {
-                            _transformTable.AddEntries(transformed, EntryState.Added);
+                            _transformTable.AddEntry(transformed, EntryState.Added);
                         }
                     }
                 }
