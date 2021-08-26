@@ -11,7 +11,8 @@ using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal delegate void ActionOut<T>(out T arg);
+    internal delegate void ActionOut<TArg1>(out TArg1 arg);
+    internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
 
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
         public ActionOut<ImmutableArray<DocumentId>>? CommitSolutionUpdateImpl;
-        public ActionOut<ImmutableArray<DocumentId>>? BreakStateEnteredImpl;
+        public ActionOut<bool, ImmutableArray<DocumentId>>? BreakStateChangesImpl;
         public Action? DiscardSolutionUpdateImpl;
         public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
 
-        public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateChanged(DebuggingSessionId sessionId, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            BreakStateEnteredImpl?.Invoke(out documentsToReanalyze);
+            BreakStateChangesImpl?.Invoke(inBreakState, out documentsToReanalyze);
         }
 
         public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)

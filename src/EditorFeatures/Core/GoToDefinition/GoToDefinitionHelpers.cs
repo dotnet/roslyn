@@ -113,18 +113,5 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     threadingContext, solution.Workspace, title, definitions, cancellationToken));
         }
-
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Solution solution,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
-        {
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
-        }
     }
 }

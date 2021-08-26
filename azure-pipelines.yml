@@ -117,7 +117,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-18.04'
+    queueName: BuildPool.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:

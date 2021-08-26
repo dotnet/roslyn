@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
         public const string LightBulb = nameof(LightBulb);
         public const string LineSeparators = nameof(LineSeparators);
+        public const string NavigableSymbols = nameof(NavigableSymbols);
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);

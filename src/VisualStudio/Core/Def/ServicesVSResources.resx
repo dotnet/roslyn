@@ -1800,6 +1800,12 @@ Additional information: {1}</value>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
     <comment>This text is a menu command</comment>
