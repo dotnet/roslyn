@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     /// <summary>
     /// XAML Language Server Client for LiveShare and Codespaces. Unused when
-    /// <see cref="StringConstants.EnableLspIntelliSense"/> experiment is turned on.
+    /// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
     /// Remove this when we are ready to use LSP everywhere
     /// </summary>
     [DisableUserExperience(true)]
