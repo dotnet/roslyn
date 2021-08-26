@@ -1758,11 +1758,11 @@ Namespace TestNs
 End Namespace"
             ' if we cut out the root namespace, the returned namespace should still be the same
             Dim expectedText2 = "Namespace TestNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
@@ -1814,11 +1814,11 @@ Public Class Class2
     End Function
 End Class"
             Dim expectedText2 = "Namespace TestNs.ExtraNs
-    Module Class1Helpers
-        Public Function TestFunc() As Integer
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
             Return 0
         End Function
-    End Module
+    End Class
 End Namespace
 "
 
