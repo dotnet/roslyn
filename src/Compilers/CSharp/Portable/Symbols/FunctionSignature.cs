@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized)
             {
                 var delegateType = _calculateDelegate(_binder, _expression);
-                var functionType = delegateType is null ? null : new FunctionTypeSymbol(_binder.Compilation.Assembly, delegateType);
+                var functionType = delegateType is null ? null : new FunctionTypeSymbol(delegateType);
                 Interlocked.CompareExchange(ref _lazyFunctionType, functionType, FunctionTypeSymbol.Uninitialized);
             }
 

@@ -20,20 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class FunctionTypeSymbol : TypeSymbol
     {
-        internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol();
+        internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol(ErrorTypeSymbol.UnknownResultType);
 
-        private readonly AssemblySymbol? _assembly;
         private readonly NamedTypeSymbol _delegateType;
 
-        private FunctionTypeSymbol()
+        internal FunctionTypeSymbol(NamedTypeSymbol delegateType)
         {
-            _assembly = null;
-            _delegateType = ErrorTypeSymbol.UnknownResultType;
-        }
-
-        internal FunctionTypeSymbol(AssemblySymbol assembly, NamedTypeSymbol delegateType)
-        {
-            _assembly = assembly;
             _delegateType = delegateType;
         }
 
@@ -51,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override SymbolKind Kind => SymbolKindInternal.FunctionType;
 
-        public override Symbol? ContainingSymbol => _assembly;
+        public override Symbol? ContainingSymbol => null;
 
         public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable;
 
@@ -65,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => throw ExceptionUtilities.Unreachable;
 
-        internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => _assembly?.GetSpecialType(SpecialType.System_Object);
+        internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
         internal override bool IsRecord => throw ExceptionUtilities.Unreachable;
 
@@ -104,22 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-            var otherType = (FunctionTypeSymbol)other;
-
-            Debug.Assert(_assembly is { });
-            Debug.Assert((object)_assembly == otherType._assembly);
-
-            var delegateType = (NamedTypeSymbol)_delegateType.MergeEquivalentTypes(otherType._delegateType, variance);
-            return new FunctionTypeSymbol(_assembly, delegateType);
+            return new FunctionTypeSymbol((NamedTypeSymbol)_delegateType.MergeEquivalentTypes(((FunctionTypeSymbol)other)._delegateType, variance));
         }
 
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            Debug.Assert(_assembly is { });
-
-            var delegateType = (NamedTypeSymbol)_delegateType.SetNullabilityForReferenceTypes(transform);
-            return new FunctionTypeSymbol(_assembly, delegateType);
+            return new FunctionTypeSymbol((NamedTypeSymbol)_delegateType.SetNullabilityForReferenceTypes(transform));
         }
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => throw ExceptionUtilities.Unreachable;
@@ -142,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override string GetDebuggerDisplay()
         {
-            return $"DelegateType: {_delegateType.GetDebuggerDisplay()}";
+            return $"FunctionTypeSymbol: {_delegateType.GetDebuggerDisplay()}";
         }
     }
 }
