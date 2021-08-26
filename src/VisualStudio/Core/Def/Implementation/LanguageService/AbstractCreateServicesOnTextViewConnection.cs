@@ -33,6 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
             => Task.CompletedTask;
 
+        protected virtual void OnSolutionRemoved()
+        {
+            return;
+        }
+
         public AbstractCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -45,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _languageName = languageName;
 
             Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
+            Workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -60,6 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
+        }
+
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            if (e.Kind == WorkspaceChangeKind.SolutionRemoved)
+            {
+                OnSolutionRemoved();
+            }
         }
 
         private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)

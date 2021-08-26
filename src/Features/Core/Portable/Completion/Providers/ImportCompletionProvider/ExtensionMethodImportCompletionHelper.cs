@@ -24,8 +24,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new();
         private static Task s_indexingTask = Task.CompletedTask;
 
-        public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
+        public static async Task WarmUpCacheAsync(Document? document, CancellationToken cancellationToken)
         {
+            if (document is null)
+            {
+                return;
+            }
+
             var project = document.Project;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -141,7 +146,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // index is being constrcuted, which might take some time.
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = symbolComputer.PopulateIndicesAsync(document, CancellationToken.None);
+                        // When building cache in the background, make sure we always use latest snapshot with full semantic
+                        var id = document.Id;
+                        var workspace = document.Project.Solution.Workspace;
+                        s_indexingTask = Task.Run(() => symbolComputer.PopulateIndicesAsync(workspace.CurrentSolution.GetDocument(id), CancellationToken.None), CancellationToken.None);
                     }
                 }
             }

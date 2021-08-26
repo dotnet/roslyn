@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,9 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal class CSharpCreateServicesOnTextViewConnection : AbstractCreateServicesOnTextViewConnection
     {
-        private readonly object _object = new();
-        private Task _unimportedTypeTask = Task.CompletedTask;
-        private Task _unimportedExtensionMethodTask = Task.CompletedTask;
+        private readonly object _gate = new();
+        private readonly HashSet<ProjectId> _processedProjects = new();
+        private Task _typeTask = Task.CompletedTask;
+        private Task _extensionMethodTask = Task.CompletedTask;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,23 +42,36 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
         }
 
+        protected override void OnSolutionRemoved()
+        {
+            lock (_gate)
+            {
+                _processedProjects.Clear();
+            }
+        }
+
         protected override Task InitializeServiceForOpenedDocumentAsync(Document document)
         {
             // Only pre-populate cache if import completion is enabled
             if (this.Workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
                 return Task.CompletedTask;
 
-            var documentId = document.Id;
-            lock (_object)
+            lock (_gate)
             {
-                _unimportedTypeTask = _unimportedTypeTask.ContinueWith(async _
-                    => await PopulateTypeImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)).ConfigureAwait(false), TaskScheduler.Default);
+                if (!_processedProjects.Contains(document.Project.Id))
+                {
+                    // Make sure we don't capture the entire snapshot
+                    var documentId = document.Id;
 
-                _unimportedExtensionMethodTask = _unimportedExtensionMethodTask.ContinueWith(async _
-                    => await PopulateExtensionMethodImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)).ConfigureAwait(false), TaskScheduler.Default);
+                    _typeTask = _typeTask.ContinueWith(_ => PopulateTypeImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)), TaskScheduler.Default);
+                    _extensionMethodTask = _extensionMethodTask.ContinueWith(_ => PopulateExtensionMethodImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)), TaskScheduler.Default);
+                }
 
-                return Task.WhenAll(_unimportedTypeTask, _unimportedExtensionMethodTask);
+                return Task.WhenAll(_typeTask, _extensionMethodTask);
             }
+
+            // Since we are running in the background, intentionally not use a frozen document
+            // with partial semantic in the local functions below so we will get cache up-to-date sooner.
 
             static Task PopulateTypeImportCompletionCacheAsync(Document? document)
             {
@@ -64,18 +79,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return Task.CompletedTask;
 
                 var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-                // Since we are running in background, intentionally not use a frozen document
-                // with partial semantic so we will get cache up-to-date sooner.
                 return service.WarmUpCacheAsync(document.Project, CancellationToken.None);
             }
 
             static Task PopulateExtensionMethodImportCompletionCacheAsync(Document? document)
-            {
-                if (document is null)
-                    return Task.CompletedTask;
-
-                return ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
-            }
+                => ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
         }
     }
 }

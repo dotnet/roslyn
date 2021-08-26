@@ -68,8 +68,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// <summary>
             /// Force create all relevant indices
             /// </summary>
-            public static Task PopulateIndicesAsync(Document document, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
+            public static Task PopulateIndicesAsync(Document? document, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
             {
+                if (document is null)
+                {
+                    return Task.CompletedTask;
+                }
+
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var project in GetAllRelevantProjects(document))
@@ -87,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return Task.WhenAll(tasks.ToImmutable());
             }
 
-            public Task PopulateIndicesAsync(Document document, CancellationToken cancellationToken)
+            public Task PopulateIndicesAsync(Document? document, CancellationToken cancellationToken)
                 => PopulateIndicesAsync(document, _cacheService, cancellationToken);
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, CancellationToken cancellationToken)

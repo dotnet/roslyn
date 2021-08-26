@@ -36,8 +36,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         internal AbstractTypeImportCompletionService(Workspace workspace)
             => CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
 
-        public Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken)
-            => GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken);
+        public Task WarmUpCacheAsync(Project? project, CancellationToken cancellationToken)
+        {
+            return project is null
+                ? Task.CompletedTask
+                : GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken);
+        }
 
         public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
             Project currentProject,
@@ -56,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (s_cachingTask.IsCompleted)
                     {
-                        s_cachingTask = Task.Run(async () => await WarmUpCacheAsync(currentProject, CancellationToken.None).ConfigureAwait(false), CancellationToken.None);
+                        // When building cache in the background, make sure we always use latest snapshot with full semantic
+                        var projectId = currentProject.Id;
+                        var workspace = currentProject.Solution.Workspace;
+                        s_cachingTask = Task.Run(() => WarmUpCacheAsync(workspace.CurrentSolution.GetProject(projectId), CancellationToken.None), CancellationToken.None);
                     }
                 }
 
