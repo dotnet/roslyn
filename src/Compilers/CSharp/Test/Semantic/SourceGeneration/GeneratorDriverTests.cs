@@ -2054,7 +2054,11 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            var metadataRefs = new[] {
+                MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
+                MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
+            };
+            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, references: metadataRefs);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2067,22 +2071,21 @@ class C { }
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
+            Assert.Equal(referenceList[0], metadataRefs[0].Display);
+            Assert.Equal(referenceList[1], metadataRefs[1].Display);
 
-            // Don't directly check the references we saw, as it may break as we change TFMs etc
-            // Instead we'll change one and check that only that one comes up a second time
-
-            var references = compilation.References.ToList();
-            var originalRef = references[0];
-            var modifiedRef = originalRef.WithAliases(new[] { "Alias " });
-
-            references.Remove(originalRef);
-            references.Insert(0, modifiedRef);
-
-            compilation = compilation.WithReferences(references);
-
+            // re-run and check we didn't see anything new
             referenceList.Clear();
-            driver = driver.RunGenerators(compilation);
 
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(referenceList);
+
+            // Modify the reference
+            var modifiedRef = metadataRefs[0].WithAliases(new[] { "Alias " });
+            metadataRefs[0] = modifiedRef;
+            compilation = compilation.WithReferences(metadataRefs);
+
+            driver = driver.RunGenerators(compilation);
             Assert.Single(referenceList, modifiedRef.Display);
         }
     }
