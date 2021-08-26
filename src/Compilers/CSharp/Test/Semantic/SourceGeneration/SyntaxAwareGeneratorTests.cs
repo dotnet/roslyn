@@ -334,8 +334,8 @@ class C
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
 
-            // update the compilation. In v1 we always re-created the recevier, but in v2 we only re-create
-            // it if the compilation hase changed.
+            // update the compilation. In v1 we always re-created the receiver, but in v2 we only re-create
+            // it if the compilation has changed.
             compilation = compilation.WithAssemblyName("modified");
 
             var previousReceiver = receiver;
@@ -1356,7 +1356,7 @@ class C
             // make a change to the syntax tree
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
 
-            // when we run it again, we get not output because the comparer has suppressed the modification
+            // when we run it again, we get no output because the comparer has suppressed the modification
             calledFor.Clear();
             driver = driver.RunGenerators(compilation);
             Assert.Empty(calledFor);
@@ -1463,7 +1463,7 @@ class C
             // make a change to the syntax tree
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
 
-            // now, when we re-run, both transforms will run, but the compararer will supress the modified output
+            // now, when we re-run, both transforms will run, but the comparer will suppress the modified output
             syntaxCalledFor.Clear();
             noCompareCalledFor.Clear();
             compareCalledFor.Clear();
