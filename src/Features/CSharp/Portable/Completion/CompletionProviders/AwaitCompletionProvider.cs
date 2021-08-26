@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             syntaxContext.Workspace, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
                         if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
                         {
-                            return IsConfigureAwaitable(symbol)
+                            return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
                                 ? DotAwaitContext.AwaitAndConfigureAwait
                                 : DotAwaitContext.AwaitOnly;
                         }
@@ -157,10 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
             }
 
-            static bool IsConfigureAwaitable(ITypeSymbol symbol)
+            static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
             {
-                const string TaskNameSpace = "System.Threading.Tasks";
-                return symbol.OriginalDefinition.ToSignatureDisplayString() is $"{TaskNameSpace}.Task" or $"{TaskNameSpace}.Task<TResult>";
+                var originalDefinition = symbol.OriginalDefinition;
+                return
+                    originalDefinition.Equals(compilation.TaskOfTType()) ||
+                    originalDefinition.Equals(compilation.TaskType());
             }
         }
     }
