@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return true;
         }
 
-        public override bool TryGoToDefinition(
+        public override async Task<bool> TryGoToDefinitionAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (!TryResolveSymbol(symbol, project, cancellationToken,
@@ -127,9 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            return GoToDefinitionHelpers.TryGoToDefinition(
+            return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
                 searchSymbol, searchProject.Solution,
-                _threadingContext, _streamingPresenter.Value, cancellationToken);
+                _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

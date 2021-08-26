@@ -106,15 +106,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                            exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
-            Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
+            Public Overrides Sub DisplayReferencedSymbols(solution As Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
                 Throw New NotImplementedException()
             End Sub
 
-            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryGoToDefinitionAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean)
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
             End Function
 
@@ -167,9 +167,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <Export>
         <Export(GetType(SVsServiceProvider))>
         Friend Class MockServiceProvider
-            Implements System.IServiceProvider
+            Implements IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
-            Implements Shell.IAsyncServiceProvider
+            Implements IAsyncServiceProvider
 
             Private ReadOnly _exportProvider As Composition.ExportProvider
             Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
@@ -182,7 +182,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 _exportProvider = exportProvider
             End Sub
 
-            Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
+            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
                         ' Return a loose mock that just is a big no-op
@@ -209,7 +209,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End Select
             End Function
 
-            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements Shell.IAsyncServiceProvider.GetServiceAsync
+            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements IAsyncServiceProvider.GetServiceAsync
                 Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
             End Function
 

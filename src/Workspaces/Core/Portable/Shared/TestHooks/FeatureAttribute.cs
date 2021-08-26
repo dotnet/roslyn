@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string InlineParameterNameHints = nameof(InlineParameterNameHints);
         public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
+        public const string LibraryManager = nameof(LibraryManager);
         public const string LightBulb = nameof(LightBulb);
         public const string LineSeparators = nameof(LineSeparators);
         public const string NavigableSymbols = nameof(NavigableSymbols);
