@@ -8,6 +8,44 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_Await
+
+        Private Shared Function GetTestClassDocument(containerHasAsyncModifier As Boolean, testExpression As String) As XElement
+            Return _
+<Document>
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public C Self => this;
+    public Task Field = Task.CompletedTask;
+    public Task Method() => Task.CompletedTask;
+    public Task Property => Task.CompletedTask;
+    public Task this[int i] => Task.CompletedTask;
+    public Func&lt;Task&gt; Function() => () => Task.CompletedTask;
+    public static Task operator +(C left, C right) => Task.CompletedTask;
+    public static explicit operator Task(C c) => Task.CompletedTask;
+}
+
+static class Program
+{
+    static Task StaticField = Task.CompletedTask;
+    static Task StaticProperty => Task.CompletedTask;
+    static Task StaticMethod() => Task.CompletedTask;
+
+    static<%= If(containerHasAsyncModifier, " async", "") %> Task Main(Task parameter)
+    {
+        var local = Task.CompletedTask;
+        var c = new C();
+
+        <%= testExpression %>
+
+        Task LocalFunction() => Task.CompletedTask;
+    }
+}
+</Document>
+        End Function
+
         <WpfFact>
         Public Async Function AwaitCompletionAddsAsync_MethodDeclaration() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -517,78 +555,46 @@ public class C
         <InlineData(
             "(null ?? Task.CompletedTask).$$",
             "await (null ?? Task.CompletedTask)")>
-        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionForDifferntExpressions(expression As String, committed As String) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-<Document>
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    public C Self => this;
-    public Task Field = Task.CompletedTask;
-    public Task Method() => Task.CompletedTask;
-    public Task Property => Task.CompletedTask;
-    public Task this[int i] => Task.CompletedTask;
-    public Func&lt;Task&gt; Function() => () => Task.CompletedTask;
-    public static Task operator +(C left, C right) => Task.CompletedTask;
-    public static explicit operator Task(C c) => Task.CompletedTask;
-}
-
-static class Program
-{
-    static Task StaticField = Task.CompletedTask;
-    static Task StaticProperty => Task.CompletedTask;
-    static Task StaticMethod() => Task.CompletedTask;
-
-    static async Task Main(Task parameter)
-    {
-        var local = Task.CompletedTask;
-        var c = new C();
-
-        <%= expression %>
-
-        Task LocalFunction() => Task.CompletedTask;
-    }
-}
-</Document>)
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionForDifferentExpressions(expression As String, committed As String) As Task
+            ' place await in front of expression
+            Using state = TestStateFactory.CreateCSharpTestState(GetTestClassDocument(containerHasAsyncModifier:=True, expression))
                 state.SendTypeChars("aw")
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
 
                 state.SendTab()
-                Assert.Equal($"
-using System;
-using System.Threading.Tasks;
+                Assert.Equal(GetTestClassDocument(containerHasAsyncModifier:=True, committed).Value.NormalizeLineEndings(), state.GetDocumentText().NormalizeLineEndings())
+                Await state.AssertLineTextAroundCaret($"        {committed}", "")
+            End Using
 
-class C
-{{
-    public C Self => this;
-    public Task Field = Task.CompletedTask;
-    public Task Method() => Task.CompletedTask;
-    public Task Property => Task.CompletedTask;
-    public Task this[int i] => Task.CompletedTask;
-    public Func<Task> Function() => () => Task.CompletedTask;
-    public static Task operator +(C left, C right) => Task.CompletedTask;
-    public static explicit operator Task(C c) => Task.CompletedTask;
-}}
+            ' place await in front of expression and make container async
+            Using state = TestStateFactory.CreateCSharpTestState(GetTestClassDocument(containerHasAsyncModifier:=False, expression))
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
-static class Program
-{{
-    static Task StaticField = Task.CompletedTask;
-    static Task StaticProperty => Task.CompletedTask;
-    static Task StaticMethod() => Task.CompletedTask;
+                state.SendTab()
+                Assert.Equal(GetTestClassDocument(containerHasAsyncModifier:=True, committed).Value.NormalizeLineEndings(), state.GetDocumentText().NormalizeLineEndings())
+                Await state.AssertLineTextAroundCaret($"        {committed}", "")
+            End Using
 
-    static async Task Main(Task parameter)
-    {{
-        var local = Task.CompletedTask;
-        var c = new C();
+            ' ConfigureAwait(false) starts here
+            committed += ".ConfigureAwait(false)"
+            ' place await in front of expression and append ConfigureAwait(false)
+            Using state = TestStateFactory.CreateCSharpTestState(GetTestClassDocument(containerHasAsyncModifier:=True, expression))
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
 
-        {committed}
+                state.SendTab()
+                Assert.Equal(GetTestClassDocument(containerHasAsyncModifier:=True, committed).Value.NormalizeLineEndings(), state.GetDocumentText().NormalizeLineEndings())
+                Await state.AssertLineTextAroundCaret($"        {committed}", "")
+            End Using
 
-        Task LocalFunction() => Task.CompletedTask;
-    }}
-}}
-", state.GetDocumentText())
+            ' place await in front of expression, append ConfigureAwait(false) and make container async
+            Using state = TestStateFactory.CreateCSharpTestState(GetTestClassDocument(containerHasAsyncModifier:=False, expression))
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+
+                state.SendTab()
+                Assert.Equal(GetTestClassDocument(containerHasAsyncModifier:=True, committed).Value.NormalizeLineEndings(), state.GetDocumentText().NormalizeLineEndings())
                 Await state.AssertLineTextAroundCaret($"        {committed}", "")
             End Using
         End Function
