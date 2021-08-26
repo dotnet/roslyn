@@ -97,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var inheritanceMarginInfoService = frozenDocument.GetLanguageService<IInheritanceMarginService>();
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken, LogLevel.Information))
             {
                 inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
-                    frozenDocument,
+                    document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // We only care about the line, so just tag the start.
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
                     new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(frozenDocument.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
+                    new InheritanceMarginTag(document.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
             }
         }
     }
