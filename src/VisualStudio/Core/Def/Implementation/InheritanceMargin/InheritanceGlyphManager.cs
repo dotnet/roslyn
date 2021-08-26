@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -156,22 +157,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             if (lines.Count > 0)
             {
-                var low = 0;
-                var high = lines.Count;
-                while (low < high)
+                var index = lines.ToImmutableArray().BinarySearch(span.Start, CompareWithLineStartAndEnd);
+                if (index >= 0)
                 {
-                    var middle = (low + high) / 2;
-                    var middleLine = lines[middle];
-                    if (span.Start < middleLine.Start)
-                        high = middle;
-                    else if (span.Start >= middleLine.EndIncludingLineBreak)
-                        low = middle + 1;
-                    else
-                        return middleLine;
+                    return lines[index];
                 }
 
-                var lastLine = lines[lines.Count - 1];
-                if ((lastLine.EndIncludingLineBreak == lastLine.Snapshot.Length) && (span.Start == lastLine.EndIncludingLineBreak))
+                var lastLine = lines[^1];
+                if (lastLine.EndIncludingLineBreak == lastLine.Snapshot.Length && span.Start == lastLine.EndIncludingLineBreak)
                 {
                     // As a special case, if the last line ends at the end of the buffer and the span starts at the end of the buffer
                     // as well, treat is as crossing the last line in the buffer.
@@ -180,6 +173,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
 
             return null;
+        }
+
+        private static int CompareWithLineStartAndEnd(ITextViewLine line, int value)
+        {
+            if (value < line.Start)
+            {
+                return 1;
+            }
+
+            // EndIncludingLineBreak usually equals the start of next line (the exclusion is if this is the last line, which will be handled separately),
+            // and we always prefer to use the line start, so still return -1 when value == line.EndIncludingLineBreak.
+            if (value >= line.EndIncludingLineBreak)
+            {
+                return -1;
+            }
+
+            return 0;
         }
 
         private InheritanceMarginGlyph CreateNewGlyph(InheritanceMarginTag tag)
