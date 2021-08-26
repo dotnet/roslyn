@@ -314,6 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             if (index >= GetItemCount())
                 return VSConstants.E_INVALIDARG;
 
+            // Fire and forget
             _ = GoToSourceAsync(index, srcType);
             return VSConstants.S_OK;
         }
