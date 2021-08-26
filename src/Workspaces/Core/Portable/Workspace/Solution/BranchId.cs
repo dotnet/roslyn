@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -11,6 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// solution branch Id
     /// </summary>
+    [DebuggerDisplay("{_id}")]
     internal class BranchId
     {
         private static int s_nextId;
