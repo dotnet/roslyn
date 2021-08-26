@@ -838,6 +838,50 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
         }
 
+        [Theory]
+        [InlineData("[System.CLSCompliantAttribute]")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.AllowNullAttribute]")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.DisallowNullAttribute]")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.MaybeNullAttribute]")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.NotNullAttribute]")]
+        [InlineData("[System.NonSerializedAttribute]")]
+        [InlineData("[System.Reflection.AssemblyAlgorithmIdAttribute]")]
+        [InlineData("[System.Reflection.AssemblyCultureAttribute]")]
+        [InlineData("[System.Reflection.AssemblyFlagsAttribute]")]
+        [InlineData("[System.Reflection.AssemblyVersionAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.DllImportAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.IndexerNameAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.MethodImplAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.SpecialNameAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.TypeForwardedToAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.ComImportAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.DefaultParameterValueAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.FieldOffsetAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.InAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.MarshalAsAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.OptionalAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.OutAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.PreserveSigAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute]")]
+        [InlineData("[System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute]")]
+        [InlineData("[System.Security.DynamicSecurityMethodAttribute]")]
+        [InlineData("[System.SerializableAttribute]")]
+        [InlineData("[System.Runtime.CompilerServices.AsyncMethodBuilderAttribute]")]
+        public void Type_Attribute_Insert_SupportedByRuntime_NonCustomAttribute(string attributeType)
+        {
+            var src1 = @"class C { public void M(int a) {} }";
+            var src2 = attributeType + @"class C { public void M(int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [class C { public void M(int a) {} }]@0 -> [" + attributeType + "class C { public void M(int a) {} }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+        }
+        
         [Fact]
         public void Type_Attribute_Update_NotSupportedByRuntime1()
         {
@@ -15186,22 +15230,6 @@ class C { static void M(string a) { } }
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
-        }
-
-        [Fact]
-        public void Parameter_Attribute_Insert_SupportedByRuntime_NonCustomAttribute()
-        {
-            var src1 = @"class C { public void M(int a) {} }";
-            var src2 = @"class C { public void M([System.Runtime.InteropServices.InAttribute]int a) {} } ";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
-
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
