@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -287,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,
+            OptionSet options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             SyntaxNode contextNode,
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 namespaceOrTypeSymbol, semanticModel, contextNode);
 
             var (usingDirective, hasExistingUsing) = GetUsingDirective(
-                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
             var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
@@ -338,26 +340,26 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             Document document,
-            bool placeSystemNamespaceFirst,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
-            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode, INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+            bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var (externAliasDirective, hasExistingExtern) = GetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode);
 
             var (usingDirective, hasExistingUsing) = GetUsingDirective(
-                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var newImports);
 
@@ -379,14 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = addImportService.AddImports(
-                semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                semanticModel.Compilation, root, contextNode, newImports, generator, options, allowInHiddenRegions, cancellationToken);
             return (CompilationUnitSyntax)newRoot;
         }
 
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode, IReadOnlyList<string> namespaceParts,
-            Document document, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+            Document document, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
             var usingDirective = SyntaxFactory.UsingDirective(
@@ -396,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var service = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                compilation, root, contextNode, usingDirective, generator, options, allowInHiddenRegions, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -433,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
             Document document,
+            OptionSet options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             CompilationUnitSyntax root,
@@ -451,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             // help create the final using.
             var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
 
-            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
+            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing, options);
             var namespaceToAddTo = container as BaseNamespaceDeclarationSyntax;
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked
