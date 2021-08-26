@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
-        internal static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
+        private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
             SymbolDisplayFormat.TestFormat
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
                     | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)

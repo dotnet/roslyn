@@ -22,14 +22,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol();
 
-        private const SymbolKind s_SymbolKind = SymbolKind.FunctionPointerType + 1;
-        private const TypeKind s_TypeKind = TypeKind.FunctionPointer + 1;
+        private const SymbolKind s_SymbolKind = (SymbolKind)255;
+        private const TypeKind s_TypeKind = (TypeKind)255;
+
+#if DEBUG
+        static FunctionTypeSymbol()
+        {
+            // Verify the SymbolKind and TypeKind values are not existing values in the enums.
+            Debug.Assert(isDistinctValue(s_SymbolKind));
+            Debug.Assert(isDistinctValue(s_TypeKind));
+
+            static bool isDistinctValue<TEnum>(TEnum value) => Array.IndexOf(Enum.GetValues(typeof(TEnum)), value) < 0;
+        }
+#endif
 
         private readonly AssemblySymbol? _assembly;
         private readonly NamedTypeSymbol _delegateType;
 
         private FunctionTypeSymbol()
         {
+            _assembly = null;
             _delegateType = ErrorTypeSymbol.UnknownResultType;
         }
 
@@ -144,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override string GetDebuggerDisplay()
         {
-            return $"DelegateType: {_delegateType.ToDisplayString(s_debuggerDisplayFormat)}";
+            return $"DelegateType: {_delegateType.GetDebuggerDisplay()}";
         }
     }
 }

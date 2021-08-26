@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class FunctionSignature
     {
-        private readonly AssemblySymbol _assembly;
-        private readonly Binder? _binder;
+        private readonly Binder _binder;
         private readonly Func<Binder, BoundExpression, NamedTypeSymbol?> _calculateDelegate;
 
         private FunctionTypeSymbol? _lazyFunctionType;
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal FunctionSignature(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
         {
-            _assembly = binder.Compilation.Assembly;
             _binder = binder;
             _calculateDelegate = calculateDelegate;
             _lazyFunctionType = FunctionTypeSymbol.Uninitialized;
@@ -34,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized);
             Debug.Assert(_expression is null);
+            Debug.Assert(expression.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
 
             _expression = expression;
         }
@@ -46,12 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal FunctionTypeSymbol? GetSignatureAsTypeSymbol()
         {
+            Debug.Assert(_expression is { });
+
             if ((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized)
             {
-                var delegateType = _calculateDelegate(_binder!, _expression!);
-                var functionType = delegateType is null ? null : new FunctionTypeSymbol(_assembly, delegateType);
+                var delegateType = _calculateDelegate(_binder, _expression);
+                var functionType = delegateType is null ? null : new FunctionTypeSymbol(_binder.Compilation.Assembly, delegateType);
                 Interlocked.CompareExchange(ref _lazyFunctionType, functionType, FunctionTypeSymbol.Uninitialized);
             }
+
             return _lazyFunctionType;
         }
     }
