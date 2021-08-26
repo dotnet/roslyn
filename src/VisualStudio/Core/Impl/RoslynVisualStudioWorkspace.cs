@@ -88,37 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        private static bool TryResolveSymbol(
-            ISymbol symbol,
-            Project project,
-            CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out ISymbol? resolvedSymbol,
-            [NotNullWhen(returnValue: true)] out Project? resolvedProject)
-        {
-            resolvedSymbol = null;
-            resolvedProject = null;
-
-            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
-            if (currentProject == null)
-            {
-                return false;
-            }
-
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var currentCompilation = currentProject.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
-
-            if (symbolInfo.Symbol == null)
-            {
-                return false;
-            }
-
-            resolvedSymbol = symbolInfo.Symbol;
-            resolvedProject = currentProject;
-
-            return true;
-        }
-
         [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
         public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
@@ -126,14 +95,18 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override async Task<bool> TryGoToDefinitionAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!TryResolveSymbol(symbol, project, cancellationToken,
-                    out var searchSymbol, out var searchProject))
-            {
+            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
+            if (currentProject == null)
                 return false;
-            }
+
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+            if (symbolInfo.Symbol == null)
+                return false;
 
             return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
-                searchSymbol, searchProject.Solution,
+                symbolInfo.Symbol, currentProject.Solution,
                 _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }
 
