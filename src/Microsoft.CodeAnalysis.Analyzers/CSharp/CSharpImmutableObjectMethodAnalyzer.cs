@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             description: CreateLocalizableResourceString(nameof(DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotIgnoreReturnValueDiagnosticRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotIgnoreReturnValueDiagnosticRule);
 
         private const string SolutionFullName = @"Microsoft.CodeAnalysis.Solution";
         private const string ProjectFullName = @"Microsoft.CodeAnalysis.Project";

@@ -48,7 +48,7 @@ namespace Text.Analyzers
                 isPortedFxCopRule: true,
                 isDataflowRule: false);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule_CA1714, Rule_CA1717);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule_CA1714, Rule_CA1717);
 
         public override void Initialize(AnalysisContext context)
         {

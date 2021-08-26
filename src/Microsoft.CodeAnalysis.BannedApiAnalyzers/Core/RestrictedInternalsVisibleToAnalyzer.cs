@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             helpLinkUri: null, // TODO: Add help link
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected abstract ImmutableArray<TSyntaxKind> NameSyntaxKinds { get; }
 

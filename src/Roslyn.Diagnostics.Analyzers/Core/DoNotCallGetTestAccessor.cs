@@ -25,7 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers
             description: CreateLocalizableResourceString(nameof(DoNotCallGetTestAccessorDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotCallGetTestAccessorRule);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotCallGetTestAccessorRule);
 
         public sealed override void Initialize(AnalysisContext context)
         {

@@ -210,7 +210,7 @@ namespace Text.Analyzers
             isPortedFxCopRule: true,
             isDataflowRule: false);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             FileParseRule,
             AssemblyRule,
             NamespaceRule,

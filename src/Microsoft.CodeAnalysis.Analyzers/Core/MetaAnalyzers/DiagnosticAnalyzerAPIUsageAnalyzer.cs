@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         protected abstract bool IsNamedTypeDeclarationBlock(SyntaxNode syntax);
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseTypesFromAssemblyDirectRule, DoNotUseTypesFromAssemblyIndirectRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotUseTypesFromAssemblyDirectRule, DoNotUseTypesFromAssemblyIndirectRule);
 
         public override void Initialize(AnalysisContext context)
         {

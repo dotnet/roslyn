@@ -122,7 +122,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, UnsupportedUseRule, NoBoxingRule, NoUnboxingRule, NoFieldOfCopyableTypeRule, NoAutoPropertyRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule, UnsupportedUseRule, NoBoxingRule, NoUnboxingRule, NoFieldOfCopyableTypeRule, NoAutoPropertyRule);
 
         protected abstract NonCopyableWalker CreateWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache);
 

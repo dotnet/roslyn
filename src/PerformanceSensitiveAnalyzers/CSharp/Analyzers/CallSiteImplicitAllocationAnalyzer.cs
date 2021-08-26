@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ParamsParameterRule, ValueTypeNonOverridenCallRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ParamsParameterRule, ValueTypeNonOverridenCallRule);
 
         protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.InvocationExpression);
 

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 (SymbolDisplayMiscellaneousOptions)IncludeNullableReferenceTypeModifier |
                 (SymbolDisplayMiscellaneousOptions)IncludeNonNullableReferenceTypeModifier);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, ObliviousApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
                 PublicApiFilesInvalid, PublicApiFileMissing, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
                 OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule, RemovedApiIsNotActuallyRemovedRule);

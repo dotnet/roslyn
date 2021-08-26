@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ReferenceTypeEnumeratorRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ReferenceTypeEnumeratorRule);
 
         protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.ForEachStatement, SyntaxKind.InvocationExpression);
 

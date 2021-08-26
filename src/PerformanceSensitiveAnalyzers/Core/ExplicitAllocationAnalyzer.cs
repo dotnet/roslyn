@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             ArrayCreationRule,
             ObjectCreationRule,
             AnonymousObjectCreationRule,

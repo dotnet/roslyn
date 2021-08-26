@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
 
         protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }
