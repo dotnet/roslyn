@@ -881,7 +881,7 @@ class C
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
-        
+
         [Fact]
         public void Type_Attribute_Update_NotSupportedByRuntime1()
         {
