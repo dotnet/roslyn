@@ -16,6 +16,8 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     /// <summary>
     /// RS0046: Avoid 'Opt' suffix for nullable enable code
     /// </summary>
@@ -24,18 +26,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     {
         internal const string OptSuffix = "Opt";
 
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.AvoidOptSuffixForNullableEnableCodeRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeTitle)),
+            CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeMessage)),
             DiagnosticCategory.RoslynDiagnosticsDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(AvoidOptSuffixForNullableEnableCodeDescription)),
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
