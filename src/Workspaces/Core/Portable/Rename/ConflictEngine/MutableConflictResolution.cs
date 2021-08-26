@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -115,19 +116,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             // If possible, check that the new file name is unique to on disk files as well 
             // as solution items.
-            if (File.Exists(document.FilePath))
+            IOUtilities.PerformIO(() =>
             {
-                var directory = Directory.GetParent(document.FilePath).FullName;
-                var newDocumentFilePath = Path.Combine(directory, newName);
-
-                var versionNumber = 1;
-                while (File.Exists(newDocumentFilePath))
+                if (File.Exists(document.FilePath))
                 {
-                    var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
-                    newName = Path.ChangeExtension(nameWithoutExtension, extension);
-                    newDocumentFilePath = Path.Combine(directory, newName);
+                    var directory = Directory.GetParent(document.FilePath).FullName;
+                    var newDocumentFilePath = Path.Combine(directory, newName);
+
+                    var versionNumber = 1;
+                    while (File.Exists(newDocumentFilePath))
+                    {
+                        var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                        newName = Path.ChangeExtension(nameWithoutExtension, extension);
+                        newDocumentFilePath = Path.Combine(directory, newName);
+                    }
                 }
-            }
+            });
 
             _renamedDocument = (document.Id, newName);
         }
