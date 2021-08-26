@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// </summary>
     internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     {
+        #region CompletionItem properties keys
+        private const string AwaitCompletionTargetTokenPosition = nameof(AwaitCompletionTargetTokenPosition);
+
         private static class AwaitCompletionChange
         {
             public const string AddAwaitAtCursor = nameof(AwaitCompletionChange) + "." + nameof(AddAwaitAtCursor);
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public const string AppendConfigureAwait = nameof(AwaitCompletionChange) + "." + nameof(AppendConfigureAwait);
             public const string MakeContainerAsync = nameof(AwaitCompletionChange) + "." + nameof(MakeContainerAsync);
         }
+        #endregion
 
         protected enum DotAwaitContext
         {
@@ -110,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (properties.ContainsKey(AwaitCompletionChange.MakeContainerAsync))
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var declaration = GetAsyncSupportingDeclaration(root.FindToken(item.Span.Start));
+                var tokenPosition = int.Parse(properties[AwaitCompletionTargetTokenPosition]);
+                var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
                 if (declaration is null)
                 {
                     // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
@@ -167,12 +172,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
                 // This case adds "await"
-                var completionPropertiesForAwaitOnly = GetCompletionProperties(isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
+                var completionPropertiesForAwaitOnly = GetCompletionProperties(token, isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
                 yield return CreateCompletionItem(displayText, filterText, completionPropertiesForAwaitOnly);
 
             }
 
-            var completionProperties = GetCompletionProperties(isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
+            var completionProperties = GetCompletionProperties(token, isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
             {
                 displayText += "f";
@@ -201,9 +206,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     properties: completionProperties);
             }
 
-            static ImmutableDictionary<string, string> GetCompletionProperties(bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, bool shouldMakeContainerAsync)
+            static ImmutableDictionary<string, string> GetCompletionProperties(SyntaxToken targetToken, bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, bool shouldMakeContainerAsync)
             {
                 using var _ = PooledDictionary<string, string>.GetInstance(out var dict);
+                dict.Add(AwaitCompletionTargetTokenPosition, targetToken.SpanStart.ToString());
                 if (isAwaitKeywordContext)
                     AddKey(AwaitCompletionChange.AddAwaitAtCursor);
                 if (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)
