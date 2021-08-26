@@ -1972,6 +1972,108 @@ namespace TestNs1.ExtraNs
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveExtensionMethodRefactorMultipleImports()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+        public static int Test[||]Method(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+
+        public int GetOtherInt2()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}";
+            var selectedDestinationName = "ExtraNs.Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+    using TestNs1.ExtraNs;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+
+        public int GetOtherInt2()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}";
+            var expectedResult2 = @"using TestNs2;
+
+namespace TestNs1.ExtraNs
+{
+    internal static class Class1Helpers
+    {
+        public static int TestMethod(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestMoveMethodFromStaticClass()
         {
             var initialMarkup = @"
