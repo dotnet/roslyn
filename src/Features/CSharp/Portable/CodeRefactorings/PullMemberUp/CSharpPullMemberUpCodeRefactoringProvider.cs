@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         /// Test purpose only.
         /// </summary>
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
+        public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService? service) : base(service)
         {
         }
 
@@ -33,7 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context);
+        protected override async Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context)
+        {
+            var declarationOrVariableNode = await NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context).ConfigureAwait(false);
+            // If the field has only one variable in it, treat it as the variable is selected.
+            if (declarationOrVariableNode is BaseFieldDeclarationSyntax { Declaration: { Variables: { Count: 1 } } } baseFieldDeclarationNode)
+            {
+                return baseFieldDeclarationNode.Declaration.Variables[0];
+            }
+
+            return declarationOrVariableNode;
+        }
     }
 }

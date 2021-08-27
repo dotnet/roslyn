@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPullMemberUpOptionsService _service;
+        private readonly IPullMemberUpOptionsService? _service;
 
-        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
         /// </summary>
-        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
+        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService? service)
             => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -40,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
-            if (selectedMember == null || selectedMember.ContainingType == null)
+            if (selectedMember?.ContainingType == null)
             {
                 return;
             }

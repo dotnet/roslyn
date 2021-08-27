@@ -1,6 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.  
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             /// </summary>
             private readonly ISymbol _selectedMember;
             private readonly Document _document;
-            private readonly IPullMemberUpOptionsService _service;
+            private readonly IPullMemberUpOptionsService? _service;
 
             public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
             public PullMemberUpWithDialogCodeAction(
                 Document document,
                 ISymbol selectedMember,
-                IPullMemberUpOptionsService service)
+                IPullMemberUpOptionsService? service)
             {
                 _document = document;
                 _selectedMember = selectedMember;
