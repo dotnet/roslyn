@@ -5252,6 +5252,50 @@ System.Void Program+<>c.<<Main>$>b__0_2(System.String? name)
         public void LambdaAttributes_02()
         {
             var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"", (string name) => $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"", (string name) => { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String! name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String! name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"",
+#nullable disable
+    (string name) =>
+#nullable disable
+        $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"",
+#nullable disable
+    (string name) =>
+#nullable disable
+        { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_04()
+        {
+            var source =
 @"using System;
 class Program
 {
