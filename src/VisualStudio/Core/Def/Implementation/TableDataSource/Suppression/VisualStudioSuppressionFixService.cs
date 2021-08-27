@@ -234,7 +234,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
-            _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
+            var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
+            _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog)
+                .CompletesAsyncOperation(token);
             return true;
         }
 
@@ -242,7 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             try
             {
-                using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
@@ -378,11 +379,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
+                    var token = _listener.BeginAsyncOperation(nameof(_diagnosticService.Reanalyze));
                     _ = Task.Run(() =>
                     {
                         var reanalyzeDocuments = diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
                         _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
-                    });
+                    }).CompletesAsyncOperation(token);
                 }
             }
             catch (OperationCanceledException)

@@ -181,7 +181,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (pathToAnalyzerConfigDoc != null)
             {
                 // Fire and forget.
-                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project);
+                var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandlerAsync));
+                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project).CompletesAsyncOperation(token);
             }
         }
 
@@ -189,7 +190,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             try
             {
-                using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandlerAsync));
                 using var context = _uiThreadOperationExecutor.BeginExecute(
                     title: ServicesVSResources.Updating_severity,
                     defaultDescription: ServicesVSResources.Updating_severity,
@@ -210,10 +210,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (selectedDiagnostic.DocumentId != null)
                 {
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
+                    var token = _listener.BeginAsyncOperation(nameof(_diagnosticService.Reanalyze));
                     _ = Task.Run(() =>
                     {
                         _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
-                    });
+                    }).CompletesAsyncOperation(token);
                 }
             }
             catch (OperationCanceledException)

@@ -405,43 +405,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods. This signature is required for events.
-        private async void SetSeverityHandler(object sender, EventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void SetSeverityHandler(object sender, EventArgs args)
         {
-            try
+            var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
+            _ = SetSeverityHandlerAsync(sender, args).CompletesAsyncOperation(token);
+            return;
+
+            async Task SetSeverityHandlerAsync(object sender, EventArgs args)
             {
-                if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
-                    return;
-
-                // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
-                // while we do the work.  If we receive any failure notifications, we'll return them here so we
-                // can report them once the dialog has been dismissed.
-                using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
-                await SetSeverityHandlerAsync(workspace, (MenuCommand)sender, notificationMessages).ConfigureAwait(false);
-
-                if (notificationMessages.Count > 0)
+                try
                 {
-                    var totalMessage = string.Join(Environment.NewLine, notificationMessages);
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
+                        return;
 
-                    SendErrorNotification(
-                        workspace,
-                        SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
-                        totalMessage);
+                    // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
+                    // while we do the work.  If we receive any failure notifications, we'll return them here so we
+                    // can report them once the dialog has been dismissed.
+                    using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
+                    await this.SetSeverityHandlerAsync(workspace, (MenuCommand)sender, notificationMessages).ConfigureAwait(false);
+
+                    if (notificationMessages.Count > 0)
+                    {
+                        var totalMessage = string.Join(Environment.NewLine, notificationMessages);
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        SendErrorNotification(
+                            workspace,
+                            SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
+                            totalMessage);
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
             }
         }
 
         private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)
         {
-            using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
             var uiThreadOperationExecutor = componentModel.GetService<VSUtilities.IUIThreadOperationExecutor>();
 

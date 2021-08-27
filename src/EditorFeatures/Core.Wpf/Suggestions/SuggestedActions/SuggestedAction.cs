@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // So we need to take ownership of it and start our own TWD instead to track this.
             context.TakeOwnership();
 
-            _ = InvokeAsync();
+            var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
+            _ = InvokeAsync().CompletesAsyncOperation(token);
         }
 
         private async Task InvokeAsync()
         {
             try
             {
-                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                     EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
