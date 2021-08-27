@@ -96,14 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
 
             var delegateType = expr.GetFunctionType()?.GetInternalDelegateType();
-            if (delegateType is { })
-            {
-                delegateType.AddUseSiteInfo(ref useSiteInfo);
-            }
+            delegateType?.AddUseSiteInfo(ref useSiteInfo);
             return delegateType;
         }
 
-        public static TypeSymbol? GetTypeOrSignature(this BoundExpression expr)
+        public static TypeSymbol? GetTypeOrFunctionType(this BoundExpression expr)
         {
             if (expr.Type is { } type)
             {

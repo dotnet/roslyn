@@ -6127,7 +6127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
             {
-                return TypeWithAnnotations.Create(expr.GetTypeOrSignature(), GetNullableAnnotation(expr));
+                return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType(), GetNullableAnnotation(expr));
             }
 
             /// <summary>

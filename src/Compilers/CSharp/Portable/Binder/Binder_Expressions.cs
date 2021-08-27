@@ -395,10 +395,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(expr.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup);
+
             var syntax = expr.Syntax;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var delegateType = expr.GetInferredDelegateType(ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
+
             if (delegateType is null)
             {
                 if (CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics))
@@ -407,6 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 delegateType = CreateErrorType();
             }
+
             return GenerateConversionForAssignment(delegateType, expr, diagnostics);
         }
 
@@ -8618,6 +8622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (wkDelegateType != WellKnownType.Unknown)
                 {
+                    // The caller of GetMethodGroupOrLambdaDelegateType() is responsible for
+                    // checking and reporting use-site diagnostics for the returned delegate type.
                     var delegateType = Compilation.GetWellKnownType(wkDelegateType);
                     if (typeArguments.Length == 0)
                     {

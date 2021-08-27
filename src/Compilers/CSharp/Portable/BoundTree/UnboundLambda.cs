@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var exprType = returns[0].expr.GetTypeOrSignature();
+                        var exprType = returns[0].expr.GetTypeOrFunctionType();
                         var bestType = exprType is FunctionTypeSymbol functionType ?
                             functionType.GetInternalDelegateType() :
                             exprType;

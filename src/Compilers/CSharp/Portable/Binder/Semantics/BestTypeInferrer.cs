@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
-                TypeSymbol? type = expr.GetTypeOrSignature();
+                TypeSymbol? type = expr.GetTypeOrFunctionType();
 
                 if (type is { })
                 {

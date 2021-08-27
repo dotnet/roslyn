@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null);
             Debug.Assert((object)destination != null);
 
-            var sourceType = sourceExpression.GetTypeOrSignature();
+            var sourceType = sourceExpression.GetTypeOrFunctionType();
 
             //PERF: identity conversion is by far the most common implicit conversion, check for that first
             if ((object)sourceType != null && HasIdentityConversionInternal(sourceType, destination))
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
-            Debug.Assert(sourceExpression == null || (object)sourceExpression.GetTypeOrSignature() == (object)source);
+            Debug.Assert(sourceExpression == null || (object)sourceExpression.GetTypeOrFunctionType() == (object)source);
             Debug.Assert((object)destination != null);
 
             // SPEC: The following implicit conversions are classified as standard implicit conversions:
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion ClassifyImplicitBuiltInConversionFromExpression(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
-            Debug.Assert(sourceExpression == null || (object)sourceExpression.GetTypeOrSignature() == (object)source);
+            Debug.Assert(sourceExpression == null || (object)sourceExpression.GetTypeOrFunctionType() == (object)source);
             Debug.Assert((object)destination != null);
 
             if (HasImplicitDynamicConversionFromExpression(source, destination))
@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sourceType = sourceExpression.GetTypeOrSignature();
+            var sourceType = sourceExpression.GetTypeOrFunctionType();
             if ((object)sourceType != null)
             {
                 // Try using the short-circuit "fast-conversion" path.
@@ -1403,10 +1403,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
         }
 
-        internal bool IsAssignableFromMulticastDelegate(TypeSymbol type)
+        internal bool IsAssignableFromMulticastDelegate(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return ClassifyImplicitConversionFromType(corLibrary.GetSpecialType(SpecialType.System_MulticastDelegate), type, ref useSiteInfo).Exists;
+            var multicastDelegateType = corLibrary.GetSpecialType(SpecialType.System_MulticastDelegate);
+            multicastDelegateType.AddUseSiteInfo(ref useSiteInfo);
+            return ClassifyImplicitConversionFromType(multicastDelegateType, type, ref useSiteInfo).Exists;
         }
 
         public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
                 {
-                    return TypeWithAnnotations.Create(expr.GetTypeOrSignature());
+                    return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType());
                 }
 
                 internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
-                if (IsReallyAType(argument.GetTypeOrSignature()))
+                if (IsReallyAType(argument.GetTypeOrFunctionType()))
                 {
                     ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
                 }

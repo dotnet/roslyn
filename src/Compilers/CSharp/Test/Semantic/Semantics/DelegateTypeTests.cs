@@ -55,7 +55,7 @@ static class Utils
     }
 }";
 
-        private static readonly string s_expressionOfTTypeName = ExecutionConditionUtil.IsDesktop ?
+        private static readonly string s_expressionOfTDelegateTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression0`1";
 
@@ -370,8 +370,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 26));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-$@"{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
+$@"{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -441,7 +441,7 @@ class Program
 }";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Action]
-{s_expressionOfTTypeName}[System.Func`1[System.Action]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Action]]
 ");
         }
 
@@ -3474,7 +3474,7 @@ class Program
 
             string expectedOutput =
 $@"System.Func`1[System.Int32]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]";
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
@@ -3508,7 +3508,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Int32]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]");
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]");
         }
 
         [Fact]
@@ -3637,7 +3637,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Action`1[System.Int32]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -3672,9 +3672,9 @@ System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -3708,10 +3708,10 @@ $@"System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
 ");
         }
 

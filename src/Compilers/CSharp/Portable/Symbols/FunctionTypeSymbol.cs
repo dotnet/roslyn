@@ -97,12 +97,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            return new FunctionTypeSymbol((NamedTypeSymbol)_delegateType.MergeEquivalentTypes(((FunctionTypeSymbol)other)._delegateType, variance));
+            return WithDelegateType((NamedTypeSymbol)_delegateType.MergeEquivalentTypes(((FunctionTypeSymbol)other)._delegateType, variance));
         }
 
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            return new FunctionTypeSymbol((NamedTypeSymbol)_delegateType.SetNullabilityForReferenceTypes(transform));
+            return WithDelegateType((NamedTypeSymbol)_delegateType.SetNullabilityForReferenceTypes(transform));
+        }
+
+        private FunctionTypeSymbol WithDelegateType(NamedTypeSymbol delegateType)
+        {
+            return (object)_delegateType == delegateType ?
+                this :
+                new FunctionTypeSymbol(delegateType);
         }
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => throw ExceptionUtilities.Unreachable;
