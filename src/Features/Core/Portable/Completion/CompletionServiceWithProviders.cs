@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            // We don't need SemanticModel here, just want keep an reference so it won't get GC'd before CompletionProviders are able to get it.
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -372,6 +372,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var (augmentingCompletionContexts, expandItemsAvailableFromAugmentingProviders) = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options, defaultItemSpan,
                 augmentingProviders, cancellationToken).ConfigureAwait(false);
+
+            GC.KeepAlive(semanticModel);
 
             var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
             Debug.Assert(allContexts.Length > 0);
@@ -550,11 +552,11 @@ namespace Microsoft.CodeAnalysis.Completion
             if (provider is null)
                 return CompletionDescription.Empty;
 
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-            // We don't need SemanticModel here, just want keep an reference so it won't get GC'd before CompletionProviders are able to get it.
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-            return await provider.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var description = await provider.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            GC.KeepAlive(semanticModel);
+            return description;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
@@ -593,11 +595,11 @@ namespace Microsoft.CodeAnalysis.Completion
             var provider = GetProvider(item);
             if (provider != null)
             {
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-                // We don't need SemanticModel here, just want keep an reference so it won't get GC'd before CompletionProviders are able to get it.
+                // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
                 (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-                return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                var change = await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                GC.KeepAlive(semanticModel);
+                return change;
             }
             else
             {
