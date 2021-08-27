@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            public async Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
 
@@ -304,8 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var workspace = _excerptResult.Document.Project.Solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                await this.Presenter.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                documentNavigationService.TryNavigateToSpan(
+                return documentNavigationService.TryNavigateToSpanAsync(
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
