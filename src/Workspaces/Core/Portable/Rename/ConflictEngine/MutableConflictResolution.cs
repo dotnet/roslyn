@@ -126,6 +126,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var versionNumber = 1;
                     while (File.Exists(newDocumentFilePath))
                     {
+                        if (newName.Equals(document.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // If the document name is the same as the original, we know 
+                            // it can be renamed to that because the old file on disk will
+                            // be removed.
+                            return;
+                        }
+
                         var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
                         newName = Path.ChangeExtension(nameWithoutExtension, extension);
                         newDocumentFilePath = Path.Combine(directory, newName);
