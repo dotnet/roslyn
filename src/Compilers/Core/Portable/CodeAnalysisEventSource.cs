@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly CodeAnalysisEventSource Log = new CodeAnalysisEventSource();
 
-        public class Keywords
+        public static class Keywords
         {
             public const EventKeywords Performance = (EventKeywords)1;
         }
 
-        public class Tasks
+        public static class Tasks
         {
             public const EventTask GeneratorDriverRunTime = (EventTask)1;
             public const EventTask SingleGeneratorRunTime = (EventTask)2;

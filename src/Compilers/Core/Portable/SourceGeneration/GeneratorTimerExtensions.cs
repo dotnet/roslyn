@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
             return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance));
         }
 
-        internal struct RunTimer : IDisposable
+        internal readonly struct RunTimer : IDisposable
         {
             private readonly SharedStopwatch _timer;
             private readonly Action<TimeSpan> _callback;
