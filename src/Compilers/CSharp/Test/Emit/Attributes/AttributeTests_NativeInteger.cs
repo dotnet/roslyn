@@ -1158,6 +1158,70 @@ class Program
         }
 
         [Fact]
+        public void EmitAttribute_Lambda_MissingAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        private NativeIntegerAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        var a1 = (nint n) => { };
+        a1(1);
+        var a2 = nuint[] () => null;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         var a1 = (nint n) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(5, 19),
+                // (7,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         var a2 = nuint[] () => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_MissingAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        private NativeIntegerAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        void L1(nint n) { };
+        L1(1);
+        nuint[] L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         void L1(nint n) { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(5, 17),
+                // (7,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         nuint[] L2() => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void EmitAttribute_LocalFunctionConstraints()
         {
             var source =
