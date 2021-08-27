@@ -61,10 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // we can't calculate edits, so we must return all semantic tokens instead.
             var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
-
-            // If we only have partial results, we'll return partial tokens instead of edits. This case shouldn't
-            // happen very often (likely only on startup) and avoids us needing to create a custom edit type.
-            if (oldSemanticTokensData == null || isPartial)
+            if (oldSemanticTokensData == null)
             {
                 var newResultId = _tokensCache.GetNextResultId();
                 var updatedTokens = new RoslynSemanticTokens
@@ -80,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
                 }
 
-                return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
+                return updatedTokens;
             }
 
             var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
@@ -98,10 +95,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 }
             }
 
-            var edits = new SemanticTokensDelta
+            var edits = new RoslynSemanticTokensDelta
             {
                 Edits = editArray,
-                ResultId = resultId
+                ResultId = resultId,
+                IsPartial = isPartial
             };
 
             return edits;

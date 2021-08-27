@@ -9,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    internal class RoslynSemanticTokens : LSP.SemanticTokens
+    internal sealed class RoslynSemanticTokens : LSP.SemanticTokens
     {
         /// <summary>
         /// True if the token set may be incomplete.
