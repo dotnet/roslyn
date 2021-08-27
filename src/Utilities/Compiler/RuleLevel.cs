@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="DiagnosticSeverity.Error"/>.
         /// </summary>
         /// <remarks>
-        /// Since analyzers cannot directly influence output binaries, this value is only valid in the implementation of
-        /// source generators.
+        /// Since analyzers cannot directly influence output binaries, this value is typically only valid in the
+        /// implementation of source generators. Rare exceptions may occur at the request of a director in coordination
+        /// with the core compiler team.
         /// </remarks>
         BuildError = 1,
 
