@@ -35,7 +35,7 @@ static class Program
 
     static<%= If(containerHasAsyncModifier, " async", "") %> Task Main(Task parameter)
     {
-        var local = Task.CompletedTask;
+        Task local = Task.CompletedTask;
         var c = new C();
 
         <%= testExpression %>
@@ -542,6 +542,9 @@ public class C
         <InlineData(' parameters, locals and local function
             "parameter.$$",
             "await parameter")>
+        <InlineData(
+            "local.$$",
+            "await local")>
         <InlineData(
             "LocalFunction().$$",
             "await LocalFunction()")>

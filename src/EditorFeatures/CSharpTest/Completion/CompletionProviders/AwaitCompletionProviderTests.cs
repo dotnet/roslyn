@@ -436,7 +436,7 @@ static class Program
         [InlineData("StaticMethod().$$")]
 
         // parameters, locals and local function
-        //[InlineData("local.$$")] Fails, because of binding problems. TestDotAwaitSuggestBeforeLocalFunction added for this particular problem.
+        [InlineData("local.$$")]
         [InlineData("parameter.$$")]
         [InlineData("LocalFunction().$$")]
 
@@ -486,7 +486,7 @@ static class Program
 
     static async Task Main(Task parameter)
     {{
-        var local = Task.CompletedTask;
+        Task local = Task.CompletedTask;
         var c = new C();
 
         {expression}
@@ -500,8 +500,11 @@ static class Program
         public async Task TestDotAwaitSuggestBeforeLocalFunction()
         {
             // Speculative binding a local as expression finds the local as ILocalSymbol, but the type is ErrorType.
-            // This is only the case if await is partially written (local.a) and only for locals (e.g. IParameterSymbols are fine).
-            // This is bad, because we expect users to write "af" to complete await local.ConfigureAwait(false)
+            // This is only the case when
+            // * await is partially written (local.a),
+            // * only for locals (e.g. IParameterSymbols are fine) which
+            //   * are declared with var
+            //   * The return type of the local function is used as first name in a MemberAccess in the declarator
             await VerifyKeywordAsync(@"
 using System.Threading.Tasks;
 
